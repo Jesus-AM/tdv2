@@ -1,0 +1,170 @@
+{
+  "utc": "2026-10-01T05:01:08.5691876+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via real PostgreSQL views and read-only role",
+  "passed": 32,
+  "failed": 0,
+  "results": [
+    {
+      "name": "OAuth: tenant institucional, state, PKCE y cookie segura",
+      "passed": true,
+      "milliseconds": 491
+    },
+    {
+      "name": "OAuth: tenant common es rechazado antes de crear intento",
+      "passed": true,
+      "milliseconds": 259
+    },
+    {
+      "name": "OAuth: state ajeno no consume intento leg\u00EDtimo",
+      "passed": true,
+      "milliseconds": 818
+    },
+    {
+      "name": "OAuth: callback sin cookie de navegador no autentica",
+      "passed": true,
+      "milliseconds": 202
+    },
+    {
+      "name": "OAuth: caducidad y error del proveedor no canjean c\u00F3digo",
+      "passed": true,
+      "milliseconds": 423
+    },
+    {
+      "name": "OAuth: callback concurrente se consume una sola vez en PostgreSQL",
+      "passed": true,
+      "milliseconds": 363
+    },
+    {
+      "name": "Microsoft simulado \u002B Nexo SQL: identidad, tokens cifrados y sesi\u00F3n revocable",
+      "passed": true,
+      "milliseconds": 1056
+    },
+    {
+      "name": "Nexo: usuario sin aplicaci\u00F3n no crea identidad ni tokens locales",
+      "passed": true,
+      "milliseconds": 463
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n no publicada y conexi\u00F3n ambigua deniegan",
+      "passed": true,
+      "milliseconds": 566
+    },
+    {
+      "name": "Nexo: clave, nivel e ID publicados deben ser v\u00E1lidos",
+      "passed": true,
+      "milliseconds": 705
+    },
+    {
+      "name": "Nexo: cuenta no individual o sin roles denegada",
+      "passed": true,
+      "milliseconds": 703
+    },
+    {
+      "name": "Microsoft: correo externo y object ID inv\u00E1lido no autentican",
+      "passed": true,
+      "milliseconds": 536
+    },
+    {
+      "name": "Microsoft: mismo correo no permite sustituir object ID local",
+      "passed": true,
+      "milliseconds": 1053
+    },
+    {
+      "name": "Sesi\u00F3n activa no se sustituye por otro callback",
+      "passed": true,
+      "milliseconds": 678
+    },
+    {
+      "name": "Logout: CSRF, Nexo ca\u00EDdo, revocaci\u00F3n de cookie copiada y salida Microsoft",
+      "passed": true,
+      "milliseconds": 670
+    },
+    {
+      "name": "CSRF previo a login no autoriza guardados de nueva identidad",
+      "passed": true,
+      "milliseconds": 861
+    },
+    {
+      "name": "M\u00F3dulo y ruta se exigen en HTML y JSON aunque React env\u00EDe rol/UR",
+      "passed": true,
+      "milliseconds": 1128
+    },
+    {
+      "name": "Configuraci\u00F3n y jerarqu\u00EDa Nexo: padre, permiso y ruta exactos",
+      "passed": true,
+      "milliseconds": 1726
+    },
+    {
+      "name": "Nexo: permisos se revocan al siguiente request sin cierre de sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 885
+    },
+    {
+      "name": "UR ajena y subordinada de consulta rechazan escritura",
+      "passed": true,
+      "milliseconds": 1462
+    },
+    {
+      "name": "Administrador con rol responsable conserva l\u00EDmite de edici\u00F3n de su rama",
+      "passed": true,
+      "milliseconds": 1939
+    },
+    {
+      "name": "Colaboraci\u00F3n exige v\u00EDnculo local y concesi\u00F3n SQL vigente; revocaci\u00F3n inmediata",
+      "passed": true,
+      "milliseconds": 2301
+    },
+    {
+      "name": "Nexo ca\u00EDdo deniega lecturas y guardados sin filtrar error SQL",
+      "passed": true,
+      "milliseconds": 1517
+    },
+    {
+      "name": "PostgreSQL: lectura no crea filas y guardado conserva respuestas can\u00F3nicas",
+      "passed": true,
+      "milliseconds": 1443
+    },
+    {
+      "name": "PostgreSQL: dos primeros guardados concurrentes crean una fila y un 409",
+      "passed": true,
+      "milliseconds": 1015
+    },
+    {
+      "name": "PostgreSQL: dos editores con misma versi\u00F3n no sobrescriben respuestas",
+      "passed": true,
+      "milliseconds": 1436
+    },
+    {
+      "name": "PostgreSQL: error transaccional conserva versi\u00F3n/respuesta y permite reintento",
+      "passed": true,
+      "milliseconds": 1762
+    },
+    {
+      "name": "PostgreSQL: payload inv\u00E1lido o contexto obsoleto no modifica filas",
+      "passed": true,
+      "milliseconds": 1153
+    },
+    {
+      "name": "Sesi\u00F3n PostgreSQL: expiraci\u00F3n y cambio de identidad local invalidan acceso",
+      "passed": true,
+      "milliseconds": 833
+    },
+    {
+      "name": "Graph: refresco concurrente una vez, rotaci\u00F3n cifrada y foto fallida sin logout",
+      "passed": true,
+      "milliseconds": 1512
+    },
+    {
+      "name": "Graph: sin rotaci\u00F3n conserva refresh anterior; error no cambia token",
+      "passed": true,
+      "milliseconds": 991
+    },
+    {
+      "name": "React \u2192 ASP.NET \u2192 PostgreSQL / Edge",
+      "passed": true
+    }
+  ]
+}

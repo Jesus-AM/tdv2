@@ -1,0 +1,13 @@
+.vs/
+**/bin/
+**/obj/
+**/node_modules/
+tdv2/wwwroot/assets/
+tdv2/wwwroot/index.html
+.artifacts/
+**/.runtime/
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/*.csproj.user

@@ -1,0 +1,103 @@
+{
+  "criterios": [
+    "Claridad del procedimiento",
+    "Estandarización de criterios",
+    "Facilidad para el usuario",
+    "Calidad de los datos",
+    "Integración entre sistemas",
+    "Disponibilidad de la información",
+    "Trazabilidad y seguimiento",
+    "Nivel de automatización",
+    "Seguridad y control de accesos"
+  ],
+  "preguntas": [
+    {
+      "tipo": "opcion",
+      "texto": "¿Los procesos del área están documentados (existe un procedimiento escrito)?",
+      "opciones": [
+        "Sí, la mayoría",
+        "Parcialmente",
+        "No o muy pocos"
+      ]
+    },
+    {
+      "tipo": "opcion",
+      "texto": "¿Con qué frecuencia se revisan o actualizan los procesos?",
+      "opciones": [
+        "Periódicamente",
+        "Solo cuando surge un problema",
+        "Casi nunca"
+      ]
+    },
+    {
+      "tipo": "opcion",
+      "texto": "¿Qué tanto depende el proceso del conocimiento de una sola persona?",
+      "opciones": [
+        "Depende mucho de una persona",
+        "Depende de algunas personas",
+        "El conocimiento está compartido"
+      ]
+    },
+    {
+      "tipo": "opcion",
+      "texto": "¿Cómo se realiza principalmente el proceso hoy?",
+      "opciones": [
+        "Con un sistema institucional",
+        "Mezcla de sistema y trabajo manual",
+        "Principalmente manual o en papel"
+      ]
+    },
+    {
+      "tipo": "opcion",
+      "texto": "¿Existen indicadores para medir el desempeño del proceso?",
+      "opciones": [
+        "Sí, se miden",
+        "Algunos, de forma parcial",
+        "No existen"
+      ]
+    },
+    {
+      "tipo": "opcion",
+      "texto": "¿Con qué frecuencia se presentan errores, reprocesos o quejas?",
+      "opciones": [
+        "Con frecuencia",
+        "Ocasionalmente",
+        "Rara vez"
+      ]
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Cuáles son los principales cuellos de botella, demoras o pasos que generan fricción en el proceso?"
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Qué pasos considera innecesarios, repetidos o que podrían eliminarse o simplificarse?"
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Qué datos o información se capturan más de una vez o en distintos sistemas?"
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Qué parte del proceso sería prioritario automatizar o digitalizar y por qué?"
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Qué mejora tendría el mayor impacto para el usuario que se atiende?"
+    },
+    {
+      "tipo": "abierta",
+      "texto": "¿Qué riesgos o puntos de control hacen falta en el proceso actual?"
+    }
+  ],
+  "medios": [
+    "SIIv2",
+    "Otro sistema institucional",
+    "Hojas de cálculo",
+    "Formularios electrónicos",
+    "Correo electrónico",
+    "Documentos impresos",
+    "Base de datos local",
+    "Plataforma externa"
+  ]
+}

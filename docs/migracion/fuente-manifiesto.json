@@ -1,0 +1,618 @@
+[
+    {
+        "path":  "app/Console/Commands/CheckNexo.php",
+        "sha256":  "743304f4f368f219842b41543b8047a5d352374b89ef4541d8463c60b32ca91a"
+    },
+    {
+        "path":  "app/Console/Commands/ComprobarIlda.php",
+        "sha256":  "375b94326341714353a3270ace1c78a1569dc10e6c0b1d853c40bbefd2126819"
+    },
+    {
+        "path":  "app/Console/Commands/ProcessSyncs.php",
+        "sha256":  "416f46950540cbbe91e4d72cd63977878167c1060c5057c0ed36fea94894d4a0"
+    },
+    {
+        "path":  "app/Console/Commands/SyncIlda.php",
+        "sha256":  "1030c44d27be2348f2eb54cec041206f28b4d944aad88923f192224a4959ab3c"
+    },
+    {
+        "path":  "app/Console/Commands/SyncTDV2Institutional.php",
+        "sha256":  "42581ee9539198a377f3367567f72c04178bba7a61d70fb1cf179095f26fe7b6"
+    },
+    {
+        "path":  "app/Exceptions/AccessDenied.php",
+        "sha256":  "557d70c24a05355b5d42fa0d6ccb96871a0cb560971ffc209238e37e8f6fd302"
+    },
+    {
+        "path":  "app/Exceptions/NexoUnavailable.php",
+        "sha256":  "605dc41c343c920a9c2ed22fdf185434bf7550e45ef99b0135bfed2df01d9800"
+    },
+    {
+        "path":  "app/Http/Controllers/Auth/AuthController.php",
+        "sha256":  "d9bf93bbbbe5841a8a4c7c7ad0714e689095f60cbd17821fa970cf5cf1ab7960"
+    },
+    {
+        "path":  "app/Http/Controllers/Controller.php",
+        "sha256":  "663e9f40be59adb09c7acd871da814b78216e79120f10375da0a31a6cef968eb"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/CollaboratorController.php",
+        "sha256":  "6cf779be670bc070651a01d8e27da49b9248b067cb02fd124ef039a2e239fab5"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/ConfigurationController.php",
+        "sha256":  "b046e64a4a1c0313df0a92352795a7cfcfd380dd3e3d52d1bcb85cfc8d5ed175"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/FormController.php",
+        "sha256":  "8419ca2fc038508c3bacc895eb057129ef3c3ac5e235c794fc602b44996a6b80"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/PreviewController.php",
+        "sha256":  "d7fe852262ef99e635819ba04105ce072a26a1b9424e8499a395ef74a10f0a86"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/RepresentationController.php",
+        "sha256":  "986dcacdd55a9fb514dae91a2748e446c628687de8347dc6eae9812c5a8384aa"
+    },
+    {
+        "path":  "app/Http/Controllers/TDV2/SyncController.php",
+        "sha256":  "88016deb81ce2f7dd66a18e377c17228c6d24f18f499b6e9bc131e0170f50293"
+    },
+    {
+        "path":  "app/Http/Controllers/UserPhotoController.php",
+        "sha256":  "92126f45ed595c66d95fbfd14c708af6cf2052c153864cdecd1bc315f9b5f727"
+    },
+    {
+        "path":  "app/Http/Middleware/ApplyPreview.php",
+        "sha256":  "cc17a508b0c945b0f3d7574bd78d458eaa9d1947a10ea4708ec58565a2048b50"
+    },
+    {
+        "path":  "app/Http/Middleware/ApplyRepresentation.php",
+        "sha256":  "0e5d1c4446b7434173be3a2a9e81e23f25726f9b6d79f361414e895e491aacc5"
+    },
+    {
+        "path":  "app/Http/Middleware/CheckModuleAccess.php",
+        "sha256":  "f84f0fae72ed8286fde1f7ad25b0e513c1d0d4688b30a16455891c6fa4fb8536"
+    },
+    {
+        "path":  "app/Http/Middleware/HandleInertiaRequests.php",
+        "sha256":  "7f4d13de5eaa95e0bc4357d2498aee3c24eb9886f185c39e942384ba38574849"
+    },
+    {
+        "path":  "app/Http/Middleware/MsGraphAuthenticated.php",
+        "sha256":  "f9857851eb0a9edff2b624f2f9f9a011ba2545b56742dabb6cea3508a283bf09"
+    },
+    {
+        "path":  "app/Http/Middleware/RequireConfiguration.php",
+        "sha256":  "b6c76669c7723d99390df35bbb95d97b65e018a8a8e8df50842356ca720c339c"
+    },
+    {
+        "path":  "app/Http/Middleware/SecurityHeaders.php",
+        "sha256":  "755ff4260742ee2c6a47ca0c6a5c7ee136ac0941230054e99cfb30a21101ca37"
+    },
+    {
+        "path":  "app/Listeners/NewMicrosoft365SignInListener.php",
+        "sha256":  "227c3f784d8447689dd889bc4de7e68caa3416587b8d90b07f36ecf163083bbf"
+    },
+    {
+        "path":  "app/Models/ActivityLog.php",
+        "sha256":  "6727cd24b31925b40122b8a500b1c5249170f7d949fefbf0863afac474c3aac3"
+    },
+    {
+        "path":  "app/Models/MsGraphToken.php",
+        "sha256":  "0c875e7ef30e93e0f15cbb69dd0ee91643c4a1fd1601558ebaf9de9ba06c8d7f"
+    },
+    {
+        "path":  "app/Models/User.php",
+        "sha256":  "1dca1344e88308fe405ae050f02bd65081a649de65ec86f2ee2beabbb4706afa"
+    },
+    {
+        "path":  "app/Providers/AppServiceProvider.php",
+        "sha256":  "3f507e26e4c3b4488837555d1df97f6fa235ec3a57e0ffa9c79c80e1c0f175ce"
+    },
+    {
+        "path":  "app/Services/CentralMsGraph.php",
+        "sha256":  "830284eac4e1425fc7981b3bd860a32a4a99827ef1305bdae0eb7e7a3f85c73d"
+    },
+    {
+        "path":  "app/Services/GraphTokenService.php",
+        "sha256":  "69d8211258029a776a04110038ffb1125c7217b698d59759a2e7588b2aa38516"
+    },
+    {
+        "path":  "app/Services/InstitutionalSource.php",
+        "sha256":  "d98e07e8741db0fceb8de05ccd2eff3dd806d2a93a12b7674276c19144309be9"
+    },
+    {
+        "path":  "app/Services/NexoAccessService.php",
+        "sha256":  "4ae29e441198d101b06aebb6395bc1a610df3d25077a897cacc278631c81d286"
+    },
+    {
+        "path":  "app/Services/TDV2/FormAccess.php",
+        "sha256":  "d44380747c354259155378d48e984ee413402839cc32950c12d85caa0e22b575"
+    },
+    {
+        "path":  "app/Services/TDV2/FormSchema.php",
+        "sha256":  "e215970778d475d13185bf0446d630abfb89a9cc39849ae556d5fe42137d5198"
+    },
+    {
+        "path":  "app/Services/TDV2/IldaInventory.php",
+        "sha256":  "15dd68a9f8bbc8d7689a0dea909805fb19318cee9a3f0cf9bdf983f17d24649a"
+    },
+    {
+        "path":  "app/Services/TDV2/IldaSource.php",
+        "sha256":  "9dac297925a8f22ef80a24b16f1d759521be77834db423c3e044debd027fd2b3"
+    },
+    {
+        "path":  "app/Services/TDV2/IldaSync.php",
+        "sha256":  "0398f34370d0b98c9910b6f92c085105b394590821605f2ccc50ad51f17953c9"
+    },
+    {
+        "path":  "app/Services/TDV2/InstitutionalSync.php",
+        "sha256":  "e69c4548edd2215a7acbbdcb38197543adf455de58683ae04d1f74f05b750e85"
+    },
+    {
+        "path":  "app/Services/TDV2/NexoDelegation.php",
+        "sha256":  "a6a21c7ccb113aae63865442d04450ff76ba5e2dddab133a834d492f3731a606"
+    },
+    {
+        "path":  "app/Services/TDV2/NexoRepresentation.php",
+        "sha256":  "765c28842f21b364a4dd73d9fb25e7ea35a72466179c9799e701a64764c82946"
+    },
+    {
+        "path":  "app/Services/TDV2/PreviewSession.php",
+        "sha256":  "2b4b46078c3a855ee7837e7fab40fcb81c3d1bbd006e07eb27e5ee1bfbe9b103"
+    },
+    {
+        "path":  "app/Services/TDV2/RepresentationAudit.php",
+        "sha256":  "c8cc24b918e7de5acb3d65d3e54978ee655a314b3a850825393b18e216442341"
+    },
+    {
+        "path":  "app/Services/TDV2/SyncLeaseLost.php",
+        "sha256":  "77479a9b5c3de1f98873bfeb67837bbf23eb4e53b301194282c9960a324567c4"
+    },
+    {
+        "path":  "app/Services/TDV2/SyncManager.php",
+        "sha256":  "e01377f19425cb09bad5733eb810090fdb7e5f839c91125c95c9d72d7cc99085"
+    },
+    {
+        "path":  "app/Services/TDV2/SyncProblem.php",
+        "sha256":  "f72342ec61691413e89b83c8432f36592e0a645a1bdbb4af0ba78343739bc042"
+    },
+    {
+        "path":  "app/Services/TDV2/UnitDirectory.php",
+        "sha256":  "d088951f127b5986b097c5358064d919ed6296414e6d5e376071187b06f1354e"
+    },
+    {
+        "path":  "app/Services/TDV2/ViewContext.php",
+        "sha256":  "05caf38e99818c2ed067a1a73fe1f8adcb796897b6127d96deec61dc03cc5976"
+    },
+    {
+        "path":  "app/Support/AccessResponse.php",
+        "sha256":  "43fca7828d2b37be1cc5a83c51472a7c9f8888b0761b2d48110c18c20abda319"
+    },
+    {
+        "path":  "app/Support/AuthenticationActivity.php",
+        "sha256":  "9bc176a381229a3cc14b6989d98338d54a0e00d29aea750768a7153de8042ae7"
+    },
+    {
+        "path":  "app/Support/tdv2_release.json",
+        "sha256":  "0786933d904a25be862025f4e2c312083896f6cb46c9cbbe75dfc4a9428f5eac"
+    },
+    {
+        "path":  "config/app.php",
+        "sha256":  "eefa476d92c2c0364537309e1ae543b9f5b7f65586d457e848a8eb1ba4a2ee86"
+    },
+    {
+        "path":  "config/autenticacion.php",
+        "sha256":  "e20da89e6ce9edcd9c396a450780e59b40120fd65516abc39ef29aa1b36c4b2e"
+    },
+    {
+        "path":  "config/auth.php",
+        "sha256":  "c7e204e9785c9f596d66fb884b493f658f2327f157646bdb4088efd6b3a7773f"
+    },
+    {
+        "path":  "config/cache.php",
+        "sha256":  "aff5a15068835cdbbfb4ce876d34202a221933b086bf7f3f7f309d4a312a20ae"
+    },
+    {
+        "path":  "config/database.php",
+        "sha256":  "77c6ee85116866b14046ee5376d00ebe1013826f1de5375279a7d4292a222b7b"
+    },
+    {
+        "path":  "config/filesystems.php",
+        "sha256":  "ba7060d7a23e490c3ce830656f6d24ad3ccf5b868e3293f2a12e411959dc5635"
+    },
+    {
+        "path":  "config/ilda.php",
+        "sha256":  "811165288f6be79be202dd1eebac416c3f480a1569d1a234420c91533569d8ae"
+    },
+    {
+        "path":  "config/inertia.php",
+        "sha256":  "18e34650ac886f24b1e6e5e49ce7dfd0abc8fbe5f0ee523df40c87f3a44fa76a"
+    },
+    {
+        "path":  "config/institucional.php",
+        "sha256":  "da17a2237775eea3c387850ea77782ff77ecdde19c15ab161dc2f18eb8707f15"
+    },
+    {
+        "path":  "config/institucional_database.php",
+        "sha256":  "e06306984bc5f3ea54b0de4b0fc592e16e5b1b8ecd33edcda727a9421f193cdd"
+    },
+    {
+        "path":  "config/logging.php",
+        "sha256":  "299ec1ba5b5a803c8e20f666ae7628e442e856cc2ff7ac9e2adb17b97e8ad63b"
+    },
+    {
+        "path":  "config/mail.php",
+        "sha256":  "c43ff49a31c5f32ce21eb7159f2a4b3cd2f4074eaed5838d265646dbfedd3474"
+    },
+    {
+        "path":  "config/msgraph.php",
+        "sha256":  "5f95a0855ca841954391fa5b704bd1209cf61876e4d3d28f18a2be8e92e8e307"
+    },
+    {
+        "path":  "config/nexo.php",
+        "sha256":  "511fae0826fa0783aad913fad704b0db3b63a94249d7753c480c8e0b54e640bf"
+    },
+    {
+        "path":  "config/queue.php",
+        "sha256":  "6101774da7c8b79af46d0028f2b8b31a484c3f7eda10b76e5b27b6093ad364a4"
+    },
+    {
+        "path":  "config/services.php",
+        "sha256":  "8258c4487eb1d73a97e569eb0e411e3f25368044812df4cba807860432be1d92"
+    },
+    {
+        "path":  "config/session.php",
+        "sha256":  "272de4fd3ad8b806f5726a34d2a4ad11cbdbd4184fcad17143280ee2a8d4c7d6"
+    },
+    {
+        "path":  "config/tdv2.php",
+        "sha256":  "ab41fe03f86df3c949e41b48c4edfe42e27a9c8b0b353bdb6da64a40efda6fb6"
+    },
+    {
+        "path":  "database/migrations/0001_01_01_000000_create_users_table.php",
+        "sha256":  "10d79883bc08ce46510f9ad8b1830b4d06d586dc56ae2c8bac3b3e491f69a90f"
+    },
+    {
+        "path":  "database/migrations/0001_01_01_000001_create_cache_table.php",
+        "sha256":  "2ca8398390ecef8eaf72aeac7fefce67f7de631b6f2ec7b7081c8db8953215dc"
+    },
+    {
+        "path":  "database/migrations/0001_01_01_000002_create_jobs_table.php",
+        "sha256":  "7c9c712adf4091c87bf2612f4d0dccdfa1df4501553e4ac068b83d7bd5462fa5"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_225913_create_ms_graph_tokens_table.php",
+        "sha256":  "1aa73d1598a0ff1e080b32c7c7f14d093d85edf7bf012f81e00472efac54daf2"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231424_create_roles_table.php",
+        "sha256":  "36e15ac7e2ccdbc4f0f4aa1f4ec47e8e3778d37bdeb8474b24ffd841a168abab"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231501_create_modules_table.php",
+        "sha256":  "69741874df853aaec36bc6d3e2dec230a9ca8878c36b148487f7135dd4951d0c"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231541_create_module_role_table.php",
+        "sha256":  "158c1a9095744c252797355effc350737a6a2cb6a27dfeb6f87b80d6ebf6245b"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231655_create_catalogo_ur_table.php",
+        "sha256":  "89a438994ed61ae20a6c154f8123f9ae95f43f34a8c8ab1d81e0ca3584107608"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231732_create_catalogo_table.php",
+        "sha256":  "2cb0af07b4e3a27d2a5509a02da6537bae9c23b505a513742cada59c4a62c1a7"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231842_create_ms_graph_tokens_table.php",
+        "sha256":  "2f94e52d2d942797cd3db4577a422d386a7f5b4afbc91c8279a629285116b791"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_231905_create_components_table.php",
+        "sha256":  "a08d36696870ebf9207518c1b53f381e5554db167c1a184c65b5ec89b02e4d5d"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_232043_create_activity_logs_table.php",
+        "sha256":  "fdcd78bb5a4336485e9f18eefee794f9fe044ae2216988a2ee31927dd589b61f"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_232109_create_codigospostales_table.php",
+        "sha256":  "f2bf5d7be3d969ed002fbf65a9af3123cceb6a347cafd32443786d565c70df6f"
+    },
+    {
+        "path":  "database/migrations/2026_04_15_232136_create_pide_estructura_table.php",
+        "sha256":  "6e614275ee8a4eb9e181f92db29e8f93ff95e733861f91939e58baec39abf6c6"
+    },
+    {
+        "path":  "database/migrations/2026_09_24_000001_secure_microsoft_identity.php",
+        "sha256":  "b479efd7ffbcc9d39e7d0b274174b03980d567ebb7b1b78792e42d54d18143f7"
+    },
+    {
+        "path":  "database/migrations/2026_09_25_000001_create_tdv2_ur_forms.php",
+        "sha256":  "8413bcee73482bc4a515f243ff2b7325acae71895350d4188c4565fe48196eed"
+    },
+    {
+        "path":  "database/migrations/2026_09_30_000001_create_sync_management.php",
+        "sha256":  "47a1b7ddb6834534ff53c9c8a9b6d97ebc5d50207cfadd1a336c9369561d0055"
+    },
+    {
+        "path":  "database/plantillas/procesos_operativos.json",
+        "sha256":  "6cd0eeb6cffc2ab78e9410d5e5fcf8a86ee2d507871b22dd0349ed2ed5dbdc6f"
+    },
+    {
+        "path":  "resources/css/app.css",
+        "sha256":  "7c11db4eca4504ced6bca435eb72eab82413d6edd55ac0362c4613bf44f70492"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/Auth/AuthController.ts",
+        "sha256":  "6b1cbac565de10812a0cabdbce167b164e3779bd7f0ca03bd40700061b6c81e3"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/Auth/index.ts",
+        "sha256":  "1837137de920ec8334e078e426a04ad4fe918f781455d656294b93772670cc33"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/index.ts",
+        "sha256":  "0da16e46678d5f7c4022be698721cf7aab741e0c782e0a02aa7cfc4351282d55"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/TDV2/CollaboratorController.ts",
+        "sha256":  "5b82759b1c58ee7da8b4cd6ac735c49f3bad429e3a716f68b9bd9614ef0c8825"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/TDV2/FormController.ts",
+        "sha256":  "84cfd785c1d3bf9899a3dfcdbb19c9d03fa090824897e367fc6bbea719768328"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/TDV2/index.ts",
+        "sha256":  "0ff66f49a48ac07cd88f57fbbad6ff197808c367c6ab3ae7bbcf9b5ae98d8b38"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/Controllers/UserPhotoController.ts",
+        "sha256":  "971246acd3b26473705c8ed08b63cd0783de9c6b258289d4f4a777dd316c2775"
+    },
+    {
+        "path":  "resources/js/actions/App/Http/index.ts",
+        "sha256":  "0b55b9d20a4a7464c270c1eb7c9c7340520835951956fd2bf5c2f5970696a372"
+    },
+    {
+        "path":  "resources/js/actions/App/index.ts",
+        "sha256":  "c6d561133623313382aad0840150305e7b69b6de1cf7fc13cf8d37f314055fac"
+    },
+    {
+        "path":  "resources/js/actions/Laravel/index.ts",
+        "sha256":  "77e104b06e4552586b39871a545fe562057965fad9b607aa44ff20706730196c"
+    },
+    {
+        "path":  "resources/js/actions/Laravel/Sanctum/Http/Controllers/CsrfCookieController.ts",
+        "sha256":  "1a35ef0fa41f224ff2ad1f5b076b66112827b539b5f6761c9389121371b79241"
+    },
+    {
+        "path":  "resources/js/actions/Laravel/Sanctum/Http/Controllers/index.ts",
+        "sha256":  "5fb8117036c96d0d4272c1d04f322ce91652575acd5a9cd5874cb00560c9ce9d"
+    },
+    {
+        "path":  "resources/js/actions/Laravel/Sanctum/Http/index.ts",
+        "sha256":  "0b55b9d20a4a7464c270c1eb7c9c7340520835951956fd2bf5c2f5970696a372"
+    },
+    {
+        "path":  "resources/js/actions/Laravel/Sanctum/index.ts",
+        "sha256":  "2d05887baaa899a60960c4e64cd147e37be4790fd0c9c8f5cf98416d20664209"
+    },
+    {
+        "path":  "resources/js/app.tsx",
+        "sha256":  "086f64fbf72bfac6470e12f29f1df2e30d240d7e29c58e7399411f328efd8b3b"
+    },
+    {
+        "path":  "resources/js/Components/AreaDirectory.tsx",
+        "sha256":  "4e2d67cfb1f77b8dc95f7a1e3c7ce5aa6d4cb3bdd1815d1d9e2b4eb8c50b0838"
+    },
+    {
+        "path":  "resources/js/Components/PageHeading.tsx",
+        "sha256":  "d9e4ebd2421d2898b767ceeb20de8d84c5e00d16bb021d9e297850981c40d26c"
+    },
+    {
+        "path":  "resources/js/Layouts/AuthenticatedLayout.tsx",
+        "sha256":  "fcbb482518598fd463770258ce96f0e85e79b72d66d062e13e827987ada8602b"
+    },
+    {
+        "path":  "resources/js/lib/area-directory.ts",
+        "sha256":  "4c14b582d980498f5e37f61206a878f26750b8da3eec8a7e43b392d3896b62f0"
+    },
+    {
+        "path":  "resources/js/lib/form-editor.ts",
+        "sha256":  "fd9855db9e2ab1a848dca0fe1f39ec6b2ff99e28f0a56995c62cffb4a5235686"
+    },
+    {
+        "path":  "resources/js/lib/http.ts",
+        "sha256":  "2ce1a1c0408e3392f387152791d6e19d8dc019fc1da5b35160ef176078faf20c"
+    },
+    {
+        "path":  "resources/js/pages/AccesoRestringido.tsx",
+        "sha256":  "341dfb21ad857dd934cafeda2821d32fb3917b3ef1a6875bfb080acb429c927c"
+    },
+    {
+        "path":  "resources/js/pages/ActuarComoUsuario.tsx",
+        "sha256":  "ebcb6a11e296d59a10f4d38bc6773f3df84bc64e29337511a21f614e33e00ac5"
+    },
+    {
+        "path":  "resources/js/pages/Colaboradores.tsx",
+        "sha256":  "2fbadce1049339bffad5b049e646f87b03cd7fcf2ea3fdd362edf2f103d8f82c"
+    },
+    {
+        "path":  "resources/js/pages/Configuracion.tsx",
+        "sha256":  "e0fc6cb2d59a0f052f3766ac965f088f6e2f42400852b7ad5f5680bd2b03b5c4"
+    },
+    {
+        "path":  "resources/js/pages/FormatoUR.tsx",
+        "sha256":  "b254b5c5264628e71b3a4ac6fa79780c76c83b11b618241cdb793f323676f2a0"
+    },
+    {
+        "path":  "resources/js/pages/Inicio.tsx",
+        "sha256":  "5288baa346c88989efb1271ffd2d326ca1fda17e0595215172a0c23ffeea49d3"
+    },
+    {
+        "path":  "resources/js/pages/PruebasAcceso.tsx",
+        "sha256":  "1e4283559ba6a978d7fc69c013ee3b9a29c220fd63dd0f2770d841efb6b31e52"
+    },
+    {
+        "path":  "resources/js/pages/Sincronizaciones.tsx",
+        "sha256":  "8eba41666875e7a0a88f852e186b5e62207f92a37f1b2df6ddde6c87deb08827"
+    },
+    {
+        "path":  "resources/js/pages/VistaPrueba.tsx",
+        "sha256":  "a4c14ad27d1ae312f44c3dfc439414236883ef31ae0344a4a3eaed0a4905fdfd"
+    },
+    {
+        "path":  "resources/js/routes/acceso/index.ts",
+        "sha256":  "3fc7506899e945d655c3e9c2f9a6e43c54e4382260198a90a9aad06dcdab5632"
+    },
+    {
+        "path":  "resources/js/routes/colaboradores/index.ts",
+        "sha256":  "d3eff023426cddd35f177f93af589117780cc40bb3b6c234f55b3557f90872c5"
+    },
+    {
+        "path":  "resources/js/routes/formatos/index.ts",
+        "sha256":  "8ef4480e4286695ec84e2dbe2d6cd565e82a117c6b09c9ca618c0b6dc7650a8b"
+    },
+    {
+        "path":  "resources/js/routes/index.ts",
+        "sha256":  "07e0f8ff6aeeec2c329cd350fb1664a038e1e6d0eb32591550c56e8f5608547d"
+    },
+    {
+        "path":  "resources/js/routes/sanctum/index.ts",
+        "sha256":  "d978dd9afc109276d76332c82d157cefa2f2ef6ebdfea0e079b6f6228e287fbf"
+    },
+    {
+        "path":  "resources/js/routes/storage/index.ts",
+        "sha256":  "1d45f745879fa7ee2de5fb19ea5dfd7f2db9751193b713df537975076a000ad2"
+    },
+    {
+        "path":  "resources/js/routes/storage/local/index.ts",
+        "sha256":  "f9de215ee854b5edc57cec4b5faaba4134f964cc9444f88ce23c5ff3373855a3"
+    },
+    {
+        "path":  "resources/js/routes/user/index.ts",
+        "sha256":  "620cd5cb75aee45d0ebb341a54c174aa86a90676a47458f29b44a500dc5c0b48"
+    },
+    {
+        "path":  "resources/js/theme.ts",
+        "sha256":  "c446aabe608a7b80e3881a22c1911013120cc269e5081ee0f4b0c36ffe7e237b"
+    },
+    {
+        "path":  "resources/js/types/auth.ts",
+        "sha256":  "c2c00c380befdb96e047cd5711d89d902f47835aafd0093b839eab8c442bfd4e"
+    },
+    {
+        "path":  "resources/js/types/global.d.ts",
+        "sha256":  "0750ba1bbb80ed00c6bd708cff187243b66e47abd3ad77cccd09735253cace04"
+    },
+    {
+        "path":  "resources/js/types/tdv2.ts",
+        "sha256":  "e282f138418e354c645a191b7c01d76dc83650a92b03457cf04d0a6d2a46ba5d"
+    },
+    {
+        "path":  "resources/js/wayfinder/index.ts",
+        "sha256":  "d6a76396cbd81a8f47d78013edd066ec449d20ad38ddce8471d08480bc53f0d3"
+    },
+    {
+        "path":  "resources/views/app.blade.php",
+        "sha256":  "c750110b058b0d8014bb48a01bf6118530dbc06041ae741277025e755d1d659b"
+    },
+    {
+        "path":  "resources/views/Auth/login.blade.php",
+        "sha256":  "eeb64d1ea2d978960f82a39ab7c316b5c5761d91680925b4a7cd4f5b1b0d09f4"
+    },
+    {
+        "path":  "routes/console.php",
+        "sha256":  "ad00d6d5cc1953dc9cb40f5df1cab1b3ed7cacc0c7003dc641f9c9a33b0c32ec"
+    },
+    {
+        "path":  "routes/web.php",
+        "sha256":  "aed187518fda418db211c6c72a38f048e8a25f462a53e0386e5295dd270a9b0e"
+    },
+    {
+        "path":  "tests/Feature/AdministratorAccessTest.php",
+        "sha256":  "21d846a2f0edc91c1fc5b7682cb1913f2c6f8561cfb0cc4ba01094bc19bd8433"
+    },
+    {
+        "path":  "tests/Feature/CollaboratorTest.php",
+        "sha256":  "41911ff2f949b62928924799d9cfaaac3ac01ffb9432d46780c6187f4fd7cee0"
+    },
+    {
+        "path":  "tests/Feature/ConfigurationSyncTest.php",
+        "sha256":  "a23fed8fcf02af0e416f085a9fe7ca77666e765cf1bc242a64cecb2e34bc2c07"
+    },
+    {
+        "path":  "tests/Feature/ExampleTest.php",
+        "sha256":  "32d42712106438f85e18fda9c7d8f4644de146b9c04a22375d6bf1ae7792176c"
+    },
+    {
+        "path":  "tests/Feature/GraphTokenTest.php",
+        "sha256":  "c4142fa02b29ef69773ca465676505fd393c20f9ae09e47c55f6aa6124e33155"
+    },
+    {
+        "path":  "tests/Feature/IldaInventoryTest.php",
+        "sha256":  "3836dc49e4f725069ec8bc4efc521d990182bf8d69ec766a4c1044c6fcbf0c8f"
+    },
+    {
+        "path":  "tests/Feature/InstitutionalSyncTest.php",
+        "sha256":  "42086d6f10b2285aac728f575782b982abc871752dfa6e2a420e80d2415c67a3"
+    },
+    {
+        "path":  "tests/Feature/MicrosoftAuthenticationTest.php",
+        "sha256":  "9deeaa53202133b662a20b97f15224ee9dd6587ea432af17057e3f914f543af1"
+    },
+    {
+        "path":  "tests/Feature/NexoAccessTest.php",
+        "sha256":  "c02f4deb931c12d92ad0b77f9392cf895082b23206e75d1f38b7059e7c5b3c3a"
+    },
+    {
+        "path":  "tests/Feature/NexoIdentityTest.php",
+        "sha256":  "2dac18a3ac06e1743f012a858057161d42e298e84e79d8601aa6dfa92f264bd0"
+    },
+    {
+        "path":  "tests/Feature/PreviewTest.php",
+        "sha256":  "44239fd2003d4c98527b246273667396050deb7fa28e57638a947f585dc86a8b"
+    },
+    {
+        "path":  "tests/Feature/RepresentationTest.php",
+        "sha256":  "8488327d005e6c1c324dd9f9ad47d24ec28a8d4ecc2b1ced9d5aae0c4512fc17"
+    },
+    {
+        "path":  "tests/Feature/UnitFormAccessTest.php",
+        "sha256":  "14811e909323ef66c36e74efba0d544abdab2887f5779e5eee63ece103e3a6b0"
+    },
+    {
+        "path":  "tests/frontend/area-directory.test.mjs",
+        "sha256":  "72230be711321a36ebd82406fca8c1e0425c39e202b368f94dc6941c3184ae42"
+    },
+    {
+        "path":  "tests/frontend/form-autosave.test.mjs",
+        "sha256":  "29cc396dca48245350a656f3d4094c5ff56ca56c30f8cd5a8aeef2dc08cf47c7"
+    },
+    {
+        "path":  "tests/Support/InteractsWithNexo.php",
+        "sha256":  "0ff1f51e6a13c8417b67751d1ea7a67999d88974df37e0edcc396726b882cc3f"
+    },
+    {
+        "path":  "tests/Support/InteractsWithUnits.php",
+        "sha256":  "8c2e87fe70b52246c56c12cc8ae424b5264a53a8a193e51127049cbc3a05d7bd"
+    },
+    {
+        "path":  "tests/TestCase.php",
+        "sha256":  "c7c209f5579c42647c1f7b2a79ac828e8b54ac62a98442045a6e94fa2c0d0ebc"
+    },
+    {
+        "path":  "tests/Unit/InstitutionalSourceTest.php",
+        "sha256":  "0666948cf3180f066357323d322be89c28cc5fa74b2ea3a52f22abee956884d7"
+    },
+    {
+        "path":  "tests/Unit/NexoDelegationContractTest.php",
+        "sha256":  "ddcf4045b4d88984c62174b79a46c66e665cccd5653936c15b0df9478384347f"
+    }
+]

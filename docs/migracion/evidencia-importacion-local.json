@@ -1,0 +1,19 @@
+﻿{
+    "utc":  "2026-10-01T07:56:23.5362359Z",
+    "configured":  [
+                       "Microsoft",
+                       "Nexo",
+                       "Sii",
+                       "Ilda"
+                   ],
+    "encryptedRoundtripVerified":  true,
+    "sourceUnchanged":  true,
+    "localManifestUnchanged":  true,
+    "localCredentialsUnchanged":  true,
+    "localDatabase":  "tdv2_local_validation",
+    "callback":  "https://localhost:7136/connect",
+    "institutionalConnectionsAttempted":  false,
+    "synchronizationsExecuted":  false,
+    "nexoRootCertificateConfigured":  false,
+    "ildaCaConfigured":  false
+}

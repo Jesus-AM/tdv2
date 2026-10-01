@@ -1,0 +1,162 @@
+{
+  "utc": "2026-10-01T07:01:26.371976+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 30,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Sync/reglas: horario Ju\u00E1rez, cambio estacional y zona inv\u00E1lida",
+      "passed": true,
+      "milliseconds": 849
+    },
+    {
+      "name": "Sync/conector simulado: SELECT fijos, READ COMMITTED y valores SII \u00EDntegros",
+      "passed": true,
+      "milliseconds": 262
+    },
+    {
+      "name": "Sync/conector simulado: ILDA completa conserva columnas, nulos, espacios y binarios reversibles",
+      "passed": true,
+      "milliseconds": 789
+    },
+    {
+      "name": "Sync/conector simulado: lectura interrumpida o incompleta jam\u00E1s publica una fracci\u00F3n",
+      "passed": true,
+      "milliseconds": 1049
+    },
+    {
+      "name": "Sync/conector simulado: l\u00EDmites de filas y bytes rechazan sin truncar cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 681
+    },
+    {
+      "name": "Sync/SII: cambios y bajas l\u00F3gicas preservan formato, relaci\u00F3n y respuestas",
+      "passed": true,
+      "milliseconds": 2536
+    },
+    {
+      "name": "Sync/SII: publicaci\u00F3n concurrente exige revalidar alcance antes de guardar",
+      "passed": true,
+      "milliseconds": 1327
+    },
+    {
+      "name": "Sync/SII: responsable por empleado Nexo se revalida tras publicar",
+      "passed": true,
+      "milliseconds": 2380
+    },
+    {
+      "name": "Sync/SII: vac\u00EDo, duplicado, ciclo, ejercicio mixto y reducci\u00F3n conservan copia",
+      "passed": true,
+      "milliseconds": 1718
+    },
+    {
+      "name": "Sync/ILDA: duplicados, ID inv\u00E1lido y reducci\u00F3n conservan r\u00E9plica previa",
+      "passed": true,
+      "milliseconds": 1334
+    },
+    {
+      "name": "Sync/ILDA: r\u00E9plica supera 200 filas y formulario usa igualdad exacta de clave",
+      "passed": true,
+      "milliseconds": 1292
+    },
+    {
+      "name": "Sync/ILDA: abrir formato s\u00F3lo consulta copia local sin tocar fuentes",
+      "passed": true,
+      "milliseconds": 1436
+    },
+    {
+      "name": "Sync/ILDA: cambios y desaparici\u00F3n de origen no sustituyen respuestas guardadas",
+      "passed": true,
+      "milliseconds": 2236
+    },
+    {
+      "name": "Sync/comprobaci\u00F3n: lee y valida sin publicaciones, cola ni auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 383
+    },
+    {
+      "name": "Sync/HTTP: administrador real, m\u00F3dulos padre/ruta y CSRF obligatorios",
+      "passed": true,
+      "milliseconds": 1693
+    },
+    {
+      "name": "Sync/HTTP: representaci\u00F3n y vista bloquean GET y endpoints directos",
+      "passed": true,
+      "milliseconds": 2875
+    },
+    {
+      "name": "Sync/programaci\u00F3n: versi\u00F3n concurrente, validaciones y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1612
+    },
+    {
+      "name": "Sync/cola: 202 persistente, sin descarga HTTP y exclusi\u00F3n de solicitudes",
+      "passed": true,
+      "milliseconds": 1505
+    },
+    {
+      "name": "Sync/autom\u00E1tica: incluye SII, ILDA opcional, intervalos vencidos no se acumulan",
+      "passed": true,
+      "milliseconds": 893
+    },
+    {
+      "name": "Sync/ILDA deshabilitada: valida manual/activa y conserva SII y copia local",
+      "passed": true,
+      "milliseconds": 1367
+    },
+    {
+      "name": "Sync/parcial: conserva \u00E9xito por fuente y nunca publica secretos del error",
+      "passed": true,
+      "milliseconds": 1120
+    },
+    {
+      "name": "Sync/rollback: error SQL revierte toda publicaci\u00F3n y admite reintento",
+      "passed": true,
+      "milliseconds": 1249
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al publicar revierte cat\u00E1logo, metadatos y resultado",
+      "passed": true,
+      "milliseconds": 744
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al configurar o encolar revierte versi\u00F3n y cola",
+      "passed": true,
+      "milliseconds": 1333
+    },
+    {
+      "name": "Sync/comandos: comprobar no escribe y procesar devuelve fallo parcial",
+      "passed": true,
+      "milliseconds": 633
+    },
+    {
+      "name": "Sync/exclusi\u00F3n: dos trabajadores y reserva persistente permiten una descarga",
+      "passed": true,
+      "milliseconds": 586
+    },
+    {
+      "name": "Sync/procesador: latido reciente no renueva ni recupera una reserva vencida",
+      "passed": true,
+      "milliseconds": 458
+    },
+    {
+      "name": "Sync/reserva: trabajador obsoleto no publica ni libera una ejecuci\u00F3n nueva",
+      "passed": true,
+      "milliseconds": 661
+    },
+    {
+      "name": "Sync/reserva: caducidad durante transacci\u00F3n revierte publicaci\u00F3n antes del commit",
+      "passed": true,
+      "milliseconds": 1852
+    },
+    {
+      "name": "Sync/interrupci\u00F3n: proceso terminado conserva parcial y otro proceso recupera reserva",
+      "passed": true,
+      "milliseconds": 1585
+    }
+  ]
+}

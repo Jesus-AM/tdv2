@@ -1,0 +1,39 @@
+﻿{
+    "utc":  "2026-10-01T07:55:56.7386402Z",
+    "synthetic":  true,
+    "networkAccess":  false,
+    "checks":  [
+                   {
+                       "name":  "Literal parsing, escapes, quoted spaces and comments",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Local DB, callback, ID and activation settings excluded",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Connection escaping preserves credentials and TLS flags",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "DPAPI export and import roundtrip",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Reject missing credentials without disclosing values",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Reject incompatible application, table and database contracts",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Reject duplicates, interpolation and malformed quotes",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Reject unknown TLS, boolean and port settings",
+                       "passed":  true
+                   }
+               ]
+}
