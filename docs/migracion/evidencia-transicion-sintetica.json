@@ -1,0 +1,24 @@
+{
+  "utc": "2026-10-01T19:43:22.9762123+00:00",
+  "synthetic": true,
+  "realLaravelDatabaseRead": false,
+  "passed": 16,
+  "checks": [
+    "respaldo y restauraci\u00F3n de base sint\u00E9tica no vac\u00EDa",
+    "destino incorrecto rechazado antes del DDL",
+    "esquema incompatible revierte sin alterar la copia",
+    "clave \u00FAnica ausente impide una conversi\u00F3n incompleta",
+    "reserva vigente impide migrar o liberar trabajo ajeno",
+    "huella detecta cambio y revierte incluso el DDL",
+    "rollback conserva la copia previa a ASP.NET",
+    "respuestas, versi\u00F3n y avance conservados sin rec\u00E1lculo",
+    "contenido convertido aceptado por el validador real ASP.NET",
+    "empleado textual conserva ceros iniciales",
+    "r\u00E9plica \u00EDntegra conserva m\u00E1s de 200 filas, vac\u00EDos y nulos",
+    "cat\u00E1logos adicionales y v\u00EDnculos locales conservados",
+    "tokens heredados aislados; ASP.NET requiere nuevo login",
+    "copia convertida queda con programaci\u00F3n apagada",
+    "origen sint\u00E9tico conserva esquema y configuraci\u00F3n",
+    "reaplicaci\u00F3n rechazada sin sobrescribir datos"
+  ]
+}

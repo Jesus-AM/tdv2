@@ -1,0 +1,14 @@
+{
+  "utc": "2026-10-01T19:46:10.132Z",
+  "trustedHttps": true,
+  "sameOriginHmr": true,
+  "updateWithoutNavigation": true,
+  "privateHtmlDenied": true,
+  "csrfStatuses": [
+    419,
+    200
+  ],
+  "visualStudioUiExercised": false,
+  "microsoftLoginValidated": false,
+  "pageErrors": []
+}

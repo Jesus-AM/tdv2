@@ -3,7 +3,7 @@ namespace Tdv2.Web;
 
 public static class AccessBoundary
 {
-    // Covers both HTML documents and JSON/mutations, including not-yet-implemented private routes.
+    // Protege tanto HTML como JSON/escrituras, incluidas rutas privadas todavía no implementadas.
     public static async Task Validate(HttpContext http)
     {
         var path = http.Request.Path;

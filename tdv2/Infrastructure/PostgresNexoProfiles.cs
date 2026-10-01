@@ -5,8 +5,8 @@ using Npgsql;
 using Tdv2.Domain;
 namespace Tdv2.Infrastructure;
 
-// Shared views are already filtered by the PostgreSQL account published by Nexo.
-// No application ID, role, module or UR supplied by the browser is used here.
+// Las vistas compartidas están filtradas por la cuenta PostgreSQL publicada por Nexo.
+// Ningún ID de aplicación, rol, módulo o UR enviado por el navegador concede permisos.
 public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogger<PostgresNexoProfiles> logger) : INexoProfiles
 {
     private readonly Dictionary<string, Profile> profiles = new(StringComparer.Ordinal);

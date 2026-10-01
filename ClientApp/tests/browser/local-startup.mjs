@@ -18,6 +18,12 @@ await context.route('**/*', route => new URL(route.request().url()).origin === o
 const page = await context.newPage();
 const pageErrors = [];
 page.on('pageerror', error => pageErrors.push(error.message));
+// Sólo diagnóstico de recursos locales; omite queries OAuth, cookies y cabeceras.
+page.on('response', response => {
+    if (response.status() >= 400 && new URL(response.url()).pathname.startsWith('/__vite/'))
+        console.log('VITE RESOURCE ' + response.status() + ' ' + new URL(response.url()).pathname);
+});
+page.on('pageerror', error => console.log('PAGE ERROR ' + error.message));
 const checks = [];
 async function check(name, work) { await work(); checks.push({ name, passed: true }); console.log('PASS ' + name); }
 let loginStatus;
@@ -30,8 +36,10 @@ try {
         await page.screenshot({ path: path.join(artifacts, 'portada.png') });
     });
     await check('React carga y obtiene props JSON de ASP.NET en el mismo origen', async () => {
-        const props = page.waitForResponse(r => new URL(r.url()).pathname === '/acceso-restringido' && r.request().headers()['x-tdv2-page'] === '1');
-        assert.equal((await page.goto(origin + '/acceso-restringido')).status(), 200);
+        // La primera optimización de dependencias de Vite puede tardar más que una navegación compilada.
+        const props = page.waitForResponse(r => new URL(r.url()).pathname === '/acceso-restringido' && r.request().headers()['x-tdv2-page'] === '1', { timeout: 90000 });
+        props.catch(() => {});
+        assert.equal((await page.goto(origin + '/acceso-restringido', { timeout: 90000 })).status(), 200);
         const response = await props;
         assert.equal(response.status(), 200);
         const data = await response.json();

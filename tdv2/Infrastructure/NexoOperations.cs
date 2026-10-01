@@ -32,7 +32,7 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
             await using var connection = await connections.Open("Nexo", ct);
             await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
             var function = "public.nexo_a" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + "_" + operation;
-            // Preserve a record even for functions returning a single acknowledgment column.
+            // Conservar una fila también cuando la función devuelve una única columna de confirmación.
             await using var command = new NpgsqlCommand("SELECT to_jsonb(r)::text FROM (SELECT * FROM " + function + "(" + string.Join(',', Enumerable.Range(1, parameters.Length).Select(n => "$" + n)) + ")) r", connection, transaction);
             foreach (var parameter in parameters) command.Parameters.AddWithValue(parameter);
             var result = await ReadRows(command, ct); await transaction.CommitAsync(ct); return result;
@@ -60,8 +60,13 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
         try
         {
             var result = (await Represent("capacidad", actor, null, ct)).AsObject();
-            return new() { ["permitido"] = Flag(result, "permitido"), ["escritura"] = Flag(result, "escritura"),
-                ["alcance"] = Text(result, "alcance"), ["duracion_minutos"] = Number(result, "duracion_minutos") };
+            return new()
+            {
+                ["permitido"] = Flag(result, "permitido"),
+                ["escritura"] = Flag(result, "escritura"),
+                ["alcance"] = Text(result, "alcance"),
+                ["duracion_minutos"] = Number(result, "duracion_minutos")
+            };
         }
         catch (DomainProblem problem) when (problem.Status is 422 or 403 or 503)
         { return new() { ["permitido"] = false, ["escritura"] = false, ["no_disponible"] = problem.Status == 503 }; }

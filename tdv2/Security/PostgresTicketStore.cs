@@ -6,6 +6,13 @@ namespace Tdv2.Security;
 
 public sealed class PostgresTicketStore(DatabaseConnections connections, ProtectedValues crypto) : ITicketStore
 {
+    public static async Task Revoke(NpgsqlConnection connection, NpgsqlTransaction transaction, string sessionHash, CancellationToken ct)
+    {
+        await using var command = new NpgsqlCommand("DELETE FROM tdv2_sessions WHERE id_hash=$1", connection, transaction);
+        command.Parameters.AddWithValue(sessionHash);
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
     public async Task<string> StoreAsync(AuthenticationTicket ticket)
     {
         var key = ProtectedValues.Random();
@@ -24,7 +31,7 @@ public sealed class PostgresTicketStore(DatabaseConnections connections, Protect
         command.Parameters.AddWithValue(ProtectedValues.Hash(key));
         command.Parameters.AddWithValue(crypto.Protect("session", Convert.ToBase64String(TicketSerializer.Default.Serialize(ticket))));
         command.Parameters.AddWithValue(ticket.Properties.ExpiresUtc ?? DateTimeOffset.UtcNow.AddHours(2));
-        await command.ExecuteNonQueryAsync(); // Renewal never recreates a session removed by logout.
+        await command.ExecuteNonQueryAsync(); // La renovación no recrea una sesión revocada por logout.
     }
     public async Task<AuthenticationTicket?> RetrieveAsync(string key)
     {

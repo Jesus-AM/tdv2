@@ -10,7 +10,7 @@ namespace Tdv2.Security;
 public sealed record MicrosoftTokens(string Access, string Refresh, long Expires);
 public sealed record MicrosoftPerson(string ObjectId, string Email);
 
-// Mirrors Laravel's OAuth + authenticated Graph /me contract. No unverified JWT claims authenticate.
+// Conserva OAuth y Graph /me de Laravel; un claim JWT sin verificar nunca autentica.
 public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings> options)
 {
     public const string Scopes = "openid profile offline_access User.Read";
@@ -18,8 +18,13 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
     private static DomainProblem Failure() => new(503, "Microsoft no pudo completar la operación. Inicia sesión nuevamente.");
     public string Authorize(string state, string challenge) => QueryHelpers.AddQueryString(Settings.Authority + "authorize", new Dictionary<string, string?>
     {
-        ["client_id"] = Settings.ClientId, ["redirect_uri"] = Settings.Callback, ["response_type"] = "code", ["scope"] = Scopes,
-        ["state"] = state, ["code_challenge"] = challenge, ["code_challenge_method"] = "S256"
+        ["client_id"] = Settings.ClientId,
+        ["redirect_uri"] = Settings.Callback,
+        ["response_type"] = "code",
+        ["scope"] = Scopes,
+        ["state"] = state,
+        ["code_challenge"] = challenge,
+        ["code_challenge_method"] = "S256"
     });
     public Task<MicrosoftTokens> Exchange(string code, string verifier, CancellationToken cancellation) => Tokens(new()
     { ["grant_type"] = "authorization_code", ["code"] = code, ["code_verifier"] = verifier, ["redirect_uri"] = Settings.Callback }, null, cancellation);

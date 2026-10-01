@@ -5,7 +5,7 @@ using Tdv2.Domain;
 using Tdv2.Security;
 namespace Tdv2.Infrastructure;
 
-// No schema creation, seed or connection occurs at startup.
+// El arranque no crea esquemas, no carga datos y no abre conexiones.
 public sealed class PostgresFormStore(DatabaseConnections connections, AccessState state, OperationAudit audit) : IFormStore
 {
     private DateTime? catalogReadAt;
@@ -19,7 +19,7 @@ public sealed class PostgresFormStore(DatabaseConnections connections, AccessSta
         var result = new List<Unit>();
         while (await reader.ReadAsync(cancellation))
         {
-            catalogReadAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9); unitsRead=true;
+            catalogReadAt = reader.IsDBNull(9) ? null : reader.GetDateTime(9); unitsRead = true;
             result.Add(new(reader.GetString(0), reader.GetString(1), NullableText(reader, 2),
                 reader.IsDBNull(3) ? 0 : reader.GetInt32(3), NullableText(reader, 4), reader.GetInt32(5), NullableText(reader, 6), reader.GetBoolean(7), NullableText(reader, 8) ?? ""));
         }
@@ -54,18 +54,18 @@ public sealed class PostgresFormStore(DatabaseConnections connections, AccessSta
         await using var connection = await Open(cancellation);
         await using var transaction = await connection.BeginTransactionAsync(cancellation);
         await state.Guard(connection, transaction, cancellation);
-        // The UR lock serializes even concurrent first saves, before a form row exists.
+        // Bloquear la UR serializa también el primer guardado, cuando aún no existe una fila de formato.
         await using (var unitLock = new NpgsqlCommand("SELECT id_ur FROM unidades_responsables_poa WHERE id_ur = $1 AND presente = TRUE AND lower(trim(estatus_ur)) = 'activo' FOR UPDATE", connection, transaction))
         {
             unitLock.Parameters.AddWithValue(unit);
             if (await unitLock.ExecuteScalarAsync(cancellation) is null) throw new DomainProblem(403, "La UR ya no está activa.");
         }
-        // Scope was resolved against the catalog read earlier in this request. A concurrent
-        // publication can change the responsible employee/branch; require a fresh request.
-        await using (var changed = new NpgsqlCommand("SELECT completada_en FROM sincronizacion_catalogos WHERE fuente='sii'",connection,transaction))
+        // El alcance se resolvió con el catálogo leído en esta solicitud. Una publicación concurrente
+        // puede cambiar responsable o rama; se exige revalidar para no guardar con permisos antiguos.
+        await using (var changed = new NpgsqlCommand("SELECT completada_en FROM sincronizacion_catalogos WHERE fuente='sii'", connection, transaction))
         {
             var currentCatalog = await changed.ExecuteScalarAsync(cancellation) as DateTime?;
-            if (!unitsRead || currentCatalog != catalogReadAt) throw new DomainProblem(409,"El catálogo de áreas cambió. Conserva tus cambios y recarga antes de guardar.");
+            if (!unitsRead || currentCatalog != catalogReadAt) throw new DomainProblem(409, "El catálogo de áreas cambió. Conserva tus cambios y recarga antes de guardar.");
         }
         var current = await Read(connection, transaction, unit, cancellation);
         if ((current?.Version ?? 0) != expectedVersion) throw new DomainProblem(409, "Otra persona actualizó el formato. Conserva tus cambios y recarga antes de continuar.", new { version = current?.Version ?? 0 });

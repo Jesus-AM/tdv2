@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
         "build": "vite build",
         "types:check": "tsc --noEmit",
         "test:forms": "node --test tests/frontend/*.test.mjs",
@@ -29,7 +30,6 @@
         "@mui/icons-material": "^9.4.0",
         "@mui/material": "^9.4.0",
         "axios": "^1.15.0",
-        "concurrently": "^9.0.1",
         "react": "^19.3.0",
         "react-dom": "^19.3.0",
         "typescript": "^5.2.2",

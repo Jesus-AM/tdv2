@@ -1,0 +1,45 @@
+{
+  "utc": "2026-10-01T19:43:30.031Z",
+  "packages": [
+    {
+      "name": "react",
+      "before": "19.3.0",
+      "after": "19.3.0"
+    },
+    {
+      "name": "react-dom",
+      "before": "19.3.0",
+      "after": "19.3.0"
+    },
+    {
+      "name": "@mui/material",
+      "before": "9.4.0",
+      "after": "9.4.0"
+    },
+    {
+      "name": "@mui/icons-material",
+      "before": "9.4.0",
+      "after": "9.4.0"
+    },
+    {
+      "name": "typescript",
+      "before": "5.9.3",
+      "after": "5.9.3"
+    },
+    {
+      "name": "vite",
+      "before": "8.0.8",
+      "after": "8.3.2"
+    },
+    {
+      "name": "postcss",
+      "before": "8.5.10",
+      "after": "8.5.28"
+    },
+    {
+      "name": "concurrently",
+      "before": "9.2.1",
+      "after": null
+    }
+  ]
+}

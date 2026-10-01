@@ -27,7 +27,7 @@ public sealed record SyncSchedule(int Version, bool Active, int Minutes, string 
     public static readonly int[] Intervals = [15, 30, 60, 180, 360, 1440];
     public static DateTimeZone ZoneInfo(string zone)
     {
-        // Ship the same IANA rules on Windows and Linux, including Ciudad_Juarez.
+        // Usar las mismas reglas IANA en Windows y Linux, incluida Ciudad_Juarez.
         return zone.Length <= 64 ? DateTimeZoneProviders.Tzdb.GetZoneOrNull(zone) ?? throw new SyncProblem("Selecciona una zona horaria IANA válida.")
             : throw new SyncProblem("Selecciona una zona horaria IANA válida.");
     }
@@ -38,7 +38,7 @@ public sealed record SyncSchedule(int Version, bool Active, int Minutes, string 
         var zone = ZoneInfo(Zone);
         if (Minutes != 1440) return after.AddMinutes(Minutes);
         var local = Instant.FromDateTimeOffset(after).InZone(zone).Date;
-        DateTimeOffset At(LocalDate date) => zone.AtLeniently(date.At(new LocalTime(time.Hour,time.Minute))).ToDateTimeOffset().ToUniversalTime();
+        DateTimeOffset At(LocalDate date) => zone.AtLeniently(date.At(new LocalTime(time.Hour, time.Minute))).ToDateTimeOffset().ToUniversalTime();
         var candidate = At(local);
         return candidate > after ? candidate : At(local.PlusDays(1));
     }

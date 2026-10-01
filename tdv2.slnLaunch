@@ -1,0 +1,9 @@
+[
+  {
+    "Name": "TDV2 HTTPS + React",
+    "Projects": [
+      { "Path": "ClientApp\\ClientApp.esproj", "Action": "Start" },
+      { "Path": "tdv2\\tdv2.csproj", "Action": "Start" }
+    ]
+  }
+]

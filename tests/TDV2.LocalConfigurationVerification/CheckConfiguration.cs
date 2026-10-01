@@ -18,16 +18,24 @@ try
     var environment = launch.RootElement.GetProperty("profiles").GetProperty("https")
         .GetProperty("environmentVariables").GetProperty("ASPNETCORE_ENVIRONMENT").GetString();
     Require(environment == "Development");
+    var production = args.Length > 1 && args[1] == "--production";
     var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     {
         ApplicationName = appAssembly.GetName().Name,
         ContentRootPath = Path.Combine(workspace, "tdv2"),
-        EnvironmentName = environment,
+        EnvironmentName = production ? "Production" : environment,
         Args = []
     });
     string[] keys = ["Microsoft:TenantId", "Microsoft:ClientId", "Microsoft:ClientSecret", "Microsoft:PublicOrigin",
         "ConnectionStrings:Tdv2", "ConnectionStrings:Nexo", "ConnectionStrings:Sii", "ConnectionStrings:Ilda", "Synchronization:IldaEnabled"];
     var configuration = (IConfigurationRoot)builder.Configuration;
+    if (production)
+    {
+        Require(!configuration.Providers.OfType<JsonConfigurationProvider>().Any(p => p.Source.Path == "secrets.json"));
+        Require(keys.Where(k => k != "Synchronization:IldaEnabled").All(k => string.IsNullOrEmpty(configuration[k])));
+        Console.WriteLine("PASS: Production no carga User Secrets; las credenciales deben aportarse externamente.");
+        return 0;
+    }
     foreach (var key in keys)
     {
         var winner = configuration.Providers.LastOrDefault(p => p.TryGet(key, out _));

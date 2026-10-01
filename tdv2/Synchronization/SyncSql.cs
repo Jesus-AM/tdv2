@@ -33,6 +33,6 @@ public sealed class SyncSql(NpgsqlConnection connection, NpgsqlTransaction? tran
     public static int Number(JsonObject o, string name) => o[name]!.GetValue<int>();
     public static DateTimeOffset? Date(JsonNode? node) => node is null ? null : new(DateTime.SpecifyKind(DateTime.Parse(node.ToString(), System.Globalization.CultureInfo.InvariantCulture), DateTimeKind.Utc));
     public static JsonNode? Iso(JsonNode? node) => Date(node)?.ToString("O");
-    public static SyncSchedule Schedule(JsonObject s) => new(Number(s,"version"),Flag(s,"activa"),Number(s,"intervalo_minutos"),Text(s,"hora")!,Text(s,"zona_horaria")!,Flag(s,"incluir_ilda"));
-    public static JsonObject PublicSettings(JsonObject s) => new() { ["version"]=Number(s,"version"),["activa"]=Flag(s,"activa"),["intervalo_minutos"]=Number(s,"intervalo_minutos"),["hora"]=Text(s,"hora"),["zona_horaria"]=Text(s,"zona_horaria"),["incluir_ilda"]=Flag(s,"incluir_ilda") };
+    public static SyncSchedule Schedule(JsonObject s) => new(Number(s, "version"), Flag(s, "activa"), Number(s, "intervalo_minutos"), Text(s, "hora")!, Text(s, "zona_horaria")!, Flag(s, "incluir_ilda"));
+    public static JsonObject PublicSettings(JsonObject s) => new() { ["version"] = Number(s, "version"), ["activa"] = Flag(s, "activa"), ["intervalo_minutos"] = Number(s, "intervalo_minutos"), ["hora"] = Text(s, "hora"), ["zona_horaria"] = Text(s, "zona_horaria"), ["incluir_ilda"] = Flag(s, "incluir_ilda") };
 }

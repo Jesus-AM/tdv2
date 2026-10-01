@@ -35,13 +35,13 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
             {
                 if (CatalogSource.SiiColumns.Any(c => !inputRow.ContainsKey(c))) throw new SyncProblem("El origen institucional está incompleto.");
                 var row = new JsonObject();
-                foreach (var (field, max, required) in new[] { ("id_ur",32,true),("cve_ur",32,true),("desc_ur",500,false),("num_empleado",32,false),("encargado",255,false),("id_ur_pertenece",32,false),("tipo_ur",32,false),("estatus_ur",32,false) })
+                foreach (var (field, max, required) in new[] { ("id_ur", 32, true), ("cve_ur", 32, true), ("desc_ur", 500, false), ("num_empleado", 32, false), ("encargado", 255, false), ("id_ur_pertenece", 32, false), ("tipo_ur", 32, false), ("estatus_ur", 32, false) })
                     row[field] = Text(inputRow, field, max, required);
                 var id = row["id_ur"]!.ToString();
                 if (!ids.Add(id)) throw new SyncProblem("ID_UR duplicado en la descarga institucional.");
-                var exercise = Integer(inputRow,"ejercicio",true)!.Value; year ??= exercise;
+                var exercise = Integer(inputRow, "ejercicio", true)!.Value; year ??= exercise;
                 if (year != exercise) throw new SyncProblem("La descarga contiene más de un ejercicio.");
-                row["ejercicio"] = exercise; row["nivel_ur"] = Integer(inputRow,"nivel_ur",false);
+                row["ejercicio"] = exercise; row["nivel_ur"] = Integer(inputRow, "nivel_ur", false);
                 if (row["id_ur_pertenece"]?.ToString() == "") row["id_ur_pertenece"] = null;
                 rows.Add(row);
             }
@@ -56,7 +56,7 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
                 }
                 done.UnionWith(visited);
             }
-            return new(source, rows, new() { ["ejercicio"]=year,["unidades"]=rows.Count,["comprobacion"]=false });
+            return new(source, rows, new() { ["ejercicio"] = year, ["unidades"] = rows.Count, ["comprobacion"] = false });
         }
         if (source != "ilda") throw new SyncProblem("Fuente no válida.");
         foreach (var data in input)
@@ -68,39 +68,41 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
             if (code?.EnumerateRunes().Count() > 255) throw new SyncProblem("Una clave ur2 de ILDA excede el tamaño admitido.");
             if ((bytes += Encoding.UTF8.GetByteCount(data.ToJsonString())) > options.Value.IldaMaxBytes) throw new SyncProblem("ILDA excede el tamaño de descarga permitido.");
             columns.UnionWith(data.Select(p => p.Key));
-            rows.Add(new() { ["id_origen"]=id,["ur2"]=code,["informacion_generada"]=CatalogSource.Scalar(data["informacion_generada"]),["datos"]=data.DeepClone() });
+            rows.Add(new() { ["id_origen"] = id, ["ur2"] = code, ["informacion_generada"] = CatalogSource.Scalar(data["informacion_generada"]), ["datos"] = data.DeepClone() });
         }
-        return new(source,rows,new() { ["registros"]=rows.Count,["columnas"]=columns.Count,["comprobacion"]=false });
+        return new(source, rows, new() { ["registros"] = rows.Count, ["columnas"] = columns.Count, ["comprobacion"] = false });
     }
     public async Task CheckReduction(SyncSql db, CatalogSnapshot snapshot, CancellationToken ct)
     {
         var table = snapshot.Source == "sii" ? "unidades_responsables_poa" : "ilda_informacion_area";
-        var before = Convert.ToInt64(await db.Scalar("SELECT count(*) FROM " + table + " WHERE presente=true",ct));
+        var before = Convert.ToInt64(await db.Scalar("SELECT count(*) FROM " + table + " WHERE presente=true", ct));
         if (snapshot.Rows.Count * 5L < before * 4L) throw new SyncProblem("La descarga reduce demasiado los registros de " + snapshot.Source.ToUpperInvariant() + ". Se conservó la copia anterior.");
     }
+    /// <summary>Publica únicamente catálogos locales; no sobrescribe formatos ni respuestas.</summary>
+    /// <remarks>El coordinador incluye resultado, metadatos y auditoría en esta misma transacción por fuente.</remarks>
     public async Task Apply(SyncSql db, CatalogSnapshot snapshot, CancellationToken ct)
     {
-        await CheckReduction(db,snapshot,ct);
+        await CheckReduction(db, snapshot, ct);
         var sii = snapshot.Source == "sii"; var table = sii ? "unidades_responsables_poa" : "ilda_informacion_area";
-        var fields = sii ? CatalogSource.SiiColumns : new[] { "id_origen","ur2","informacion_generada","datos" };
-        await db.Execute("UPDATE " + table + " SET presente=false",ct);
-        var sql = "INSERT INTO " + table + "(" + string.Join(',',fields) + ",presente,sincronizado_en) VALUES(" + string.Join(',',Enumerable.Range(1,fields.Length).Select(i => "$"+i)) + ",true,timezone('UTC',clock_timestamp())) ON CONFLICT(" + fields[0] + ") DO UPDATE SET "
-            + string.Join(',',fields.Skip(1).Select(f => f+"=EXCLUDED."+f)) + ",presente=true,sincronizado_en=EXCLUDED.sincronizado_en";
+        var fields = sii ? CatalogSource.SiiColumns : new[] { "id_origen", "ur2", "informacion_generada", "datos" };
+        await db.Execute("UPDATE " + table + " SET presente=false", ct);
+        var sql = "INSERT INTO " + table + "(" + string.Join(',', fields) + ",presente,sincronizado_en) VALUES(" + string.Join(',', Enumerable.Range(1, fields.Length).Select(i => "$" + i)) + ",true,timezone('UTC',clock_timestamp())) ON CONFLICT(" + fields[0] + ") DO UPDATE SET "
+            + string.Join(',', fields.Skip(1).Select(f => f + "=EXCLUDED." + f)) + ",presente=true,sincronizado_en=EXCLUDED.sincronizado_en";
         foreach (var chunk in snapshot.Rows.Chunk(100))
         {
-            await using var batch = new NpgsqlBatch(db.Connection,db.Transaction);
+            await using var batch = new NpgsqlBatch(db.Connection, db.Transaction);
             foreach (var row in chunk)
             {
                 var command = new NpgsqlBatchCommand(sql);
                 foreach (var field in fields)
-                    if (field == "datos") command.Parameters.AddWithValue(NpgsqlDbType.Json,row[field]!.ToJsonString());
-                    else if (field is "ejercicio" or "nivel_ur") command.Parameters.Add(new() { NpgsqlDbType=NpgsqlDbType.Integer, Value=(object?)row[field]?.GetValue<int>() ?? DBNull.Value });
-                    else command.Parameters.Add(new() { NpgsqlDbType=NpgsqlDbType.Text, Value=(object?)row[field]?.ToString() ?? DBNull.Value });
+                    if (field == "datos") command.Parameters.AddWithValue(NpgsqlDbType.Json, row[field]!.ToJsonString());
+                    else if (field is "ejercicio" or "nivel_ur") command.Parameters.Add(new() { NpgsqlDbType = NpgsqlDbType.Integer, Value = (object?)row[field]?.GetValue<int>() ?? DBNull.Value });
+                    else command.Parameters.Add(new() { NpgsqlDbType = NpgsqlDbType.Text, Value = (object?)row[field]?.ToString() ?? DBNull.Value });
                 batch.BatchCommands.Add(command);
             }
             await batch.ExecuteNonQueryAsync(ct);
         }
-        if (sii) await db.Execute("INSERT INTO sincronizaciones_institucionales(resumen,completada_en) VALUES($1,timezone('UTC',clock_timestamp()))",ct,snapshot.Summary);
-        await db.Execute("INSERT INTO sincronizacion_catalogos(fuente,registros,completada_en) VALUES($1,$2,timezone('UTC',clock_timestamp())) ON CONFLICT(fuente) DO UPDATE SET registros=EXCLUDED.registros,completada_en=EXCLUDED.completada_en",ct,snapshot.Source,snapshot.Rows.Count);
+        if (sii) await db.Execute("INSERT INTO sincronizaciones_institucionales(resumen,completada_en) VALUES($1,timezone('UTC',clock_timestamp()))", ct, snapshot.Summary);
+        await db.Execute("INSERT INTO sincronizacion_catalogos(fuente,registros,completada_en) VALUES($1,$2,timezone('UTC',clock_timestamp())) ON CONFLICT(fuente) DO UPDATE SET registros=EXCLUDED.registros,completada_en=EXCLUDED.completada_en", ct, snapshot.Source, snapshot.Rows.Count);
     }
 }

@@ -8,12 +8,29 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.12" />
     <PackageReference Include="Npgsql" Version="10.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="NodaTime" Version="3.3.3" />
     <Content Update="Contracts/procesos_operativos.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Remove="wwwroot/assets/**;wwwroot/index.html" />
   </ItemGroup>
+
+  <!-- React se inicia con el perfil de solución .slnLaunch. Este proyecto es dueño del publish
+       para no duplicar wwwroot mediante los targets de publicación del proyecto JavaScript. -->
+  <!-- El publish siempre compila el frontend vigente; producción sólo necesita ASP.NET. -->
+  <Target Name="BuildReactForPublish" BeforeTargets="ComputeFilesToPublish">
+    <Exec WorkingDirectory="../ClientApp" Command="npm ci --ignore-scripts" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)/wwwroot/assets" />
+    <Exec WorkingDirectory="../ClientApp" Command="npm run build" />
+    <ItemGroup>
+      <ReactFiles Include="wwwroot/index.html;wwwroot/assets/**" />
+      <ResolvedFileToPublish Include="@(ReactFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>%(ReactFiles.Identity)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
 </Project>

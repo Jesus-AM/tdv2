@@ -21,18 +21,25 @@ public sealed class SourceConnections(IConfiguration configuration) : ISourceCon
             return new SqlConnection(sql.ConnectionString);
         }
         if (source != "ilda") throw new SyncProblem("Fuente no válida.");
-        var mysql = new MySqlConnectionStringBuilder(value) { Database = "ilda_db", PersistSecurityInfo = false,
-            TreatTinyAsBoolean = false, AllowZeroDateTime = true, ConvertZeroDateTime = false, AllowLoadLocalInfile = false };
+        var mysql = new MySqlConnectionStringBuilder(value)
+        {
+            Database = "ilda_db",
+            PersistSecurityInfo = false,
+            TreatTinyAsBoolean = false,
+            AllowZeroDateTime = true,
+            ConvertZeroDateTime = false,
+            AllowLoadLocalInfile = false
+        };
         return new MySqlConnection(mysql.ConnectionString);
     }
 }
-// Only these fixed SELECT statements reach the remote sources; no user-supplied identifiers.
+// Sólo estos SELECT fijos llegan a las fuentes remotas; nunca identificadores enviados por el usuario.
 public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncOptions> options) : ICatalogSource
 {
     public const string SiiSelect = "SELECT [ID_UR],[EJERCICIO],[CVE_UR],[DESC_UR],[NUM_EMPLEADO],[ENCARGADO],[ID_UR_PERTENECE],[TIPO_UR],[NIVEL_UR],[ESTATUS_UR] FROM [poa].[UNIDADES_RESPONSABLES_POA]";
     public const string SiiLatest = " WHERE [EJERCICIO]=(SELECT MAX([EJERCICIO]) FROM [poa].[UNIDADES_RESPONSABLES_POA])";
     public const string IldaSelect = "SELECT * FROM `ilda_db`.`informacion_area` ORDER BY `id` LIMIT @limit";
-    public static readonly string[] SiiColumns = ["id_ur","ejercicio","cve_ur","desc_ur","num_empleado","encargado","id_ur_pertenece","tipo_ur","nivel_ur","estatus_ur"];
+    public static readonly string[] SiiColumns = ["id_ur", "ejercicio", "cve_ur", "desc_ur", "num_empleado", "encargado", "id_ur_pertenece", "tipo_ur", "nivel_ur", "estatus_ur"];
     public async Task<IReadOnlyList<JsonObject>> Read(string source, CancellationToken ct)
     {
         var settings = options.Value; settings.Validate();
@@ -69,18 +76,20 @@ public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncO
                 throw new SyncProblem("ILDA excede el tamaño de descarga permitido. Se conservó la copia anterior.");
             rows.Add(row);
         }
-        return rows; // An interrupted reader never returns/publishes a partial snapshot.
+        return rows; // Una lectura interrumpida nunca devuelve ni publica una descarga parcial.
     }
     public static string? Scalar(JsonNode? node) => node is null ? null : node is JsonValue ? node.ToString() : throw new SyncProblem("El origen contiene un valor no escalar en una columna de búsqueda.");
     private static JsonNode? Value(DbDataReader reader, int i)
     {
-        // MySQL decimals may exceed System.Decimal's precision; retain their exact text.
+        // Los decimales MySQL pueden superar System.Decimal; conservar su texto exacto.
         if (reader is MySqlDataReader mysql && reader.GetDataTypeName(i).Equals("DECIMAL", StringComparison.OrdinalIgnoreCase))
             return JsonValue.Create(mysql.GetMySqlDecimal(i).ToString());
         var value = reader.GetValue(i);
         return value switch
         {
-            null or DBNull => null, string s => JsonValue.Create(s), bool b => JsonValue.Create(b),
+            null or DBNull => null,
+            string s => JsonValue.Create(s),
+            bool b => JsonValue.Create(b),
             byte[] bytes => new JsonObject { ["$binary_base64"] = Convert.ToBase64String(bytes) },
             MySqlDateTime date => JsonValue.Create(date.ToString()),
             DateTime date => JsonValue.Create(date.ToString("yyyy-MM-dd HH:mm:ss.ffffff", CultureInfo.InvariantCulture)),

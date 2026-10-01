@@ -19,7 +19,7 @@ public sealed class GraphTokens(DatabaseConnections connections, ProtectedValues
             expires = long.Parse(reader.GetString(2), System.Globalization.CultureInfo.InvariantCulture);
         }
         if (expires > DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 60 && (rejected is null || access != rejected)) return access;
-        var tokens = await microsoft.Refresh(refresh, cancellation); // No transaction retry: never exchange a refresh token twice automatically.
+        var tokens = await microsoft.Refresh(refresh, cancellation); // No reintentar la transacción: canjear dos veces un refresh token puede invalidarlo.
         await using (var command = new NpgsqlCommand("UPDATE ms_graph_tokens SET access_token=$2,refresh_token=$3,expires=$4,updated_at=timezone('UTC',now()) WHERE user_id=$1", connection, transaction))
         {
             command.Parameters.AddWithValue(user); command.Parameters.AddWithValue(crypto.Protect("graph-access", tokens.Access));

@@ -3,8 +3,15 @@ namespace Tdv2.Domain;
 public sealed record Unit(string Id, string Code, string? Description, int Level, string? Parent,
     int Year, string? Employee = null, bool Present = true, string Status = "Activo")
 {
-    public object Public() => new { id_ur = Id, cve_ur = Code, desc_ur = Description ?? Code,
-        nivel_ur = Level, id_ur_pertenece = Parent, ejercicio = Year };
+    public object Public() => new
+    {
+        id_ur = Id,
+        cve_ur = Code,
+        desc_ur = Description ?? Code,
+        nivel_ur = Level,
+        id_ur_pertenece = Parent,
+        ejercicio = Year
+    };
 }
 public sealed record Person(string Email, string Name, string? Employee, string? UnitId,
     string Origin = "adscripcion", string AccountType = "individual");
@@ -19,6 +26,7 @@ public sealed record Collaboration(string Email, string Employee, string Origin,
 public sealed record Grant(long Id, long RoleId, string OriginUnit, string Origin = "aplicacion");
 public sealed record Scope(Unit Unit, bool Edit);
 
+/// <summary>Resuelve jerarquía y responsabilidades sólo entre UR presentes y activas.</summary>
 public sealed class UnitDirectory(IEnumerable<Unit> units)
 {
     public IReadOnlyDictionary<string, Unit> Units { get; } = units
@@ -34,6 +42,7 @@ public sealed class UnitDirectory(IEnumerable<Unit> units)
     public bool Within(string id, string root) => Ancestors(id).Any(u => u.Id == root);
     public Unit? FormUnit(string? id) => Ancestors(id).FirstOrDefault(IsForm);
     public Unit? LevelTwo(string? id) => Ancestors(id).FirstOrDefault(u => u.Level == 2);
+    // El empleado es una clave textual institucional: convertirlo a número perdería ceros y ampliaría accesos.
     public static string? Employee(Person user) => user.AccountType == "individual"
         && !string.IsNullOrWhiteSpace(user.Employee) && user.Employee.Length <= 32 ? user.Employee : null;
     public Unit? Affiliation(Person user) => Employee(user) is not null
@@ -60,10 +69,18 @@ public static class ModuleAccess
         return profile.Modules.Any(m => m.Key == key && m.Path == local.Path && (parent is null || m.Parent == parent.Id));
     }
     public static object[] Navigation(Profile profile) => profile.Modules.Where(m => Allows(profile, m.Key)).Select(m =>
-        (object)new { id = m.Id, key = m.Key, name = m.Name, route = m.Path, parent = Known[m.Key].Parent,
-            icon = System.Text.RegularExpressions.Regex.IsMatch(m.Icon, "\\Amdi-[a-z0-9-]+\\z") ? m.Icon : "mdi-view-grid-outline" }).ToArray();
+        (object)new
+        {
+            id = m.Id,
+            key = m.Key,
+            name = m.Name,
+            route = m.Path,
+            parent = Known[m.Key].Parent,
+            icon = System.Text.RegularExpressions.Regex.IsMatch(m.Icon, "\\Amdi-[a-z0-9-]+\\z") ? m.Icon : "mdi-view-grid-outline"
+        }).ToArray();
 }
 
+/// <summary>Calcula lectura y edición por UR a partir de identidad y concesiones revalidadas en Nexo.</summary>
 public sealed class FormAccess(UnitDirectory directory)
 {
     public IReadOnlyDictionary<string, Scope> Scopes(Profile profile,
@@ -72,6 +89,8 @@ public sealed class FormAccess(UnitDirectory directory)
         var valid = new List<(string Kind, Unit Unit)>();
         if (!profile.Has("administrador"))
         {
+            // Ni el vínculo local ni la concesión central bastan por separado. Deben coincidir
+            // empleado, adscripción, rol, alcance y otorgante para resistir revocaciones y traslados.
             foreach (var link in collaborations ?? [])
             {
                 var roleKey = link.Kind switch { "local" => "colaborador_local", "dependencias" => "colaborador_dependencias", _ => "" };
@@ -106,7 +125,7 @@ public sealed class FormAccess(UnitDirectory directory)
             var root = directory.AdministratorRoot(profile.User);
             foreach (var unit in directory.Units.Values.Where(UnitDirectory.IsForm))
                 Add(unit, root is not null && directory.Within(unit.Id, root.Id));
-            return result; // Explicit administrator branch limit wins over every other role.
+            return result; // La rama del administrador limita la edición incluso al combinar otros roles.
         }
         if (profile.Has("responsable_ur"))
             foreach (var root in responsibilities)

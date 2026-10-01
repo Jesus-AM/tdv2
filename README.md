@@ -1,58 +1,109 @@
-# TDV2 · ASP.NET Core 10
+# TDV2 · ASP.NET Core 10 + React
 
-Migración en curso desde Laravel. Consultar [estado, pruebas y pendientes](ESTADO_MIGRACION.md), [inventario](docs/migracion/INVENTARIO.md) y [configuración de autenticación/PostgreSQL](docs/migracion/AUTENTICACION_POSTGRESQL.md).
+Abrir **tdv2.slnx** en Visual Studio con soporte .NET 10 y JavaScript/TypeScript. La solución contiene el backend `tdv2`, el frontend existente `ClientApp` y una carpeta de pruebas. **Migración institucional en curso: no sustituir Laravel ni desplegar todavía.** Evidencia y límites: [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
-Implementados Microsoft OAuth/Graph, sesiones revocables, acceso Nexo, formatos versionados, colaboradores mediante administración delegada, Actuar como usuario, vista de consulta por rol/área y auditoría transaccional de sus cambios. También están implementadas SII/ILDA y la cola/programación persistente con recuperación. Contratos y operación en [delegación y representación](docs/migracion/DELEGACION_REPRESENTACION.md) y [sincronizaciones Windows/Ubuntu](docs/migracion/SINCRONIZACIONES.md). **Microsoft, Nexo y las fuentes remotas se simularon; falta validación institucional y la migración no está completa.** No hay cuentas de demostración en la aplicación.
+## Desarrollo con Visual Studio
 
-## Compilar y verificar
+Requisitos: .NET SDK 10, Node 22.23 o compatible con Vite 8, npm y las cargas de Visual Studio para ASP.NET y JavaScript. PostgreSQL nativo ya está instalado en este equipo; no se instala ni se administra el servicio usado por Laravel.
 
-Requisitos: .NET SDK 10 y Node compatible con Vite 8. Dependencias fijadas en ClientApp/package-lock.json.
-
-Desde ClientApp:
+Una vez, o después de cambiar `package-lock.json`, desde `ClientApp`:
 
 ```powershell
 npm.cmd ci --ignore-scripts
-npm.cmd run types:check
-npm.cmd run test:forms
-npm.cmd run build
 ```
 
-Desde la raíz:
-
-```powershell
-dotnet build tdv2.slnx
-dotnet run --project tests/TDV2.Verification --no-restore
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
-```
-
-La última orden requiere PostgreSQL nativo, Edge y certificado ASP.NET HTTPS existente. Crea y detiene un clúster nuevo dentro del destino, con datos sintéticos y sin conectarse a bases existentes. Admite -PostgresBin, -SkipBrowser, -BrowserOnly y -SyncOnly. Los resultados quedan en .artifacts y devuelve error si falla una comprobación.
-
-TDV2.Verification usa autenticación/Nexo/almacenamiento en memoria sintéticos (56 verificaciones). TDV2.NativeVerification conserva proveedores productivos y usa PostgreSQL real (90 casos HTTP/SQL y 31 recorridos de navegador), Microsoft simulado, vistas/funciones Nexo sintéticas y lectores ADO.NET sintéticos para SII/ILDA. La selección -SyncOnly contiene 30 casos; los detalles de cada ejecución están en el estado. Ambos son ejecutables; no se descubren con dotnet test. La suite frontend contiene 21 pruebas.
-
-## Ejecutar
-
-Para la validación personal en Windows, abrir tdv2.slnx en Visual Studio, establecer tdv2 como proyecto de inicio y editar **Administrar secretos de usuario** desde ese proyecto. Microsoft/Nexo/SII/ILDA y la conexión local ya están en User Secrets. Ver [archivo, arranque y parada](docs/ARRANQUE_LOCAL_WINDOWS.md). Antes de F5, desde la raíz:
+Desde la raíz, para iniciar la base detenida **sin recrearla ni migrarla**:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 StartDatabase
 ```
 
-La terminal puede cerrarse: sólo deja PostgreSQL aislado activo. Seleccionar **https** y pulsar **F5**: https://localhost:7136. React compilado se sirve desde ASP.NET; no necesita Vite. Para terminar: Mayús+F5 y el script con `Stop`. Se conserva `tdv2_local_validation`, automática apagada y sin trabajadores. Falta validar los servicios reales y registrar el retorno Web https://localhost:7136/connect si no existe en Entra. `Prepare` recompila/verifica migraciones sin vaciar la base ni modificar User Secrets. `Import`/`Configure` anteriores ya no escriben configuración.
+En Visual Studio, seleccionar el perfil de solución **TDV2 HTTPS + React** y el perfil **https** del backend. F5 inicia `ClientApp` con Vite y `tdv2` con Kestrel. Si no aparece el perfil compartido, usar **Configurar proyectos de inicio → Varios proyectos**: ClientApp y tdv2 en Iniciar; los verificadores en Ninguno. Las instrucciones completas están en [ARRANQUE_LOCAL_WINDOWS.md](docs/ARRANQUE_LOCAL_WINDOWS.md).
 
-Alternativa: `Local-Tdv2.ps1 Start` o `dotnet run --project tdv2 --launch-profile https` (con la base activa). Ambos usan el mismo User Secrets de Development; el lanzador dejó de imponer valores DPAPI por variables de entorno. User Secrets guarda JSON en el perfil Windows fuera del repositorio, sin cifrado DPAPI. /health/live sólo indica que el proceso responde; no certifica Microsoft/Nexo ni PostgreSQL.
+Abrir **https://localhost:7136**. El retorno Microsoft se conserva en **https://localhost:7136/connect**. Vite escucha sólo en `127.0.0.1:5173`; ASP.NET sirve su HTML, módulos y WebSocket HMR a través de `/__vite/`. El navegador mantiene el mismo origen para React, cookies, CSRF y OAuth. Las rutas privadas se autorizan antes de entregar HTML. Editar pantallas en `ClientApp/resources/js/pages`; Vite refleja los cambios sin publicar.
 
-La aplicación no aplica DDL, no activa sincronizadores ni crea cuentas de prueba al iniciar. database/001_core.sql sirve únicamente para una base vacía; no ejecutarlo sobre Laravel. No copiar .env de Herd ni usar bases existentes para pruebas.
+Alternativa por terminal, con PostgreSQL ya activo:
 
-## Estructura
+```powershell
+# Terminal 1, en ClientApp
+npm.cmd run dev
+# Terminal 2, en la raíz
+dotnet run --project tdv2 --launch-profile https
+```
 
-- tdv2/Domain: UR, roles/módulos, esquema canónico y avance.
-- tdv2/Security: Microsoft, identidad local, cifrado, sesiones/contextos, PKCE, tokens y auditoría.
-- tdv2/Infrastructure: conexiones, consultas Nexo y persistencia de formatos.
-- tdv2/Synchronization: conectores, copias locales, validación, publicación y procesador persistente.
-- tdv2/Web: límites de autorización, endpoints y contrato JSON para React.
-- ClientApp/resources: pantallas, componentes, MUI y estilos originales; transporte en lib/navigation.tsx.
-- database: bootstrap aislado y tablas adicionales ASP.NET, sin aplicación automática.
-- tests y scripts: verificaciones, clúster nativo aislado e inventario de referencia.
-- docs/migracion: contratos, hashes y evidencia con alcance explícito.
+Para usar React compilado: `npm.cmd run build` en ClientApp, iniciar sólo tdv2 con **https-compiled**. `Local-Tdv2.ps1 Start` también usa este perfil. Mayús+F5 detiene la depuración; `Local-Tdv2.ps1 Stop` detiene únicamente PostgreSQL aislado y conserva sus datos. No ejecutar F5 y otro backend en los mismos puertos.
 
-Permanecen pendientes la conectividad y aceptación institucional de Microsoft/Nexo/SII/ILDA, pruebas operativas Ubuntu/supervisor, aceptación visual y corte. Aplicar 003_access_contexts.sql y 004_synchronizations.sql sólo en la base TDV2 aislada preparada; no hay DDL automático. Conservar llaves de Data Protection fuera del repositorio y planificar nuevo login: cookies y cifrado Laravel no son intercambiables. Los tickets ASP.NET anteriores al bloque de contextos también requieren nuevo login.
+## Dónde mantener cada responsabilidad
+
+| Ubicación | Responsabilidad |
+|---|---|
+| `tdv2/Program.cs` | Crear host, registrar servicios, elegir web o comando explícito de sincronización |
+| `tdv2/Hosting` | Inyección de dependencias, cookies, CSRF, límites y orden del middleware |
+| `tdv2/Controllers` | Rutas, entradas HTTP y respuestas; no contiene SQL |
+| `tdv2/Services` | Casos de uso de formatos, colaboradores, autenticación y contextos; límites de transacción |
+| `tdv2/Domain` | Alcance por UR, módulos, plantilla, validación y cálculo de avance |
+| `tdv2/Infrastructure` | Npgsql, consultas institucionales Nexo y persistencia local |
+| `tdv2/Security` | Identidad Microsoft, tokens, sesiones/contextos cifrados y auditoría |
+| `tdv2/Synchronization` | Lectores remotos, réplica local, publicación, reservas y recuperación |
+| `tdv2/Web` | Autorización por solicitud, errores públicos, shell React y contrato JSON/CSRF |
+| `ClientApp/resources` | React, TypeScript, MUI, tema, tipografías, componentes y estilos conservados |
+| `database` | SQL explícito; bootstrap y ensayo de transición separados |
+| `tests`, `ClientApp/tests` | Dobles y datos sintéticos; nunca se incorporan al ejecutable web |
+| `docs/migracion` | Contratos, inventario de Laravel y evidencia diferenciada |
+
+Los servicios de aplicación usan `RequestAccess` scoped para resolver la solicitud vigente. Las reglas de alcance y avance permanecen en Domain, sin HTTP. No convertir esa caché por solicitud en caché de permisos entre solicitudes: Nexo debe poder revocar inmediatamente. Las transacciones pertenecen al caso de uso; los componentes SQL reciben la conexión/transacción cuando el cambio debe confirmarse junto con su auditoría.
+
+## Qué configuración editar
+
+| Archivo o proveedor | Uso |
+|---|---|
+| `tdv2/appsettings.json` | Opciones generales, logging y límites de sincronización; sin credenciales |
+| `tdv2/appsettings.Development.json` | Valores de desarrollo; Vite se habilita en el perfil https |
+| **tdv2 → Administrar secretos de usuario** | Microsoft y cadenas Tdv2/Nexo/Sii/Ilda locales ya importadas |
+| `tdv2/Properties/launchSettings.json` | Perfiles, ambiente y puertos; no guardar secretos aquí |
+| `tdv2.slnLaunch` | Inicio conjunto de backend y frontend desde Visual Studio |
+| `ClientApp/vite.config.ts` | Base de módulos y HMR; ningún secreto ni conexión institucional |
+| Variables externas del servicio | Credenciales de producción; nombres jerárquicos con `__` |
+| `DataProtection:KeyDirectory` | Directorio persistente de llaves del servidor, fuera del paquete publicado |
+
+ASP.NET aplica la precedencia estándar: appsettings → archivo del ambiente → User Secrets sólo en Development → variables de entorno → argumentos. User Secrets es JSON de desarrollo **sin cifrado**. No se imprime ni se entrega al navegador. El lanzador no repone DPAPI ni sobrescribe ediciones. La correspondencia completa con Laravel está en [la guía local](docs/ARRANQUE_LOCAL_WINDOWS.md#equivalencias-de-la-configuración-importada).
+
+DPAPI sólo permanece en la administración del clúster aislado Windows y en la protección de llaves ASP.NET de Windows. El backend no depende del antiguo almacén institucional. `Import`, `Configure` y `MigrateSecrets` son avisos de compatibilidad sin lecturas ni escrituras. `Prepare` mantiene su función explícita de preparar/verificar el esquema local; no usarlo como sustituto de StartDatabase.
+
+## Bases y migraciones
+
+- **tdv2_db:** permanece para Laravel; no se leyó, respaldó, migró ni modificó en esta preparación.
+- **tdv2_local_validation:** se conserva su conexión, esquema y datos. Automática apagada; ningún procesador se inicia con F5.
+- **Base vacía aislada:** SQL 001–004, explícitamente mediante el mecanismo existente de hashes. Nunca ejecutar el bootstrap sobre una base Laravel.
+- **Copia de transición:** [procedimiento y SQL separados](docs/migracion/TRANSICION_DATOS.md). Se probó respaldo/restauración/conversión con datos sintéticos. Falta una copia real autorizada.
+- Nexo, SII e ILDA conservan sus bases; no hay DDL remoto. Las pantallas sólo consultan catálogos locales. [Operación explícita del procesador](docs/migracion/SINCRONIZACIONES.md).
+
+## Verificar
+
+```powershell
+# Raíz
+dotnet build tdv2.slnx
+dotnet run --project tests/TDV2.Verification --no-restore
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -TransitionOnly
+
+# ClientApp
+npm.cmd run types:check
+npm.cmd run test:forms
+```
+
+Los verificadores .NET son ejecutables con salida no cero al fallar; no son suites descubiertas por `dotnet test`. La suite nativa crea un clúster nuevo dentro de `.artifacts`, lo valida antes de escribir y lo detiene al terminar. Microsoft/Nexo/SII/ILDA son sintéticos allí. Detener instancias que bloqueen las DLL antes de recompilar.
+
+Con la aplicación detenida y la misma cuenta Windows: `scripts/Test-UserSecrets.ps1` verifica proveedores y conservación de ediciones sin conexiones remotas. `scripts/Test-Development.ps1` inicia el perfil https y Vite, comprueba HTTPS/React/CSRF y modifica temporalmente una pantalla para verificar HMR; restaura sus bytes y detiene sólo sus procesos. Deja PostgreSQL disponible para F5. `-Compiled` comprueba el perfil compilado. Las pruebas por CLI/Edge **no certifican haber operado el depurador de Visual Studio ni un login institucional real**.
+
+## Publicar, sin desplegar
+
+Desde la raíz, con Node/npm disponibles durante la construcción:
+
+```powershell
+dotnet publish tdv2/tdv2.csproj -c Release -p:UseAppHost=false -o .artifacts/publish-maintenance
+```
+
+El target de publicación ejecuta `npm ci --ignore-scripts` y `npm run build`, renueva únicamente los assets generados e incluye React en `wwwroot`. El paquete se ejecuta con `dotnet tdv2.dll`; **producción no requiere Node ni Vite**. La publicación la controla el csproj del backend para evitar copias duplicadas desde el proyecto JavaScript.
+
+[Configuración y preparación Ubuntu](docs/PUBLICACION.md) explica secretos externos, llaves persistentes, permisos, HTTPS y migraciones explícitas. No se desplegó. La aceptación institucional, la prueba dentro de Visual Studio, la operación Ubuntu y la comparación con una copia real de Laravel siguen pendientes. Consultar el estado para resultados y advertencias de dependencias de esta ejecución.

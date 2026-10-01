@@ -1,5 +1,15 @@
 <Solution>
   <Project Path="tdv2/tdv2.csproj" />
-  <Project Path="tests/TDV2.Verification/TDV2.Verification.csproj" />
-  <Project Path="tests/TDV2.NativeVerification/TDV2.NativeVerification.csproj" />
+  <Project Path="ClientApp/ClientApp.esproj" />
+  <Folder Name="/Pruebas/">
+    <Project Path="tests/TDV2.Verification/TDV2.Verification.csproj" />
+    <Project Path="tests/TDV2.NativeVerification/TDV2.NativeVerification.csproj" />
+    <Project Path="tests/TDV2.LocalConfigurationVerification/TDV2.LocalConfigurationVerification.csproj" />
+  </Folder>
+  <Folder Name="/Documentación/">
+    <File Path="README.md" />
+    <File Path="ESTADO_MIGRACION.md" />
+    <File Path="AGENTS.md" />
+    <File Path="docs/migracion/INVENTARIO.md" />
+  </Folder>
 </Solution>

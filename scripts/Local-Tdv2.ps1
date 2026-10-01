@@ -1,7 +1,6 @@
 param(
     [Parameter(Mandatory=$true)][ValidateSet('Prepare','Configure','Import','MigrateSecrets','StartDatabase','Start','Stop','Status')][string]$Action,
-    [string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin',
-    [string]$ReferenceEnv = 'C:\Users\Jesus Arenas\Herd\tdv2\.env'
+    [string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin'
 )
 $ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -9,7 +8,6 @@ $localRoot = Join-Path $workspace '.artifacts\local-validation'
 $dataPath = Join-Path $localRoot 'data'
 $manifestPath = Join-Path $localRoot 'environment.json'
 $credentialsPath = Join-Path $localRoot 'database.clixml'
-$institutionalPath = Join-Path $localRoot 'institutional.clixml'
 $projectPath = Join-Path $workspace 'tdv2\tdv2.csproj'
 $projectXml = [xml][IO.File]::ReadAllText($projectPath)
 $secretsId = [string]$projectXml.Project.PropertyGroup.UserSecretsId
@@ -44,7 +42,7 @@ function New-Password {
     finally { $rng.Dispose() }
 }
 function Require-UserSecrets {
-    if (-not (Test-Path -LiteralPath $secretsPath -PathType Leaf)) { throw 'User Secrets: ejecuta primero Local-Tdv2.ps1 MigrateSecrets con tu cuenta Windows.' }
+    if (-not (Test-Path -LiteralPath $secretsPath -PathType Leaf)) { throw 'User Secrets: crea la configuracion desde Administrar secretos de usuario del proyecto tdv2.' }
 }
 function Check-EnvironmentOverrides {
     # Environment providers precede User Secrets in ASP.NET. Fail visibly instead of silently
@@ -54,49 +52,6 @@ function Check-EnvironmentOverrides {
             if ($null -ne [Environment]::GetEnvironmentVariable($name)) { throw ('User Secrets: variable de entorno tiene precedencia: ' + $name + '. Quitala del proceso y reinicia Visual Studio o la terminal.') }
         }
     }
-}
-function Migrate-Secrets {
-    # Explicit one-time migration. An existing file always wins, even if a key was removed.
-    if (Test-Path -LiteralPath $secretsPath) {
-        Write-Output 'User Secrets ya existe: no se escribio ni se repuso ninguna clave. Edita Administrar secretos de usuario.'
-        return
-    }
-    if (-not (Test-Path -LiteralPath $institutionalPath)) { throw 'User Secrets: falta el almacen DPAPI previamente importado.' }
-    $oldEncoding = $OutputEncoding
-    try {
-        $personal = Import-Clixml -LiteralPath $institutionalPath
-        foreach ($name in @('TenantId','ClientId','ClientSecret','Nexo','Sii','Ilda')) {
-            if (-not $personal.$name) { throw 'User Secrets: el almacen DPAPI esta incompleto. No se publico configuracion.' }
-        }
-        $localConnection = [System.Data.Common.DbConnectionStringBuilder]::new()
-        $localConnection['Host']='127.0.0.1'; $localConnection['Port']=[int]$state.port
-        $localConnection['Database']=$databaseName; $localConnection['Username']=$appName
-        $localConnection['Password']=Plain $credentials.App
-        $localConnection['Timeout']=5; $localConnection['Command Timeout']=30
-        $localConnection['Include Error Detail']=$false; $localConnection['Log Parameters']=$false
-        $values = [ordered]@{
-            'Microsoft:TenantId'=$personal.TenantId; 'Microsoft:ClientId'=$personal.ClientId
-            'Microsoft:ClientSecret'=(Plain $personal.ClientSecret); 'Microsoft:PublicOrigin'=$origin
-            'ConnectionStrings:Tdv2'=$localConnection.ConnectionString
-            'ConnectionStrings:Nexo'=(Plain $personal.Nexo); 'ConnectionStrings:Sii'=(Plain $personal.Sii); 'ConnectionStrings:Ilda'=(Plain $personal.Ilda)
-            'Synchronization:IldaEnabled'='false'
-        }
-        # Pass JSON only through stdin, never arguments, history, logs or repository files.
-        $OutputEncoding = [Text.UTF8Encoding]::new($false)
-        $values | ConvertTo-Json | & dotnet user-secrets set --project $projectPath *> $null
-        if ($LASTEXITCODE -ne 0) { throw 'User Secrets: no se pudo guardar con dotnet user-secrets.' }
-        $stored = [IO.File]::ReadAllText($secretsPath) | ConvertFrom-Json
-        foreach ($key in $configurationKeys) {
-            if ([string]$stored.$key -cne [string]$values[$key]) { throw 'User Secrets: la comprobacion de valores guardados fallo.' }
-        }
-        $folder = Split-Path $secretsPath -Parent
-        $acl = Get-Acl -LiteralPath $folder
-        $acl.SetAccessRuleProtection($true,$false)
-        $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
-        $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))
-        Set-Acl -LiteralPath $folder -AclObject $acl
-        Write-Output 'Nueve claves guardadas en User Secrets y comparadas con los valores originales. No se comprobo conectividad institucional.'
-    } finally { $OutputEncoding=$oldEncoding; $values=$null; $stored=$null; $personal=$null; $localConnection=$null }
 }
 function Read-State {
     if (-not (Test-Path -LiteralPath $manifestPath)) { throw 'Primero ejecuta Local-Tdv2.ps1 Prepare.' }
@@ -270,16 +225,10 @@ GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO $appName;
             } finally { Pop-Location }
         } finally { Pop-Location }
         Status
-    } elseif ($Action -in @('Import','Configure')) {
+    } elseif ($Action -in @('Import','Configure','MigrateSecrets')) {
         Write-Output 'Configuracion administrada desde Visual Studio: Administrar secretos de usuario.'
         Write-Output ('Archivo: ' + $secretsPath)
         Write-Output 'Accion anterior retirada: no se leyo Herd ni se modifico DPAPI o User Secrets.'
-    } elseif ($Action -eq 'MigrateSecrets') {
-        Read-State
-        Lock-Control
-        Check-EnvironmentOverrides
-        Migrate-Secrets
-        Status
     } elseif ($Action -eq 'StartDatabase') {
         Read-State
         Lock-Control
@@ -310,7 +259,7 @@ GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO $appName;
             Status
             Write-Output 'Deja esta terminal abierta. Para detener: Ctrl+C y luego Local-Tdv2.ps1 Stop. Solo se administra este PostgreSQL local.'
             Push-Location $workspace
-            try { & dotnet run --project tdv2 --no-build --no-restore --launch-profile https }
+            try { & dotnet run --project tdv2 --no-build --no-restore --launch-profile https-compiled }
             finally { Pop-Location }
         } finally {
             Stop-Database

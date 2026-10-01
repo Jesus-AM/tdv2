@@ -27,6 +27,8 @@ public sealed class AccessState(DatabaseConnections connections, ProtectedValues
         return new(reader.GetInt64(0), reader.IsDBNull(1) ? null : JsonSerializer.Deserialize<AccessSelection>(crypto.Unprotect("access-context", reader.GetString(1)))
             ?? throw new DomainProblem(503, "No se pudo leer el contexto de acceso."));
     }
+    /// <summary>Bloquea la sesión y compara su revisión antes de escribir o cambiar de identidad efectiva.</summary>
+    /// <remarks>Debe ejecutarse dentro de la misma transacción que el cambio y la auditoría.</remarks>
     public async Task Guard(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct, bool change = false)
     {
         if (SessionHash is null) throw new DomainProblem(401, "Inicia sesión nuevamente para continuar.");
@@ -40,14 +42,17 @@ public sealed class AccessState(DatabaseConnections connections, ProtectedValues
     }
     public async Task Set(NpgsqlConnection connection, NpgsqlTransaction transaction, AccessSelection? selection, CancellationToken ct)
     {
-        // Caller holds the session UPDATE lock. Keep the revision even after an explicit exit.
+        // El llamador mantiene el bloqueo UPDATE de sesión. Conservar la revisión incluso después de salir.
         await using var command = new NpgsqlCommand("""
             INSERT INTO tdv2_access_contexts(session_hash,revision,selection) VALUES($1,$2,$3)
             ON CONFLICT(session_hash) DO UPDATE SET revision=EXCLUDED.revision,selection=EXCLUDED.selection
             """, connection, transaction);
         command.Parameters.AddWithValue(SessionHash!); command.Parameters.AddWithValue(Loaded!.Revision + 1);
-        command.Parameters.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlDbType.Text,
-            Value = selection is null ? DBNull.Value : crypto.Protect("access-context", JsonSerializer.Serialize(selection)) });
+        command.Parameters.Add(new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Text,
+            Value = selection is null ? DBNull.Value : crypto.Protect("access-context", JsonSerializer.Serialize(selection))
+        });
         await command.ExecuteNonQueryAsync(ct);
     }
 }

@@ -8,16 +8,17 @@
       "launchUrl": "",
       "applicationUrl": "https://localhost:7136;http://localhost:5064",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ReactDevelopment__UseVite": "true"
       }
     },
-    "http": {
+    "https-compiled": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:5064",
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7136;http://localhost:5064",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ReactDevelopment__UseVite": "false"
       }
     }
   }

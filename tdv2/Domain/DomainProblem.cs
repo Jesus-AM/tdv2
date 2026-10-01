@@ -1,6 +1,6 @@
 namespace Tdv2.Domain;
 
-// Only fixed, public messages belong here. Never wrap provider/SQL exception messages.
+// Sólo mensajes públicos controlados; nunca envolver errores SQL o de proveedores.
 public sealed class DomainProblem(int status, string message, object? details = null) : Exception(message)
 {
     public int Status { get; } = status;

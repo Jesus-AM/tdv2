@@ -6,8 +6,11 @@ using Tdv2.Security;
 namespace Tdv2.Web;
 
 public sealed record AccessContext(Profile Profile, UnitDirectory Directory, IReadOnlyDictionary<string, Scope> Scopes, bool ReadOnly = false);
+/// <summary>Resuelve cuenta real y perfil efectivo por solicitud; una caída de Nexo siempre deniega.</summary>
+/// <remarks>Su caché sólo dura el scope HTTP. No trasladarla a sesión ni aceptar roles del navegador.</remarks>
 public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISessionIdentity identity, AccessState state, NexoOperations operations, OperationAudit audit)
 {
+    // La cuenta Microsoft sigue siendo el actor auditado aunque Nexo autorice representar a otra persona.
     public Profile? Real { get; private set; }
     public Profile? Effective { get; private set; }
     public AccessSelection? Selection { get; private set; }

@@ -60,6 +60,7 @@ internal static partial class NativeTests
             await work; return 0;
         }
         await database.Initialize();
+        if (args.Contains("--transition-only")) return await TransitionTests.Run(database);
         var results = new List<object>(); var failed = 0; var passed = 0;
         var cases = new List<(string, Func<NativeApplication, HttpClient, Task>)>();
         void Test(string name, Func<NativeApplication, HttpClient, Task> run) => cases.Add((name, run));

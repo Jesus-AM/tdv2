@@ -17,7 +17,7 @@ public sealed class PostgresIdentity(DatabaseConnections connections, ProtectedV
         if (profile.User.Email != microsoft.Email) throw new DomainProblem(403, "La identidad institucional no coincide.");
         await using var connection = await connections.Open("Tdv2", cancellation);
         await using var transaction = await connection.BeginTransactionAsync(cancellation);
-        // A transaction advisory lock also serializes simultaneous first logins (no user row yet).
+        // El bloqueo transaccional serializa primeros inicios simultáneos antes de que exista el usuario.
         await using (var guard = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", connection, transaction))
         { guard.Parameters.AddWithValue(microsoft.Email); await guard.ExecuteNonQueryAsync(cancellation); }
         long? id = null;

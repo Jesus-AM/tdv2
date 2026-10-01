@@ -22,12 +22,16 @@ public sealed class FormSchema
         var result = new JsonObject
         {
             ["encabezado"] = new JsonObject { ["fecha"] = "", ["area"] = unit.Description ?? unit.Code, ["responsable"] = "" },
-            ["medioOtro"] = "", ["evaluaciones"] = new JsonObject(),
+            ["medioOtro"] = "",
+            ["evaluaciones"] = new JsonObject(),
             ["medios"] = new JsonObject(definition["medios"]!.AsArray().Select(x => KeyValuePair.Create<string, JsonNode?>(x!.GetValue<string>(), JsonValue.Create(false)))),
             ["preguntas"] = new JsonArray(definition["preguntas"]!.AsArray().Select(q => (JsonNode?)new JsonObject
             {
-                ["pregunta"] = q!["texto"]!.DeepClone(), ["tipo"] = q["tipo"]!.DeepClone(),
-                ["opciones"] = q["opciones"]?.DeepClone(), ["marcada"] = false, ["respuesta"] = ""
+                ["pregunta"] = q!["texto"]!.DeepClone(),
+                ["tipo"] = q["tipo"]!.DeepClone(),
+                ["opciones"] = q["opciones"]?.DeepClone(),
+                ["marcada"] = false,
+                ["respuesta"] = ""
             }).ToArray())
         };
         foreach (var (section, fields) in Fields)
@@ -103,7 +107,7 @@ public sealed class FormSchema
         var media = Object(input["medios"]);
         foreach (var (_, value) in media) Boolean(value);
         foreach (var (key, _) in result["medios"]!.AsObject().ToArray()) result["medios"]![key] = media.TryGetPropertyValue(key, out var value) && Boolean(value);
-        // Laravel serializes an empty associative array as []; accept that legacy shape only when empty.
+        // Laravel serializa un arreglo asociativo vacío como []; sólo se acepta esa forma heredada si está vacía.
         var evaluations = input["evaluaciones"] is JsonArray { Count: 0 } ? new JsonObject() : Object(input["evaluaciones"]);
         if (evaluations.Count > 200) throw Invalid();
         foreach (var (code, entries) in evaluations)
@@ -132,6 +136,8 @@ public sealed class FormSchema
         }
         return result;
     }
+    /// <summary>Calcula el avance canónico con los pesos de la plantilla; se persiste dentro del guardado.</summary>
+    /// <remarks>No aceptar el porcentaje del navegador ni recalcular respuestas durante una sincronización.</remarks>
     public static int Progress(JsonObject data)
     {
         static bool Filled(JsonNode? node) => !string.IsNullOrWhiteSpace(node?.GetValue<string>());

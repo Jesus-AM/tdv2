@@ -11,3 +11,5 @@ tdv2/wwwroot/index.html
 !.env.example
 **/appsettings.Local.json
 **/*.csproj.user
+**/*.esproj.user
+ClientApp/dist/

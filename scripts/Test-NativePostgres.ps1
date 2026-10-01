@@ -1,5 +1,8 @@
-param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly)
+param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly)
 $ErrorActionPreference = 'Stop'
+if ($TransitionOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly)) { throw 'TransitionOnly es una selección independiente.' }
+$oldBin=$env:TDV2_TEST_POSTGRES_BIN
+$env:TDV2_TEST_POSTGRES_BIN=$PostgresBin
 if ($SkipBrowser -and $BrowserOnly) { throw 'SkipBrowser and BrowserOnly are mutually exclusive.' }
 if ($SyncOnly -and ($SkipBrowser -or $BrowserOnly)) { throw 'SyncOnly is a separate diagnostic selection.' }
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -39,7 +42,7 @@ try {
     $env:TDV2_TEST_SKIP_BROWSER = if ($SkipBrowser -or $SyncOnly) { 'true' } else { 'false' }
     Push-Location $workspace
     try {
-        $testArguments = if ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
+        $testArguments = if ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
         & dotnet run --project tests/TDV2.NativeVerification -p:NuGetAudit=false @testArguments
         $result = $LASTEXITCODE
         if ($result -ne 0) { throw 'Native verification failed. See results in the isolated artifacts directory.' }
@@ -51,6 +54,7 @@ try {
         if ($LASTEXITCODE -ne 0) { Write-Warning ('Stop failed for this isolated cluster: ' + $data) }
     }
     $env:PGPASSWORD = $oldPassword
+    $env:TDV2_TEST_POSTGRES_BIN=$oldBin
     $env:TDV2_TEST_CONNECTION = $oldConnection
     $env:TDV2_TEST_DATA_DIRECTORY = $oldData
     $env:TDV2_TEST_ARTIFACTS = $oldArtifacts

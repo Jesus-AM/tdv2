@@ -1,98 +1,61 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última suite completa: **2026-10-01 06:59 UTC**; ajuste de conector verificado **07:01 UTC**. **Migración en curso; no apta aún para sustituir Laravel.**
+Inicio: 2026-09-30. Organización y preparación Visual Studio: **2026-10-01**. La evidencia vigente de este bloque aparece abajo; los resultados anteriores conservan su fecha y alcance. **Migración en curso; no apta aún para sustituir Laravel.**
 
 Configuración → Sincronizaciones está implementado: SII, réplica íntegra ILDA, consumo local en formatos, cola/programación, reservas, recuperación y auditoría. Se verificó en PostgreSQL nativo aislado y React con fuentes sintéticas. **No se validó conectividad institucional ni operación Ubuntu; este bloque no se declara cerrado frente a servicios reales.**
 
 El bloque de colaboradores mediante administración delegada, Actuar como usuario, vista de consulta por rol/área y auditoría está implementado y verificado con React, ASP.NET y PostgreSQL nativo aislado. **No está cerrado frente a servicios institucionales:** Microsoft es un doble HTTP y Nexo un publicador SQL sintético. No se ejecutó Nexo Laravel real ni se consultó el esquema desplegado.
 
+## Preparación para mantenimiento y Visual Studio — 2026-10-01
+
+### Implementado
+
+- Program.cs queda centrado en el host y la selección explícita del procesador. Controllers atiende HTTP; Services coordina formatos, colaboradores, Microsoft y contextos; Infrastructure conserva Npgsql y SQL local. Se extrajeron consultas de colaboradores/sincronizaciones y middleware de errores/autorización. No se añadieron proyectos .NET, ORM ni autenticación de demostración. Se conservan rutas, JSON, 419/409 y límites por operación.
+- Comentarios y contratos XML en español explican UR/empleado textual, administrador combinado, intersección local/Nexo, identidad real/efectiva, tokens sólo de servidor, avance, revisión de contexto, transacciones y reservas. El latido sigue sin renovar reservas; no se movieron commits fuera de sus comprobaciones ni de la auditoría.
+- ClientApp.esproj reutiliza React mediante el sistema JavaScript de Visual Studio. tdv2.slnLaunch inicia ClientApp y tdv2; launchSettings conserva 7136/5064 y ofrece https con Vite y https-compiled. El proxy de desarrollo /__vite/ usa SpaServices.Extensions; OAuth, cookies, JSON, CSRF y HMR conservan el origen 7136. No rediseño.
+- Configuración general y límites en appsettings, opciones de desarrollo en appsettings.Development, credenciales en User Secrets y puertos en launchSettings. UserSecretsId y las nueve claves importadas se conservan. Tras verificar el reemplazo, se retiró el código que leía institutional.clixml: Import/Configure/MigrateSecrets sólo orientan al editor. DPAPI permanece para administrar el clúster aislado y proteger llaves ASP.NET de Windows. User Secrets no es cifrado ni fuente de producción.
+- Publicación del backend compila React mediante npm ci/build y empaqueta wwwroot, sin Vite de producción. DataProtection:KeyDirectory permite llaves persistentes externas. El paquete dependiente de ASP.NET Runtime se genera con UseAppHost=false. Preparación Ubuntu documentada, sin instalar ni desplegar.
+- Ensayo separado database/transition + Prepare-Transition.ps1: sólo admite una copia local identificada, valida esquema/claves/relaciones y datos básicos, conserva catálogos/respuestas con huellas transaccionales, aísla tokens Laravel y añade 002/003. Rechaza reservas y reaplicación; no usa 001/004 sobre Laravel. Pruebas sintéticas en el proyecto nativo existente. **Falta acceso/copia real autorizada de tdv2_db; no se respaldó ni consultó esa base.**
+- README y guía local reorganizados. Historial DPAPI/User Secrets anterior trasladado a HISTORIAL_LOCAL.md, conservando su evidencia. Guías específicas de transición y publicación. Se registró el estado inicial en Git (`0e12049`) antes de incorporar los cambios revisables; no se publicó a un remoto.
+
+### Probado
+
+| Verificación | Resultado y alcance |
+|---|---|
+| Compilación de la solución | 0 errores/advertencias; ejecuciones indicadas con NuGetAudit=false |
+| TDV2.Verification | 56/56, dominio/HTTP con dobles en memoria |
+| Test-NativePostgres.ps1 | 91/91 grupos: 90 HTTP/SQL y un grupo con 31 recorridos Edge; PostgreSQL aislado real, proveedores institucionales sintéticos |
+| Test-UserSecrets.ps1 | Nueve claves efectivas; ediciones conservadas ante comandos retirados y archivo original restaurado byte por byte; sin conexiones remotas |
+| Verificador con --production | Production no carga User Secrets; credenciales externas requeridas |
+| Ensayo de transición final | 16/16; respaldo/restauración sintéticos, contrato, rollback y validador real de formatos |
+| Regresión con dependencias corregidas | 31 recorridos Edge repetidos; sin repetir ni sumar los 90 casos SQL |
+| TypeScript / pruebas frontend | TypeScript sin errores; 21/21 casos conservados |
+| Test-Development.ps1 | Cuatro comprobaciones HTTPS/React/401/CSRF/Microsoft 302, más HMR sin navegación, cookies seguras, rechazo de HTML privado y error 503 controlado con Vite detenido |
+| dotnet publish + publish-flow.mjs | Paquete Production inicia con HTTPS y React compilado sin Vite; /connect 503 sin secretos, /inicio 401 y CSRF 419 |
+| Conservación por hashes | 30 archivos de interfaz/estilos/portada/logos/SQL 001–004 sin cambios; 154/154 archivos de referencia Laravel sin cambios |
+
+Evidencia: [regresión PostgreSQL](docs/migracion/evidencia-organizacion-postgresql.json), [regresión del navegador con el lockfile final](docs/migracion/evidencia-organizacion-regresion-navegador.json), [arranque y redirección local](docs/migracion/evidencia-organizacion-arranque.json), [configuración](docs/migracion/evidencia-user-secrets.json), [Vite y HMR](docs/migracion/evidencia-vite.json), [publicación](docs/migracion/evidencia-publicacion.json), [conservación](docs/migracion/evidencia-conservacion-organizacion.json) y [transición sintética](docs/migracion/evidencia-transicion-sintetica.json). La interfaz/depurador de Visual Studio **no se operó**; los perfiles se ejecutaron por CLI. El 302 Microsoft no siguió la redirección ni acreditó login real. Los navegadores bloquearon fuentes web externas; no son aceptación visual exacta.
+
+La primera preparación del fixture de transición falló por agrupar SQL parametrizado con múltiples sentencias; se separó el INSERT parametrizado y se repitió. La primera carga fría de Vite agotó 30 segundos durante la optimización; se ajustó la espera y se verificó después de restaurar dependencias. No se cuentan los intentos fallidos como éxitos. Los clústeres de prueba quedaron detenidos; el clúster local de validación permanece disponible para F5, sin automática ni trabajadores. Se conservó su usuario ya existente: los contadores observados fueron 1 usuario, 0 formatos, 0 UR y 0 ejecuciones; no se consultaron identidades ni se cargaron fixtures allí.
+
+### Retirado y motivo
+
+- Cinco archivos Web/*Endpoints.cs: reemplazados por controladores, servicios y consultas; regresión HTTP/SQL/navegador pasada.
+- scripts/Import-LaravelSettings.ps1, scripts/Test-LocalImport.ps1 y lector institucional DPAPI de Local-Tdv2.ps1: reemplazo en User Secrets comprobado. Se conservan evidencia histórica y credenciales cifradas originales sin lecturas del arranque.
+- tdv2/tdv2.http: plantilla de WeatherForecast sin ruta correspondiente.
+- Microsoft.AspNetCore.OpenApi: paquete sin uso, reemplazado por la dependencia concreta del proxy Vite.
+- concurrently: ninguna referencia de ejecución; el inicio múltiple lo gestiona Visual Studio. La auditoría inicial npm encontró 8 vulnerabilidades; se aplicaron correcciones compatibles del lockfile. Vite incluía un [aviso de rutas Windows](https://github.com/advisories/GHSA-fx2h-pf6j-xcff). La [auditoría posterior](docs/migracion/evidencia-npm-audit.json) informó cero. Vite pasó de 8.0.8 a 8.3.2 y PostCSS de 8.5.10 a 8.5.28; React 19.3.0, MUI 9.4.0 y TypeScript 5.9.3 permanecieron iguales ([versiones](docs/migracion/evidencia-dependencias.json)). La publicación, HMR y los 31 recorridos de navegador se repitieron con el lockfile corregido.
+
+### Pendiente concreto
+
+Operar el perfil compartido/F5 en la interfaz de Visual Studio; validar Entra/Microsoft/Graph y permisos institucionales Nexo; obtener y contrastar una copia autorizada de tdv2_db (tipos/longitudes/secuencias/datos históricos/UTC); conectores SII/ILDA reales; aceptación visual con fuentes, teclado/móvil/impresión; ejecución Ubuntu, proxy, supervisor, llaves persistentes y recuperación operativa. **No se desplegó ni se declara terminada la migración institucional.**
+
+Comandos actuales y ubicaciones: [README](README.md), [arranque Visual Studio](docs/ARRANQUE_LOCAL_WINDOWS.md), [transición](docs/migracion/TRANSICION_DATOS.md), [publicación](docs/PUBLICACION.md). No usar el historial como instrucciones para reimportar configuración.
+
 ## Inspección y límites
 
-### User Secrets y Visual Studio — 2026-10-01
+Preparaciones anteriores: [historial local](docs/migracion/HISTORIAL_LOCAL.md). Se conservan resultados, limitaciones y referencias; sus lanzadores/importadores anteriores no son instrucciones vigentes.
 
-**Implementado:** se inicializó `UserSecretsId=0397954e-63d2-48b6-a581-a586951257cc` en tdv2.csproj y se trasladaron nueve claves desde la configuración DPAPI existente: `Microsoft:TenantId/ClientId/ClientSecret/PublicOrigin`, `ConnectionStrings:Tdv2/Nexo/Sii/Ilda`, `Synchronization:IldaEnabled=false`. El destino es `%APPDATA%\Microsoft\UserSecrets\0397954e-63d2-48b6-a581-a586951257cc\secrets.json`, fuera del repositorio y con permisos privados. **User Secrets es JSON editable sin cifrado DPAPI**, por petición del usuario. No se imprimieron valores ni se pusieron secretos en React, launchSettings o archivos versionados. No se volvió a leer Herd.
-
-`WebApplication.CreateBuilder` carga el archivo mediante la configuración estándar de Development; no se añadió una fuente especial ni se modificó autenticación/autorización. El perfil https de tipo Project queda primero y abre el navegador en https://localhost:7136; también se fijó ActiveDebugProfile=https en el archivo personal existente tdv2.csproj.user (ignorado por el repositorio). Se preservó el retorno /connect y la misma conexión a tdv2_local_validation @ 127.0.0.1:51476, con tdv2_local_app. `StartDatabase` prepara exclusivamente el PostgreSQL aislado para F5 y deja automática apagada; no aplica migraciones ni inicia procesador. ILDA permanece deshabilitada.
-
-El lanzador anterior ya no inyecta Microsoft/ConnectionStrings/Synchronization desde DPAPI. `Import` y `Configure` quedan retirados y sólo indican dónde editar. `MigrateSecrets` sólo escribe si el archivo todavía no existe: repetirlo respeta todo el archivo y las claves eliminadas. `Start` usa el mismo User Secrets; detecta variables de entorno explícitas con precedencia y no las modifica silenciosamente. `database.clixml` continúa para administrar el clúster; `institutional.clixml` queda como copia histórica cifrada sin lectura en los arranques. Reiniciar depuración después de editar, pues las opciones Microsoft usan IOptions.
-
-**Probado:** compilación de backend/verificador sin errores ni advertencias. Nueve valores trasladados y comparados con sus originales; proveedor efectivo `secrets.json` comprobado para las nueve claves en el entorno del perfil https. Las cuatro cadenas se analizaron con proveedores .NET sin abrir conexiones institucionales. Prueba de edición temporal de ClientId a GUID sintético: conservada tras MigrateSecrets/Import/Configure, observada por el proveedor y archivo original restaurado byte por byte. No se ejecutó login con ese GUID ni se creó usuario simulado.
-
-Arranque directo `dotnet run --project tdv2/tdv2.csproj --no-build --no-restore --launch-profile https`, sin el lanzador DPAPI: **4/4 comprobaciones Edge** de HTTPS, React/JSON, 401/CSRF y /connect 302 con retorno correcto, sin seguir la redirección a Microsoft. PostgreSQL confirmó cuatro migraciones, cero usuarios/formatos/UR/ejecuciones y automática=false. La restauración inicial de dependencias del verificador fue bloqueada por la red del sandbox; se repitió autorizadamente y la compilación final pasó.
-
-Evidencia: [proveedores y conservación de ediciones](docs/migracion/evidencia-user-secrets.json), [navegador con perfil https](docs/migracion/evidencia-user-secrets-navegador.json). El lanzador `Start` actualizado también pasó las mismas cuatro comprobaciones sin inyección DPAPI. Las pruebas usan la aplicación real anónima; no sustituyen Microsoft/Nexo con simuladores. **Se verificó el perfil usado por F5 mediante CLI; no se operó la interfaz ni el depurador Visual Studio.** No se probaron conexiones institucionales ni permisos reales, y no se declara autenticación validada.
-
-Estado al terminar: ASP.NET detenido, puertos 7136/5064 libres; **PostgreSQL aislado queda activo en 51476 para el próximo F5**, automática=false y cero ejecuciones. No hace falta una terminal abierta ni se instalaron servicios. 154/154 archivos de código de Herd conservan el hash original; el .env no se leyó en este bloque.
-
-Comandos desde la raíz, con la misma cuenta Windows:
-
-```powershell
-# Sólo fue necesario una vez; repetir no sobrescribe el archivo existente:
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 MigrateSecrets
-dotnet build tests/TDV2.LocalConfigurationVerification/TDV2.LocalConfigurationVerification.csproj -p:NuGetAudit=false
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-UserSecrets.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 StartDatabase
-# En Visual Studio: tdv2 como inicio, perfil https, F5. Alternativa verificable:
-dotnet run --project tdv2/tdv2.csproj --no-build --no-restore --launch-profile https
-# Segunda terminal en ClientApp: npm.cmd run test:local
-# Al terminar: Mayús+F5 o Ctrl+C, según cómo se inició; luego, desde la raíz:
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 Stop
-```
-
-**Pendiente:** registro del retorno en Entra si falta, vigencia del secreto, consentimiento, Microsoft/Graph, red/TLS y publicación/permisos Nexo, conectores SII/ILDA reales y catálogo local UR. La programación sigue apagada y no hubo sincronizaciones. Operación personal detallada: [Visual Studio, secretos y arranque](docs/ARRANQUE_LOCAL_WINDOWS.md).
-
-### Configuración personal importada de Herd — 2026-10-01
-
-Registro histórico anterior a User Secrets. Las acciones Import/Configure y la inyección DPAPI aquí descritas quedaron sustituidas por el apartado vigente anterior.
-
-**Implementado:** con autorización expresa se leyó `C:\Users\Jesus Arenas\Herd\tdv2\.env` sin modificarlo. `scripts/Local-Tdv2.ps1 Import` guarda Microsoft, Nexo, SII e ILDA mediante DPAPI y reemplazo atómico dentro del directorio privado existente. Valida claves requeridas, GUID, puertos, TLS y contratos antes de publicar; rechaza duplicados/interpolaciones no resueltas sin mostrar valores. `Start` carga las conexiones cifradas exclusivamente en el backend; `Configure` conserva SII/ILDA al corregir Microsoft/Nexo. No cambia React, diseño ni fuentes.
-
-Mapeo confirmado contra Laravel: `MSGRAPH_TENANT_ID/CLIENT_ID/SECRET_ID` → Microsoft (SECRET_ID contiene el valor del secreto); `NEXO_DB_*` → Npgsql; **`MSSQL_*`** → SQL Server SII; `ILDA_DB_*` → MySQL ILDA. Se conservan los parámetros TLS explícitos. `NEXO_DB_SSLROOTCERT` e `ILDA_DB_SSL_CA` estaban vacíos; no se aportaron CA personalizadas, cuya necesidad real no se verificó. ILDA sin CA usa Preferred; no acredita cifrado negociado. La clave sigue siendo tdv2; no se importa un ID de aplicación ni se amplían permisos. Se validan los destinos fijos poa.UNIDADES_RESPONSABLES_POA e ilda_db.
-
-Se excluyeron `DB_*`, `APP_KEY`, `NEXO_APP_ID`, el retorno Laravel y opciones de activación. Se conservan **tdv2_local_validation @ 127.0.0.1:51476**, sus credenciales originales y **https://localhost:7136/connect**. Automática=false, ILDA deshabilitada, sin procesador ni sincronizaciones ejecutadas. No se conectó a bases institucionales ni se aplicó DDL en esta importación.
-
-**Probado:** **8/8 verificaciones sintéticas** de parseo, preservación de contraseñas, exclusiones, TLS, DPAPI y rechazos. La prueba necesita el perfil Windows real: el sandbox no puede proteger/descifrar con DPAPI de esa cuenta. Importación del archivo autorizado con descifrado idéntico y hashes de `.env`, marcador y credenciales locales sin cambios. **4/4 comprobaciones en Edge real** después de importar: HTTPS confiable, React → ASP.NET, CSRF/401 anónimo y /connect **302** con redirect_uri local correcto. PostgreSQL confirmó 4 migraciones, 0 usuarios/formatos/UR/ejecuciones y automática=false. Esto prueba carga de configuración y persistencia local del intento OAuth, no inicio de sesión.
-
-La primera prueba posterior a importar siguió la redirección hasta la página pública de Microsoft y falló por recursos bloqueados. Se corrigió el test: `fetch` con `redirect: manual`, leyendo las cabeceras locales mediante Chromium. Una repetición intermedia agotó la espera del evento de respuesta opaca; la versión final pasó sin seguir el redirect. No hubo credenciales introducidas, canje de tokens ni usuario autenticado; Nexo/SII/ILDA no se consultaron. Se mantienen los fallos como antecedente, no como evidencia de éxito.
-
-Evidencia sin secretos: [importación a las 07:56 UTC](docs/migracion/evidencia-importacion-local.json), [reglas sintéticas](docs/migracion/evidencia-importador-sintetico.json) y [arranque configurado a las 07:59 UTC](docs/migracion/evidencia-arranque-configurado.json). La evidencia anterior con /connect 503 se conserva como histórica. Al terminar se detuvieron ASP.NET y PostgreSQL aislado, con los puertos 7136/5064/51476 libres; configuración y datos permanecen.
-
-**Pendiente:** comprobar o registrar personalmente en Entra el retorno Web `https://localhost:7136/connect`; no se consultó su registro. Faltan validar vigencia del secreto, consentimiento, MFA, Graph y login/logout completos. Las conexiones Nexo/SII/ILDA están **configuradas, no comprobadas**: red/VPN, TLS, credenciales, vistas/permisos/publicador y fuentes institucionales siguen pendientes. La base local continúa sin catálogo UR; importar configuración no publica catálogos ni concede acceso. No se declara completado ningún bloque institucional.
-
-Comandos reproducibles desde la raíz, con la misma cuenta Windows:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-LocalImport.ps1
-# Import ya ejecutado. Repetir sólo al cambiar la referencia, con la aplicación detenida:
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 Import
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 Start
-# Segunda terminal opcional durante la verificación:
-cd ClientApp
-npm.cmd run test:local
-# Ctrl+C en Start. Desde la raíz:
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 Stop
-```
-
-Instrucciones de uso y detalle de equivalencias: [arranque local](docs/ARRANQUE_LOCAL_WINDOWS.md). La configuración cifrada no se copia a la documentación ni al frontend.
-
-### Arranque local personal en Windows — 2026-10-01
-
-Esta sección describe la preparación **anterior** a la importación autorizada de arriba; sus ausencias de configuración y el 503 ya no describen el estado actual.
-
-**Implementado:** `scripts/Local-Tdv2.ps1` ofrece Prepare/Configure/Start/Stop/Status. Usa el perfil https real: **https://localhost:7136** y http://localhost:5064; React compilado lo sirve ASP.NET, sin terminal Vite. La base persistente **tdv2_local_validation @ 127.0.0.1:51476** está dentro de `.artifacts/local-validation/data`, separada de servicios/bases existentes. Se aplicaron únicamente allí 001–004 con registro de hashes y cuenta de aplicación sin DDL. Credenciales locales aleatorias protegidas por DPAPI y directorio privado; las credenciales Microsoft/Nexo personales aún no se introdujeron. Inicio pausa automática, deshabilita ILDA, excluye conexiones SII/ILDA heredadas y no arranca trabajadores. No se instalaron servicios ni tareas; no se cargaron fixtures, usuarios ni permisos sintéticos.
-
-**Probado:** Prepare compiló ASP.NET sin errores/advertencias y React con Vite. Segunda preparación conservó el esquema y no reaplicó migraciones. Arranque HTTPS con certificado confiable del usuario ya existente, sin instalar ni exportar otro. **4/4 comprobaciones en Edge real**, sin ignorar errores TLS: portada, props React → ASP.NET, reintento anónimo 401/CSRF y /connect 503 por falta de configuración. Cero errores JavaScript, ninguna sesión ficticia. PostgreSQL confirmó 4 migraciones, 0 usuarios/formatos/UR/ejecuciones y automática=false. Un segundo Start se rechazó sin afectar al primero; se comprobaron Ctrl+C y Stop. Al finalizar quedaron detenidos ASP.NET y este PostgreSQL, conservando el entorno para uso personal.
-
-**Bloqueos pendientes:** TenantId y ClientId institucionales, valor de ClientSecret, registro del retorno Web **https://localhost:7136/connect**, consentimiento de scopes y conexión PostgreSQL Nexo con sus vistas/permisos/publicación tdv2. El origen HTTPS y la conexión TDV2 aislada ya los proporciona el script. No se autenticó Microsoft ni se conectó Nexo real; tampoco se validaron fuentes institucionales. La base no contiene catálogo UR: incluso tras configurar identidad, probar formatos/alcance exige cargarlo expresamente en esta base, con claves/empleados correspondientes a Nexo. El modo de arranque no procesa sincronizaciones.
-
-Se corrigieron una espera del lanzador pg_ctl por captura de streams en Windows y el tratamiento de stderr para un servidor detenido. La prueba nueva admite el BOM de launchSettings y realiza llamadas HTTP en Edge para usar su confianza TLS real. No cambió código de autenticación, autorización, pantallas, tema ni tipografías. Las pruebas de esta sección son de **arranque real anónimo**, distintas de las suites autenticadas con dobles anteriores.
-
-Instrucciones personales, permisos Nexo, comandos y parada: [ARRANQUE_LOCAL_WINDOWS.md](docs/ARRANQUE_LOCAL_WINDOWS.md). Informe: [evidencia-arranque-local.json](docs/migracion/evidencia-arranque-local.json); capturas `.artifacts/local-validation/browser/`. Repetir `npm.cmd run test:local` desde ClientApp, con Start abierto. Las peticiones externas del navegador se bloquearon, incluidas fuentes; no acredita aceptación visual ni inicio institucional.
-
-### Inspección de la migración
-
-- Destino original inspeccionado: solución tdv2.slnx, proyecto Web API net10.0, plantilla WeatherForecast y OpenAPI 10.0.12. SDK 10.0.401/runtime 10.0.12. No existían Git ni AGENTS.md; no se inicializó Git.
-- Herd es exclusivamente referencia de lectura. Durante la migración inicial no se leyeron .env ni credenciales; la excepción posterior autorizada para configuración está documentada arriba. No se ejecutó Laravel ni se leyeron respaldos/logs; no se conectó ninguna base existente. Todos los cambios están en el destino ASP.NET.
 - Inventario: 27 rutas propias, 27 tablas declaradas, 119 métodos PHP y 12 pruebas frontend originales. **154/154 hashes de Herd siguen iguales** al manifiesto inicial. Las pruebas PHP son criterios de aceptación; no se ejecutaron.
 - Para este bloque se revisaron antes de implementar CollaboratorController, RepresentationController, PreviewController, ConfigurationController, NexoDelegation, NexoRepresentation, RepresentationAudit, PreviewSession/ViewContext, FormAccess, middleware, rutas/configuración y pruebas asociadas.
 - Para sincronizaciones se revisaron InstitutionalSource/InstitutionalSync, IldaSource/IldaSync/IldaInventory, SyncManager/SyncController, comandos, configuración y migraciones 2026_09_25_000001/2026_09_30_000001, además de InstitutionalSourceTest, InstitutionalSyncTest, IldaInventoryTest y ConfigurationSyncTest. Contratos y diferencias: [SINCRONIZACIONES.md](docs/migracion/SINCRONIZACIONES.md).
@@ -147,7 +110,7 @@ Instrucciones personales, permisos Nexo, comandos y parada: [ARRANQUE_LOCAL_WIND
 - `--sync-worker` opera por separado del sitio, publica latido cada minuto sin renovar por ello la reserva; `--sync-once` hace un ciclo y `--sync-check=sii|ilda|ambas` sólo comprueba. Automática e ILDA deshabilitadas por defecto. No se instalaron tareas, cron ni servicios.
 - Pantalla Sincronizaciones idéntica a Laravel salvo import de transporte; historial, progreso, estados, alertas y tipografías conservados. Dependencias, diferencias de tipos MySQL, zona horaria, esquema y operación Windows/Ubuntu en [SINCRONIZACIONES.md](docs/migracion/SINCRONIZACIONES.md). DDL explícito `database/004_synchronizations.sql` únicamente para la base ASP.NET aislada preparada.
 
-## Probado y evidencia
+## Evidencia anterior de los bloques funcionales
 
 | Ejecución | Resultado | Alcance |
 |---|---|---|
@@ -250,7 +213,7 @@ $manifest.Count
 - **Nexo Laravel institucional:** conexión importada, sin probar. Pendientes red/TLS, publicación tdv2, vistas filtradas y EXECUTE de las funciones públicas de delegación/representación (contrato Nexo 9.6.0 citado por Laravel). Sin validar firmas/tipos efectivos, publicador Laravel, idempotencia real, duración/formato de selección, responsables/roles asignables, revocaciones desde Nexo, concesiones compartidas ni auditoría central. Pruebas que alteren concesiones centrales requieren una publicación/personas autorizadas para pruebas.
 - **SII/ILDA institucionales:** conexiones importadas, sin probar ni ejecutar. Pendientes acceso autorizado SELECT, certificados TLS cuando correspondan y muestra de tipos/volumen. Sin validar protocolo TDS/MySQL, autenticación real, configuración de servidor, ejercicio desplegado, tipos/precisión/texto de fechas ILDA, claves/empleados reales ni rendimiento institucional. No basta el lector ADO.NET sintético para acreditar el conector de red.
 - **Procesador en despliegue:** comandos Windows/Ubuntu documentados; no se ejecutó Ubuntu, SIGTERM, supervisor, reinicio de máquina ni operación prolongada. No se habilitó ningún servicio/tarea. El fallo de fuente se probó por excepciones/lecturas incompletas, no por cortar una conexión remota real.
-- **Datos existentes:** intactos y sin consultar. Falta contrastar esquema/tipos/índices en copia aislada, historial de colaboraciones, migración de actividad, UTC y ensayos de conversión/corte/reversión. No reutilizar cookies/cifrado Laravel ni aplicar el bootstrap sobre una base existente.
+- **Datos existentes:** intactos y sin consultar. Ensayo sintético de conversión disponible; falta ejecutarlo sobre una copia real autorizada y contrastar esquema/tipos/índices, colaboraciones, actividad y UTC, además del corte/reversión institucional. No reutilizar cookies/cifrado Laravel ni aplicar el bootstrap sobre una base existente.
 - **Operación y recuperación:** reinicio con llaves persistidas bajo cuenta del servicio, varias instancias, rotación/respaldo, limpieza de sesiones/contextos caducados, proxy/HTTPS, límites distribuidos y caída física de motor/red. Los triggers/fallos SQL no representan pérdida de confirmación de COMMIT. No hay reconciliador automático entre TDV2/Nexo.
 - **Paridad documentada:** el identificador Microsoft de sesión no se regenera como en Laravel; se usa contexto cifrado con revisión atómica y rechazo de contexto obsoleto. Auditoría extendida a operaciones propias; motivo libre omitido. Login conserva bitácora básica separada de la persistencia de identidad; falta acordar metadatos históricos, retención y consulta institucional de auditoría.
 - **Interfaz:** comparación visual con fuentes descargadas, móvil/teclado, impresión/exportación y borradores al caducar sesión. Capturas funcionales y código conservado no certifican estos aspectos.

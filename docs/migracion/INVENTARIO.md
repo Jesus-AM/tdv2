@@ -94,7 +94,7 @@ Las funciones de delegación reciben parámetros posicionales enlazados: buscar 
 
 Nueve pantallas: Inicio, FormatoUR, Colaboradores, Configuracion, Sincronizaciones, PruebasAcceso, VistaPrueba, ActuarComoUsuario y AccesoRestringido. Layout, AreaDirectory y PageHeading compartidos. Mantener tema MUI/Roboto y CSS; portada Blade independiente con sus tres familias tipográficas.
 
-Dependencias a sustituir/adaptar: bootstrap createInertiaApp; Head; usePage y props compartidas; router.visit/post/delete/reload/clearHistory; eventos before/navigate; useForm de VistaPrueba; redirecciones y errores 422; recargas parciales de sincronizaciones/colaboradores. Axios guarda formatos y efectúa búsquedas/altas/bajas. Conservar protección de cambios sin guardar, autosave, conflictos, exportación/impresión y cabecera de contexto.
+Dependencias originales sustituidas/adaptadas en el destino: bootstrap createInertiaApp; Head; usePage y props compartidas; router.visit/post/delete/reload/clearHistory; eventos before/navigate; useForm de VistaPrueba; redirecciones y errores 422; recargas parciales de sincronizaciones/colaboradores. Axios guarda formatos y efectúa búsquedas/altas/bajas. Conservar protección de cambios sin guardar, autosave, conflictos, exportación/impresión y cabecera de contexto.
 
 ## Pruebas como criterios de aceptación
 
@@ -103,5 +103,13 @@ EVIDENCIA_FUENTE.md enumera métodos PHP y pruebas frontend; `tests/Support` con
 Priorizar denegación por defecto, revocación al siguiente request, aislamiento y combinación de roles, conflictos de versión/primer guardado, CSRF real, pestaña obsoleta, representación revocada sin restaurar permisos, publicación atómica, dos ejecutores y recuperación. Pruebas frontend de FormEditor y árbol de áreas deben ejecutarse en el destino con fuentes conservadas.
 
 ## Referencias técnicas del destino
+
+### Organización y ensayo de mantenimiento (2026-10-01)
+
+Las rutas inventariadas conservan su contrato y ahora se implementan en `tdv2/Controllers`, con casos de uso en `Services`, SQL en `Infrastructure`/`Synchronization` y límites HTTP en `Web`. `Program.cs` sólo compone el arranque. React se muestra en `ClientApp.esproj`; los perfiles de solución usan Vite por el mismo origen HTTPS y la publicación compila `wwwroot` desde el backend. No se portó nuevamente la interfaz.
+
+La configuración vigente es appsettings/opciones + User Secrets de desarrollo; el importador DPAPI institucional fue retirado después de comprobar el reemplazo. La [guía local](../ARRANQUE_LOCAL_WINDOWS.md) documenta claves y equivalencias Laravel. DPAPI permanece para la administración del clúster Windows.
+
+Se revisaron de nuevo las tres migraciones Laravel recientes para preparar [la conversión de una copia](TRANSICION_DATOS.md). El ensayo distingue bootstrap de base vacía y DDL aditivo sobre copia no vacía, conserva datos y exige claves/relaciones válidas. Respaldo/restauración y conservación se ensayaron sólo con datos sintéticos; el esquema y los datos desplegados continúan sin consultar. Resultados actuales separados en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md).
 
 Para implementar y verificar el transporte: [antiforgery ASP.NET Core 10](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-10.0), [pruebas con WebApplicationFactory](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0), [NpgsqlDataSource y parámetros](https://www.npgsql.org/doc/basic-usage.html). Las reglas de negocio proceden del código local, no de esas referencias.

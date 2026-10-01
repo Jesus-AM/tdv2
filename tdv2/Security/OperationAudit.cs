@@ -15,14 +15,21 @@ public sealed class OperationAudit(DatabaseConnections connections, AccessState 
     {
         var http = accessor.HttpContext!;
         selection ??= Resolved ?? state.Loaded?.Selection;
-        // Explicit allowlist: never serialize selection/token, request body, headers, provider result or exception.
-        var meta = new { entidad_id = resource, resultado = result,
+        // Lista permitida explícita: nunca serializar contexto/token, cuerpo, cabeceras, respuesta externa ni excepción.
+        var meta = new
+        {
+            entidad_id = resource,
+            resultado = result,
             representacion_id = selection?.Kind == "representation" ? selection.Id : null,
             representado_email = selection?.Kind == "representation" ? selection.Email : null,
             representado_nombre = selection?.Kind == "representation" ? selection.Name : null,
             roles_efectivos = Effective?.Roles.Select(r => new { id = r.Id, key = r.Key, name = r.Name }),
-            ur_efectiva = selection?.UnitId ?? Effective?.User.UnitId, escritura = selection?.Write,
-            contexto = selection?.Kind ?? "own", escenario_rol = selection?.Role, detalles = details };
+            ur_efectiva = selection?.UnitId ?? Effective?.User.UnitId,
+            escritura = selection?.Write,
+            contexto = selection?.Kind ?? "own",
+            escenario_rol = selection?.Role,
+            detalles = details
+        };
         await using var command = new NpgsqlCommand("""
             INSERT INTO activity_logs(user_email,user_name,entity,action,meta,created_at,updated_at)
             VALUES($1,$2,$3,$4,$5,timezone('UTC',now()),timezone('UTC',now()))
@@ -46,7 +53,7 @@ public sealed class OperationAudit(DatabaseConnections connections, AccessState 
         var path = http.Request.Path.Value ?? "/";
         try
         {
-            // CSRF can fail before authorization loads the current context.
+            // CSRF puede fallar antes de que la autorización cargue la identidad efectiva.
             await state.Load(CancellationToken.None);
             await Record(http.Request.Method.ToLowerInvariant(), "acceso", path[..Math.Min(150, path.Length)],
                 status >= 500 ? "no_disponible" : "rechazado", CancellationToken.None, new { status });
