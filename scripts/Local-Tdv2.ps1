@@ -128,7 +128,7 @@ function Status {
     Write-Output ('PostgreSQL local activo: ' + $running)
     if ($running) {
         Verify-Cluster $databaseName
-        $summary = Sql "SELECT json_build_object('migraciones',(SELECT count(*) FROM tdv2_local_migrations),'usuarios',(SELECT count(*) FROM users),'formatos',(SELECT count(*) FROM formatos_ur),'unidades',(SELECT count(*) FROM unidades_responsables_poa),'automatica',(SELECT activa FROM sincronizacion_configuracion WHERE id=1),'ejecuciones',(SELECT count(*) FROM sincronizacion_ejecuciones))::text"
+        $summary = Sql "SELECT json_build_object('historial_ef',to_regclass('public.`"__EFMigrationsHistory`"') IS NOT NULL,'usuarios',(SELECT count(*) FROM users),'formatos',(SELECT count(*) FROM formatos_ur),'unidades',(SELECT count(*) FROM unidades_responsables_poa),'automatica',(SELECT activa FROM sincronizacion_configuracion WHERE id=1),'ejecuciones',(SELECT count(*) FROM sincronizacion_ejecuciones))::text"
         Write-Output ('Estado local (solo contadores): ' + $summary)
     }
     Write-Output ('User Secrets: ' + $secretsPath)
@@ -176,18 +176,31 @@ try {
             }
             Verify-Cluster $databaseName
             Write-Output 'Base aislada confirmada. Revisando migraciones...'
-            $null = Sql 'CREATE TABLE IF NOT EXISTS tdv2_local_migrations(name text PRIMARY KEY,sha256 text NOT NULL,applied_at timestamptz NOT NULL DEFAULT now())'
-            foreach ($name in @('001_core.sql','002_aspnet_sessions.sql','003_access_contexts.sql','004_synchronizations.sql')) {
-                $path = Join-Path $workspace ('database\' + $name)
-                $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-                $applied = Sql "SELECT sha256 FROM tdv2_local_migrations WHERE name='$name'"
-                if ($applied -eq $hash) { continue }
-                if ($applied) { throw ('La migracion aplicada cambio: ' + $name + '. No se sobrescribio el esquema local.') }
-                $ddl = [IO.File]::ReadAllText($path)
-                if ([regex]::Matches($ddl,'COMMIT;').Count -ne 1) { throw 'Formato de migracion no admitido.' }
-                $ddl = $ddl.Replace('COMMIT;',"INSERT INTO tdv2_local_migrations(name,sha256) VALUES('$name','$hash');`nCOMMIT;")
-                $null = Sql $ddl
-                Write-Output ('Aplicada solo en la base local: ' + $name)
+            # Conserva el clúster DPAPI, sus marcadores y bases existentes. EF es el único ejecutor de DDL.
+            if ((Sql "SELECT to_regclass('public.`"__EFMigrationsHistory`"') IS NOT NULL") -ne 't' -and
+                (Sql "SELECT count(*) FROM pg_tables WHERE schemaname='public'") -ne '0') {
+                throw 'La base local anterior se conserva. Requiere una revisión de adopción EF; Prepare no la convierte ni la elimina.'
+            }
+            $oldConnection = $env:ConnectionStrings__Tdv2
+            $oldPackages = $env:NUGET_PACKAGES
+            $oldCli = $env:DOTNET_CLI_HOME
+            try {
+                $password = Plain $credentials.Admin
+                $env:ConnectionStrings__Tdv2 = "Host=127.0.0.1;Port=$($state.port);Database=$databaseName;Username=$adminName;Password=$password;Search Path=public;SSL Mode=Disable"
+                $env:NUGET_PACKAGES = Join-Path $workspace '.artifacts/nuget'
+                $env:DOTNET_CLI_HOME = Join-Path $workspace '.artifacts/dotnet-home'
+                Push-Location $workspace
+                try {
+                    & dotnet tool restore
+                    if ($LASTEXITCODE -ne 0) { throw 'No se pudo restaurar dotnet-ef.' }
+                    & dotnet ef database update --project tdv2 -- --environment Development
+                    if ($LASTEXITCODE -ne 0) { throw 'No se completaron las migraciones EF locales.' }
+                } finally { Pop-Location }
+            } finally {
+                $password=$null
+                $env:ConnectionStrings__Tdv2=$oldConnection
+                $env:NUGET_PACKAGES=$oldPackages
+                $env:DOTNET_CLI_HOME=$oldCli
             }
             if ((Sql "SELECT count(*) FROM pg_roles WHERE rolname='$appName'") -eq '0') {
                 $password = Plain $credentials.App
@@ -273,6 +286,6 @@ GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO $appName;
 } catch {
     # Deliberately exclude exception objects, provider responses and configuration values.
     Write-Output ('Operacion ' + $Action + ' no completada. Tipo: ' + $_.Exception.GetType().Name)
-    if ($_.Exception.Message -match '^(User Secrets:|Primero ejecuta|Ya hay un arranque|El marcador local|Directorio de datos fuera|No se encuentran los binarios|No se pudieron leer las credenciales|Las credenciales DPAPI|El puerto PostgreSQL|No arranco el cluster|No se pudo detener|La operacion SQL del entorno|data_directory no corresponde|La base conectada|El directorio local existe|Faltan los binarios|initdb no completo|La migracion aplicada cambio|Formato de migracion|No se confirmo|Fallo la compilacion|Falta Node/npm|No se pudieron restaurar|Falta certificado HTTPS|Puerto del perfil ocupado)') { Write-Output $_.Exception.Message }
+    if ($_.Exception.Message -match '^(User Secrets:|Primero ejecuta|Ya hay un arranque|El marcador local|Directorio de datos fuera|No se encuentran los binarios|No se pudieron leer las credenciales|Las credenciales DPAPI|El puerto PostgreSQL|No arranco el cluster|No se pudo detener|La operacion SQL del entorno|data_directory no corresponde|La base conectada|El directorio local existe|Faltan los binarios|initdb no completo|La base local anterior|La migracion aplicada cambio|Formato de migracion|No se confirmo|Fallo la compilacion|Falta Node/npm|No se pudieron restaurar|Falta certificado HTTPS|Puerto del perfil ocupado)') { Write-Output $_.Exception.Message }
     exit 1
 } finally { if ($controlLock) { $controlLock.Dispose() } }

@@ -1,0 +1,40 @@
+{
+  "utc": "2026-10-02T04:37:15.6656627Z",
+  "server": "SERVIDOR_TDV2",
+  "port": 5432,
+  "database": "tdv2_db",
+  "user": "USUARIO_TDV2",
+  "tls": true,
+  "applicationTables": 14,
+  "migrationHistoryTable": "public.tdv2_schema_migrations",
+  "applied": 4,
+  "skippedOnRepeat": 4,
+  "columnMetadataMatchesDisposableDatabase": true,
+  "schemaUnchangedOnRepeat": true,
+  "automaticSynchronizationDisabled": true,
+  "sources": [
+    {
+      "name": "001_core.sql",
+      "sha256": "FEF6CB58071AC87B0CF0D6463F4D3E74E10F009CD5B4D6684B816333A69B1A97"
+    },
+    {
+      "name": "002_aspnet_sessions.sql",
+      "sha256": "014D4721AF7755A304E47AD781E1EE35137C3416FAB712CB073C02533D1917EC"
+    },
+    {
+      "name": "003_access_contexts.sql",
+      "sha256": "7467F905FFC239D7D59AE703614F88C4B424BC5B0CA140B4CF02EA76DD8E0E15"
+    },
+    {
+      "name": "004_synchronizations.sql",
+      "sha256": "E09EB1131C8047DF71D1C1EBE37116BC2A08697B1431BF6682C65D95A64A36A0"
+    }
+  ],
+  "publicationRedaction": {
+    "fields": [
+      "institutionalHost",
+      "institutionalUser"
+    ],
+    "note": "Identificadores del destino omitidos para publicación. Resultados de la verificación original sin cambios."
+  }
+}

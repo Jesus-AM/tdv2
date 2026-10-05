@@ -23,21 +23,7 @@ public sealed class ExceptionBoundaryMiddleware(RequestDelegate next, ReactShell
         try { await next(context); }
         catch (DomainProblem problem)
         {
-            await context.RequestServices.GetRequiredService<OperationAudit>().Failure(context, problem.Status);
-            context.Response.StatusCode = problem.Status;
-            if (PagePaths.IsPage(context.Request.Path) && context.Request.Headers.Accept.Any(v => v?.Contains("text/html") == true))
-            {
-                await shell.Write(context);
-                return;
-            }
-            var payload = problem.Details is null ? new System.Text.Json.Nodes.JsonObject()
-                : System.Text.Json.JsonSerializer.SerializeToNode(problem.Details)!.AsObject();
-            payload["message"] = problem.Message;
-            var snapshot = context.RequestServices.GetRequiredService<AccessState>().Loaded;
-            payload["representacion"] = System.Text.Json.JsonSerializer.SerializeToNode(snapshot?.Selection?.Representation());
-            payload["simulacion"] = System.Text.Json.JsonSerializer.SerializeToNode(snapshot?.Selection?.Preview());
-            payload["contextoEdicion"] = snapshot?.Key ?? "own";
-            await context.Response.WriteAsJsonAsync(payload);
+            await DomainProblemResponse.Write(context, problem, shell);
         }
         catch (AntiforgeryValidationException)
         {

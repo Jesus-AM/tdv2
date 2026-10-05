@@ -33,6 +33,7 @@ import {
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import { errorText } from '@/lib/http';
+import { displayUnitCode } from '@/lib/area-directory';
 import type { Unit, Collaboration, CollaborationKind, EligiblePerson } from '@/types/tdv2';
 export default function Colaboradores({
     unidades,
@@ -186,7 +187,7 @@ export default function Colaboradores({
                             >
                                 {unidades.map((u) => (
                                     <MenuItem value={u.id_ur} key={u.id_ur}>
-                                        {u.cve_ur} · {u.desc_ur}
+                                        {displayUnitCode(u.cve_ur)} · {u.desc_ur}
                                     </MenuItem>
                                 ))}
                             </TextField>
@@ -212,6 +213,7 @@ export default function Colaboradores({
                         </div>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 3 }}>
                             Busca por nombre o correo entre el personal del área seleccionada y sus áreas dependientes.
+                            {Number(current?.nivel_ur) === 3 && ' La colaboración permite llenar únicamente el formato de esta área de nivel 3.'}
                         </Typography>
                         <div className="split">
                             <section>

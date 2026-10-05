@@ -11,10 +11,21 @@ export interface AreaNode {
 
 export type AreaFilter = 'todos' | 'edicion' | 'sin_iniciar' | 'en_proceso' | 'completos';
 
+// Sólo presentación: id_ur y cve_ur originales siguen siendo las claves de asociación.
+export function displayUnitCode(code: string): string {
+    const value = code.trim();
+    return /^\d+$/.test(value) ? value.replace(/^0+(?=\d)/, '') : value;
+}
+
+export function eligibleArea(unit: Unit): boolean {
+    return unit.tipo_ur == null || unit.tipo_ur.trim() === '' || Number(unit.tipo_ur) !== 0;
+}
+
 export function normalizeAreaText(value: string): string {
     return value
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\b0+(?=\d)/g, '')
         .toLocaleLowerCase('es')
         .trim();
 }
@@ -39,20 +50,32 @@ export function matchesForm(form: FormRow | null, filter: AreaFilter): boolean {
             : progress === 100;
 }
 
-// The institutional parent identifier defines the hierarchy; codes are labels only.
+// La jerarquía usa identificadores originales; los nodos auxiliares no son áreas elegibles.
 export function buildAreaDirectory(units: Unit[], forms: FormRow[]): { roots: AreaNode[]; others: AreaNode[] } {
     // Only these levels have their own format in the administrator directory.
     const ordered = units
-        .filter((unit) => [2, 3].includes(Number(unit.nivel_ur)))
+        .filter((unit) => eligibleArea(unit) && [2, 3].includes(Number(unit.nivel_ur)))
         .sort((a, b) => a.cve_ur.localeCompare(b.cve_ur, 'es', { numeric: true }) || a.id_ur.localeCompare(b.id_ur));
-    const byId = new Map(ordered.map((unit) => [unit.id_ur, unit]));
+    const byId = new Map(units.map((unit) => [unit.id_ur, unit]));
+    function parentOf(unit: Unit): string | null {
+        if (Number(unit.nivel_ur) === 2) return null;
+        if (unit.id_ur_principal && unit.id_ur_principal !== unit.id_ur && byId.has(unit.id_ur_principal)) return unit.id_ur_principal;
+        const seen = new Set([unit.id_ur]);
+        let parent = byId.get(unit.id_ur_pertenece || '');
+        let fallback: string | null = null;
+        while (parent && !seen.has(parent.id_ur)) {
+            if (eligibleArea(parent) && Number(parent.nivel_ur) === 2) return parent.id_ur;
+            if (!fallback && eligibleArea(parent) && Number(parent.nivel_ur) === 3) fallback = parent.id_ur;
+            seen.add(parent.id_ur);
+            parent = byId.get(parent.id_ur_pertenece || '');
+        }
+        return fallback;
+    }
     const byForm = new Map(forms.map((form) => [form.id_ur, form]));
     const parents = new Map(
         ordered.map((unit) => [
             unit.id_ur,
-            Number(unit.nivel_ur) !== 2 && unit.id_ur_pertenece !== unit.id_ur && byId.has(unit.id_ur_pertenece || '')
-                ? unit.id_ur_pertenece
-                : null,
+            parentOf(unit),
         ]),
     );
 

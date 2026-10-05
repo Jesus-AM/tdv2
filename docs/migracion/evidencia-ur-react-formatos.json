@@ -1,0 +1,43 @@
+{
+  "browser": "154.0.4258.37",
+  "checks": [
+    {
+      "name": "portada y login Microsoft simulado crean sesión segura",
+      "passed": true
+    },
+    {
+      "name": "captura React persiste respuestas y avance en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "dos pestañas: 409 conserva el borrador y la respuesta ganadora",
+      "passed": true
+    },
+    {
+      "name": "error PostgreSQL conserva borrador; reintento recupera guardado",
+      "passed": true
+    },
+    {
+      "name": "UR ajena deniega documento HTML y muestra pantalla conservada",
+      "passed": true
+    },
+    {
+      "name": "módulo no autorizado se aplica en React y servidor",
+      "passed": true
+    },
+    {
+      "name": "usuario sin aplicación publicada no conserva acceso de su sesión",
+      "passed": true
+    },
+    {
+      "name": "Nexo no disponible no concede permisos y permite recuperar sesión",
+      "passed": true
+    },
+    {
+      "name": "logout desde React revoca sesión y redirige a Microsoft",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "externalFontsBlocked": true
+}

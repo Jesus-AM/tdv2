@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
 using Tdv2.Security;

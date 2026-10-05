@@ -46,13 +46,12 @@ async function control(action) {
 }
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
-    await target.getByRole('tab', { name: 'Encabezado', exact: true }).click();
+    await target.getByRole('tab', { name: 'Contexto', exact: true }).click();
     return target.getByLabel('Responsable del llenado', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
-    const response = target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A' && r.request().method() === 'PUT');
-    await work();
-    assert.equal((await response).status(), status);
+    const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
+    assert.equal(response.status(), status);
 }
 
 const syncPath = '/configuracion/sincronizaciones';
@@ -208,6 +207,31 @@ try {
         assert.ok(final.audits > 15); assert.equal(final.leaks, 0);
         assert.equal((await page.goto(origin + syncPath)).status(), 200);
         await page.screenshot({ path: path.join(artifacts, 'sincronizaciones-historial.png') });
+    });
+    await check('Encabezado adaptable, refresco conserva borrador y error temporal permite reintento', async () => {
+        await page.getByRole('heading', { name: 'Sincronizaciones', exact: true }).waitFor();
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        const title = await page.getByRole('heading', { name: 'Sincronizaciones', exact: true }).boundingBox();
+        const action = await page.getByRole('button', { name: 'Actualizar estado', exact: true }).boundingBox();
+        assert.ok(action.x > title.x && Math.abs(action.y - title.y) < 45);
+        await page.screenshot({ path: path.join(artifacts, 'sincronizaciones-encabezado-escritorio.png') });
+        await page.getByLabel('Zona horaria', { exact: true }).fill('UTC');
+        await page.route('**/configuracion/sincronizaciones', async route => {
+            if (route.request().resourceType() === 'xhr') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Fallo temporal sintético.' }) });
+            return route.continue();
+        });
+        await page.getByRole('button', { name: 'Actualizar estado', exact: true }).click();
+        await page.getByText('Fallo temporal sintético.', { exact: true }).waitFor();
+        assert.equal(await page.getByLabel('Zona horaria', { exact: true }).inputValue(), 'UTC');
+        await page.unroute('**/configuracion/sincronizaciones');
+        await page.getByRole('button', { name: 'Actualizar estado', exact: true }).click();
+        await page.getByText('Estado actualizado.', { exact: true }).waitFor();
+        assert.equal(await page.getByLabel('Zona horaria', { exact: true }).inputValue(), 'UTC');
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        assert.equal(await page.locator('.page-header').evaluate(el => getComputedStyle(el).animationName), 'none');
+        await page.screenshot({ path: path.join(artifacts, 'sincronizaciones-encabezado-movil.png') });
     });
     assert.deepEqual(errors, []);
     await writeFile(path.join(artifacts, 'browser-sync.json'), JSON.stringify({

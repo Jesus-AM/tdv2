@@ -1,30 +1,29 @@
 using System.Text.Json.Nodes;
 using Npgsql;
 using Tdv2.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Tdv2.Infrastructure;
 
 /// <summary>SQL local de colaboraciones. El servicio conserva la transacción y su auditoría.</summary>
-public sealed class PostgresCollaborationStore(DatabaseConnections connections)
+public sealed class PostgresCollaborationStore(Tdv2DbContext db)
 {
     public async Task<IReadOnlyList<object>> List(string[] roots, UnitDirectory directory, CancellationToken ct)
     {
         var links = new List<object>();
-        await using var connection = await connections.Open("Tdv2", ct);
-        await using var command = new NpgsqlCommand("SELECT id,email,nombre,tipo,ur_otorgante,id_ur_alcance,revocada_en,retiro_central_pendiente FROM colaboraciones_ur WHERE ur_otorgante=ANY($1) AND (revocada_en IS NULL OR retiro_central_pendiente=true) ORDER BY nombre,id", connection);
-        command.Parameters.AddWithValue(roots);
-        await using var reader = await command.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        var rows = await db.UnitCollaborations.AsNoTracking().Where(c => roots.Contains(c.GrantorUnitId)
+            && (c.RevokedAt == null || c.CentralRemovalPending)).OrderBy(c => c.Name).ThenBy(c => c.Id).ToListAsync(ct);
+        foreach (var row in rows)
             links.Add(new
             {
-                id = reader.GetInt64(0),
-                email = reader.GetString(1),
-                nombre = reader.GetString(2),
-                tipo = reader.GetString(3),
-                ur_otorgante = reader.GetString(4),
-                alcance = directory.Get(reader.GetString(5))?.Description ?? reader.GetString(5),
-                revocada = !reader.IsDBNull(6),
-                pendiente = reader.GetBoolean(7)
+                id = row.Id,
+                email = row.Email,
+                nombre = row.Name,
+                tipo = row.Kind,
+                ur_otorgante = row.GrantorUnitId,
+                alcance = directory.Get(row.ScopeUnitId)?.Description ?? row.ScopeUnitId,
+                revocada = row.RevokedAt != null,
+                pendiente = row.CentralRemovalPending
             });
         return links;
     }

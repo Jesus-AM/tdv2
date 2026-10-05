@@ -1,0 +1,59 @@
+{
+  "utc": "2026-10-02T05:56:39.273Z",
+  "browser": "154.0.4258.37",
+  "realPostgreSql": true,
+  "microsoft": "simulated local redirects and HTTP peer",
+  "nexo": "synthetic PostgreSQL views and functions",
+  "externalRequestsBlocked": true,
+  "checks": [
+    {
+      "name": "login y Configuración conservan las dos herramientas separadas",
+      "passed": true
+    },
+    {
+      "name": "búsqueda distingue resultado vacío, falta de delegación y conexión fallida",
+      "passed": true
+    },
+    {
+      "name": "alta React de persona subordinada usa formato de UR nivel 3 sin crear otro",
+      "passed": true
+    },
+    {
+      "name": "retiro conserva revocación local ante error y permite confirmar reintento",
+      "passed": true
+    },
+    {
+      "name": "colaboración de áreas dependientes conserva alcance de la rama nivel 2",
+      "passed": true
+    },
+    {
+      "name": "administrador sin capacidad Nexo no puede representar desde pantalla ni endpoint",
+      "passed": true
+    },
+    {
+      "name": "representación de consulta bloquea edición, UR ajena y permite volver al actor",
+      "passed": true
+    },
+    {
+      "name": "representación con escritura guarda desde React y audita ambas identidades",
+      "passed": true
+    },
+    {
+      "name": "representación revocada o vencida no restaura permisos de administrador automáticamente",
+      "passed": true
+    },
+    {
+      "name": "fallo de Nexo bloquea representación y permite terminarla explícitamente",
+      "passed": true
+    },
+    {
+      "name": "vista por rol y área es de consulta y rechaza elusión por endpoints",
+      "passed": true
+    },
+    {
+      "name": "PostgreSQL confirma auditoría sin tokens y todos los contextos finalizados",
+      "passed": true
+    }
+  ],
+  "pageErrors": []
+}

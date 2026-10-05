@@ -1,0 +1,63 @@
+diff --git a/app/Services/DelegacionPostgres.php b/app/Services/DelegacionPostgres.php
+index 91aa3cd..6dfa863 100644
+--- a/app/Services/DelegacionPostgres.php
++++ b/app/Services/DelegacionPostgres.php
+@@ -82,7 +82,9 @@ class DelegacionPostgres
+                 JOIN {$prefix}delegacion_directorio d ON d.email = u.email
+                 JOIN {$prefix}delegacion_unidades unit ON unit.id_ur = d.id_ur AND unit.num_empleado = d.num_empleado
+                 WHERE u.activo = TRUE AND u.tipo_cuenta = 'individual' AND ua.activo = TRUE AND ua.suspendido = FALSE
+-                    AND unit.nivel_ur IN (2, 3) AND LOWER(TRIM(unit.estatus_ur)) = 'activo' AND {$effective} AND {$gate}",
++                    AND unit.nivel_ur IN (2, 3) AND LOWER(TRIM(unit.estatus_ur)) = 'activo'
++                    AND (NOT EXISTS (SELECT 1 FROM aplicaciones app WHERE app.id = {$id} AND app.clave = 'tdv2')
++                        OR COALESCE(TRIM(unit.tipo_ur::text), '') !~ '^0+$') AND {$effective} AND {$gate}",
+             'delegacion_roles' => "SELECT r.id AS rol_id, r.clave, r.nombre FROM roles r
+                 JOIN delegacion_roles dr ON dr.rol_id = r.id AND dr.aplicacion_id = r.aplicacion_id AND dr.uso = 'asignar'
+                 WHERE r.aplicacion_id = {$id} AND r.activo = TRUE AND {$gate}",
+diff --git a/app/Services/AdministracionDelegada.php b/app/Services/AdministracionDelegada.php
+index 091418c..8f0ccbd 100644
+--- a/app/Services/AdministracionDelegada.php
++++ b/app/Services/AdministracionDelegada.php
+@@ -67,6 +67,10 @@ class AdministracionDelegada
+             if (DB::table('representacion_roles')->where('aplicacion_id', $app->id)->whereIn('rol_id', $data['roles_asignables'])->exists()) {
+                 throw ValidationException::withMessages(['roles_asignables' => 'Los roles que permiten actuar como usuario no pueden asignarse mediante delegación.']);
+             }
++            if ($app->clave === 'tdv2' && $app->roles()->whereIn('id', $data['roles_asignables'])
++                ->whereNotIn('clave', ['colaborador_local', 'colaborador_dependencias'])->exists()) {
++                throw ValidationException::withMessages(['roles_asignables' => 'TDV2 sólo permite asignar Colaborador local y Colaborador de áreas dependientes. El nivel 3 sólo puede conceder colaboración local.']);
++            }
+             DB::table('delegaciones_aplicacion')->updateOrInsert(['aplicacion_id' => $app->id],
+                 ['habilitada' => (bool) $data['habilitada'], 'revision' => $before['revision'] + 1, 'updated_at' => now('UTC'), 'created_at' => now('UTC')]);
+             DB::table('delegacion_roles')->where('aplicacion_id', $app->id)->delete();
+diff --git a/app/Services/Postgres/conceder_acceso.sql b/app/Services/Postgres/conceder_acceso.sql
+index f3732e6..c0e1a63 100644
+--- a/app/Services/Postgres/conceder_acceso.sql
++++ b/app/Services/Postgres/conceder_acceso.sql
+@@ -17,6 +17,12 @@ BEGIN
+     IF NOT EXISTS (SELECT 1 FROM {{PREFIJO}}delegacion_roles WHERE rol_id = p_rol) THEN
+         RAISE EXCEPTION 'NEXO: rol no autorizado para asignar';
+     END IF;
++    -- Política de TDV2: nivel 3 sólo colaboración local; las demás aplicaciones conservan sus reglas.
++    IF EXISTS (SELECT 1 FROM public.aplicaciones WHERE id = {{APP_ID}} AND clave = 'tdv2')
++        AND NOT EXISTS (SELECT 1 FROM {{PREFIJO}}delegacion_roles WHERE rol_id = p_rol
++            AND (clave = 'colaborador_local' OR (v_nivel = 2 AND clave = 'colaborador_dependencias'))) THEN
++        RAISE EXCEPTION 'NEXO: rol no permitido para este nivel de responsabilidad';
++    END IF;
+     {{RAMA}}
+     SELECT MAX(email), MAX(nombre), MAX(usuario_empleado) INTO v_email, v_nombre, v_cuenta
+         FROM personas WHERE email = LOWER(TRIM(p_email)) AND id_ur = p_ur;
+diff --git a/app/Services/Postgres/retirar_acceso.sql b/app/Services/Postgres/retirar_acceso.sql
+index 06ded38..7011041 100644
+--- a/app/Services/Postgres/retirar_acceso.sql
++++ b/app/Services/Postgres/retirar_acceso.sql
+@@ -24,6 +24,11 @@ BEGIN
+     IF v_membresia IS NULL OR NOT EXISTS (SELECT 1 FROM {{PREFIJO}}delegacion_roles WHERE rol_id = v_rol) THEN
+         RAISE EXCEPTION 'NEXO: concesion no administrable por esta aplicacion';
+     END IF;
++    IF EXISTS (SELECT 1 FROM public.aplicaciones WHERE id = {{APP_ID}} AND clave = 'tdv2')
++        AND NOT EXISTS (SELECT 1 FROM {{PREFIJO}}delegacion_roles WHERE rol_id = v_rol
++            AND (clave = 'colaborador_local' OR (v_nivel = 2 AND clave = 'colaborador_dependencias'))) THEN
++        RAISE EXCEPTION 'NEXO: rol no permitido para este nivel de responsabilidad';
++    END IF;
+     {{RAMA}}
+     SELECT COUNT(*) INTO v_permitido FROM personas WHERE email = v_email AND id_ur = v_ur;
+     IF v_permitido = 0 THEN RAISE EXCEPTION 'NEXO: destinatario fuera de alcance o protegido'; END IF;

@@ -1,0 +1,18 @@
+Visual Studio Community 2026 18.10.3, solución tdv2.slnx.
+Panel Compilación leído de la instancia abierta mediante EnvDTE (2026-10-01).
+Salida completa de la última operación, anterior a la corrección:
+
+Compilación iniciada a las 02:04 p. m....
+1>------ Operación Compilar iniciada: Proyecto: ClientApp, configuración: Debug Any CPU ------
+2>------ Operación Implementar iniciada: Proyecto: ClientApp, configuración: Debug Any CPU ------
+2>Iniciando la implementación del proyecto "C:\Users\Jesus Arenas\source\repos\tdv2\ClientApp\ClientApp.esproj"...
+2>Iniciando la siguiente configuración desde launch.json:
+2>
+2>Error en la implementación del proyecto "C:\Users\Jesus Arenas\source\repos\tdv2\ClientApp\ClientApp.esproj": Value cannot be null.
+2>Parameter name: source
+2>Value cannot be null.
+2>Parameter name: source
+========== Compilación: 1 correcto, 0 erróneo, 1 actualizado, 0 omitido ==========
+========== Compilar completado a las 02:04 p. m. y tardó 00.512 segundos ==========
+========== Implementación: 0 correcta, 1 con errores, 0 omitido ===========
+========== Implementar completado a las 02:04 p. m. y tardó 00.512 segundos ==========

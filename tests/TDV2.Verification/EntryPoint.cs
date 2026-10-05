@@ -36,10 +36,25 @@ internal static class EntryPoint
         Test("UR inferior comparte formato nivel 3", () => Check(directory.FormUnit("A4")?.Id == "A3"));
         Test("UR inactivas y ausentes no autorizan", () => Check(directory.Get("inactive") is null && directory.Get("absent") is null));
         Test("Ciclo no inventa ancestro ni entra en bucle", () => { var d = new UnitDirectory([new("x", "x", "x", 4, "y", 2026), new("y", "y", "y", 4, "x", 2026)]); Check(d.LevelTwo("x") is null && !d.Within("x", "z")); });
-        Test("Responsable usa empleado y mantiene responsabilidades múltiples", () => { var s = access.Scopes(Fixtures.Profile("responsable_ur")); Check(s["A"].Edit && s["B3"].Edit && !s["A3"].Edit && !s.ContainsKey("B")); });
+        Test("Responsable usa empleado y mantiene responsabilidades múltiples", () => { var s = access.Scopes(Fixtures.Profile("responsable_ur")); Check(s["A"].Edit && s["B3"].Edit && s["A3"].Edit && !s.ContainsKey("B")); });
         Test("Adscripción no convierte en responsable", () => Check(access.Scopes(Fixtures.Profile("responsable_ur") with { User = Fixtures.Profile().User with { Employee = "9999" } }).Count == 0));
         Test("Ceros iniciales no equivalen a número entero", () => Check(access.Scopes(Fixtures.Profile("responsable_ur") with { User = Fixtures.Profile().User with { Employee = "1" } }).Count == 0));
         Test("Consulta institucional sólo agrega lectura", () => Check(access.Scopes(Fixtures.Profile("consulta_institucional")).Values.All(s => !s.Edit)));
+        Test("Nuevo responsable institucional funciona solo, sin facultades administrativas", () =>
+        {
+            var profile = Fixtures.Profile("responsable_ur_institucional"); var scopes = access.Scopes(profile);
+            Check(scopes["A"].Edit && scopes["B3"].Edit && !scopes["B"].Edit && scopes["A3"].Edit);
+            Check(scopes["A"].Own && !scopes["B"].Own);
+            Check(!ModuleAccess.Allows(profile, "configuracion") && !ModuleAccess.Allows(profile, "sincronizaciones") && !ModuleAccess.Allows(profile, "pruebas_acceso"));
+        });
+        Test("Tipo 0 conserva ascendientes pero no autoriza formatos ni responsabilidad", () =>
+        {
+            var units = new UnitDirectory([new("A", "06000", "Principal", 2, null, 2026, "0001", Kind: "1"),
+                new("aux", "6001", "Auxiliar", 3, "A", 2026, "0001", Kind: "0"),
+                new("child", "6002", "Dependiente", 3, "aux", 2026, Kind: "1")]);
+            Check(units.Get("aux") is not null && units.Within("child", "A") && units.DirectoryParent(units.Get("child")!) == "A");
+            Check(!UnitDirectory.IsForm(units.Get("aux")!) && units.Responsibilities(Fixtures.Profile().User).Count() == 1);
+        });
         Test("Administrador combinado no rebasa rama", () => { var s = access.Scopes(Fixtures.Profile("administrador", "responsable_ur", "colaborador_dependencias")); Check(s["A"].Edit && s["A3"].Edit && !s["B"].Edit && !s["B3"].Edit); });
         Test("Administrador ambiguo conserva lectura sin edición", () => Check(access.Scopes(Fixtures.Profile("administrador") with { User = Fixtures.Profile().User with { Origin = "multiple", UnitId = null } }).Values.All(s => !s.Edit)));
         Test("Administrador sin empleado no edita", () => Check(access.Scopes(Fixtures.Profile("administrador") with { User = Fixtures.Profile().User with { Employee = null } }).Values.All(s => !s.Edit)));
@@ -93,12 +108,6 @@ internal static class EntryPoint
             Check(asset.Success && html.Contains("id=\"app\""));
             Check((await client.GetAsync(asset.Groups[1].Value)).IsSuccessStatusCode);
         });
-        Http("Validación devuelve errors compatible con autosave original", async (_, client) =>
-        {
-            await Csrf(client); var content = Blank(); content["preguntas"] = new JsonArray();
-            var response = await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, content));
-            Check((int)response.StatusCode == 422 && (await Json(response))["errors"]?["contenido"] is JsonArray);
-        });
         Http("Anónimo y headers de rol falsos no acceden", async (app, _) => { using var client = app.Client(false); client.DefaultRequestHeaders.Add("X-Role", "administrador"); Check((await client.GetAsync("/inicio?email=persona@example.test")).StatusCode == HttpStatusCode.Unauthorized); });
         Http("Módulo se revalida al siguiente request", async (app, client) => { Check((await client.GetAsync("/inicio")).IsSuccessStatusCode); app.Nexo.Current = app.Nexo.Current with { Modules = [] }; Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden); });
         Http("Nexo caído no filtra secretos ni autoriza", async (app, client) => { app.Nexo.Outage = true; var r = await client.GetAsync("/inicio"); Check(r.StatusCode == HttpStatusCode.ServiceUnavailable && !(await r.Content.ReadAsStringAsync()).Contains("SYNTHETIC_SECRET")); });
@@ -107,11 +116,7 @@ internal static class EntryPoint
         Http("GET formato es lectura sin crear registro", async (app, client) => { Check((await client.GetAsync("/formatos/A")).IsSuccessStatusCode); Check(await app.Store.Get("A", default) is null); });
         Http("UR fuera de alcance denegada", async (_, client) => Check((await client.GetAsync("/formatos/B")).StatusCode == HttpStatusCode.Forbidden));
         Http("CSRF ausente y falso denegados", async (_, client) => { Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", "forjado"); Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); });
-        Http("Guardar y conflicto conservan versión y respuestas", async (app, client) => { await Csrf(client); var r = await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank())); Check(r.IsSuccessStatusCode && (await Json(r))["version"]!.GetValue<int>() == 1); Check((await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == HttpStatusCode.Conflict); Check((await app.Store.Get("A", default))?.Version == 1); });
-        Http("Primera creación concurrente admite un solo escritor (doble en memoria)", async (app, client) => { await Csrf(client); var results = await Task.WhenAll(client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank())), client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))); Check(results.Count(r => r.IsSuccessStatusCode) == 1 && results.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1); Check((await app.Store.Get("A", default))?.Version == 1); });
-        Http("Lectura subordinada no permite guardado", async (app, client) => { await Csrf(client); Check((await client.PutAsJsonAsync("/formatos/A3", new SaveForm(0, Blank()))).StatusCode == HttpStatusCode.Forbidden); Check(await app.Store.Get("A3", default) is null); });
-        Http("Versión ausente se rechaza", async (_, client) => { await Csrf(client); Check((int)(await client.PutAsJsonAsync("/formatos/A", new { contenido = Blank() })).StatusCode == 422); });
-        Http("Contenido inválido no escribe", async (app, client) => { await Csrf(client); var data = Blank(); data["preguntas"] = new JsonArray(); Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, data))).StatusCode == 422); Check(await app.Store.Get("A", default) is null); });
+        Http("PUT completo retirado no evita las reservas por bloque", async (app, client) => { await Csrf(client); var r = await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank())); Check((int)r.StatusCode == 428); Check(await app.Store.Get("A", default) is null); });
         Http("Pestaña con contexto obsoleto no guarda", async (app, client) => { await Csrf(client); client.DefaultRequestHeaders.Add("X-TDV2-Context", "representacion-anterior"); Check((await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == HttpStatusCode.Conflict); Check(await app.Store.Get("A", default) is null); });
         Http("Revocación de rol impide nuevo guardado", async (app, client) => { await Csrf(client); app.Nexo.Current = app.Nexo.Current with { Roles = [] }; Check((await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == HttpStatusCode.Forbidden); });
         Http("Logout requiere CSRF y funciona con Nexo caído", async (app, client) => { app.Nexo.Outage = true; Check((int)(await client.PostAsJsonAsync("/logout", new { })).StatusCode == 419); await Csrf(client); Check((await client.PostAsJsonAsync("/logout", new { })).IsSuccessStatusCode); });

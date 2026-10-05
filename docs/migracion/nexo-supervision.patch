@@ -1,0 +1,37 @@
+diff --git a/app/Services/AdministracionDelegada.php b/app/Services/AdministracionDelegada.php
+index 8f0ccbd..b416d03 100644
+--- a/app/Services/AdministracionDelegada.php
++++ b/app/Services/AdministracionDelegada.php
+@@ -67,6 +67,12 @@ class AdministracionDelegada
+             if (DB::table('representacion_roles')->where('aplicacion_id', $app->id)->whereIn('rol_id', $data['roles_asignables'])->exists()) {
+                 throw ValidationException::withMessages(['roles_asignables' => 'Los roles que permiten actuar como usuario no pueden asignarse mediante delegación.']);
+             }
++            // La lectura institucional no convierte roles de consulta en encargados delegantes.
++            // Se conserva el alias anterior mientras TDV2 termina su transición de asignaciones.
++            if ($app->clave === 'tdv2' && $app->roles()->whereIn('id', $data['roles_delegan'])
++                ->whereNotIn('clave', ['responsable_ur', 'responsable_ur_supervisor', 'responsable_ur_institucional', 'administrador'])->exists()) {
++                throw ValidationException::withMessages(['roles_delegan' => 'TDV2 sólo permite delegar a responsables de UR y administradores que sean encargados autorizados.']);
++            }
+             if ($app->clave === 'tdv2' && $app->roles()->whereIn('id', $data['roles_asignables'])
+                 ->whereNotIn('clave', ['colaborador_local', 'colaborador_dependencias'])->exists()) {
+                 throw ValidationException::withMessages(['roles_asignables' => 'TDV2 sólo permite asignar Colaborador local y Colaborador de áreas dependientes. El nivel 3 sólo puede conceder colaboración local.']);
+diff --git a/app/Services/DelegacionPostgres.php b/app/Services/DelegacionPostgres.php
+index 6dfa863..556e6ce 100644
+--- a/app/Services/DelegacionPostgres.php
++++ b/app/Services/DelegacionPostgres.php
+@@ -84,10 +84,13 @@ class DelegacionPostgres
+                 WHERE u.activo = TRUE AND u.tipo_cuenta = 'individual' AND ua.activo = TRUE AND ua.suspendido = FALSE
+                     AND unit.nivel_ur IN (2, 3) AND LOWER(TRIM(unit.estatus_ur)) = 'activo'
+                     AND (NOT EXISTS (SELECT 1 FROM aplicaciones app WHERE app.id = {$id} AND app.clave = 'tdv2')
+-                        OR COALESCE(TRIM(unit.tipo_ur::text), '') !~ '^0+$') AND {$effective} AND {$gate}",
++                        OR (COALESCE(TRIM(unit.tipo_ur::text), '') !~ '^0+$'
++                            AND r.clave IN ('responsable_ur','responsable_ur_supervisor','responsable_ur_institucional','administrador'))) AND {$effective} AND {$gate}",
+             'delegacion_roles' => "SELECT r.id AS rol_id, r.clave, r.nombre FROM roles r
+                 JOIN delegacion_roles dr ON dr.rol_id = r.id AND dr.aplicacion_id = r.aplicacion_id AND dr.uso = 'asignar'
+-                WHERE r.aplicacion_id = {$id} AND r.activo = TRUE AND {$gate}",
++                WHERE r.aplicacion_id = {$id} AND r.activo = TRUE
++                    AND (NOT EXISTS (SELECT 1 FROM aplicaciones app WHERE app.id = {$id} AND app.clave = 'tdv2')
++                        OR r.clave IN ('colaborador_local','colaborador_dependencias')) AND {$gate}",
+         ];
+     }
+ 

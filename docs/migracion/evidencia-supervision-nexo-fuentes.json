@@ -1,0 +1,17 @@
+﻿{
+    "syntheticSqlTests":  7,
+    "institutionalConfigurationApplied":  false,
+    "utc":  "2026-10-05T15:10:44.3510943Z",
+    "files":  [
+                  {
+                      "testedAndApplied":  true,
+                      "sha256":  "CAB7B2A08B9D787B96A90F9E737940EB83E7AA517AF912A581D2017BF0B83881",
+                      "file":  "app/Services/AdministracionDelegada.php"
+                  },
+                  {
+                      "testedAndApplied":  true,
+                      "sha256":  "08031C678B886137A40CA423274469ECD752B352D478EFDB16E07C9FFB999EDF",
+                      "file":  "app/Services/DelegacionPostgres.php"
+                  }
+              ]
+}

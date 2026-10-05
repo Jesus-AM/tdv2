@@ -1,0 +1,107 @@
+{
+  "utc": "2026-10-02T04:27:00.8048187+00:00",
+  "passed": 19,
+  "failed": 0,
+  "checks": [
+    "recursos 001-004 conservan hashes exactos; sin transition",
+    "check sobre base vacia no crea historial ni esquema",
+    "aplica cuatro migraciones con cuenta no administradora y automatica desactivada",
+    "sin datos sinteticos ni ejecuciones cargadas por el migrador",
+    "segunda aplicacion omite cuatro y conserva esquema, hashes y fechas",
+    "check posterior es de solo lectura",
+    "destino distinto se rechaza antes de conectar",
+    "hash alterado se rechaza sin cambiar historial",
+    "base no vacia sin historial se rechaza sin DDL",
+    "fallo inicial revierte tablas e historial en una transaccion",
+    "fallo posterior preserva confirmadas y revierte completa la cuarta",
+    "fallo al registrar hash revierte tambien el DDL",
+    "reanudacion aplica solo la migracion pendiente",
+    "exclusion entre dos conexiones concurrentes sin cambios",
+    "configuracion activa se rechaza sin sobreescribirla",
+    "permisos insuficientes rechazados antes de DDL",
+    "COMMIT interno se rechaza antes de ejecutar SQL",
+    "comando real carga Development y respeta precedencia sin revelar credenciales",
+    "errores de configuracion no revelan valores"
+  ],
+  "initial": {
+    "Utc": "2026-10-02T04:26:55.6502059+00:00",
+    "Target": {
+      "Host": "127.0.0.1",
+      "Port": 61381,
+      "Database": "tdv2_migrations_baseline",
+      "User": "tdv2_migration_owner"
+    },
+    "ServerAddress": "127.0.0.1",
+    "ServerVersion": "18.6",
+    "Tls": false,
+    "PermissionsVerified": true,
+    "Mode": "apply",
+    "Applied": [
+      "001_core.sql",
+      "002_aspnet_sessions.sql",
+      "003_access_contexts.sql",
+      "004_synchronizations.sql"
+    ],
+    "Skipped": [],
+    "Pending": [],
+    "Tables": [
+      "users",
+      "ms_graph_tokens",
+      "activity_logs",
+      "unidades_responsables_poa",
+      "formatos_ur",
+      "colaboraciones_ur",
+      "tdv2_sessions",
+      "tdv2_oauth_attempts",
+      "tdv2_access_contexts",
+      "sincronizaciones_institucionales",
+      "sincronizacion_catalogos",
+      "ilda_informacion_area",
+      "sincronizacion_ejecuciones",
+      "sincronizacion_configuracion"
+    ],
+    "SchemaSha256": "363D719968151C41B1A619590A88F38D60EFE7B3C3F5E357A8902FB6466F6AE3",
+    "AutomaticSynchronizationDisabled": true
+  },
+  "repeated": {
+    "Utc": "2026-10-02T04:26:55.9165726+00:00",
+    "Target": {
+      "Host": "127.0.0.1",
+      "Port": 61381,
+      "Database": "tdv2_migrations_baseline",
+      "User": "tdv2_migration_owner"
+    },
+    "ServerAddress": "127.0.0.1",
+    "ServerVersion": "18.6",
+    "Tls": false,
+    "PermissionsVerified": true,
+    "Mode": "apply",
+    "Applied": [],
+    "Skipped": [
+      "001_core.sql",
+      "002_aspnet_sessions.sql",
+      "003_access_contexts.sql",
+      "004_synchronizations.sql"
+    ],
+    "Pending": [],
+    "Tables": [
+      "users",
+      "ms_graph_tokens",
+      "activity_logs",
+      "unidades_responsables_poa",
+      "formatos_ur",
+      "colaboraciones_ur",
+      "tdv2_sessions",
+      "tdv2_oauth_attempts",
+      "tdv2_access_contexts",
+      "sincronizaciones_institucionales",
+      "sincronizacion_catalogos",
+      "ilda_informacion_area",
+      "sincronizacion_ejecuciones",
+      "sincronizacion_configuracion"
+    ],
+    "SchemaSha256": "363D719968151C41B1A619590A88F38D60EFE7B3C3F5E357A8902FB6466F6AE3",
+    "AutomaticSynchronizationDisabled": true
+  },
+  "institutionalConnectionsAttempted": false
+}

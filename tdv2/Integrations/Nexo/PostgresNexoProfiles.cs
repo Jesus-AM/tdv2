@@ -3,7 +3,8 @@ using System.Net.Mail;
 using System.Text.Json.Nodes;
 using Npgsql;
 using Tdv2.Domain;
-namespace Tdv2.Infrastructure;
+using Tdv2.Infrastructure;
+namespace Tdv2.Integrations.Nexo;
 
 // Las vistas compartidas están filtradas por la cuenta PostgreSQL publicada por Nexo.
 // Ningún ID de aplicación, rol, módulo o UR enviado por el navegador concede permisos.

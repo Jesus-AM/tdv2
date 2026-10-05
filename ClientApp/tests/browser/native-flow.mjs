@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -15,7 +15,7 @@ const context = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { 
 let microsoftLogoutTarget;
 await context.route('**/*', async route => {
     const url = new URL(route.request().url());
-    if (url.origin !== origin) return route.abort();
+    if (url.origin !== origin && !(url.protocol === 'wss:' && url.host === new URL(origin).host)) return route.abort();
     if (url.pathname === '/connect' || url.pathname === '/session/microsoft-logout') {
         const response = await route.fetch({ maxRedirects: 0 });
         const headers = response.headers();
@@ -46,13 +46,16 @@ async function control(action) {
 }
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
-    await target.getByRole('tab', { name: 'Encabezado', exact: true }).click();
+    await target.getByRole('tab', { name: 'Contexto', exact: true }).click();
     return target.getByLabel('Responsable del llenado', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
-    const response = target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A' && r.request().method() === 'PUT');
-    await work();
-    assert.equal((await response).status(), status);
+    const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
+    assert.equal(response.status(), status);
+}
+async function finish(target = page) {
+    await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/reservas/liberar'),
+        target.getByRole('button', { name: 'Guardar borrador', exact: true }).click()]);
 }
 try {
     await check('portada y login Microsoft simulado crean sesión segura', async () => {
@@ -72,18 +75,73 @@ try {
         const row = await stored();
         assert.equal(row.contenido.encabezado.responsable, 'Respuesta desde React áéíóú');
         assert.equal(row.porcentaje, 5);
+        await finish();
+        await expect(page.getByRole('tab', { name: 'Encabezado', exact: true })).toHaveCount(0);
         await page.reload();
         assert.equal(await (await header()).inputValue(), 'Respuesta desde React áéíóú');
     });
-    await check('dos pestañas: 409 conserva el borrador y la respuesta ganadora', async () => {
+    await check('SignalR rechaza suscripción a UR ajena sin entregar contenido', async () => {
+        const result = await page.evaluate(async () => {
+            const csrf = await (await fetch('/session/csrf')).json();
+            const response = await fetch('/form-events/negotiate?negotiateVersion=1', { method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf.token, 'X-TDV2-Context': 'own' } });
+            if (!response.ok) throw new Error('SignalR negotiation HTTP ' + response.status);
+            const negotiation = await response.json();
+            if (!negotiation.connectionToken) throw new Error('Missing SignalR connection token');
+            return await new Promise((resolve, reject) => {
+                const socket = new WebSocket(location.origin.replace('https:', 'wss:') + '/form-events?id=' + encodeURIComponent(negotiation.connectionToken));
+                const timer = setTimeout(() => { socket.close(); reject(new Error('SignalR timeout')); }, 15000);
+                let started = false, items = 0;
+                socket.onopen = () => socket.send(JSON.stringify({ protocol: 'json', version: 1 }) + '\u001e');
+                socket.onmessage = event => {
+                    for (const part of event.data.split('\u001e').filter(Boolean)) {
+                        const message = JSON.parse(part);
+                        if (!started) {
+                            started = true;
+                            socket.send(JSON.stringify({ type: 4, invocationId: '1', target: 'Watch', arguments: ['B', 'own', crypto.randomUUID()] }) + '\u001e');
+                        } else if (message.type === 2) items++;
+                        else if (message.type === 3) { clearTimeout(timer); socket.close(); resolve({ items, error: !!message.error }); }
+                    }
+                };
+                socket.onerror = () => { clearTimeout(timer); reject(new Error('SignalR connection failed')); };
+            });
+        });
+        assert.deepEqual(result, { items: 0, error: true });
+    });
+    await check('dos pestañas: SignalR muestra titular, bloquea la misma reserva y permite otro bloque', async () => {
         const other = await context.newPage();
         await other.goto(`${origin}/formatos/A`); const otherInput = await header(other);
         await savedAfter(() => page.getByLabel('Responsable del llenado', { exact: true }).fill('Ganadora React'));
-        await savedAfter(() => otherInput.fill('Borrador no sobrescribe'), 409, other);
-        await other.getByRole('button', { name: 'Descargar mis cambios' }).waitFor();
-        assert.equal(await otherInput.inputValue(), 'Borrador no sobrescribe');
+        await expect(otherInput).toBeDisabled();
+        await expect(other.getByText('Editando: Persona sintética', { exact: true })).toBeVisible();
+        await other.getByRole('tab', { name: 'Preguntas', exact: true }).click();
+        const answer = other.locator('#panel-preguntas textarea').first();
+        await savedAfter(() => answer.fill('Respuesta simultánea desde otra pestaña'), 200, other);
         assert.equal((await stored()).contenido.encabezado.responsable, 'Ganadora React');
+        await finish(other);
         await other.close();
+    });
+    await check('prioridad accesible sin defecto, Contexto inicial y navegación superior móvil', async () => {
+        await finish();
+        await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
+        const priorities = page.getByRole('radiogroup', { name: 'Prioridad 1', exact: true });
+        await expect(priorities.locator('input:checked')).toHaveCount(0);
+        await savedAfter(() => priorities.getByRole('radio', { name: '5: Extremadamente prioritario', exact: true }).check());
+        await priorities.getByRole('radio', { name: '5: Extremadamente prioritario', exact: true }).focus();
+        await savedAfter(() => page.keyboard.press('ArrowDown'));
+        await expect(priorities.getByRole('radio', { name: '4: Muy prioritario', exact: true })).toBeChecked();
+        await finish();
+        await page.reload();
+        await expect(page.getByRole('tab', { name: 'Identificación general', exact: true })).toHaveAttribute('aria-selected', 'true');
+        await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.getByRole('button', { name: 'Abrir navegación', exact: true }).click();
+        await expect(page.getByRole('navigation', { name: 'Módulos' })).toBeVisible();
+        await page.getByRole('button', { name: 'Cerrar navegación', exact: true }).click();
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        await priorities.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: path.join(artifacts, 'prioridad-movil.png'), fullPage: true });
+        await page.setViewportSize({ width: 1440, height: 1000 }); await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await header();
     });
     await check('error PostgreSQL conserva borrador; reintento recupera guardado', async () => {
         await control('fail-save');
@@ -96,6 +154,7 @@ try {
         assert.equal((await stored()).contenido.encabezado.responsable, 'Recuperación React');
     });
     await check('UR ajena deniega documento HTML y muestra pantalla conservada', async () => {
+        await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
         assert.equal((await page.goto(`${origin}/formatos/B`)).status(), 403);
         await page.getByText('No tienes acceso al formato de esta UR.', { exact: true }).waitFor();
         await page.screenshot({ path: path.join(artifacts, 'ur-denegada.png') });
@@ -123,6 +182,43 @@ try {
         assert.equal((await page.goto(`${origin}/formatos/A`)).status(), 200);
         assert.equal(await (await header()).inputValue(), 'Recuperación React');
         await page.screenshot({ path: path.join(artifacts, 'formato-postgresql.png') });
+    });
+    await check('Enviar confirma respuestas guardadas y rechaza requisitos incompletos sin bloquear el borrador', async () => {
+        await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+        await expect(page.getByRole('dialog', { name: 'Enviar formato' })).toBeVisible();
+        const [response] = await Promise.all([page.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/enviar'),
+            page.getByRole('button', { name: 'Confirmar envío', exact: true }).click()]);
+        assert.equal(response.status(), 422);
+        await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+        await expect(page.getByText('No se pudo guardar', { exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeEnabled();
+        await expect(page.getByLabel('Responsable del llenado', { exact: true })).toHaveValue('Recuperación React');
+    });
+    await check('Enviar guarda la propuesta pendiente, confirma y bloquea captura e impresión estable', async () => {
+        await control('ready-to-submit'); await page.reload();
+        const input = await header();
+        await input.fill('Responsable del envío sintético');
+        await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+        await expect(page.getByRole('dialog', { name: 'Enviar formato' })).toBeVisible();
+        assert.equal((await stored()).contenido.encabezado.responsable, 'Responsable del envío sintético');
+        const [response] = await Promise.all([page.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/enviar'),
+            page.getByRole('button', { name: 'Confirmar envío', exact: true }).click()]);
+        assert.equal(response.status(), 200);
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        await expect(input).toBeDisabled();
+        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeDisabled();
+        await page.reload(); await header();
+        await expect(page.getByRole('button', { name: 'Enviar', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Imprimir', exact: true })).toBeEnabled();
+        await page.screenshot({ path: path.join(artifacts, 'formato-enviado.png'), fullPage: true });
+        await page.evaluate(() => { window.print = () => {}; });
+        await page.getByRole('button', { name: 'Imprimir', exact: true }).click();
+        await page.locator('#panel-acuerdos').waitFor({ state: 'visible' });
+        await page.emulateMedia({ media: 'print' });
+        assert.equal(await page.getByRole('tabpanel').count(), 7);
+        await page.pdf({ path: path.join(artifacts, 'formato-enviado.pdf'), format: 'A4', printBackground: true });
+        await page.emulateMedia({ media: 'screen' });
+        await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
     });
     await check('logout desde React revoca sesión y redirige a Microsoft', async () => {
         await page.getByRole('button', { name: 'Abrir menú de usuario' }).click();

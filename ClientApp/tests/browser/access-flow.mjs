@@ -46,11 +46,11 @@ async function control(action) {
 }
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
-    await target.getByRole('tab', { name: 'Encabezado', exact: true }).click();
+    await target.getByRole('tab', { name: 'Contexto', exact: true }).click();
     return target.getByLabel('Responsable del llenado', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
-    const response = target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A' && r.request().method() === 'PUT');
+    const response = target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH');
     await work();
     assert.equal((await response).status(), status);
 }
@@ -175,7 +175,7 @@ try {
         const form = await request('/formatos/A');
         assert.equal((await request('/formatos/B', 'PUT', { version: 0, contenido: form.body.props.contenido })).status, 403);
         assert.equal((await request('/configuracion')).status, 409);
-        assert.ok((await report()).audits.some(a => a.action === 'guardar' && a.actor === 'persona@uacj.mx' && a.meta.representado_email === 'encargada@uacj.mx'));
+        assert.ok((await report()).audits.some(a => a.action === 'guardar_bloques' && a.actor === 'persona@uacj.mx' && a.meta.representado_email === 'encargada@uacj.mx'));
         await page.screenshot({ path: path.join(artifacts, 'representacion-activa.png') });
         await exit();
     });

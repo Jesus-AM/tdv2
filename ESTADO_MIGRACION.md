@@ -1,12 +1,184 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Organización y preparación Visual Studio: **2026-10-01**. La evidencia vigente de este bloque aparece abajo; los resultados anteriores conservan su fecha y alcance. **Migración en curso; no apta aún para sustituir Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-05**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
-Configuración → Sincronizaciones está implementado: SII, réplica íntegra ILDA, consumo local en formatos, cola/programación, reservas, recuperación y auditoría. Se verificó en PostgreSQL nativo aislado y React con fuentes sintéticas. **No se validó conectividad institucional ni operación Ubuntu; este bloque no se declara cerrado frente a servicios reales.**
+## Captura colaborativa, supervisión y envío — entrega vigente 2026-10-05
 
-El bloque de colaboradores mediante administración delegada, Actuar como usuario, vista de consulta por rol/área y auditoría está implementado y verificado con React, ASP.NET y PostgreSQL nativo aislado. **No está cerrado frente a servicios institucionales:** Microsoft es un doble HTTP y Nexo un publicador SQL sintético. No se ejecutó Nexo Laravel real ni se consultó el esquema desplegado.
+### Implementado
 
-## Preparación para mantenimiento y Visual Studio — 2026-10-01
+- `responsable_ur_supervisor` concentra responsabilidad y consulta institucional sin administración. Nivel 2 edita su rama autorizada; nivel 3 su formato. `responsable_ur_institucional` continúa como alias transitorio. El catálogo compartido de Nexo no se renombró; se conservan roles y asignaciones de consulta. La representación mantiene separados actor real y efectivo.
+- La delegación valida encargado, acceso vigente, rama y rol en TDV2 y Nexo. Nivel 3 sólo agrega colaboradores locales de su UR/subordinadas a su mismo formato; nivel 2 conserva ambos tipos. Se ampliaron los filtros TDV2 de las dos fuentes Nexo ya corregidas, preservando cambios locales y las reglas de otras aplicaciones. [Configuración y transición exactas](docs/migracion/CONFIGURACION_NEXO_ENTRA.md).
+- PostgreSQL arbitra reservas de 45 segundos por fila/grupo de campos, sesión/pestaña/contexto y versión. Autoguardado parcial, UUID y recibos idempotentes, renovación por cambios, liberación tras confirmar, recuperación explícita de propuestas y auditoría atómica. No hay transacciones abiertas durante la captura. El guardado completo anterior se rechaza con 428 y se retiró su implementación.
+- SignalR sólo entrega contenido autorizado, revalida Nexo/ticket/contexto y recupera estado al reconectar. Origin se compara con la configuración pública; se admite WebSocket HTTP/2 CONNECT únicamente en este canal de consulta. Las mutaciones y negociación HTTP siguen exigiendo CSRF. No se renuevan reservas mediante latidos de pantalla.
+- Enviar guarda pendientes, confirma, exige responsable/avance/requisitos/ausencia de reservas ajenas y se serializa con reservas/guardados. Conserva ejercicio, fecha UTC, versión, identidad real/efectiva, auditoría e instantánea de unidad/respuestas/ILDA. Trigger de inmutabilidad para todos, incluidos administradores y sincronizadores. Sin reapertura.
+- React conserva MUI/Roboto e identidad visual: Contexto incorpora los campos de Encabezado, siete secciones montadas, última sección confirmada, navegación superior/móvil, prioridad 1–5 accesible sin defecto y estado compacto sin barra fija. No hay conversión automática de prioridades históricas. Se conservan jerarquías/históricos tipo 0 e identificadores; las claves se formatean sólo al mostrar/buscar.
+- Microsoft valida el ID token antes de usar el claim opcional login_hint. Inicio habitual sin selección forzada, hints de cuenta real y Usar otra cuenta con revocación/CSRF. logout_hint nunca se deriva del correo ni de la representación.
+- EF: `20261005135417_CollaborativeFormsAndSubmission`, seis columnas y tres tablas adicionales; 17 entidades y seis relaciones. Backfill de ejercicio sin alterar respuestas. Down rechaza retirar la protección si existen envíos. Migración explícita, nunca F5. [Diseño, instalación y comandos](docs/migracion/COLABORACION_ENVIO.md).
+
+### Probado
+
+| Comando desde la raíz | Evidencia y alcance |
+|---|---|
+| `dotnet run --project tests/TDV2.Verification -c Release --no-restore -p:UseAppHost=false` | 53/53 dominio y transporte. Las pruebas del guardado completo retirado se sustituyeron por pruebas de reservas/parches con PostgreSQL real |
+| `npm.cmd --prefix ClientApp run types:check` y `npm.cmd --prefix ClientApp run test:forms` | TypeScript correcto; 33/33 frontend: respuestas atrasadas, reintentos, propuesta pendiente, recuperación sin autoguardado, renovación atrasada y selección de sección durante carga |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -MigrationsOnly` | [29/29 PostgreSQL real](docs/migracion/evidencia-colaboracion-migraciones.json): base vacía y actualización con contenido, repetición, script idempotente, restricciones, rollback y rechazo de Down tras envío. [Huella de esquema nuevo](docs/migracion/evidencia-colaboracion-esquema.json) |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -SkipBrowser` | [112/112 backend/PostgreSQL](docs/migracion/evidencia-colaboracion-regresion.json), con fuentes externas sintéticas |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -EditingOnly -SkipBrowser` | [17/17 casos de captura](docs/migracion/evidencia-colaboracion-edicion.json): sesiones independientes, dos pestañas, mismo/distinto bloque, vencimiento/reasignación, caducidad antes del commit, revocación, concurrencia con envío, colaborador sin envío, inmutabilidad, prioridad y OIDC firmado |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly` | 40 recorridos Edge: [13 formatos](docs/migracion/evidencia-colaboracion-react-formatos.json), [12 acceso](docs/migracion/evidencia-colaboracion-react-acceso.json), [4 alcance](docs/migracion/evidencia-colaboracion-react-alcance.json), [11 sincronizaciones](docs/migracion/evidencia-colaboracion-react-sincronizaciones.json). Cero errores JS; escritorio, móvil, teclado y movimiento reducido |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -NexoDelegationOnly -NexoSource .artifacts/nexo-supervision` | [7/7 con SQL generado por las fuentes reales](docs/migracion/evidencia-supervision-nexo.json), exclusivamente datos y PostgreSQL sintéticos. [Parche adicional](docs/migracion/nexo-supervision.patch) y [hashes coincidentes con las fuentes aplicadas](docs/migracion/evidencia-supervision-nexo-fuentes.json) |
+| `dotnet ef migrations has-pending-model-changes --project tdv2 --configuration Release --no-build -- --environment Production` | Modelo y snapshot coinciden, sin conexión ni secretos. Script incremental generado en `.artifacts/colaboracion-envio.sql` |
+| `dotnet publish tdv2/tdv2.csproj -c Release --no-restore -p:UseAppHost=false -o .artifacts/publish-maintenance` y `node ClientApp/tests/browser/publish-flow.mjs` | [Paquete final Production/HTTPS](docs/migracion/evidencia-colaboracion-publicacion.json), React compilado sin Vite, sin credenciales, rechazos seguros y cero errores JS |
+| F5 real y `node ClientApp/tests/browser/visual-studio-startup.mjs` | [tdv2.slnx / TDV2 HTTPS + React](docs/migracion/evidencia-colaboracion-visual-studio.json): Vite 200, lanzamiento 302, React/props 200, privado 401, HTTPS confiable y HMR wss 7136. Sólo páginas anónimas |
+
+Se revisaron capturas de [prioridad móvil](docs/migracion/colaboracion-prioridad-movil.png), [formato enviado](docs/migracion/colaboracion-formato-enviado.png) y [Sincronizaciones móvil](docs/migracion/colaboracion-sincronizaciones-movil.png). Las fuentes externas se bloquean en navegador sintético; la configuración tipográfica original se conserva.
+
+La prueba final de Imprimir generó un [PDF sintético del formato enviado](docs/migracion/colaboracion-formato-enviado.pdf), verificando las siete secciones. Corridas finales: backend `.artifacts/native-postgres-20261005-154331-a579677d`; migraciones `154018-02f01596`; edición `154049-d16e5e8a`; formatos/impresión `154847-ac17674c`; acceso/alcance `152920-19ce7115`; sincronizaciones `153805-e2794a9b`. Los clústeres desechables terminaron detenidos. [Compilación y depuradores de Visual Studio](docs/migracion/evidencia-colaboracion-visual-studio.txt) confirmados; no se autenticaron personas institucionales.
+
+Los intentos fallidos no se cuentan como aprobación. Permitieron corregir CONNECT/WebSocket, el clic Enviar durante blur/autoguardado y una respuesta inicial que reemplazaba la sección seleccionada. Se actualizaron fixtures que aún usaban la clave anterior. El Vite antiguo bloqueó Rolldown durante el primer publish y se detuvo sólo ese proceso de TDV2. El arranque de navegador afectado por `npm ci` se repitió después de terminar la publicación. La migración inicial y las actualizaciones se operan con un único ejecutor: el ensayo concurrente sólo acredita una migración pendiente con historial establecido, no autoriza varios operadores sobre una cadena de migraciones.
+
+Para repetir un recorrido aislado, establecer `$env:TDV2_TEST_BROWSER_FLOW='formats'` o `'sync'` antes de `-BrowserOnly`, y después `Remove-Item Env:TDV2_TEST_BROWSER_FLOW`; los valores admitidos son all/formats/access/scope/sync. Las repeticiones dirigidas figuran junto con los archivos de evidencia, sin sumar varias veces un mismo caso.
+
+### Pendiente institucional
+
+Aplicar la tercera migración con un operador al destino previamente verificado; se conserva la base existente y las dos migraciones iniciales ya aplicadas. Registrar/asociar el rol canónico, revisar asignaciones/catálogos compartidos y publicar la delegación en la conexión Nexo existente. Agregar el claim opcional login_hint al ID token en Entra y probar SSO/salida con las políticas reales. Validar proxy WebSocket, usuarios institucionales, fuentes SII/ILDA y despliegue Ubuntu. No se enviaron formatos institucionales, no se concedieron accesos reales ni se modificaron User Secrets; sincronización automática sigue desactivada. Instrucciones en [Nexo/Entra](docs/migracion/CONFIGURACION_NEXO_ENTRA.md) y [captura/migración](docs/migracion/COLABORACION_ENVIO.md).
+
+## Responsables y consulta institucional — entrega anterior 2026-10-05
+
+### Implementado
+
+- Nivel 3: botón Colaboradores, búsqueda y alta local en su misma UR o descendientes, siempre para el formato del responsable nivel 3. Backend y funciones Nexo rechazan rama ajena y roles de alcance global/dependencias; nivel 2 conserva sus facultades. Vínculo local, concesión central, empleado textual, revocación y auditoría siguen siendo obligatorios.
+- Rol `responsable_ur_institucional`: funciona solo como responsable y añade lectura institucional. La responsabilidad sigue siendo institucional; no concede Configuración, Sincronizaciones ni Pruebas de acceso. Representación y vista de prueba conservan sus restricciones.
+- EF lee el campo ya existente `tipo_ur`; tipo 0 no es área elegible ni formato, aunque permanece como nodo auxiliar y con su historia. El directorio público conserva ID/código/padre originales y añade `id_ur_principal` para agrupar nivel 2/3 a través de auxiliares. No se añadieron migraciones ni se modificaron las existentes.
+- React: claves numéricas sin ceros sólo para presentación/búsqueda, Mis áreas/Todas las áreas, etiquetas Solo consulta, encabezado compacto/adaptable de Sincronizaciones, transiciones breves y movimiento reducido. Actualizar estado no sustituye el borrador ante un error temporal; un rechazo de acceso sigue retirando la vista privada.
+- Fuente de Nexo corregida en cuatro archivos, sólo para clave `tdv2`; las demás aplicaciones conservan su comportamiento. Cambios locales previos preservados y hashes comprobados antes de escribir fuera del workspace. [Parche](docs/migracion/nexo-tdv2-delegacion.patch) y [configuración exacta](docs/migracion/RESPONSABLES_UR.md).
+
+### Probado
+
+| Comando desde la raíz | Resultado y alcance |
+|---|---|
+| `dotnet run --project tests/TDV2.Verification --no-restore -p:UseAppHost=false` | 58/58 dominio y transporte; dobles en memoria donde corresponde |
+| `npm --prefix ClientApp run types:check` y `npm --prefix ClientApp run test:forms` | TypeScript correcto y 24/24 frontend: árbol, tipo 0, búsquedas 06000/6000, autosave, conservación del borrador y revocación |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1` | [95/95 HTTP/PostgreSQL + grupo navegador, 96/96 grupos](docs/migracion/evidencia-ur-postgresql.json). Incluye conservación del padre original, historia tipo 0, ILDA sin mezclar claves, alta/retiro sintéticos, revocaciones, concurrencia y atomicidad |
+| Edge de la suite anterior | [9 formatos](docs/migracion/evidencia-ur-react-formatos.json), [12 acceso](docs/migracion/evidencia-ur-react-acceso.json), [4 alcance/UR](docs/migracion/evidencia-ur-react-alcance.json), [11 sincronizaciones](docs/migracion/evidencia-ur-react-sincronizaciones.json): 36 recorridos, sin errores JS. Escritorio 1440×1000, móvil 390×844 y movimiento reducido; fuentes externas bloqueadas |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -NexoDelegationOnly -NexoSource .artifacts/nexo-tdv2-scope` | [7/7 con funciones y vistas generadas por el código real de Nexo](docs/migracion/evidencia-ur-nexo.json), datos/base sintéticos. Las cuatro fuentes aplicadas coinciden byte a byte con las probadas: [hashes](docs/migracion/evidencia-ur-nexo-fuentes.json). PHP `-n -l` correcto; no se ejecutó la suite Laravel ni su bootstrap |
+| `dotnet ef migrations has-pending-model-changes --project tdv2 --configuration Release --no-build -- --environment Production` | Sin cambios pendientes de modelo; sin conexión a base ni secretos |
+| `dotnet publish tdv2/tdv2.csproj -c Release --no-restore -p:UseAppHost=false -o .artifacts/publish-maintenance` | Correcto, incluye npm ci/build; auditoría npm: 0 vulnerabilidades |
+| `node ClientApp/tests/browser/publish-flow.mjs` | [Production, HTTPS confiable, React compilado, sin Vite ni secretos](docs/migracion/evidencia-ur-publicacion.json); rechazos 503/401/419 esperados, cero errores JS |
+| F5 real y `node ClientApp/tests/browser/visual-studio-startup.mjs` | [Vite 200, lanzamiento 302 a HTTPS, React/props 200, privado 401 y HMR wss 7136](docs/migracion/evidencia-ur-visual-studio.json), cero errores JS. No autentica personas institucionales |
+| Parche y whitespace | `git -c core.autocrlf=false apply --check --directory=.artifacts/nexo-tdv2-scope/before docs/migracion/nexo-tdv2-delegacion.patch` y `git -c core.autocrlf=false -c core.whitespace=cr-at-eol diff --check`: correctos |
+
+Se revisaron las capturas de [Sincronizaciones escritorio](docs/migracion/ur-sincronizaciones-escritorio.png), [móvil](docs/migracion/ur-sincronizaciones-movil.png) y [consulta institucional móvil](docs/migracion/ur-consulta-institucional-movil.png). Los estilos/tipografías no se sustituyeron; la prueba aislada bloquea descargas externas de fuentes.
+
+Regresión final: `.artifacts/native-postgres-20261005-121554-1445277a`; Nexo: `.artifacts/native-postgres-20261005-115608-3fa5659f`. Clústeres de prueba detenidos. El IDE conserva los documentos y el perfil HTTPS + React quedó en ejecución tras comprobar F5.
+
+Intentos corregidos, no contados como evidencia: dos expectativas iniciales usaban una redirección como JSON y 403 en lugar del 409 existente para representación de consulta. Se corrigieron y repitió toda la regresión. La revisión final añadió padre original e historia tipo 0 y se repitió la suite con ese código. El primer publish encontró un Vite previo bloqueando Rolldown; se detuvo sólo el proceso cuya ruta correspondía a TDV2 y se publicó correctamente. El sandbox no accedía al certificado HTTPS del usuario; la verificación se repitió fuera del sandbox manteniendo validación de certificado. El parche de Nexo se regeneró conservando los finales de línea originales y pasó la comprobación sin modificar la copia previa.
+
+### Pendiente institucional
+
+Registrar/asociar `responsable_ur_institucional` a `procesos_operativos` (`/inicio`), configurar los roles delegantes/asignables y publicar las funciones actualizadas de la conexión existente de Nexo. Instrucciones en [RESPONSABLES_UR.md](docs/migracion/RESPONSABLES_UR.md). No se ejecutó Artisan/Composer en Herd, no se leyó .env, no hubo altas/retiros reales ni conexiones a bases institucionales, migraciones remotas o sincronizaciones. Las pruebas de concesiones/retiros y programación fueron exclusivamente sintéticas. La sincronización automática institucional permanece sin cambios.
+
+## Proyecto convencional y migraciones EF Core — vigente
+
+### Implementado
+
+- Se reutilizan Controllers para HTTP, Domain para reglas/entidades, Services para casos de uso e Infrastructure para persistencia. Se añadió `Tdv2DbContext`, 14 entidades en Domain/Entities y configuraciones `IEntityTypeConfiguration`. No se añadieron capas ni proyectos de aplicación duplicados. Program.cs sólo compone el host y permite los procesadores explícitos ya existentes.
+- Integrations/Microsoft y Integrations/Nexo contienen los clientes externos; Integrations/Catalogs conserva el lector SII/ILDA. La publicación, cola y reservas siguen en Synchronization. EF sólo administra public de TDV2: no modela ni migra esquemas externos, roles locales ni tablas de plataforma Laravel sin uso.
+- EF Core/Relational/Design y dotnet-ef **10.0.12**, proveedor Npgsql EF **10.0.0**, Npgsql directo **10.0.0**. Manifiesto local de herramientas en .config; paquetes/artefactos dentro del destino. Npgsql directo se conserva por su uso comprobado en bloqueos, tokens, operaciones centrales, reservas y auditoría.
+- EF participa en consultas de áreas, formatos, colaboraciones, identidad de sesión e inventario local, además del guardado de formatos. Se mantienen empleado textual, tipos/longitudes/defaults/nulabilidad, JSON completo, secuencias serial/bigserial y relaciones locales. No se inventó FK desde el user_id integer histórico de tokens hacia users.id bigint ni hacia identidades/jerarquías externas.
+- El guardado usa una transacción EF compartida con el bloqueo SQL de UR, revisión del contexto y auditoría. Version es token de concurrencia; se conserva el 409 y el cálculo de avance del servidor. Los SQL especializados de publicación y reservas mantienen propietario/caducidad antes del commit y latido sin renovación.
+- Autorización mediante política ASP.NET, AuthorizationHandler y `IAuthorizationMiddlewareResultHandler`: revalida Nexo antes de HTML/JSON y conserva denegaciones, mensajes y auditoría. Se usa el mismo formateador de DomainProblem para middleware y política. Continúan el binding/ModelState MVC, filtros, DI, Options, cookie de sesión, antiforgery y rate limiting.
+- Migraciones estándar `20261002051005_InitialTdv2` y `20261002051340_InitializePausedSynchronization`, con designers y snapshot. Historial único vigente: `public."__EFMigrationsHistory"`. La primera exige base vacía; la segunda sólo inserta configuración pausada. El modelo conserva todas las restricciones semánticas anteriores: dos unicidades nullable pasan de constraints UNIQUE a índices UNIQUE y se añade el índice de la FK de ejecución activa.
+- Se retiró el ejecutor `--migrate`, sus recursos SQL compilados y el historial SQL como mecanismo vigente. SQL 001–004 queda exclusivamente en tests/TDV2.NativeVerification/LegacySchema; el DDL de conversión anterior, en TransitionSchema como fixture. El único archivo database/transition vigente es el diagnóstico de lectura.
+- Local-Tdv2 conserva DPAPI administrativo, marcadores y Verify-Cluster, e invoca dotnet ef sólo para su destino aislado. Si encuentra la base local anterior sin historial EF, la conserva y exige revisión. Prepare-Transition mantiene restauración en una copia nueva y diagnóstico READ ONLY; `-Apply` SQL está retirado. La futura adopción de una copia real requiere revisión EF, no bootstrap automático.
+- Se conservan tdv2.slnx, TDV2 HTTPS + React, HMR, UserSecretsId, configuración estándar, https://localhost:7136/connect y todas las pantallas/componentes/tema/tipografías existentes. No se editaron credenciales ni se leyó Herd en esta adaptación. README contiene comandos desde la raíz y equivalencias con Laravel.
+
+### Probado
+
+| Verificación | Resultado y alcance |
+|---|---|
+| `dotnet build tdv2.slnx --no-restore` | 0 errores y 0 advertencias |
+| `dotnet ef migrations has-pending-model-changes --no-build --project tdv2` | Sin cambios de modelo pendientes; migrations list descubre las dos migraciones sin conectar |
+| `Test-NativePostgres.ps1 -MigrationsOnly` | [25/25 en PostgreSQL desechable](docs/migracion/evidencia-ef-migraciones.json): equivalencia SQL, tipos/defaults/secuencias, relaciones/índices, cuenta sin superusuario, repetición, contenido previo conservado, rollback/reanudación/Down/Up, migraciones pendientes concurrentes, script idempotente y concurrencia EF |
+| `dotnet run --project tests/TDV2.Verification --no-build --no-restore` | 56/56 dominio/transporte; incluye dobles en memoria, no equivale a PostgreSQL |
+| `Test-NativePostgres.ps1` final tras ajustar el resultado de autorización | [90/90 HTTP/PostgreSQL + un grupo navegador](docs/migracion/evidencia-ef-postgresql.json), 91 grupos correctos; fuentes institucionales sintéticas |
+| React/Edge en la suite anterior | [9 recorridos formatos](docs/migracion/evidencia-ef-react-formatos.json) + [12 acceso](docs/migracion/evidencia-ef-react-acceso.json) + [10 sincronizaciones](docs/migracion/evidencia-ef-react-sincronizaciones.json), cero errores JS |
+| TypeScript, `test:forms` y `build` de ClientApp | Correctos; 21/21 pruebas frontend, sin cambios de pantallas ni lockfile |
+| F5 real desde EnvDTE en Visual Studio | [Compilación 2 correctos, implementación 1 correcta y depuradores .NET/JavaScript](docs/migracion/evidencia-ef-visual-studio.txt); solución/perfil conservados |
+| `node ClientApp/tests/browser/visual-studio-startup.mjs` | [Vite 200, redirección 302, HTTPS confiable, React/props, privado 401 y HMR wss en 7136](docs/migracion/evidencia-ef-visual-studio-react.json); sin OAuth ni consultas institucionales |
+| `dotnet publish tdv2/tdv2.csproj -c Release --no-restore -p:UseAppHost=false -o .artifacts/publish-maintenance` | Paquete generado con npm ci/build; auditoría npm informó 0 vulnerabilidades |
+| `node ClientApp/tests/browser/publish-flow.mjs` | [Production/HTTPS Windows, React compilado sin Vite, 503 sin credenciales, 401 privado, 419 sin CSRF, cero errores JS](docs/migracion/evidencia-ef-publicacion.json) |
+| Verificador de configuración `--production` | Production no carga User Secrets; no se imprimieron valores ni se abrieron fuentes |
+| Scripts PowerShell y `git diff --check` | Sintaxis y whitespace correctos. No se ejecutó Prepare contra la base local histórica |
+
+Los intentos fallidos no cuentan como resultados: el sandbox impidió iniciar PostgreSQL/restaurar algunos paquetes y acceder a User Secrets, por lo que se ejecutaron las operaciones necesarias con aprobación. Se ajustó el verificador a la excepción PostgreSQL envuelta por EF. Dos bootstrap simultáneos sin historial provocaron una carrera del proveedor: **la primera aplicación tiene un solo operador**; las pendientes con historial se serializan con el bloqueo estándar EF/Npgsql. Un ensayo concurrente intentó recompilar una DLL en uso y se repitió secuencialmente. F5 detectó una pausa de Just My Code al propagar una denegación por el framework; se corrigió usando el resultado estándar de autorización y se repitieron F5, 56 pruebas y toda la regresión PostgreSQL/React. El primer publish encontró Rolldown bloqueado por el Vite remanente del IDE; se identificó y detuvo sólo ese proceso TDV2 antes de publicar correctamente.
+
+Clúster final de migraciones: `.artifacts/native-postgres-20261002-053757-b02b1e9f`. Regresión final: `.artifacts/native-postgres-20261002-055330-864db610`. Todos los clústeres de esta ejecución quedaron detenidos. Se detuvo la depuración iniciada para verificar F5; el IDE y los documentos del usuario se conservaron.
+
+### Aplicado en la base definitiva autorizada
+
+- [Preflight inmediatamente anterior](docs/migracion/evidencia-ef-servidor-preflight.json): `SERVIDOR_TDV2:5432/tdv2_db`, `USUARIO_TDV2`, TLS confirmado, Search Path public, CONNECT/USAGE/CREATE y propietario verificados. Base vacía, sin objetos ajenos ni historial. La inicialización SQL anterior ya había sido eliminada por la recreación del usuario; no se adoptó contenido ni se eliminó ninguna base/conexión.
+- Comando aplicado: `dotnet ef database update --no-build --project tdv2 -- --environment Development`, con ConnectionStrings:Tdv2 de User Secrets. [Resultado](docs/migracion/evidencia-ef-servidor-aplicacion.txt) y [verificación](docs/migracion/evidencia-ef-servidor-verificacion.json): ambas migraciones registradas, 14 tablas operativas más historial EF, 0 pendientes.
+- Se repitió **el mismo comando**: [salida](docs/migracion/evidencia-ef-servidor-repeticion.txt) y [metadatos posteriores](docs/migracion/evidencia-ef-servidor-repeticion.json). Sin cambios de esquema, historial ni contadores. La huella de columnas/defaults/restricciones/índices/secuencias coincide también con [el ensayo sintético](docs/migracion/evidencia-ef-esquema.json).
+- Todas las tablas operativas tienen 0 filas salvo sincronizacion_configuracion, que tiene la fila 1 pausada; automática/ILDA desactivadas, próxima ejecución y reservas nulas. Sin usuarios, sesiones, intentos OAuth, catálogos, formatos, auditoría ni trabajos sintéticos remotos. No se abrió Nexo/SII/ILDA ni se inició procesador.
+
+### Pendiente institucional y operativo
+
+Validar Microsoft/Graph/Entra reales, contratos y revocaciones Nexo, conectividad/tipos/volumen SII e ILDA; revisar una eventual copia autorizada con datos históricos y preparar su adopción EF; aceptación visual con fuentes externas, teclado/móvil/impresión; despliegue Ubuntu con proxy, supervisor, llaves persistentes y recuperación. Las pruebas Windows y los proveedores sintéticos no acreditan esos puntos. No se habilitaron sincronizaciones automáticas ni se desplegó la aplicación.
+
+**Los apartados siguientes son evidencia histórica. Los comandos y mecanismos vigentes son los del bloque EF y del README; no reutilizar los ejecutores SQL/DPAPI retirados.**
+
+## Inicialización SQL anterior del servidor — 2026-10-01 (histórica)
+
+### Implementado
+
+- Comando `--migrate=check|apply` en `tdv2/Migrations`, separado antes de componer el host web. Carga los proveedores normales y User Secrets en Development; sólo utiliza `ConnectionStrings:Tdv2`. Exige host/puerto/base/usuario explícitos y los contrasta con la conexión y con PostgreSQL; comprueba TLS remoto, search_path, escritura, CONNECT/USAGE/CREATE y propietario de tablas administradas. No inicia procesos de sincronización ni servicios institucionales.
+- Reutiliza los bytes originales de 001–004 como recursos compilados; sólo SQL de la raíz, sin transition. SHA-256 íntegro, secuencia sin huecos, historial como prefijo verificado antes de escribir, exclusión entre sesiones y transacción por archivo incluyendo `public.tdv2_schema_migrations` (nombre/hash/fecha/usuario). Rechaza objetos preexistentes sin historial, cambios de hash y sincronización activa/reservada. El sitio no ejecuta DDL al arrancar.
+- `Local-Tdv2.ps1` queda intacto, con Verify-Cluster, DPAPI, marcadores y tdv2_local_migrations. User Secrets no se editó ni se reemplazó: el usuario lo actualizó para la base recreada antes de esta tarea. Interfaz, F5 y Herd se conservaron. README contiene el comando exacto y el procedimiento para nuevas migraciones.
+
+### Probado y ejecutado
+
+| Verificación | Resultado / alcance |
+|---|---|
+| `dotnet build tdv2.slnx --no-restore -p:NuGetAudit=false` | Compilación sin errores ni advertencias tras corregir la prueba nueva |
+| `Test-NativePostgres.ps1 -MigrationsOnly` | [19/19 en PostgreSQL desechable](docs/migracion/evidencia-migrador-postgresql-sintetico.json): cuenta sin superusuario, check sin DDL, primera aplicación, repetición/fechas, destino erróneo, base ocupada, hash cambiado, permisos, dos conexiones, rollback inicial/posterior/al registrar hash, reanudación, automática, COMMIT interno y errores sin secretos |
+| Preflight del servidor, sólo metadatos | [Destino exacto SERVIDOR_TDV2:5432 / tdv2_db / USUARIO_TDV2](docs/migracion/evidencia-postgresql-servidor-preflight.json), PostgreSQL 18.6 Ubuntu, TLS confirmado, proveedor secrets.json, public vacío y permisos suficientes |
+| Aplicación real autorizada | [001, 002, 003 y 004 aplicadas](docs/migracion/evidencia-postgresql-servidor-aplicacion.json); 14 tablas TDV2 más historial, claves primarias/índices válidos/restricciones validadas y sincronización pausada |
+| Segunda ejecución del mismo apply | [0 aplicadas, 4 omitidas, 0 pendientes](docs/migracion/evidencia-postgresql-servidor-repeticion.json); misma huella del esquema |
+| Comparación de metadatos | [Columnas, tipos, nulabilidad y defaults coinciden con el ensayo desechable](docs/migracion/evidencia-postgresql-servidor-verificacion.json); automática/ILDA desactivadas, próxima ejecución y reservas nulas |
+
+La primera ejecución sintética fue impedida por el sandbox al iniciar PostgreSQL; se repitió fuera del aislamiento sobre un clúster nuevo y sólo dentro de `.artifacts`. Otra ejecución detectó que `inet::text` incluye máscara; se corrigió a `host(inet_server_addr())` y se obtuvo 19/19 antes de conectar al servidor. Los clústeres desechables quedaron detenidos. No se ejecutaron SQL de transition, cargas sintéticas remotas, login ni consultas a Nexo/SII/ILDA. Las únicas inserciones de bootstrap remoto son la configuración pausada prevista en 004 y los cuatro registros del historial.
+
+### Pendiente
+
+Inicialización e idempotencia verificadas en el servidor autorizado. No se acredita con ello el login institucional, conectividad Nexo/SII/ILDA, conversión de datos anteriores, publicación Ubuntu del sitio ni cierre de la migración funcional. Las evidencias anteriores sobre bases locales conservan su alcance histórico; `ConnectionStrings:Tdv2` vigente apunta ahora al servidor por decisión del usuario.
+
+## Corrección del arranque de Visual Studio — 2026-10-01
+
+### Implementado
+
+- Se obtuvo de la instancia abierta el [error completo de implementación](docs/migracion/evidencia-vs-implementacion-antes.txt): configuración vacía de `launch.json`, `Value cannot be null. Parameter name: source`. ClientApp no tenía `.vscode/launch.json`; JSPS fallaba antes de ejecutar npm. El rechazo TCP de ReactShell era consecuencia de no haber Vite escuchando.
+- Nuevo `ClientApp/.vscode/launch.json` para Edge; perfil compartido con `DebugTarget` explícito de cada proyecto y directorio de trabajo explícito en `.esproj`. Se conserva `npm run dev` y su dirección estricta `127.0.0.1:5173`. `https` no abre un segundo navegador; `https-compiled` sí conserva su apertura independiente.
+- JSPS comprueba el puerto del destino antes de iniciar ASP.NET. El destino de implementación usa Vite y su ruta de desarrollo `/__vite/__launch`, que espera la salud local de Kestrel y redirige al HTTPS fijo. Espera acotada, respuesta genérica si no arranca; no se publica esa ruta. Edge conserva el depurador JavaScript y el mapeo de fuentes a través de `/__vite/`.
+- [Sobrescrituras verificadas](docs/migracion/evidencia-vs-configuracion.json): `appsettings.Development.json` conserva `UseVite=false`, sobrescrito por `ReactDevelopment__UseVite=true` del perfil `https`. Sin otra clave React en User Secrets ni variables ambientales del proceso de comprobación/usuario/equipo. UserSecretsId, las nueve claves, el retorno `https://localhost:7136/connect`, interfaz y datos permanecen; Herd no se leyó ni modificó.
+- La modificación previa de `tdv2.slnx` (Build/Deploy de ClientApp y organización) ya estaba presente al iniciar este trabajo y se conservó.
+
+### Probado
+
+| Comprobación | Resultado / alcance |
+|---|---|
+| `dotnet build tdv2.slnx --no-restore -p:NuGetAudit=false` | 0 errores, 0 advertencias |
+| F5 real mediante EnvDTE `Debug.Start` en VS Community 2026 18.10.3 | [Implementación 1 correcta, 0 con errores](docs/migracion/evidencia-vs-implementacion-despues.txt); depuradores .NET y JavaScript, portada Transformación Digital; arranque en frío con 5173/7136/5064 inicialmente libres |
+| `node tests/browser/visual-studio-startup.mjs` desde ClientApp, contra los procesos del IDE | [Vite 200, arranque 302, HTTPS confiable, portada y React renderizados, props 200, HTML privado 401, WebSocket HMR en 7136 y cero errores JS](docs/migracion/evidencia-vs-react.json); fuentes externas bloqueadas |
+| `dotnet run --project tests/TDV2.LocalConfigurationVerification --no-build --no-restore -- <raíz>` | 9 claves desde User Secrets; cadenas analizadas sin abrir conexiones, callback/base/ILDA conservados |
+| `node node_modules/typescript/bin/tsc --noEmit` y `npm.cmd run build` desde ClientApp | Correctos; Vite 8.3.2 y dependencia/lockfile conservados |
+
+Se usó el Node ya incluido en Visual Studio para los verificadores; el IDE ejecutó su propio `npm run dev`. No se ejecutó StartDatabase, SQL, migración, sincronización ni inicio de sesión. Los intentos intermedios no se cuentan como éxito: el IDE requirió recargar el nuevo perfil; un destino que apuntaba directamente a 7136 falló durante Implementar y un destino Node no inició Vite. La configuración final usa Edge con comprobación de 5173 y espera de Kestrel.
+
+### Pendiente
+
+Este fallo de F5 queda verificado en el IDE. No se validaron breakpoints en todas las pantallas, autenticación institucional ni aceptación visual completa con fuentes externas. Continúan los pendientes funcionales de la migración descritos debajo; no se declara la migración terminada.
+
+## Preparación para mantenimiento y Visual Studio — 2026-10-01 (evidencia anterior)
 
 ### Implementado
 
@@ -155,7 +327,7 @@ Casos verificados de sincronizaciones:
 - React muestra pendiente, ejecutando, completada, parcial y fallida; conserva borrador de programación ante 409, historial y opciones automáticas, recupera tras error SQL/interrupción y guarda información ILDA local sin tocar MySQL. **Cero errores JavaScript de página** en los tres scripts.
 
 Casos conservados de delegación y representación:
-- Búsqueda permitida/vacía/denegada/fallida; administrador sin delegación, empleado no coincidente, rol no asignable, nivel 3 no delegable, persona/origen/rama forjados, administrador combinado sin ampliación.
+- Búsqueda permitida/vacía/denegada/fallida; administrador sin delegación, empleado no coincidente, rol no asignable, nivel 3 no delegable (criterio histórico sustituido el 2026-10-05 por colaboración local en su rama), persona/origen/rama forjados, administrador combinado sin ampliación.
 - Persona de nivel 4 autorizada en formato nivel 3; colaborador local/global; GET/PUT de UR ajenas o inferiores denegados. Identidad no publicada tras alta impide vínculo; reintento y altas simultáneas convergen.
 - Revocación local persiste si Nexo falla; reintento confirma retiro. Falla inducida en auditoría revierte alta y revocación locales.
 - Administrador sin capacidad no representa; capacidad sin escritura no la concede. Búsqueda fuera de alcance, token cifrado/no publicado, actor real intacto, módulos revocados, escritura/consulta y alcance.

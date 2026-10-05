@@ -1,5 +1,5 @@
 using Tdv2.Domain;
-namespace Tdv2.Security;
+namespace Tdv2.Integrations.Microsoft;
 
 public sealed class MicrosoftSettings
 {

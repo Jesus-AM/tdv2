@@ -1,14 +1,16 @@
+using Tdv2.Integrations.Microsoft;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using Microsoft.EntityFrameworkCore;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
 namespace Tdv2.Security;
 
 public interface ISessionIdentity { Task<bool> Matches(ClaimsPrincipal principal, CancellationToken cancellation); }
-public sealed class PostgresIdentity(DatabaseConnections connections, ProtectedValues crypto, IOptions<MicrosoftSettings> settings) : ISessionIdentity
+public sealed class PostgresIdentity(DatabaseConnections connections, Tdv2DbContext db, ProtectedValues crypto, IOptions<MicrosoftSettings> settings) : ISessionIdentity
 {
     public const string SessionVersion = "aspnet-1";
     public async Task<ClaimsPrincipal> Save(MicrosoftPerson microsoft, Profile profile, MicrosoftTokens tokens, CancellationToken cancellation)
@@ -70,10 +72,8 @@ public sealed class PostgresIdentity(DatabaseConnections connections, ProtectedV
             || !long.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id) || id <= 0
             || !Guid.TryParse(principal.FindFirstValue("tdv2.tenant"), out var tenant) || !Guid.TryParse(settings.Value.TenantId, out var configured) || tenant != configured
             || !Guid.TryParse(principal.FindFirstValue("tdv2.object"), out var objectId)) return false;
-        await using var connection = await connections.Open("Tdv2", cancellation);
-        await using var command = new NpgsqlCommand("SELECT 1 FROM users WHERE id=$1 AND email=$2 AND microsoft_tenant_id=$3 AND microsoft_id=$4", connection);
-        command.Parameters.AddWithValue(id); command.Parameters.AddWithValue(principal.FindFirstValue(ClaimTypes.Email) ?? "");
-        command.Parameters.AddWithValue(tenant); command.Parameters.AddWithValue(objectId);
-        return await command.ExecuteScalarAsync(cancellation) is not null;
+        var email = principal.FindFirstValue(ClaimTypes.Email) ?? "";
+        return await db.Users.AsNoTracking().AnyAsync(u => u.Id == id && u.Email == email
+            && u.MicrosoftTenantId == tenant && u.MicrosoftId == objectId, cancellation);
     }
 }

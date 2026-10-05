@@ -1,4 +1,6 @@
 using Npgsql;
+using Microsoft.EntityFrameworkCore;
+using Tdv2.Infrastructure;
 namespace Tdv2.NativeVerification;
 
 internal sealed class NativeDatabase
@@ -19,7 +21,7 @@ internal sealed class NativeDatabase
         await ValidateCluster();
         await CreateSchema();
     }
-    private async Task ValidateCluster()
+    internal async Task ValidateCluster()
     {
         var expected = Path.GetFullPath(Environment.GetEnvironmentVariable("TDV2_TEST_DATA_DIRECTORY")!);
         if (!expected.StartsWith(Path.GetFullPath(Path.Combine(Workspace, ".artifacts")) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Unsafe cluster directory.");
@@ -41,10 +43,8 @@ internal sealed class NativeDatabase
     }
     private async Task CreateSchema()
     {
-        await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "database/001_core.sql")));
-        await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "database/002_aspnet_sessions.sql")));
-        await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "database/003_access_contexts.sql")));
-        await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "database/004_synchronizations.sql")));
+        await using (var db = new Tdv2DbContext(new DbContextOptionsBuilder<Tdv2DbContext>().UseNpgsql(Admin).Options))
+            await db.Database.MigrateAsync();
         await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "tests/TDV2.NativeVerification/nexo-fixture.sql")));
         await Sql(await File.ReadAllTextAsync(Path.Combine(Workspace, "tests/TDV2.NativeVerification/access-fixture.sql")));
         // Random credentials are never printed, committed or sent to the browser.
@@ -53,6 +53,7 @@ internal sealed class NativeDatabase
         await Sql("""
             GRANT USAGE ON SCHEMA public TO tdv2_native_app,tdv2_native_nexo;
             GRANT SELECT,INSERT,UPDATE,DELETE ON users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur TO tdv2_native_app;
+            GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones TO tdv2_native_app;
             GRANT SELECT ON unidades_responsables_poa,colaboraciones_ur TO tdv2_native_app;
             GRANT UPDATE ON unidades_responsables_poa TO tdv2_native_app;
             GRANT INSERT ON unidades_responsables_poa TO tdv2_native_app;

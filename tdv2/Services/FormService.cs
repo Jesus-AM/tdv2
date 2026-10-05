@@ -26,8 +26,12 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
                 ["desc_ur"] = scope.Unit.Description ?? scope.Unit.Code,
                 ["nivel_ur"] = scope.Unit.Level,
                 ["id_ur_pertenece"] = scope.Unit.Parent,
+                ["id_ur_principal"] = context.Directory.DirectoryParent(scope.Unit),
+                ["tipo_ur"] = scope.Unit.Kind,
+                ["propia"] = scope.Own,
                 ["ejercicio"] = scope.Unit.Year,
-                ["editable"] = scope.Edit && !context.ReadOnly,
+                ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
+                ["enviado_en"] = record?.SubmittedAt,
                 ["porcentaje"] = record?.Progress ?? 0,
                 ["actualizado_en"] = record?.UpdatedAt,
                 ["actualizado_por"] = record?.UpdatedBy,
@@ -38,11 +42,13 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         return new PageData("Inicio", new()
         {
             ["formatos"] = rows,
-            ["consultaInstitucional"] = admin || context.Profile.Has("consulta_institucional"),
+            ["consultaInstitucional"] = context.Profile.InstitutionalRead,
             ["administrador"] = admin,
-            ["directorio"] = admin ? context.Directory.Units.Values.Where(UnitDirectory.IsForm).Select(u => u.Public()).ToArray() : [],
+            ["directorio"] = context.Profile.InstitutionalRead ? rows : [],
             ["urAdministracion"] = admin ? context.Directory.AdministratorRoot(context.Profile.User)?.Public() : null,
-            ["puedeColaboradores"] = admin || context.Profile.Has("responsable_ur") && context.Directory.Responsibilities(context.Profile.User).Any(u => u.Level == 2),
+            ["puedeColaboradores"] = admin || context.Profile.Responsible && (access.Selection is { Kind: "preview" } preview
+                ? context.Directory.Get(preview.UnitId) is { } selected && UnitDirectory.IsForm(selected)
+                : context.Directory.Responsibilities(context.Profile.User).Any()),
             ["sincronizadoEn"] = await catalogs.LastSii(http.RequestAborted)
         }, context.Profile);
     }
@@ -53,32 +59,28 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         if (!context.Scopes.TryGetValue(ur, out var scope)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
         var record = await store.Get(ur, http.RequestAborted);
         var content = record?.Content.DeepClone() ?? schema.Blank(scope.Unit);
-        content["encabezado"]!["area"] = scope.Unit.Description ?? scope.Unit.Code;
-        var merged = LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted));
+        if (record?.SubmittedAt is null) content["encabezado"]!["area"] = scope.Unit.Description ?? scope.Unit.Code;
+        object inventory = record?.SubmittedAt is null
+            ? LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted)).Status
+            : new { estado = "enviado", nuevos = 0, total = content["identificacion"]!.AsArray().Count, aviso = (string?)null };
+        var snapshot = record?.SubmissionSnapshot is { } frozen ? JsonNode.Parse(frozen) : null;
         return new PageData("FormatoUR", new()
         {
-            ["unidad"] = scope.Unit.Public(),
+            ["unidad"] = (object?)snapshot?["unidad"] ?? scope.Unit.Public(),
             ["contenido"] = content,
             ["plantilla"] = schema.Blank(scope.Unit),
             ["definicion"] = schema.Definition(),
-            ["editable"] = scope.Edit && !context.ReadOnly,
+            ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
+            ["puedeEnviar"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
+            ["enviadoEn"] = record?.SubmittedAt,
             ["permisoEdicion"] = scope.Edit,
             ["version"] = record?.Version ?? 0,
             ["porcentaje"] = record?.Progress ?? 0,
             ["actualizadoEn"] = record?.UpdatedAt,
             ["actualizadoPor"] = record?.UpdatedBy,
             ["guardarUrl"] = "/formatos/" + Uri.EscapeDataString(ur),
-            ["ilda"] = merged.Status
+            ["ilda"] = inventory
         }, context.Profile);
     }
 
-    public async Task<object> Save(string ur, SaveForm input)
-    {
-        var context = await access.Resolve(http);
-        if (!context.Scopes.TryGetValue(ur, out var scope) || !scope.Edit) throw new DomainProblem(403, "No tienes permiso para editar este formato.");
-        if (input.Version is null or < 0 || input.Contenido is null) throw new DomainProblem(422, "Revisa la versión y el contenido del formato.");
-        var valid = schema.Validate(input.Contenido, scope.Unit);
-        var saved = await store.Save(ur, input.Version.Value, valid, access.Actor(http), http.RequestAborted);
-        return new { version = saved.Version, porcentaje = saved.Progress, actualizadoEn = saved.UpdatedAt, actualizadoPor = saved.UpdatedBy };
-    }
 }

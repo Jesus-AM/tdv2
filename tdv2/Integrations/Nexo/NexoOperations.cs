@@ -3,7 +3,8 @@ using System.Text.Json.Nodes;
 using Npgsql;
 using NpgsqlTypes;
 using Tdv2.Domain;
-namespace Tdv2.Infrastructure;
+using Tdv2.Infrastructure;
+namespace Tdv2.Integrations.Nexo;
 
 public sealed class NexoOperations(DatabaseConnections connections, PostgresNexoProfiles profiles, ILogger<NexoOperations> logger)
 {

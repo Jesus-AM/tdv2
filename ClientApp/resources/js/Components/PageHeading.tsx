@@ -1,27 +1,38 @@
 import type { ReactNode } from 'react';
-import { Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { router } from '@/lib/navigation';
 export default function PageHeading({
     title,
     description,
     actions,
+    back,
 }: {
     title: string;
     description?: string;
     actions?: ReactNode;
+    back?: { label: string; href: string };
 }) {
     return (
-        <div className="page-heading">
-            <div>
-                <Typography component="h1" variant="h1">
-                    {title}
-                </Typography>
-                {description && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        {description}
+        <header className="page-header">
+            {back && (
+                <Button className="page-back" startIcon={<ArrowBack />} onClick={() => router.visit(back.href)}>
+                    {back.label}
+                </Button>
+            )}
+            <div className="page-heading">
+                <div className="page-heading-copy">
+                    <Typography component="h1" variant="h1">
+                        {title}
                     </Typography>
-                )}
+                    {description && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            {description}
+                        </Typography>
+                    )}
+                </div>
+                {actions && <div className="row-actions">{actions}</div>}
             </div>
-            {actions && <div className="row-actions">{actions}</div>}
-        </div>
+        </header>
     );
 }

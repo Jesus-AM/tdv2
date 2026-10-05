@@ -12,9 +12,12 @@ import {
     Collapse,
     InputAdornment,
     IconButton,
+    Tabs,
+    Tab,
+    useMediaQuery,
 } from '@mui/material';
 import { Search, ExpandMore, AccountTreeOutlined, SubdirectoryArrowRight, Clear } from '@mui/icons-material';
-import { buildAreaDirectory, filterAreaTree, expandableAreaIds } from '@/lib/area-directory';
+import { buildAreaDirectory, filterAreaTree, expandableAreaIds, displayUnitCode } from '@/lib/area-directory';
 import type { AreaFilter, AreaNode } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
 export default function AreaDirectory({
@@ -29,10 +32,23 @@ export default function AreaDirectory({
     ownRoot: string | null;
 }) {
     const [q, setQ] = useState(''),
+        [scope, setScope] = useState<'todas' | 'mis'>('todas'),
         [filter, setFilter] = useState<AreaFilter>('todos'),
         [page, setPage] = useState(1),
         [open, setOpen] = useState(new Set<string>());
-    const tree = useMemo(() => buildAreaDirectory(units.length ? units : forms, forms), [units, forms]);
+    const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+    const visibleForms = useMemo(() => scope === 'mis' ? forms.filter((f) => f.propia ?? f.editable) : forms, [scope, forms]);
+    const tree = useMemo(() => {
+        const directory = units.length ? units : forms;
+        if (scope === 'todas') return buildAreaDirectory(directory, forms);
+        const own = new Set(visibleForms.map((f) => f.id_ur));
+        // Mantiene el nivel 2 como encabezado sin ofrecer su formato cuando sólo es contexto.
+        for (const form of visibleForms) {
+            const parent = form.id_ur_principal ?? form.id_ur_pertenece;
+            if (parent) own.add(parent);
+        }
+        return buildAreaDirectory(directory.filter((u) => own.has(u.id_ur)), visibleForms);
+    }, [units, forms, visibleForms, scope]);
     const roots = useMemo(() => filterAreaTree(tree.roots, q, filter), [tree, q, filter]),
         others = useMemo(() => filterAreaTree(tree.others, q, filter), [tree, q, filter]);
     useEffect(() => {
@@ -68,7 +84,7 @@ export default function AreaDirectory({
                         {main ? 'Formato del área principal' : node.unit.desc_ur}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                        {node.unit.cve_ur} ·{' '}
+                        {displayUnitCode(node.unit.cve_ur)} ·{' '}
                         {node.form.porcentaje === 100
                             ? 'Completo'
                             : node.form.porcentaje
@@ -76,6 +92,7 @@ export default function AreaDirectory({
                               : 'Sin iniciar'}
                     </Typography>
                 </Box>
+                {!node.form.editable && <Chip label="Solo consulta" variant="outlined" />}
                 <Box sx={{ width: 85 }}>
                     <Typography variant="caption" color="secondary" sx={{ fontWeight: 600 }}>
                         {node.form.porcentaje}%
@@ -105,14 +122,18 @@ export default function AreaDirectory({
         ));
     return (
         <section aria-labelledby="directory-title">
+            <Tabs value={scope} onChange={(_, value) => setScope(value)} aria-label="Ámbito de consulta" sx={{ mb: 2 }}>
+                <Tab value="mis" label="Mis áreas" />
+                <Tab value="todas" label="Todas las áreas" />
+            </Tabs>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
                 <Box>
                     <Typography id="directory-title" component="h2" variant="h2">
-                        Áreas de la universidad
+                        {scope === 'mis' ? 'Mis áreas' : 'Áreas de la universidad'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                         {tree.roots.length} áreas principales ·{' '}
-                        {[...tree.roots, ...tree.others].reduce((s, n) => s + n.areaCount, 0)} áreas con formato
+                        {visibleForms.length} áreas con formato
                     </Typography>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
@@ -235,7 +256,7 @@ export default function AreaDirectory({
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
                                         <Typography variant="caption" color="text.secondary">
-                                            {node.unit.cve_ur}
+                                            {displayUnitCode(node.unit.cve_ur)}
                                         </Typography>
                                         {ownRoot === node.unit.id_ur && (
                                             <Chip
@@ -276,11 +297,12 @@ export default function AreaDirectory({
                                 <ExpandMore
                                     sx={{
                                         transform: open.has(node.unit.id_ur) ? 'rotate(180deg)' : 'none',
+                                        transition: reducedMotion ? 'none' : 'transform 180ms ease',
                                         fontSize: 20,
                                     }}
                                 />
                             </Box>
-                            <Collapse in={open.has(node.unit.id_ur)} unmountOnExit>
+                            <Collapse in={open.has(node.unit.id_ur)} timeout={reducedMotion ? 0 : 180}>
                                 <Box
                                     id={`area-${node.unit.id_ur}`}
                                     sx={{ px: { xs: 2, md: 3 }, pb: 1, borderTop: '1px solid', borderColor: 'divider' }}
@@ -306,7 +328,7 @@ export default function AreaDirectory({
             )}
             {!roots.length && !others.length && (
                 <div className="empty">
-                    <Typography>No encontramos áreas con esos filtros</Typography>
+                    <Typography>{scope === 'mis' && !visibleForms.length ? 'No tienes áreas asignadas para este contexto.' : 'No encontramos áreas con esos filtros'}</Typography>
                     <Button
                         onClick={() => {
                             setQ('');

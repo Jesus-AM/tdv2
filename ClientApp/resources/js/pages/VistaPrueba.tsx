@@ -4,6 +4,7 @@ import { ArrowBack, VisibilityOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import type { Unit } from '@/types/tdv2';
+import { displayUnitCode, normalizeAreaText, eligibleArea } from '@/lib/area-directory';
 type Selection = { mode: 'escenario'; role: string; ur: string };
 export default function VistaPrueba({
     unidades,
@@ -19,7 +20,7 @@ export default function VistaPrueba({
         role: seleccion?.role || 'responsable',
         ur: seleccion?.ur || '',
     });
-    const units = unidades.filter((u) => form.data.role !== 'responsable' || [2, 3].includes(Number(u.nivel_ur)));
+    const units = unidades.filter((u) => eligibleArea(u) && (!['responsable', 'responsable_institucional', 'responsable_supervisor'].includes(form.data.role) || [2, 3].includes(Number(u.nivel_ur))));
     return (
         <AuthenticatedLayout>
             <Head title="Vista por rol y área" />
@@ -61,7 +62,8 @@ export default function VistaPrueba({
                         </TextField>
                         <Autocomplete
                             options={units}
-                            getOptionLabel={(u) => `${u.cve_ur} · ${u.desc_ur}`}
+                            getOptionLabel={(u) => `${displayUnitCode(u.cve_ur)} · ${u.desc_ur}`}
+                            filterOptions={(options, state) => options.filter((u) => normalizeAreaText(`${u.cve_ur} ${u.desc_ur}`).includes(normalizeAreaText(state.inputValue)))}
                             isOptionEqualToValue={(a, b) => a.id_ur === b.id_ur}
                             value={units.find((u) => u.id_ur === form.data.ur) || null}
                             onChange={(_, u) => form.setData('ur', u?.id_ur || '')}

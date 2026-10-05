@@ -1,0 +1,22 @@
+﻿{
+    "developmentJsonUseVite":  false,
+    "httpsProfileUseVite":  true,
+    "userSecretsReactOverridePresent":  false,
+    "ambientOverrides":  [
+                             {
+                                 "scope":  "Process",
+                                 "present":  false
+                             },
+                             {
+                                 "scope":  "User",
+                                 "present":  false
+                             },
+                             {
+                                 "scope":  "Machine",
+                                 "present":  false
+                             }
+                         ],
+    "runtimeViteVerified":  true,
+    "publicOrigin":  "https://localhost:7136",
+    "microsoftCallback":  "https://localhost:7136/connect"
+}

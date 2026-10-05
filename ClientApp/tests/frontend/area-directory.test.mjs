@@ -6,7 +6,7 @@ const source = readFileSync(new URL('../../resources/js/lib/area-directory.ts', 
 const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
-const { buildAreaDirectory, filterAreaTree } = await import(
+const { buildAreaDirectory, filterAreaTree, displayUnitCode } = await import(
     `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
 );
 const unit = (id, level, parent, name = id) => ({
@@ -31,6 +31,29 @@ const form = (u, p, edit) => ({
 });
 const flatten = (nodes) => nodes.flatMap((n) => [n.unit.id_ur, ...flatten(n.children)]);
 const data = () => buildAreaDirectory([c, d, b, a], [form(a, 0, true), form(b, 100, true), form(d, 30, false)]);
+
+test('tipo 0 queda como puente interno, sin formato ni contador; clave no determina tipo', () => {
+    const bridge = { ...unit('bridge', 3, 'a'), tipo_ur: '0' };
+    const child = { ...b, id_ur_pertenece: 'bridge', cve_ur: '06000', tipo_ur: '1' };
+    const tree = buildAreaDirectory([a, bridge, child], [form(a, 0, true), form(bridge, 100, true), form(child, 40, true)]);
+    assert.deepEqual(flatten(tree.roots), ['a', 'b']);
+    assert.equal(tree.roots[0].areaCount, 2);
+    assert.equal(tree.roots[0].forms.length, 2);
+    assert.equal(tree.roots[0].children[0].unit.cve_ur, '06000');
+});
+
+test('06000 y 6000 encuentran la misma UR sin modificar identificadores ni agrupar duplicados', () => {
+    const original = { ...a, cve_ur: '06000' };
+    const other = { ...d, cve_ur: '6000' };
+    const tree = buildAreaDirectory([original, other], [form(original, 0, true), form(other, 0, false)]);
+    assert.deepEqual(flatten(filterAreaTree(tree.roots, '06000', 'todos')), ['a', 'd']);
+    assert.deepEqual(flatten(filterAreaTree(tree.roots, '6000', 'todos')), ['a', 'd']);
+    assert.equal(displayUnitCode(original.cve_ur), '6000');
+    assert.equal(original.cve_ur, '06000');
+    assert.equal(displayUnitCode('000'), '0');
+    assert.equal(displayUnitCode('000ABC'), '000ABC');
+    assert.equal(displayUnitCode('000123456789012345678901234567890'), '123456789012345678901234567890');
+});
 test('directorio limitado a niveles 2 y 3 sin alterar el promedio de sus formatos', () => {
     const tree = data();
     assert.deepEqual(

@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Microsoft;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
@@ -46,12 +47,38 @@ internal static partial class NativeTests
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", response["token"]!.GetValue<string>());
     }
     private static async Task<JsonObject> Form(HttpClient client) => (await Json(await client.GetAsync("/formatos/A")))["props"]!.AsObject();
-    private static async Task<HttpResponseMessage> Save(HttpClient client, int version, JsonNode content) => await client.PutAsJsonAsync("/formatos/A", new { version, contenido = content });
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<HttpClient, System.Collections.Concurrent.ConcurrentDictionary<string, Guid>> EditorTabs = new();
+    private static Task<HttpResponseMessage> Save(HttpClient client, int version, JsonNode content) => SaveAll(client, "A", version, content);
+    // Adaptador de los escenarios históricos: envía todos los bloques explícitamente reservados.
+    // Las pruebas nuevas ejercitan parches mínimos y sesiones/pestañas independientes.
+    private static async Task<HttpResponseMessage> SaveAll(HttpClient client, string unit, int version, JsonNode content)
+    {
+        var values = FormBlocks.Split(content.AsObject());
+        for (var i = 0; i < 12; i++) values.TryAdd("preguntas:" + i, null);
+        var tab = EditorTabs.GetOrCreateValue(client).GetOrAdd(unit, _ => Guid.NewGuid());
+        var read = await client.GetAsync($"/formatos/{unit}/estado?tab={tab}"); if (!read.IsSuccessStatusCode) return read;
+        var current = await Json(read);
+        foreach (var key in FormBlocks.Split(current["contenido"]!.AsObject()).Keys) values.TryAdd(key, null);
+        var versions = current["bloques"]!.AsArray().ToDictionary(b => b!["key"]!.ToString(), b => b!["version"]!.GetValue<int>());
+        int Expected(string key) => Math.Min(version, versions.GetValueOrDefault(key));
+        var reserved = await client.PostAsJsonAsync($"/formatos/{unit}/reservas", new { tabId = tab, operationId = Guid.NewGuid(), blocks = values.Select(p => new { key = p.Key, version = Expected(p.Key) }) });
+        if (!reserved.IsSuccessStatusCode) return reserved;
+        var leases = (await Json(reserved))["bloques"]!.AsArray().ToDictionary(b => b!["key"]!.ToString(), b => b!["reserva"]!["id"]!.ToString());
+        return await client.PatchAsJsonAsync($"/formatos/{unit}/bloques", new { tabId = tab, operationId = Guid.NewGuid(), release = true,
+            blocks = values.Select(p => new { key = p.Key, version = Expected(p.Key), leaseId = leases[p.Key], value = p.Value }) });
+    }
     private static bool DeniedLogin(HttpResponseMessage response) => response.Headers.Location?.OriginalString.StartsWith("/?authError=", StringComparison.Ordinal) == true;
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--database-check")) return await DatabaseInspection.Run(args);
         var database = new NativeDatabase();
+        if (args.Contains("--nexo-delegation-only")) return await NexoDelegationTests.Run(database);
+        if (args.Contains("--migrations-only"))
+        {
+            await database.ValidateCluster();
+            return await MigrationTests.Run(database);
+        }
         if (args.Contains("--sync-child"))
         {
             await database.Attach(); await using var childApp=new NativeApplication(database); childApp.Sources.Block="ilda";
@@ -199,13 +226,13 @@ internal static partial class NativeTests
             await Login(app, client); Check((await client.GetAsync("/inicio")).IsSuccessStatusCode);
             await database.Sql("DELETE FROM fixture_roles"); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
         });
-        Test("UR ajena y subordinada de consulta rechazan escritura", async (app, client) =>
+        Test("Responsable edita subordinadas de su rama y rechaza UR ajena", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); var form = await Form(client);
             Check((await client.GetAsync("/formatos/B")).StatusCode == HttpStatusCode.Forbidden);
-            Check((await client.PutAsJsonAsync("/formatos/B", new { version = 0, contenido = form["contenido"] })).StatusCode == HttpStatusCode.Forbidden);
-            Check((await client.PutAsJsonAsync("/formatos/A3", new { version = 0, contenido = form["contenido"] })).StatusCode == HttpStatusCode.Forbidden);
-            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM formatos_ur")) == 0);
+            Check((await SaveAll(client, "B", 0, form["contenido"]!)).StatusCode == HttpStatusCode.Forbidden);
+            Check((await SaveAll(client, "A3", 0, form["contenido"]!)).IsSuccessStatusCode);
+            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM formato_operaciones")) == 1);
         });
         Test("Administrador con rol responsable conserva límite de edición de su rama", async (app, client) =>
         {
@@ -216,8 +243,8 @@ internal static partial class NativeTests
                 """);
             await Login(app, client); await Csrf(client); var form = await Form(client);
             Check((await client.GetAsync("/formatos/B")).IsSuccessStatusCode);
-            Check((await client.PutAsJsonAsync("/formatos/B", new { version = 0, contenido = form["contenido"] })).StatusCode == HttpStatusCode.Forbidden);
-            Check((await client.PutAsJsonAsync("/formatos/A3", new { version = 0, contenido = form["contenido"] })).IsSuccessStatusCode);
+            Check((await SaveAll(client, "B", 0, form["contenido"]!)).StatusCode == HttpStatusCode.Forbidden);
+            Check((await SaveAll(client, "A3", 0, form["contenido"]!)).IsSuccessStatusCode);
             await database.Sql("UPDATE fixture_users SET \"ID_UR\"=null");
             Check((await Save(client, 0, form["contenido"]!)).StatusCode == HttpStatusCode.Forbidden);
         });
@@ -232,11 +259,11 @@ internal static partial class NativeTests
             Check((await client.GetAsync("/formatos/A3")).StatusCode == HttpStatusCode.Forbidden);
             await database.Sql("INSERT INTO fixture_grants VALUES(99,'persona@uacj.mx',30,'A4','aplicacion'),(100,'persona@uacj.mx',31,null,'central')");
             var form = (await Json(await client.GetAsync("/formatos/A3")))["props"]!;
-            Check((await client.PutAsJsonAsync("/formatos/A3", new { version = 0, contenido = form["contenido"] })).IsSuccessStatusCode);
+            Check((await SaveAll(client, "A3", 0, form["contenido"]!)).IsSuccessStatusCode);
             Check((await client.GetAsync("/formatos/A")).StatusCode == HttpStatusCode.Forbidden);
             await database.Sql("DELETE FROM fixture_grants WHERE concesion_id=99");
             Check((await client.GetAsync("/formatos/A3")).StatusCode == HttpStatusCode.Forbidden);
-            Check((await client.PutAsJsonAsync("/formatos/A3", new { version = 1, contenido = form["contenido"] })).StatusCode == HttpStatusCode.Forbidden);
+            Check((await SaveAll(client, "A3", 1, form["contenido"]!)).StatusCode == HttpStatusCode.Forbidden);
         });
         Test("Nexo caído deniega lecturas y guardados sin filtrar error SQL", async (app, client) =>
         {
@@ -293,7 +320,8 @@ internal static partial class NativeTests
             await Login(app, client); await Csrf(client); var content = (await Form(client))["contenido"]!;
             content["preguntas"] = new JsonArray(); Check((int)(await Save(client, 0, content)).StatusCode == 422);
             client.DefaultRequestHeaders.Add("X-TDV2-Context", "obsolete"); Check((await Save(client, 0, content)).StatusCode == HttpStatusCode.Conflict);
-            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM formatos_ur")) == 0);
+            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM formato_operaciones")) == 0);
+            Check(Convert.ToInt32(await database.Scalar("SELECT version FROM formatos_ur")) == 0);
         });
         Test("Sesión PostgreSQL: expiración y cambio de identidad local invalidan acceso", async (app, client) =>
         {
@@ -325,7 +353,8 @@ internal static partial class NativeTests
 
         RegisterAccessCases(database, Test);
         RegisterSyncCases(database, Test);
-        foreach (var (name, run) in args.Contains("--browser-only") ? [] : args.Contains("--sync-only") ? cases.Where(c=>c.Item1.StartsWith("Sync/")).ToList() : cases)
+        RegisterEditingCases(database, Test);
+        foreach (var (name, run) in args.Contains("--browser-only") ? [] : args.Contains("--editing-only") ? cases.Where(c=>c.Item1.StartsWith("Edición/")).ToList() : args.Contains("--sync-only") ? cases.Where(c=>c.Item1.StartsWith("Sync/")).ToList() : cases)
         {
             var watch = Stopwatch.StartNew();
             try
@@ -336,7 +365,8 @@ internal static partial class NativeTests
             catch (Exception error)
             {
                 failed++; Console.WriteLine("FAIL " + name + " [" + error.GetType().Name + "]");
-                Console.WriteLine(error.StackTrace?.Split('\n').FirstOrDefault(line => line.Contains("AccessTests.cs") || line.Contains("SyncTests.cs"))?.Trim());
+                Console.WriteLine(string.Join('\n', error.StackTrace?.Split('\n').Where(line => line.Contains("Tests.cs")).Take(4) ?? []));
+                if (error.StackTrace?.Contains("NativeTests.Check") == true) Console.WriteLine(error.Message);
                 // No SQL/provider exception text: may include connection or token data.
                 results.Add(new { name, passed = false, exceptionType = error.GetType().Name });
             }
@@ -363,6 +393,8 @@ internal static partial class NativeTests
 
     private static async Task Browser(NativeDatabase database)
     {
+        var selectedFlow = Environment.GetEnvironmentVariable("TDV2_TEST_BROWSER_FLOW") ?? "all";
+        Check(new[] { "all", "formats", "access", "scope", "sync" }.Contains(selectedFlow), "Unknown browser flow.");
         await database.Reset();
         using var certificate = NativeApplication.Certificate();
         await using var app = new NativeApplication(database) { Browser = true };
@@ -370,7 +402,7 @@ internal static partial class NativeTests
         using var client = app.CreateClient(new() { AllowAutoRedirect = false });
         var origin = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single().TrimEnd('/');
         app.Services.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin = origin;
-        var start = new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs", "node.exe"))
+        var start = new ProcessStartInfo("node")
         { WorkingDirectory = Path.Combine(database.Workspace, "ClientApp"), UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("tests/browser/native-flow.mjs");
@@ -378,23 +410,41 @@ internal static partial class NativeTests
         start.Environment["TDV2_BROWSER_ARTIFACTS"] = database.Artifacts;
         // Browser runner needs no database credentials.
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
+        if (selectedFlow is "all" or "formats")
+        {
         using var process = Process.Start(start)!;
         var output = process.StandardOutput.ReadToEndAsync(); var errorOutput = process.StandardError.ReadToEndAsync();
         await process.WaitForExitAsync();
         Console.Write(await output); Console.Write(await errorOutput);
         Check(process.ExitCode == 0, "Browser verification failed.");
+        }
         await database.Reset(); await SetupAccess(database);
         start.ArgumentList.Clear(); start.ArgumentList.Add("tests/browser/access-flow.mjs");
+        if (selectedFlow is "all" or "access")
+        {
         using var accessProcess = Process.Start(start)!;
         var accessOutput = accessProcess.StandardOutput.ReadToEndAsync(); var accessErrors = accessProcess.StandardError.ReadToEndAsync();
         await accessProcess.WaitForExitAsync(); Console.Write(await accessOutput); Console.Write(await accessErrors);
         Check(accessProcess.ExitCode == 0, "Access browser verification failed.");
+        }
+        await database.Reset(); await SetupAccess(database);
+        start.ArgumentList.Clear(); start.ArgumentList.Add("tests/browser/scope-flow.mjs");
+        if (selectedFlow is "all" or "scope")
+        {
+        using var scopeProcess = Process.Start(start)!;
+        var scopeOutput = scopeProcess.StandardOutput.ReadToEndAsync(); var scopeErrors = scopeProcess.StandardError.ReadToEndAsync();
+        await scopeProcess.WaitForExitAsync(); Console.Write(await scopeOutput); Console.Write(await scopeErrors);
+        Check(scopeProcess.ExitCode == 0, "Scope browser verification failed.");
+        }
         await database.Reset(); await SetupSync(database);
         start.ArgumentList.Clear(); start.ArgumentList.Add("tests/browser/sync-flow.mjs");
+        if (selectedFlow is "all" or "sync")
+        {
         using var syncProcess=Process.Start(start)!;
         var syncOutput=syncProcess.StandardOutput.ReadToEndAsync(); var syncErrors=syncProcess.StandardError.ReadToEndAsync();
         await syncProcess.WaitForExitAsync(); Console.Write(await syncOutput); Console.Write(await syncErrors);
         Check(syncProcess.ExitCode==0,"Synchronization browser verification failed.");
+        }
         Console.WriteLine("PASS React → ASP.NET → PostgreSQL / Edge");
     }
 }

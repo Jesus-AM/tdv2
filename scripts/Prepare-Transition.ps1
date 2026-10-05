@@ -5,6 +5,7 @@ param(
 )
 # Sólo una copia en el clúster aislado registrado. Nunca lee .env ni conecta tdv2_db.
 $ErrorActionPreference='Stop'
+if ($Apply) { throw 'La conversión SQL anterior está retirada. EF es el único mecanismo de migraciones; una copia Laravel requiere revisar primero su esquema y preparar su adopción EF.' }
 $workspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $root=Join-Path $workspace '.artifacts/local-validation'
 $state=Get-Content -Raw -Encoding UTF8 (Join-Path $root 'environment.json') | ConvertFrom-Json
@@ -35,25 +36,9 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'La restauracion fallo. Se conserva el destino sin aplicar la transicion.' }
     }
     if ((Sql $Database 'SELECT current_database()') -ne $Database) { throw 'Base destino incorrecta.' }
-    $parts=@('database/transition/preflight.sql','database/transition/010_laravel_copy.sql','database/002_aspnet_sessions.sql','database/003_access_contexts.sql')
-    $sql="BEGIN;`nSET LOCAL lock_timeout='10s';`nSET LOCAL statement_timeout='5min';`nSELECT set_config('tdv2.transition_target','$Database',true);`n"
-    # Bloquear sólo la copia evita comparar una instantánea mientras otro proceso la modifica.
-    $protected=@('users','activity_logs','unidades_responsables_poa','formatos_ur','colaboraciones_ur','sincronizaciones_institucionales','sincronizacion_catalogos','ilda_informacion_area','sincronizacion_ejecuciones')
-    $sql+='LOCK TABLE '+($protected -join ',')+",sincronizacion_configuracion,ms_graph_tokens IN ACCESS EXCLUSIVE MODE;`n"
-    $sql+=[IO.File]::ReadAllText((Join-Path $workspace $parts[0]))+"`n"
-    if ($Apply) {
-        $sql+=[IO.File]::ReadAllText((Join-Path $workspace 'database/transition/preserve.sql'))+"`n"
-        foreach ($file in $parts | Select-Object -Skip 1) {
-            $body=[IO.File]::ReadAllText((Join-Path $workspace $file))
-            $sql+=[regex]::Replace($body,'(?m)^\s*(BEGIN|COMMIT);\s*$','')+"`n"
-        }
-        foreach ($file in @($parts + @('database/transition/preserve.sql','database/transition/verify-preservation.sql'))) {
-            $hash=(Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $workspace $file)).Hash
-            $sql+="INSERT INTO tdv2_transition_migrations(name,sha256) VALUES('$file','$hash');`n"
-        }
-        $sql+=[IO.File]::ReadAllText((Join-Path $workspace 'database/transition/verify-preservation.sql'))+"`n"
-        $sql+="COMMIT;`n"
-    } else { $sql+="ROLLBACK;`n" }
+    # Diagnóstico del contrato histórico en una transacción de sólo lectura.
+    $sql="BEGIN READ ONLY;`nSET LOCAL lock_timeout='10s';`nSET LOCAL statement_timeout='5min';`nSELECT set_config('tdv2.transition_target','$Database',true);`n"
+    $sql+=[IO.File]::ReadAllText((Join-Path $workspace 'database/transition/preflight.sql'))+"`nROLLBACK;`n"
     $null=Sql $Database $sql
     $report=[ordered]@{utc=[DateTime]::UtcNow.ToString('o');database=$Database;restored=[bool]$BackupPath;schemaContractPassed=$true;applied=[bool]$Apply;dataPreservationChecked=[bool]$Apply;sourceConnected=$false;institutionalAcceptance=$false}
     $directory=Join-Path $workspace ('.artifacts/transition/'+$Database)

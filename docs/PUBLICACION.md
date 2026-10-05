@@ -44,8 +44,12 @@ Terminar HTTPS en el proxy institucional, reenviando todas las rutas (incluidos 
 
 Las cookies son Secure y el CSRF exige cabecera y cookie del mismo origen. El retorno local permanece `https://localhost:7136/connect`; producción requiere registrar su propio retorno autorizado en Entra. Las sesiones/cookies Laravel y las llaves Windows requieren nuevo login, no conversión automática.
 
+Para captura colaborativa, reenviar también `/form-events` y su negociación, habilitando WebSocket y un timeout superior al keepalive de SignalR. TDV2 valida Origin contra `Microsoft:PublicOrigin`, incluso cuando el proxy termina TLS. Cada entrega vuelve a comprobar ticket, Nexo y UR; PostgreSQL arbitra todas las escrituras. En varias instancias, el aviso inmediato es local y las otras recuperan cambios mediante comprobación autorizada cada 15 segundos. Probar WebSocket/reconexión con el proxy institucional antes de operar.
+
 ## Base y procesador
 
-Aplicar SQL de forma explícita con una cuenta de migración sólo después de revisar el esquema de destino y validar el ensayo. La cuenta del sitio no necesita DDL. Los SQL 001–004 sirven para una base vacía aislada; una copia Laravel usa [el procedimiento de transición](migracion/TRANSICION_DATOS.md).
+EF Core es el único mecanismo de migraciones. Desde la raíz del código, con la configuración externa del destino y una cuenta de migración, ejecutar explícitamente `dotnet ef database update --project tdv2 -- --environment Production`. Revisar antes `dotnet ef migrations script --idempotent --project tdv2 --output .artifacts/tdv2-migrations.sql` y el destino/permisos. El primer bootstrap exige una base vacía y un solo operador. La cuenta del sitio no necesita DDL; el arranque no invoca EF Migrate ni EnsureCreated.
+
+En desarrollo se añade `-- --environment Development` para cargar User Secrets. `public."__EFMigrationsHistory"` es el historial vigente. Los SQL 001–004 y la conversión anterior son fixtures históricos de pruebas; no se despliegan ni se aplican mediante un segundo ejecutor. Una copia Laravel requiere [revisión y adopción EF explícita](migracion/TRANSICION_DATOS.md), no el bootstrap.
 
 El proceso web no ejecuta migraciones, no procesa la cola y no habilita tareas remotas. `--sync-worker`, `--sync-once` y `--sync-check=` son comandos independientes y explícitos; antes de instalarlos consultar [reservas, recuperación y operación](migracion/SINCRONIZACIONES.md). No se creó servicio, cron, tarea programada ni despliegue en este trabajo.

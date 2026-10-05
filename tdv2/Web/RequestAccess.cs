@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 using Tdv2.Domain;
@@ -34,7 +35,8 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
         if (Effective is null)
         {
             var snapshot = await state.Load(http.RequestAborted);
-            var safe = HttpMethods.IsGet(http.Request.Method) || HttpMethods.IsHead(http.Request.Method) || HttpMethods.IsOptions(http.Request.Method);
+            var safe = HttpMethods.IsGet(http.Request.Method) || HttpMethods.IsHead(http.Request.Method) || HttpMethods.IsOptions(http.Request.Method)
+                || http.Request.Path.StartsWithSegments("/form-events"); // El hub sólo publica consultas; negociar no cambia respuestas.
             if (!safe && http.Request.Headers["X-TDV2-Context"].ToString() is var sent
                 && (sent.Length == 0 ? "own" : sent) != snapshot.Key)
                 throw new DomainProblem(409, "El usuario activo cambió en otra pestaña. Recarga antes de guardar.");

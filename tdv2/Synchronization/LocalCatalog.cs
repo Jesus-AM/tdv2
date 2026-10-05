@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 namespace Tdv2.Synchronization;
 
 public sealed record UnitInventory(string State, IReadOnlyList<JsonObject> Rows, string? Notice);
@@ -11,28 +12,29 @@ public interface ILocalCatalog
     Task<UnitInventory> Inventory(Unit unit, CancellationToken ct);
     Task<DateTimeOffset?> LastSii(CancellationToken ct);
 }
-public sealed class LocalCatalog(DatabaseConnections connections, ILogger<LocalCatalog> logger) : ILocalCatalog
+public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger) : ILocalCatalog
 {
     public async Task<DateTimeOffset?> LastSii(CancellationToken ct)
     {
-        await using var connection = await connections.Open("Tdv2", ct);
-        var date = await new SyncSql(connection, null).Scalar("SELECT max(completada_en) FROM sincronizaciones_institucionales", ct);
+        var date = await db.InstitutionalSynchronizations.MaxAsync(s => (DateTime?)s.CompletedAt, ct);
         return date is DateTime time ? new DateTimeOffset(DateTime.SpecifyKind(time, DateTimeKind.Utc)) : null;
     }
     public async Task<UnitInventory> Inventory(Unit unit, CancellationToken ct)
     {
         try
         {
-            await using var connection = await connections.Open("Tdv2", ct); var db = new SyncSql(connection, null);
-            if (await db.Scalar("SELECT 1 FROM sincronizacion_catalogos WHERE fuente='ilda'", ct) is null) return new("pendiente", [], null);
+            if (!await db.CatalogSynchronizations.AnyAsync(c => c.Id == "ilda", ct)) return new("pendiente", [], null);
             // El límite de 200 corresponde al formulario; la réplica conserva todas las filas y columnas.
             var code = unit.Code.Trim();
             if (code == "") return new("sin_clave", [], "Esta área no tiene una clave institucional para consultar ILDA.");
-            var raw = (string)(await db.Scalar("SELECT coalesce(json_agg(r),'[]'::json)::text FROM (SELECT id_origen,informacion_generada FROM ilda_informacion_area WHERE presente=true AND ur2 COLLATE \"C\"=$1 ORDER BY id_origen COLLATE \"C\" LIMIT 201) r", ct, code))!;
-            var records = JsonNode.Parse(raw)!.AsArray(); var rows = new List<JsonObject>(); var invalid = false;
+            var records = await db.IldaAreaInformations.AsNoTracking()
+                .Where(r => r.Present && EF.Functions.Collate(r.Ur2!, "C") == code)
+                .OrderBy(r => EF.Functions.Collate(r.Id, "C")).Take(201)
+                .Select(r => new { r.Id, r.Information }).ToListAsync(ct);
+            var rows = new List<JsonObject>(); var invalid = false;
             foreach (var record in records.Take(200))
             {
-                var id = record!["id_origen"]!.ToString(); var text = record["informacion_generada"]?.ToString().Trim() ?? "";
+                var id = record.Id; var text = record.Information?.Trim() ?? "";
                 if (!Regex.IsMatch(id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
                 rows.Add(new() { ["id"] = "ilda:" + id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = "", ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
             }

@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using System.Text.Json.Nodes;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
@@ -34,7 +35,7 @@ public sealed class AccessToolService(RequestAccess access, NexoOperations nexo,
         var units = await access.Units(http);
         return new PageData("VistaPrueba", new()
         {
-            ["unidades"] = units.Units.Values.OrderBy(u => u.Code).Select(u => u.Public()).ToArray(),
+            ["unidades"] = units.Units.Values.Where(UnitDirectory.IsEligible).OrderBy(u => u.Code).Select(u => u.Public()).ToArray(),
             ["roles"] = ScenarioRoles.All.Select(r => new { value = r.Key, title = r.Value.Label }).ToArray(),
             ["seleccion"] = null
         }, real);

@@ -1,4 +1,6 @@
 using Tdv2.Domain;
+using Microsoft.Extensions.Options;
+using Tdv2.Integrations.Microsoft;
 namespace Tdv2.Web;
 
 public static class AccessBoundary
@@ -24,10 +26,20 @@ public static class AccessBoundary
             var context = await access.Resolve(http);
             if (path.StartsWithSegments("/formatos", out var remaining) && remaining.HasValue)
             {
-                var unit = Uri.UnescapeDataString(remaining.Value!.TrimStart('/'));
+                var unit = Uri.UnescapeDataString(remaining.Value!.TrimStart('/').Split('/')[0]);
                 if (!context.Scopes.TryGetValue(unit, out var scope) || !HttpMethods.IsGet(http.Request.Method) && !HttpMethods.IsHead(http.Request.Method) && (!scope.Edit || context.ReadOnly))
                     throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
             }
+        }
+        else if (path.StartsWithSegments("/form-events"))
+        {
+            var origin = http.Request.Headers.Origin.ToString();
+            // El proxy puede terminar TLS; el origen permitido es configuración del servidor,
+            // nunca Host ni X-Forwarded-* proporcionados por el cliente.
+            var allowedOrigin = http.RequestServices.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin.TrimEnd('/');
+            if (origin.Length > 0 && !string.Equals(origin, allowedOrigin, StringComparison.OrdinalIgnoreCase))
+                throw new DomainProblem(403, "Origen no autorizado.");
+            await access.Resolve(http);
         }
         else if (path.StartsWithSegments("/user")) await access.Profile(http);
     }

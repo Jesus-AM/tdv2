@@ -6,10 +6,10 @@ Implementación y pruebas del segundo bloque, ampliadas por [delegación, repres
 
 | Referencia Laravel | Adaptación ASP.NET |
 |---|---|
-| app/Http/Controllers/Auth/AuthController.php y listener Microsoft | Web/AuthenticationEndpoints.cs, Security/MicrosoftClient.cs, PostgresIdentity.cs |
+| app/Http/Controllers/Auth/AuthController.php y listener Microsoft | Controllers/AuthenticationController.cs, Integrations/Microsoft/MicrosoftClient.cs, Security/PostgresIdentity.cs |
 | Sesión Microsoft versionada y validación tenant/object ID | Security/PostgresTicketStore.cs, PostgresIdentity.Matches y Web/RequestAccess.cs |
 | GraphToken y foto Graph | Security/GraphTokens.cs y MicrosoftClient.Photo |
-| Services/NexoAccessService.php | Infrastructure/PostgresNexoProfiles.cs y Domain/ModuleAccess |
+| Services/NexoAccessService.php | Integrations/Nexo/PostgresNexoProfiles.cs y Domain/ModuleAccess |
 | Services/TDV2/FormAccess.php y directorio UR | Domain/FormAccess, UnitDirectory y Web/AccessBoundary.cs |
 | Formatos y validación canónica | Domain/FormSchema.cs e Infrastructure/PostgresFormStore.cs |
 
@@ -48,10 +48,8 @@ Abrir https://localhost:7136. El perfil HTTP permite inspeccionar la portada, pe
 
 ## SQL, cifrado y operación
 
-- database/001_core.sql es un bootstrap de base vacía para users, ms_graph_tokens, activity_logs, unidades_responsables_poa, formatos_ur y colaboraciones_ur. No incluye las 27 tablas ni sincronizadores. No ejecutarlo sobre la base Laravel.
-- database/002_aspnet_sessions.sql incorpora tdv2_sessions y tdv2_oauth_attempts. Tampoco se aplica automáticamente. La compatibilidad con un esquema desplegado requiere comparación previa en copia aislada.
-- database/003_access_contexts.sql añade revisión y selección cifrada por sesión. La cuenta local necesita SELECT/INSERT/UPDATE/DELETE sobre contextos y colaboraciones, e INSERT en activity_logs con acceso a sus secuencias. No se aplica automáticamente.
-- database/004_synchronizations.sql incorpora historial, metadatos, réplica ILDA, cola y configuración. Ahora también se necesita para las lecturas de formatos/inicio. Aplicar sólo en la base ASP.NET aislada preparada con 001–003; no se aplica automáticamente ni sobre Laravel.
+- `tdv2/Migrations/InitialTdv2` es la migración EF inicial de las 14 tablas operativas: identidad, tokens, auditoría, UR, formatos, colaboraciones, sesiones, intentos OAuth, contextos y sincronización. `InitializePausedSynchronization` inserta únicamente la configuración pausada. Los SQL 001–004 se conservan sólo como fixtures en tests; no son un mecanismo vigente de aplicación.
+- EF mantiene `__EFMigrationsHistory` y requiere ejecución explícita del operador. El bootstrap rechaza una base ocupada; la compatibilidad/adopción de un esquema anterior requiere revisión sobre una copia aislada. La cuenta local necesita SELECT/INSERT/UPDATE/DELETE sobre contextos y colaboraciones, e INSERT en activity_logs con acceso a sus secuencias. No se aplica DDL automáticamente.
 - La aplicación necesita SELECT/INSERT/UPDATE/DELETE en identidad/tokens/sesiones/intentos/formatos y auditoría según su operación, USAGE en las secuencias correspondientes, SELECT en catálogo/colaboraciones y permiso UPDATE sobre la fila UR para SELECT FOR UPDATE. El procesador requiere además INSERT/UPDATE en UR y lectura/escritura de réplica/cola/configuración/metadatos/historial/bitácora; nunca DDL ni permisos de escritura en fuentes remotas. El test configura esos permisos sin otorgarle superusuario. Debe afinarse la concesión final en el despliegue.
 - La cuenta de Nexo de las pruebas lee sus vistas y ejecuta funciones SECURITY DEFINER publicadas; no accede directamente a las tablas que las alimentan. En el entorno institucional los filtros y permisos los administra Nexo; aún no se verificaron allí.
 - Formatos conserva JSON de respuestas, versión inicial de lectura 0 y primera escritura 1, avance calculado por servidor, actualizado_por y timestamps. Se asumen timestamps sin zona en UTC, según las declaraciones de Laravel; falta contrastarlo con el esquema efectivo.

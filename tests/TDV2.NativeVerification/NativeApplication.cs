@@ -1,3 +1,5 @@
+using Tdv2.Integrations.Microsoft;
+using Tdv2.Integrations.Catalogs;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -14,6 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tdv2.Security;
 using Tdv2.Synchronization;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
 namespace Tdv2.NativeVerification;
 
 internal sealed class FakeMicrosoft : HttpMessageHandler
@@ -27,8 +31,19 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
     internal int Exchanges, Refreshes;
     internal string? ExpectedChallenge;
     internal string LastVerifier = "";
+    internal string? LoginHint = "opaque-synthetic-real-account";
+    internal bool InvalidNonce, InvalidSignature;
+    private readonly RsaSecurityKey signingKey = new(RSA.Create(2048)) { KeyId = "synthetic-key" };
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        if (request.RequestUri!.AbsolutePath.EndsWith("/.well-known/openid-configuration"))
+            return Json(new { issuer = $"https://login.microsoftonline.com/{Tenant}/v2.0", jwks_uri = $"https://login.microsoftonline.com/{Tenant}/discovery/v2.0/keys" });
+        if (request.RequestUri.AbsolutePath.EndsWith("/discovery/v2.0/keys"))
+        {
+            var key = signingKey.Rsa.ExportParameters(false);
+            return Json(new { keys = new[] { new { kty = "RSA", use = "sig", kid = signingKey.KeyId, alg = "RS256",
+                n = WebEncoders.Base64UrlEncode(key.Modulus!), e = WebEncoders.Base64UrlEncode(key.Exponent!) } } });
+        }
         if (request.RequestUri!.Host == "login.microsoftonline.com" && request.RequestUri.AbsolutePath == $"/{Tenant}/oauth2/v2.0/token")
         {
             var form = QueryHelpers.ParseQuery(await request.Content!.ReadAsStringAsync(cancellationToken));
@@ -43,6 +58,15 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
             if (TokenFailure) return Json(new { error = "synthetic_provider_error_secret" }, HttpStatusCode.BadRequest);
             var payload = new Dictionary<string, object> { ["token_type"] = "Bearer", ["access_token"] = "synthetic-access-" + Refreshes, ["expires_in"] = 3600 };
             if (form["grant_type"] == "authorization_code" || RotateRefresh) payload["refresh_token"] = "synthetic-refresh-" + Refreshes;
+            if (form["grant_type"] == "authorization_code")
+            {
+                var claims = new Dictionary<string, object> { ["oid"] = Id, ["tid"] = Tenant, ["nonce"] = InvalidNonce ? "invalid" : ProtectedValues.Hash("oidc:" + LastVerifier) };
+                if (LoginHint is not null) claims["login_hint"] = LoginHint;
+                payload["id_token"] = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor {
+                    Issuer = $"https://login.microsoftonline.com/{Tenant}/v2.0", Audience = "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+                    Expires = DateTime.UtcNow.AddHours(1), Claims = claims,
+                    SigningCredentials = new(InvalidSignature ? new RsaSecurityKey(RSA.Create(2048)) : signingKey, SecurityAlgorithms.RsaSha256) });
+            }
             return Json(payload);
         }
         if (request.RequestUri.Host == "graph.microsoft.com")
@@ -66,7 +90,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureLogging(logging => logging.ClearProviders());
+        builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(new SyntheticDiagnostics()); });
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:Tdv2"] = database.AppConnection, ["ConnectionStrings:Nexo"] = database.NexoConnection,
@@ -114,10 +138,26 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
     {
         app.Use(async (http, rest) =>
         {
-            if (!http.Request.Path.StartsWithSegments("/__fixture", out var action)) { await rest(); return; }
+            if (!http.Request.Path.StartsWithSegments("/__fixture", out var action))
+            {
+                await rest();
+                if (http.Request.Path == "/form-events" && http.Response.StatusCode >= 400)
+                    Console.WriteLine("SYNTHETIC SignalR transport HTTP " + http.Response.StatusCode);
+                return;
+            }
             if (http.Request.Headers["X-Fixture-Key"] != token) { http.Response.StatusCode = 403; return; }
             switch (action.Value)
             {
+                case "/scope-level3":
+                    await database.Sql("""
+                        UPDATE fixture_roles SET rol_clave='responsable_ur_supervisor',rol_nombre='Responsable de UR con supervisión' WHERE email='persona@uacj.mx';
+                        UPDATE fixture_users SET num_empleado='0002',"ID_UR"='A3' WHERE email='persona@uacj.mx';
+                        DELETE FROM fixture_delegation WHERE email='persona@uacj.mx';
+                        INSERT INTO fixture_delegation VALUES('persona@uacj.mx','A3','0002',3);
+                        INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur,desc_ur,id_ur_pertenece,nivel_ur,tipo_ur,estatus_ur,presente)
+                        VALUES('aux',2026,'00000','Nodo auxiliar excluido','A',3,'0','Activo',true);
+                        UPDATE unidades_responsables_poa SET cve_ur='06000',id_ur_pertenece='aux',tipo_ur='1' WHERE id_ur='A3';
+                        """); break;
                 case "/sync-tick":
                     using (var scope=http.RequestServices.CreateScope()) await scope.ServiceProvider.GetRequiredService<SyncCoordinator>().Tick(http.RequestAborted);
                     break;
@@ -158,6 +198,12 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                 case "/restore": await database.Sql("GRANT SELECT ON nexo_usuarios TO tdv2_native_nexo"); break;
                 case "/fail-save": await database.Sql(NativeTests.FailureTrigger); break;
                 case "/recover-save": await database.Sql("DROP TRIGGER fail_save ON formatos_ur; DROP FUNCTION fixture_fail_save()"); break;
+                case "/expire-editing": await database.Sql("UPDATE formato_bloques SET vence_en=clock_timestamp()-interval '1 second'"); break;
+                case "/ready-to-submit":
+                    // Preparación exclusivamente sintética: el envío se realiza luego por la UI y el backend reales.
+                    var complete = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>()).ToJsonString();
+                    await database.Sql("UPDATE formatos_ur SET contenido=$1::json,porcentaje=100,version=version+1 WHERE id_ur='A'", complete);
+                    break;
                 case "/stored":
                     var json = await database.Scalar("SELECT json_build_object('version',version,'porcentaje',porcentaje,'contenido',contenido)::text FROM formatos_ur WHERE id_ur='A'");
                     http.Response.ContentType = "application/json"; await http.Response.WriteAsync(json?.ToString() ?? "null"); return;

@@ -13,7 +13,7 @@ export function Head({ title }: { title: string }) {
     return null;
 }
 type Errors = Record<string, string>;
-type Options = { only?: string[]; onError?: (errors: Errors) => void; onFinish?: () => void };
+type Options = { only?: string[]; onError?: (errors: Errors) => void; onFinish?: () => void; onSuccess?: () => void };
 type Before = CustomEvent<{ visit: { headers: Record<string, string> } }>;
 const events = new EventTarget();
 let current: Page | null = null;
@@ -63,11 +63,17 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
             : data;
         window.history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', url);
         setPage(page);
+        options.onSuccess?.();
     } catch (error) {
         if (ticket !== sequence) return;
         const status = axios.isAxiosError(error) ? error.response?.status || 503 : 503;
         const message = axios.isAxiosError(error) ? error.response?.data?.message : null;
         const context = axios.isAxiosError(error) ? error.response?.data : undefined;
+        // Un fallo temporal al refrescar conserva el borrador. La denegación de acceso sí sustituye la vista.
+        if (options.only && options.onError && status >= 500) {
+            options.onError({ general: message || 'No se pudo actualizar el estado. Inténtalo de nuevo.' });
+            return;
+        }
         setPage(restricted(message || 'No se pudo cargar la página. Inténtalo de nuevo.', status, path, context));
     } finally { options.onFinish?.(); }
 }

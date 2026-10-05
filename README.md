@@ -1,109 +1,137 @@
 # TDV2 · ASP.NET Core 10 + React
 
-Abrir **tdv2.slnx** en Visual Studio con soporte .NET 10 y JavaScript/TypeScript. La solución contiene el backend `tdv2`, el frontend existente `ClientApp` y una carpeta de pruebas. **Migración institucional en curso: no sustituir Laravel ni desplegar todavía.** Evidencia y límites: [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
+Backend ASP.NET con controladores, EF Core 10/Npgsql y PostgreSQL; frontend React, TypeScript y MUI. Abre **tdv2.slnx** y selecciona **TDV2 HTTPS + React** para F5. El retorno Microsoft permanece en **https://localhost:7136/connect**.
 
-## Desarrollo con Visual Studio
+La adaptación técnica no acredita todavía el acceso institucional real ni el despliegue Ubuntu. Implementado, probado y pendiente se registran por separado en [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
-Requisitos: .NET SDK 10, Node 22.23 o compatible con Vite 8, npm y las cargas de Visual Studio para ASP.NET y JavaScript. PostgreSQL nativo ya está instalado en este equipo; no se instala ni se administra el servicio usado por Laravel.
+Código: [Jesus-AM/tdv2](https://github.com/Jesus-AM/tdv2), rama `main`. [Archivos compartidos, exclusiones y revisión previa de publicación](docs/REPOSITORIO.md).
 
-Una vez, o después de cambiar `package-lock.json`, desde `ClientApp`:
+Actualización 2026-10-05: `responsable_ur_supervisor`, colaboradores locales para nivel 3, reservas por bloque, autoguardado parcial, SignalR y envío definitivo. Aplicar explícitamente **CollaborativeFormsAndSubmission** antes de usar esta versión. Véanse [captura y migración](docs/migracion/COLABORACION_ENVIO.md) y [configuración de Nexo/Entra](docs/migracion/CONFIGURACION_NEXO_ENTRA.md). Los cambios de fuente de Nexo no publican funciones automáticamente.
+
+## Dónde modificar cada cosa
+
+| Responsabilidad | Ubicación | Equivalente Laravel |
+|---|---|---|
+| Rutas, entrada HTTP, SignalR y respuestas | `tdv2/Controllers`; atributos `HttpGet/HttpPost/HttpPatch/HttpDelete` | routes + controllers + broadcasting |
+| Entidades persistidas | `tdv2/Domain/Entities` | app/Models |
+| Reglas de acceso, plantilla, validación y cálculo de avance | `tdv2/Domain` | reglas/modelos de dominio |
+| Casos de uso | `tdv2/Services` | services/actions |
+| DbContext y mapeos de tablas | `tdv2/Infrastructure/Tdv2DbContext.cs`, `Infrastructure/Configurations` | Eloquent + configuración de relaciones |
+| Migraciones y snapshot | `tdv2/Migrations` | database/migrations |
+| Microsoft, Nexo y fuentes SII/ILDA | `tdv2/Integrations` | clientes/conectores externos |
+| Publicación de catálogos, cola y reservas | `tdv2/Synchronization` | jobs + servicios de sincronización |
+| Sesiones, cifrado, autorización y auditoría | `tdv2/Security` | guards/policies/middleware |
+| Composición del host y límites HTTP | `tdv2/Hosting`, `tdv2/Web` | providers + middleware |
+| Pantallas y componentes | `ClientApp/resources/js/pages`, `Components` | resources/js |
+| Opciones / credenciales locales | appsettings / User Secrets | config / .env |
+| Pruebas separadas | `tests`, `ClientApp/tests` | tests |
+
+Se reutiliza Infrastructure como carpeta de persistencia; no existe una segunda capa Data. EF se utiliza en formatos, áreas, colaboraciones, identidad local e inventario. El SQL especializado conserva bloqueos de filas, reservas y publicación/auditoría en una misma transacción. Nexo sigue siendo la autoridad de permisos y sus tablas no pertenecen al DbContext. La portada pública existente se conserva; las nueve pantallas siguen en React.
+
+## Configurar y ejecutar
+
+Requisitos: Visual Studio con ASP.NET y JavaScript, .NET SDK 10 y Node/npm compatible con el lockfile. PostgreSQL 18 y Edge son necesarios para la suite nativa, no para compilar.
+
+Todos los comandos de esta guía se ejecutan **desde la raíz del repositorio**:
 
 ```powershell
-npm.cmd ci --ignore-scripts
+# Cachés y herramientas de esta sesión dentro del destino.
+$env:NUGET_PACKAGES = Join-Path (Get-Location) '.artifacts/nuget'
+$env:DOTNET_CLI_HOME = Join-Path (Get-Location) '.artifacts/dotnet-home'
+$env:npm_config_cache = Join-Path (Get-Location) '.artifacts/npm-cache'
+dotnet restore tdv2.slnx
+dotnet tool restore
+npm.cmd --prefix ClientApp ci --ignore-scripts
+dotnet build tdv2.slnx
 ```
 
-Desde la raíz, para iniciar la base detenida **sin recrearla ni migrarla**:
+En Visual Studio: **tdv2 → Administrar secretos de usuario**. Se conserva UserSecretsId `0397954e-63d2-48b6-a581-a586951257cc`. Claves: `Microsoft:TenantId`, `ClientId`, `ClientSecret`, `PublicOrigin`; `ConnectionStrings:Tdv2`, `Nexo`, `Sii`, `Ilda`; `Synchronization:IldaEnabled`. Mantén `Microsoft:PublicOrigin=https://localhost:7136`. User Secrets es JSON local para desarrollo; no se copia al frontend ni al repositorio.
+
+`WebApplication.CreateBuilder` carga appsettings, appsettings del ambiente y User Secrets en Development; entorno y argumentos tienen precedencia. La aplicación no importa DPAPI/Herd ni sobrescribe las ediciones. Las credenciales vigentes de TDV2 apuntan a la base recreada del servidor por decisión del usuario.
+
+F5 inicia Vite y ASP.NET mediante el perfil compartido. Para trabajar con dos terminales:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 StartDatabase
-```
+# Terminal 1: React con HMR
+npm.cmd --prefix ClientApp run dev
 
-En Visual Studio, seleccionar el perfil de solución **TDV2 HTTPS + React** y el perfil **https** del backend. F5 inicia `ClientApp` con Vite y `tdv2` con Kestrel. Si no aparece el perfil compartido, usar **Configurar proyectos de inicio → Varios proyectos**: ClientApp y tdv2 en Iniciar; los verificadores en Ninguno. Las instrucciones completas están en [ARRANQUE_LOCAL_WINDOWS.md](docs/ARRANQUE_LOCAL_WINDOWS.md).
-
-Abrir **https://localhost:7136**. El retorno Microsoft se conserva en **https://localhost:7136/connect**. Vite escucha sólo en `127.0.0.1:5173`; ASP.NET sirve su HTML, módulos y WebSocket HMR a través de `/__vite/`. El navegador mantiene el mismo origen para React, cookies, CSRF y OAuth. Las rutas privadas se autorizan antes de entregar HTML. Editar pantallas en `ClientApp/resources/js/pages`; Vite refleja los cambios sin publicar.
-
-Alternativa por terminal, con PostgreSQL ya activo:
-
-```powershell
-# Terminal 1, en ClientApp
-npm.cmd run dev
-# Terminal 2, en la raíz
+# Terminal 2: ASP.NET en 7136, proxy /__vite/ y callback /connect
 dotnet run --project tdv2 --launch-profile https
 ```
 
-Para usar React compilado: `npm.cmd run build` en ClientApp, iniciar sólo tdv2 con **https-compiled**. `Local-Tdv2.ps1 Start` también usa este perfil. Mayús+F5 detiene la depuración; `Local-Tdv2.ps1 Stop` detiene únicamente PostgreSQL aislado y conserva sus datos. No ejecutar F5 y otro backend en los mismos puertos.
-
-## Dónde mantener cada responsabilidad
-
-| Ubicación | Responsabilidad |
-|---|---|
-| `tdv2/Program.cs` | Crear host, registrar servicios, elegir web o comando explícito de sincronización |
-| `tdv2/Hosting` | Inyección de dependencias, cookies, CSRF, límites y orden del middleware |
-| `tdv2/Controllers` | Rutas, entradas HTTP y respuestas; no contiene SQL |
-| `tdv2/Services` | Casos de uso de formatos, colaboradores, autenticación y contextos; límites de transacción |
-| `tdv2/Domain` | Alcance por UR, módulos, plantilla, validación y cálculo de avance |
-| `tdv2/Infrastructure` | Npgsql, consultas institucionales Nexo y persistencia local |
-| `tdv2/Security` | Identidad Microsoft, tokens, sesiones/contextos cifrados y auditoría |
-| `tdv2/Synchronization` | Lectores remotos, réplica local, publicación, reservas y recuperación |
-| `tdv2/Web` | Autorización por solicitud, errores públicos, shell React y contrato JSON/CSRF |
-| `ClientApp/resources` | React, TypeScript, MUI, tema, tipografías, componentes y estilos conservados |
-| `database` | SQL explícito; bootstrap y ensayo de transición separados |
-| `tests`, `ClientApp/tests` | Dobles y datos sintéticos; nunca se incorporan al ejecutable web |
-| `docs/migracion` | Contratos, inventario de Laravel y evidencia diferenciada |
-
-Los servicios de aplicación usan `RequestAccess` scoped para resolver la solicitud vigente. Las reglas de alcance y avance permanecen en Domain, sin HTTP. No convertir esa caché por solicitud en caché de permisos entre solicitudes: Nexo debe poder revocar inmediatamente. Las transacciones pertenecen al caso de uso; los componentes SQL reciben la conexión/transacción cuando el cambio debe confirmarse junto con su auditoría.
-
-## Qué configuración editar
-
-| Archivo o proveedor | Uso |
-|---|---|
-| `tdv2/appsettings.json` | Opciones generales, logging y límites de sincronización; sin credenciales |
-| `tdv2/appsettings.Development.json` | Valores de desarrollo; Vite se habilita en el perfil https |
-| **tdv2 → Administrar secretos de usuario** | Microsoft y cadenas Tdv2/Nexo/Sii/Ilda locales ya importadas |
-| `tdv2/Properties/launchSettings.json` | Perfiles, ambiente y puertos; no guardar secretos aquí |
-| `tdv2.slnLaunch` | Inicio conjunto de backend y frontend desde Visual Studio |
-| `ClientApp/vite.config.ts` | Base de módulos y HMR; ningún secreto ni conexión institucional |
-| Variables externas del servicio | Credenciales de producción; nombres jerárquicos con `__` |
-| `DataProtection:KeyDirectory` | Directorio persistente de llaves del servidor, fuera del paquete publicado |
-
-ASP.NET aplica la precedencia estándar: appsettings → archivo del ambiente → User Secrets sólo en Development → variables de entorno → argumentos. User Secrets es JSON de desarrollo **sin cifrado**. No se imprime ni se entrega al navegador. El lanzador no repone DPAPI ni sobrescribe ediciones. La correspondencia completa con Laravel está en [la guía local](docs/ARRANQUE_LOCAL_WINDOWS.md#equivalencias-de-la-configuración-importada).
-
-DPAPI sólo permanece en la administración del clúster aislado Windows y en la protección de llaves ASP.NET de Windows. El backend no depende del antiguo almacén institucional. `Import`, `Configure` y `MigrateSecrets` son avisos de compatibilidad sin lecturas ni escrituras. `Prepare` mantiene su función explícita de preparar/verificar el esquema local; no usarlo como sustituto de StartDatabase.
-
-## Bases y migraciones
-
-- **tdv2_db:** permanece para Laravel; no se leyó, respaldó, migró ni modificó en esta preparación.
-- **tdv2_local_validation:** se conserva su conexión, esquema y datos. Automática apagada; ningún procesador se inicia con F5.
-- **Base vacía aislada:** SQL 001–004, explícitamente mediante el mecanismo existente de hashes. Nunca ejecutar el bootstrap sobre una base Laravel.
-- **Copia de transición:** [procedimiento y SQL separados](docs/migracion/TRANSICION_DATOS.md). Se probó respaldo/restauración/conversión con datos sintéticos. Falta una copia real autorizada.
-- Nexo, SII e ILDA conservan sus bases; no hay DDL remoto. Las pantallas sólo consultan catálogos locales. [Operación explícita del procesador](docs/migracion/SINCRONIZACIONES.md).
-
-## Verificar
+Abre https://localhost:7136. Cambia componentes en ClientApp y controladores/servicios en tdv2. Para ejecutar sin Vite:
 
 ```powershell
-# Raíz
-dotnet build tdv2.slnx
-dotnet run --project tests/TDV2.Verification --no-restore
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -TransitionOnly
-
-# ClientApp
-npm.cmd run types:check
-npm.cmd run test:forms
+npm.cmd --prefix ClientApp run build
+dotnet run --project tdv2 --launch-profile https-compiled
 ```
 
-Los verificadores .NET son ejecutables con salida no cero al fallar; no son suites descubiertas por `dotnet test`. La suite nativa crea un clúster nuevo dentro de `.artifacts`, lo valida antes de escribir y lo detiene al terminar. Microsoft/Nexo/SII/ILDA son sintéticos allí. Detener instancias que bloqueen las DLL antes de recompilar.
+F5 y el arranque web **no migran, sincronizan ni administran PostgreSQL**. El procesador continúa siendo explícito. Guía detallada: [arranque local](docs/ARRANQUE_LOCAL_WINDOWS.md).
 
-Con la aplicación detenida y la misma cuenta Windows: `scripts/Test-UserSecrets.ps1` verifica proveedores y conservación de ediciones sin conexiones remotas. `scripts/Test-Development.ps1` inicia el perfil https y Vite, comprueba HTTPS/React/CSRF y modifica temporalmente una pantalla para verificar HMR; restaura sus bytes y detiene sólo sus procesos. Deja PostgreSQL disponible para F5. `-Compiled` comprueba el perfil compilado. Las pruebas por CLI/Edge **no certifican haber operado el depurador de Visual Studio ni un login institucional real**.
+## Migraciones EF Core
 
-## Publicar, sin desplegar
+EF es el único mecanismo vigente; historial `public."__EFMigrationsHistory"`. No usar el antiguo `--migrate` ni aplicar SQL 001–004. Esos archivos se conservan exclusivamente como fixtures en `tests/TDV2.NativeVerification/LegacySchema`.
 
-Desde la raíz, con Node/npm disponibles durante la construcción:
+```powershell
+# Inspeccionar y comprobar que el modelo tenga su migración (sin conectar).
+dotnet ef migrations list --no-connect --project tdv2
+dotnet ef migrations has-pending-model-changes --project tdv2
+
+# Después de editar entidades y mapeos; revisar Up, Down y snapshot.
+dotnet ef migrations add NombreDelCambio --project tdv2 --output-dir Migrations
+dotnet ef migrations script --idempotent --project tdv2 --output .artifacts/tdv2-migrations.sql
+
+# Aplicar explícitamente ConnectionStrings:Tdv2 de User Secrets.
+dotnet ef database update --project tdv2 -- --environment Development
+```
+
+Equivalencias: `make:migration` → `dotnet ef migrations add`; `migrate` → `dotnet ef database update`; `migrate:status` → `dotnet ef migrations list`. Confirmar migración y snapshot junto con el cambio de modelo. Ejecutar siempre con **un solo operador**, sin actualizaciones concurrentes. La inicial exige una base vacía; las siguientes utilizan el historial EF existente. Revisar SQL y recuperación antes de aplicar sobre datos.
+
+Antes y después de aplicar al destino autorizado, este verificador consulta sólo metadatos y contadores, en una transacción de lectura. Sustituir `SERVIDOR_TDV2` y `USUARIO_TDV2` por los valores del destino autorizado en User Secrets; la documentación pública omite esos identificadores:
+
+```powershell
+dotnet run --project tests/TDV2.NativeVerification -- --database-check --environment Development --target-host=SERVIDOR_TDV2 --target-port=5432 --target-database=tdv2_db --target-user=USUARIO_TDV2
+```
+
+Comprueba conexión/destino, TLS, permisos, tablas, historial, contadores y pausa. Si encuentra objetos ajenos se conservan y el resultado no es válido. La primera migración también rechaza una base ocupada sin historial EF. No usar `EnsureCreated`, `Migrate` ni DDL en Program.cs.
+
+Migraciones iniciales: `InitialTdv2` crea las 14 tablas y `InitializePausedSynchronization` inserta únicamente la configuración pausada. Las pruebas verifican su equivalencia con el esquema anterior. Las dos unicidades nullable se expresan como índices UNIQUE; la relación de ejecución activa tiene un índice adicional.
+
+Ambas migraciones están aplicadas en el servidor autorizado; repetir el comando no cambió esquema, historial ni contadores. [Evidencia de la aplicación](docs/migracion/evidencia-ef-servidor-verificacion.json) y [repetición](docs/migracion/evidencia-ef-servidor-repeticion.json).
+
+La nueva `20261005135417_CollaborativeFormsAndSubmission` está pendiente de aplicación por el operador. Se verificó sobre datos sintéticos, sin convertir prioridades históricas ni enviar formatos institucionales. [Comandos de actualización y cambios de esquema](docs/migracion/COLABORACION_ENVIO.md#actualizar-desde-la-raíz).
+
+Referencia del framework: [migraciones EF Core](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/) y [proveedor Npgsql](https://www.npgsql.org/efcore/).
+
+El preparador `scripts/Local-Tdv2.ps1 Prepare` conserva marcador, DPAPI y validación de clúster, y usa ahora `dotnet ef database update` sólo en su base aislada. Si esa base conserva el esquema SQL anterior, se detiene para revisión: no lo elimina ni lo adopta automáticamente. `Prepare-Transition.ps1` conserva restauración/diagnóstico de una copia autorizada; su antigua conversión SQL `-Apply` está retirada. La conversión de datos Laravel requiere una adopción EF revisada sobre esa copia.
+
+## Probar
+
+```powershell
+dotnet build tdv2.slnx
+dotnet run --project tests/TDV2.Verification --no-build --no-restore
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -MigrationsOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run test:forms
+
+# Con F5 ya iniciado: páginas anónimas, HTTPS y WebSocket HMR.
+node ClientApp/tests/browser/visual-studio-startup.mjs
+```
+
+Ejecutar las suites .NET secuencialmente y con la depuración detenida para no bloquear DLL en Windows. Los verificadores .NET son ejecutables con salida no cero al fallar; no son suites descubiertas por `dotnet test`. La suite nativa crea un clúster desechable bajo .artifacts, verifica su identidad y lo detiene al terminar; las fuentes externas son sintéticas. Admite `-PostgresBin` y `-SkipBrowser`.
+
+Los antiguos Test-UserSecrets/Test-Development corresponden al entorno aislado anterior y no validan el destino remoto vigente. La evidencia distingue memoria, PostgreSQL real, navegador y servicios institucionales.
+
+## Publicar
+
+Detén la depuración y el servidor Vite antes de publicar: en Windows, `npm ci` necesita reemplazar los archivos de node_modules.
 
 ```powershell
 dotnet publish tdv2/tdv2.csproj -c Release -p:UseAppHost=false -o .artifacts/publish-maintenance
+node ClientApp/tests/browser/publish-flow.mjs
 ```
 
-El target de publicación ejecuta `npm ci --ignore-scripts` y `npm run build`, renueva únicamente los assets generados e incluye React en `wwwroot`. El paquete se ejecuta con `dotnet tdv2.dll`; **producción no requiere Node ni Vite**. La publicación la controla el csproj del backend para evitar copias duplicadas desde el proyecto JavaScript.
+El publish restaura/compila React e incluye wwwroot; producción ejecuta `dotnet tdv2.dll` sin Node/Vite. No incluye credenciales de desarrollo. Preparar configuración externa, llaves persistentes, HTTPS y aplicar las migraciones en una ventana explícita. [Publicación y operación Ubuntu](docs/PUBLICACION.md).
 
-[Configuración y preparación Ubuntu](docs/PUBLICACION.md) explica secretos externos, llaves persistentes, permisos, HTTPS y migraciones explícitas. No se desplegó. La aceptación institucional, la prueba dentro de Visual Studio, la operación Ubuntu y la comparación con una copia real de Laravel siguen pendientes. Consultar el estado para resultados y advertencias de dependencias de esta ejecución.
+Pendientes institucionales: Microsoft/Graph reales, contratos y revocaciones de Nexo, conectividad SII/ILDA, eventual conversión autorizada de datos históricos, aceptación visual y operación Ubuntu. La sincronización automática permanece desactivada.

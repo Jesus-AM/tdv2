@@ -1,5 +1,9 @@
-param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly)
+param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly,
+    [switch]$NexoDelegationOnly, [string]$NexoSource = 'C:\Users\Jesus Arenas\Herd\nexo',
+    [string]$Php = 'C:\Users\Jesus Arenas\.config\herd\bin\php84\php.exe')
 $ErrorActionPreference = 'Stop'
+if ($NexoDelegationOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly -or $TransitionOnly -or $MigrationsOnly)) { throw 'NexoDelegationOnly es una selección independiente.' }
+if ($MigrationsOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly -or $TransitionOnly)) { throw 'MigrationsOnly es una selección independiente.' }
 if ($TransitionOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly)) { throw 'TransitionOnly es una selección independiente.' }
 $oldBin=$env:TDV2_TEST_POSTGRES_BIN
 $env:TDV2_TEST_POSTGRES_BIN=$PostgresBin
@@ -42,7 +46,11 @@ try {
     $env:TDV2_TEST_SKIP_BROWSER = if ($SkipBrowser -or $SyncOnly) { 'true' } else { 'false' }
     Push-Location $workspace
     try {
-        $testArguments = if ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
+        if ($NexoDelegationOnly) {
+            & $Php -n (Join-Path $workspace 'tests/TDV2.NativeVerification/Export-NexoDelegation.php') $NexoSource (Join-Path $run 'nexo-generated.json')
+            if ($LASTEXITCODE -ne 0) { throw 'No se pudo generar el contrato desde el código fuente de Nexo.' }
+        }
+        $testArguments = if ($EditingOnly) { @('--', '--editing-only') } elseif ($NexoDelegationOnly) { @('--', '--nexo-delegation-only') } elseif ($MigrationsOnly) { @('--', '--migrations-only') } elseif ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
         & dotnet run --project tests/TDV2.NativeVerification -p:NuGetAudit=false @testArguments
         $result = $LASTEXITCODE
         if ($result -ne 0) { throw 'Native verification failed. See results in the isolated artifacts directory.' }

@@ -1,6 +1,8 @@
 # Ensayo de transición de datos Laravel → ASP.NET
 
-**tdv2_db permanece para Laravel. No se conectó, respaldó ni modificó en esta preparación.** No se leyó `.env` ni se reutilizó la conexión local de validación para apuntarla a Laravel. Falta una cuenta/conexión de lectura autorizada o un respaldo autorizado depositado en el destino. Las credenciales importadas de Nexo/SII/ILDA no conceden acceso a tdv2_db.
+**Documento del ensayo histórico de conversión, separado de la base vacía recreada por el usuario.** TDV2 usa ahora migraciones EF Core y `__EFMigrationsHistory`. `SERVIDOR_TDV2:5432/tdv2_db` es el destino ASP.NET autorizado; su inicialización no importa datos Laravel. No se obtuvo ni convirtió una copia institucional con datos.
+
+`Prepare-Transition.ps1` conserva la restauración en un destino nuevo del clúster verificado y el diagnóstico de sólo lectura. **La opción `-Apply` se retiró** al sustituir el ejecutor SQL por EF. El antiguo DDL se conserva exclusivamente en `tests/TDV2.NativeVerification/TransitionSchema`, para comprobar las reglas históricas sobre fixtures. Una copia real requiere verificar su esquema, diseñar su adopción EF y revisar el SQL generado antes de ejecutarlo. Las instrucciones de conversión de las secciones históricas no son un mecanismo vigente de migraciones.
 
 ## Qué está preparado y qué se comparó
 
@@ -49,13 +51,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-Transition.p
 
 El script valida marcador y `SHOW data_directory`, rechaza nombres que no comiencen por `tdv2_transition_`, exige un destino nuevo para restaurar y usa pg_restore con `--single-transaction --no-owner --no-privileges`. No conecta al origen. Revisa el contrato sin convertir; un fallo conserva la copia para diagnóstico privado, no borra ni reutiliza otra base. `tdv2_local_validation` y su User Secrets no se reemplazan.
 
-Sólo tras revisar el informe y la copia:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Prepare-Transition.ps1 -Database tdv2_transition_ensayo01 -Apply
-```
-
-La transacción engloba preflight, huellas temporales, conversión, sesiones/contextos, verificación de conservación y registro de hashes de scripts. Un fallo revierte también el DDL. Reaplicar se rechaza: usar una copia nueva para repetir el ensayo. No se liberan reservas vencidas o ajenas; una copia con trabajo pendiente/reservado requiere resolver primero el procedimiento de corte con su propietario.
+El diagnóstico actual no ejecuta DDL de conversión. El ensayo histórico sintético agrupa preflight, huellas temporales, conversión, sesiones/contextos y verificación de conservación en una transacción. Esos criterios deben conservarse al preparar la futura adopción EF sobre una copia autorizada. No liberar reservas vencidas o ajenas para forzar una conversión.
 
 Los informes quedan en `.artifacts/transition/<base>/verification.json`, sin cadenas, respuestas ni identidades. La copia todavía requiere una cuenta de aplicación con permisos sobre sus tablas/secuencias, y una conexión de prueba **separada** suministrada al proceso; no cambiar la conexión vigente de tdv2_local_validation. Nunca iniciar el sitio con la cuenta administradora que restaura/migra. No se inicia procesador ni se activan fuentes remotas.
 
@@ -71,4 +67,4 @@ Crea otro clúster nuevo y lo detiene al finalizar. Allí genera una base sinté
 
 Obtener la copia autorizada; comparar tipos, longitudes, índices, secuencias y relaciones reales con el contrato; revisar formatos heredados con su plantilla, actividad histórica y timestamps UTC; reconciliar concesiones y retiros pendientes con Nexo; ensayar nuevo login y aceptación funcional/visual sobre la copia. Las llaves de Data Protection necesitan administración y respaldo propios. El cifrado APP_KEY y cookies Laravel no se convierten.
 
-El plan de reversión del ensayo conserva el origen y el respaldo; la aplicación Laravel sigue apuntando a tdv2_db. No hay un down destructivo ni cambio automático de conexiones. El corte institucional y su reversión requieren un plan posterior, no forman parte de la publicación local.
+El plan histórico de reversión conserva el origen y la copia. No se modifica ninguna conexión automáticamente. El corte institucional, la procedencia de los datos y su reversión requieren un plan posterior; no forman parte de la inicialización EF de la base vacía.

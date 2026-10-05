@@ -1,0 +1,59 @@
+{
+  "browser": "154.0.4258.37",
+  "checks": [
+    {
+      "name": "portada y login Microsoft simulado crean sesión segura",
+      "passed": true
+    },
+    {
+      "name": "captura React persiste respuestas y avance en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "SignalR rechaza suscripción a UR ajena sin entregar contenido",
+      "passed": true
+    },
+    {
+      "name": "dos pestañas: SignalR muestra titular, bloquea la misma reserva y permite otro bloque",
+      "passed": true
+    },
+    {
+      "name": "prioridad accesible sin defecto, Contexto inicial y navegación superior móvil",
+      "passed": true
+    },
+    {
+      "name": "error PostgreSQL conserva borrador; reintento recupera guardado",
+      "passed": true
+    },
+    {
+      "name": "UR ajena deniega documento HTML y muestra pantalla conservada",
+      "passed": true
+    },
+    {
+      "name": "módulo no autorizado se aplica en React y servidor",
+      "passed": true
+    },
+    {
+      "name": "usuario sin aplicación publicada no conserva acceso de su sesión",
+      "passed": true
+    },
+    {
+      "name": "Nexo no disponible no concede permisos y permite recuperar sesión",
+      "passed": true
+    },
+    {
+      "name": "Enviar confirma respuestas guardadas y rechaza requisitos incompletos sin bloquear el borrador",
+      "passed": true
+    },
+    {
+      "name": "Enviar guarda la propuesta pendiente, confirma y bloquea captura e impresión estable",
+      "passed": true
+    },
+    {
+      "name": "logout desde React revoca sesión y redirige a Microsoft",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "externalFontsBlocked": true
+}

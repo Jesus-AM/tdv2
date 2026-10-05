@@ -13,3 +13,57 @@ tdv2/wwwroot/index.html
 **/*.csproj.user
 **/*.esproj.user
 ClientApp/dist/
+
+# Entorno del equipo, cachés y resultados reproducibles.
+**/.vs/
+**/.artifacts/
+**/TestResults/
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/.cache/
+*.suo
+*.user
+*.rsuser
+*.sln.docstates
+.DS_Store
+Thumbs.db
+
+# Registros y respaldos locales; los fixtures SQL y evidencias revisadas sí se versionan.
+**/logs/
+*.log
+*.binlog
+*.bak
+*.backup
+*.dump
+*.dmp
+*.sql.gz
+*.sql.zip
+*.sqlite
+*.sqlite3
+*.db
+
+# Instaladores y paquetes descargados (no los manifiestos ni lockfiles).
+*.exe
+*.msi
+*.msix
+*.nupkg
+*.snupkg
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# Nunca versionar User Secrets, credenciales DPAPI ni certificados privados.
+**/secrets.json
+**/secrets.*.json
+**/credentials.json
+**/credentials.*
+*.clixml
+*.pfx
+*.p12
+*.key
+*.pem
+*.publishsettings
+*.pubxml.user
+# appsettings.json, appsettings.Development.json y ClientApp/.vscode/launch.json se conservan.

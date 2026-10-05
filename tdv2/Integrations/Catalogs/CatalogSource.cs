@@ -6,7 +6,8 @@ using System.Text.Json.Nodes;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
-namespace Tdv2.Synchronization;
+using Tdv2.Synchronization;
+namespace Tdv2.Integrations.Catalogs;
 
 public interface ISourceConnections { DbConnection Create(string source); }
 public sealed class SourceConnections(IConfiguration configuration) : ISourceConnections

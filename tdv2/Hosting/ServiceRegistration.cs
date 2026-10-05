@@ -1,3 +1,6 @@
+using Tdv2.Integrations.Microsoft;
+using Tdv2.Integrations.Nexo;
+using Tdv2.Integrations.Catalogs;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -10,6 +13,9 @@ using Tdv2.Security;
 using Tdv2.Synchronization;
 
 using Tdv2.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 namespace Tdv2.Hosting;
 
 public static class ServiceRegistration
@@ -17,6 +23,13 @@ public static class ServiceRegistration
     public static void AddTdv2(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllersWithViews(options => options.Filters.Add<RequestModelValidation>());
+        builder.Services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .AddRequirements(new InstitutionalAccessRequirement()).Build());
+        builder.Services.AddScoped<IAuthorizationHandler, InstitutionalAccessHandler>();
+        builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, InstitutionalAccessResultHandler>();
+        builder.Services.AddDbContext<Tdv2DbContext>(options => Tdv2DatabaseOptions.Configure(options, builder.Configuration));
+        // Los errores públicos se traducen en ExceptionBoundaryMiddleware; EF no registra SQL ni excepciones del proveedor.
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.None);
         builder.Services.AddHttpContextAccessor();
         builder.Services.Configure<SyncOptions>(builder.Configuration.GetSection("Synchronization"));
         builder.Services.AddSingleton<ISourceConnections, SourceConnections>();
@@ -85,7 +98,11 @@ public static class ServiceRegistration
                 context.User.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
         });
-        builder.Services.AddScoped<IFormStore, PostgresFormStore>();
+        builder.Services.AddScoped<PostgresFormStore>();
+        builder.Services.AddScoped<IFormStore>(services => services.GetRequiredService<PostgresFormStore>());
+        builder.Services.AddScoped<FormEditingService>();
+        builder.Services.AddSingleton<FormNotifications>();
+        builder.Services.AddSignalR(options => { options.MaximumReceiveMessageSize = 4096; options.EnableDetailedErrors = false; });
         builder.Services.AddScoped<PostgresNexoProfiles>();
         builder.Services.AddScoped<INexoProfiles>(services => services.GetRequiredService<PostgresNexoProfiles>());
         builder.Services.AddScoped<RequestAccess>();

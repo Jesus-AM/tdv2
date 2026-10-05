@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using System.Text.Json.Nodes;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
@@ -17,10 +18,10 @@ public sealed class CollaboratorAccess(RequestAccess access, NexoOperations nexo
         {
             if (directory.AdministratorRoot(profile.User) is { } root) candidates.Add(root.Id, root);
         }
-        else if (profile.Has("responsable_ur"))
+        else if (profile.Responsible)
         {
             var units = access.Selection is { Kind: "preview" } selection ? new[] { directory.Get(selection.UnitId)! } : directory.Responsibilities(profile.User);
-            foreach (var unit in units.Where(u => u.Level == 2)) candidates.Add(unit.Id, unit);
+            foreach (var unit in units.Where(UnitDirectory.IsForm)) candidates.Add(unit.Id, unit);
         }
         if (candidates.Count == 0 && !profile.Has("administrador")) throw new DomainProblem(403, "No tienes autorización para administrar colaboradores.");
         if (access.Selection?.Kind == "preview" || candidates.Count == 0) return candidates;

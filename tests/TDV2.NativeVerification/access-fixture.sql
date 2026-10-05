@@ -26,9 +26,9 @@ END $$;
 CREATE FUNCTION fixture_delegate(actor text,root text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
  IF NOT EXISTS(SELECT 1 FROM fixture_delegation d JOIN fixture_users u ON u.email=d.email
-   JOIN fixture_units a ON a.id=d.id_ur WHERE d.email=actor AND d.id_ur=root AND d.nivel_ur=2
+   JOIN fixture_units a ON a.id=d.id_ur WHERE d.email=actor AND d.id_ur=root AND d.nivel_ur IN (2,3)
    AND u.num_empleado=d.num_empleado AND a.employee=d.num_empleado AND a.level=d.nivel_ur)
-   OR NOT EXISTS(SELECT 1 FROM fixture_roles r WHERE r.email=actor AND rol_clave IN ('responsable_ur','administrador'))
+   OR NOT EXISTS(SELECT 1 FROM fixture_roles r WHERE r.email=actor AND rol_clave IN ('responsable_ur','responsable_ur_supervisor','responsable_ur_institucional','administrador'))
  THEN RAISE EXCEPTION 'SYNTHETIC_NOT_DELEGATED'; END IF;
 END $$;
 CREATE FUNCTION nexo_a47_buscar_personas(actor text,ur text,q text,pagina integer)
@@ -50,6 +50,7 @@ BEGIN
  SELECT * INTO person FROM fixture_people p WHERE p.email=target_email AND p.id_ur=origin AND fixture_within(p.id_ur,ur);
  SELECT clave INTO role_key FROM fixture_delegation_roles WHERE rol_id=role_id;
  IF person.id IS NULL OR role_key IS NULL THEN RAISE EXCEPTION 'SYNTHETIC_INELIGIBLE'; END IF;
+ IF role_key <> 'colaborador_local' AND (role_key <> 'colaborador_dependencias' OR NOT EXISTS(SELECT 1 FROM fixture_units WHERE id=ur AND level=2)) THEN RAISE EXCEPTION 'SYNTHETIC_ROLE_SCOPE'; END IF;
  SELECT g.concesion_id INTO grant_id FROM fixture_grants g WHERE g.email=target_email AND g.rol_id=role_id AND g.id_ur_acceso=origin AND g.origen='aplicacion';
  creada := grant_id IS NULL;
  IF grant_id IS NULL THEN

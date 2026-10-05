@@ -7,7 +7,7 @@ Revisión previa de código Laravel, exclusivamente lectura. Fuente: controlador
 - public.nexo_delegacion: email, id_ur, num_empleado y nivel_ur. Intersectar con ramas candidatas locales y empleado textual. Administrador sólo presenta su rama de adscripción nivel 2; combinar roles no amplía esa rama. Nexo confirma que es encargado y puede delegar.
 - public.nexo_delegacion_roles: clave y rol_id. Sólo mapear colaborador_local y colaborador_dependencias publicados; no aceptar rol_id del navegador.
 - Funciones public.nexo_a{ID publicado y validado}_buscar_personas(actor, ur, q, pagina), conceder_acceso(actor, ur, email, rol_id, ur_origen), retirar_acceso(actor, ur, concesion_id). Parámetros enlazados, READ COMMITTED. Nunca escribir tablas internas Nexo. P0001 es rechazo público 422; otros errores son 503 sin texto SQL.
-- Configuración Laravel vigente: niveles_delegacion=[2], niveles_formato=[2,3], edicion_subordinadas=false. No habilitar delegación nivel 3 aunque exista una condición genérica en el controlador.
+- Contrato TDV2 vigente desde 2026-10-05: responsables de nivel 2 y 3 pueden delegar, previa coincidencia institucional y publicación de Nexo. Nivel 3 sólo asigna `colaborador_local` para su propio formato; nivel 2 conserva `colaborador_local` y `colaborador_dependencias`. El límite anterior a nivel 2 queda sustituido por instrucción expresa del usuario. [Configuración y actualización](RESPONSABLES_UR.md).
 - Local: formato del ancestro nivel 3 o 2. Dependencias/global: formatos 2/3 dentro de la UR nivel 2 que autoriza. No crear formato para nivel 4 o inferiores.
 - Alta central antes de vínculo local; volver a leer identidad publicada después de conceder. Sin vínculo local validado no hay permiso de edición, incluso si ya existe rol central. Retiro local confirmado antes de intentar retiro central; error conserva revocación y retiro_central_pendiente para reintento. No retirar una concesión con otro vínculo local activo.
 
@@ -21,7 +21,7 @@ Administrador y módulo Pruebas de acceso son requisitos locales; la capacidad c
 
 ## Vista y auditoría
 
-Vista de prueba sólo mode=escenario, roles responsable/local/dependencias/consulta/administrador y UR activa; duración 30 minutos. Prohibidos modo usuario/email, escrituras y búsqueda delegada. Roles y áreas simulados jamás constituyen una autorización de escritura.
+Vista de prueba sólo mode=escenario, roles responsable/responsable_institucional/local/dependencias/consulta/administrador y UR activa elegible (tipo distinto de 0); duración 30 minutos. Prohibidos modo usuario/email, escrituras y búsqueda delegada. Roles y áreas simulados jamás constituyen una autorización de escritura.
 
 Laravel RepresentationAudit sólo registra cambios durante representación. Este bloque amplía el registro a operaciones propias por petición del usuario, conservando actor real, representado, acción, recurso y resultado. Guardado/vínculo local y auditoría comparten transacción. Entre Nexo y TDV2 no existe transacción distribuida: documentar altas centrales sin vínculo local y retiros pendientes, sin inventar permisos para recuperarlos.
 
@@ -51,6 +51,6 @@ Se necesita un entorno institucional de pruebas separado, aplicación publicada 
 
 Casos de aceptación real: encargado nivel 2 con/sin delegación, roles asignables revocados, persona subordinada nueva en TDV2, ramas ajenas, concesión compartida, revocación originada desde Laravel, capacidad de representación independiente del rol administrador, consulta/escritura, vencimiento, finalizar y caída de publicación. Necesita también credenciales Microsoft de pruebas suministradas por un proveedor seguro y cuentas/UR sintéticas institucionales. No se solicitaron ni copiaron secretos de Herd.
 
-Preparar únicamente la base TDV2 aislada con 001_core.sql, 002_aspnet_sessions.sql y 003_access_contexts.sql mediante una cuenta de DDL separada. Ejecución: permisos sobre tablas locales de sesiones/contextos/colaboraciones/auditoría, además de formatos/identidad; sin DDL ni acceso directo a tablas internas de Nexo. La aplicación no aplica esquemas al arrancar.
+Preparar únicamente el destino TDV2 autorizado mediante `dotnet ef database update --project tdv2 -- --environment Development`, tras verificar destino y esquema. La primera migración requiere una base vacía; no se aplican los SQL históricos. Ejecución web: permisos sobre tablas locales de sesiones/contextos/colaboraciones/auditoría, además de formatos/identidad; sin DDL ni acceso directo a tablas internas de Nexo. La aplicación no aplica esquemas al arrancar.
 
 Evidencia y comandos vigentes: [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md). Ninguna prueba sintética certifica las funciones del Nexo institucional.

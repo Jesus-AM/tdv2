@@ -18,7 +18,6 @@ import {
     Typography,
     Chip,
     Alert,
-    Tooltip,
     useMediaQuery,
 } from '@mui/material';
 import {
@@ -26,13 +25,9 @@ import {
     Close,
     Logout,
     HomeOutlined,
-    AccountTreeOutlined,
     ExpandMore,
     ManageAccountsOutlined,
     ArrowBack,
-    AppsOutlined,
-    SettingsOutlined,
-    SyncOutlined,
 } from '@mui/icons-material';
 import { errorResponse } from '@/lib/http';
 
@@ -70,25 +65,9 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     const { auth, routes, representacion: rep, simulacion: preview } = props;
     const mobile = useMediaQuery('(max-width:900px)');
     const [open, setOpen] = useState(false),
-        [collapsed, setCollapsed] = useState(() => {
-            try {
-                return localStorage.getItem('tdv2.navigation.collapsed') === 'true';
-            } catch {
-                return false;
-            }
-        }),
         [photo, setPhoto] = useState<string | null>(null),
         [account, setAccount] = useState<HTMLElement | null>(null),
         [busy, setBusy] = useState(false);
-    const mini = !mobile && collapsed;
-    const width = mini ? 76 : 240;
-    useEffect(() => {
-        try {
-            localStorage.setItem('tdv2.navigation.collapsed', String(collapsed));
-        } catch {
-            // Navigation remains usable when browser storage is disabled.
-        }
-    }, [collapsed]);
     const last = useRef(Date.now());
     useEffect(() => {
         let active = true;
@@ -156,139 +135,17 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
         (/^\/(formatos|colaboradores|vista-prueba|actuar-como-usuario)(\/|$)/.test(currentPath)
             ? modules.find((module) => module.key === 'procesos_operativos')
             : undefined);
-    const moduleTitle =
-        activeModule?.key === 'procesos_operativos'
-            ? 'Procesos operativos'
-            : activeModule?.name || 'Transformación Digital';
     const navigation = (
-        <Box sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', background: '#fff' }}>
-            <Box sx={{ height: 76, flexShrink: 0, display: 'flex', alignItems: 'center', px: mini ? 2 : 3, gap: 1 }}>
-                <a
-                    href={routes.inicio}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        visit(routes.inicio);
-                    }}
-                    style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
-                >
-                    {mini ? (
-                        <AppsOutlined color="primary" fontSize="large" />
-                    ) : (
-                        <img
-                            src="/images/logos/TRANSFORMACION_DIGITAL_logo.svg"
-                            onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                            }}
-                            alt="Transformación Digital"
-                            style={{ width: 167, maxHeight: 48 }}
-                        />
-                    )}
-                </a>
-                {mobile && (
-                    <IconButton
-                        aria-label="Cerrar navegación"
-                        onClick={() => setOpen(false)}
-                        sx={{ ml: 'auto', mr: -2 }}
-                    >
-                        <Close />
-                    </IconButton>
-                )}
-            </Box>
-            <Box
-                component="nav"
-                id="application-navigation"
-                aria-label="Módulos"
-                sx={{ px: mini ? 1.2 : 2, pt: 2, flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}
-            >
-                {!mini && (
-                    <div className="eyebrow" style={{ paddingLeft: 12 }}>
-                        Módulos
-                    </div>
-                )}
-                {modules
-                    .filter((module) => !module.parent)
-                    .map((module) => (
-                        <Box key={module.key}>
-                            <Tooltip title={mini ? module.name : ''} placement="right">
-                                <Button
-                                    fullWidth
-                                    aria-label={module.name}
-                                    aria-current={module.key === activeModule?.key ? 'page' : undefined}
-                                    startIcon={
-                                        module.key === 'configuracion' ? (
-                                            <SettingsOutlined />
-                                        ) : module.key === 'procesos_operativos' ? (
-                                            <AccountTreeOutlined />
-                                        ) : (
-                                            <AppsOutlined />
-                                        )
-                                    }
-                                    onClick={() => visit(module.route)}
-                                    sx={{
-                                        justifyContent: mini ? 'center' : 'flex-start',
-                                        minWidth: 0,
-                                        px: mini ? 1 : 1.5,
-                                        py: 1.25,
-                                        mb: 1,
-                                        whiteSpace: 'normal',
-                                        textAlign: 'left',
-                                        background: module.key === activeModule?.key ? '#eaf1fc' : 'transparent',
-                                        color:
-                                            module.key === activeModule?.key || module.key === activeModule?.parent
-                                                ? 'primary.main'
-                                                : 'text.secondary',
-                                        '& .MuiButton-startIcon': { mr: mini ? 0 : 1.4, ml: 0 },
-                                    }}
-                                >
-                                    {!mini && module.name}
-                                </Button>
-                            </Tooltip>
-                            {!mini &&
-                                modules
-                                    .filter((child) => child.parent === module.key)
-                                    .map((child) => (
-                                        <Button
-                                            key={child.key}
-                                            fullWidth
-                                            aria-label={child.name}
-                                            aria-current={child.key === activeModule?.key ? 'page' : undefined}
-                                            startIcon={
-                                                child.key === 'sincronizaciones' ? (
-                                                    <SyncOutlined />
-                                                ) : (
-                                                    <ManageAccountsOutlined />
-                                                )
-                                            }
-                                            onClick={() => visit(child.route)}
-                                            sx={{
-                                                justifyContent: 'flex-start',
-                                                textAlign: 'left',
-                                                minWidth: 0,
-                                                pl: 3,
-                                                py: 1,
-                                                mb: 0.5,
-                                                fontSize: 12,
-                                                whiteSpace: 'normal',
-                                                color:
-                                                    child.key === activeModule?.key ? 'primary.main' : 'text.secondary',
-                                                background: child.key === activeModule?.key ? '#eaf1fc' : 'transparent',
-                                            }}
-                                        >
-                                            {child.name}
-                                        </Button>
-                                    ))}
-                        </Box>
-                    ))}
-            </Box>
-            {!mini && (
-                <Box sx={{ flexShrink: 0, p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                    <Typography variant="caption" color="text.secondary">
-                        Universidad Autónoma
-                        <br />
-                        de Ciudad Juárez
-                    </Typography>
-                </Box>
-            )}
+        <Box component="nav" id={mobile ? 'application-navigation' : 'desktop-navigation'} aria-label="Módulos"
+            sx={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: .5, p: mobile ? 2 : 0 }}>
+            {modules.map(module => <Button key={module.key}
+                aria-current={module.key === activeModule?.key ? 'page' : undefined}
+                onClick={() => visit(module.route)}
+                sx={{ justifyContent: mobile ? 'flex-start' : 'center', fontSize: 13,
+                    bgcolor: module.key === activeModule?.key ? '#eaf1fc' : 'transparent',
+                    color: module.key === activeModule?.key ? 'primary.main' : 'text.secondary' }}>
+                {module.name}
+            </Button>)}
         </Box>
     );
     return (
@@ -296,13 +153,11 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
             <a href="#main-content" className="skip-link">
                 Ir al contenido
             </a>
-            <Drawer
-                className="no-print"
-                variant={mobile ? 'temporary' : 'permanent'}
-                open={mobile ? open : true}
-                onClose={() => setOpen(false)}
-                sx={{ '& .MuiDrawer-paper': { width: mobile ? 240 : width, borderColor: 'divider' } }}
-            >
+            <Drawer className="no-print" anchor="top" open={mobile && open} onClose={() => setOpen(false)}>
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, pt: 1 }}>
+                    <Typography sx={{ flex: 1, fontWeight: 600 }}>Transformación Digital</Typography>
+                    <IconButton aria-label="Cerrar navegación" onClick={() => setOpen(false)}><Close /></IconButton>
+                </Box>
                 {navigation}
             </Drawer>
             <AppBar
@@ -311,42 +166,22 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 color="inherit"
                 elevation={0}
                 sx={{
-                    width: mobile ? '100%' : `calc(100% - ${width}px)`,
-                    ml: mobile ? 0 : `${width}px`,
+                    width: '100%',
+
                     background: '#fff',
                     borderBottom: '1px solid',
                     borderColor: 'divider',
                 }}
             >
                 <Toolbar sx={{ minHeight: '68px!important', gap: 1.5, px: { xs: 1.5, md: 3 } }}>
-                    <Tooltip title={mobile ? 'Abrir navegación' : mini ? 'Expandir navegación' : 'Contraer navegación'}>
-                        <IconButton
-                            aria-label={
-                                mobile ? 'Abrir navegación' : mini ? 'Expandir navegación' : 'Contraer navegación'
-                            }
-                            aria-controls="application-navigation"
-                            aria-expanded={mobile ? open : !mini}
-                            onClick={() => (mobile ? setOpen(true) : setCollapsed((value) => !value))}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                            sx={{ fontSize: 11, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }}
-                        >
-                            Transformación Digital
-                        </Typography>
-                        <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>
-                            {url.startsWith('/colaboradores')
-                                ? 'Colaboradores'
-                                : url.startsWith('/actuar')
-                                  ? 'Actuar como usuario'
-                                  : url.startsWith('/vista')
-                                    ? 'Vista de prueba'
-                                    : moduleTitle}
-                        </Typography>
+                    {mobile && <IconButton aria-label="Abrir navegación" aria-controls="application-navigation"
+                        aria-expanded={open} onClick={() => setOpen(true)}><MenuIcon /></IconButton>}
+                    <Box component="a" href={routes.inicio} onClick={event => { event.preventDefault(); visit(routes.inicio); }}
+                        sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                        <img src="/images/logos/TRANSFORMACION_DIGITAL_logo.svg" alt="Transformación Digital" style={{ width: mobile ? 125 : 150, maxHeight: 43 }} />
                     </Box>
+                    {!mobile && navigation}
+                    <Box sx={{ flex: 1 }} />
                     <Button
                         color="inherit"
                         aria-label="Abrir menú de usuario"
@@ -407,13 +242,17 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                             </ListItemIcon>
                             <ListItemText>Cerrar sesión</ListItemText>
                         </MenuItem>
+                        <MenuItem disabled={busy} onClick={() => {
+                            setBusy(true); router.clearHistory();
+                            router.post('/session/use-another-account', {}, { onFinish: () => setBusy(false) });
+                        }}><ListItemIcon><ManageAccountsOutlined /></ListItemIcon><ListItemText>Usar otra cuenta</ListItemText></MenuItem>
                     </Menu>
                 </Toolbar>
             </AppBar>
             <Box
                 className="app-content"
                 sx={{
-                    ml: mobile ? 0 : `${width}px`,
+
                     pt: '68px',
                     minHeight: '100dvh',
                     display: 'flex',

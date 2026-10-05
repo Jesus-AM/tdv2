@@ -30,11 +30,11 @@ internal static class TransitionTests
         string Read(string name) => File.ReadAllText(Path.Combine(root, name));
         string Body(string sql) => System.Text.RegularExpressions.Regex.Replace(sql, @"(?m)^\s*(BEGIN|COMMIT);\s*$", "");
         var preflight = Read("database/transition/preflight.sql");
-        var conversion = Read("database/transition/010_laravel_copy.sql");
-        var sessions = Body(Read("database/002_aspnet_sessions.sql")) + Body(Read("database/003_access_contexts.sql"));
+        var conversion = Read("tests/TDV2.NativeVerification/TransitionSchema/010_laravel_copy.sql");
+        var sessions = Body(Read("tests/TDV2.NativeVerification/LegacySchema/002_aspnet_sessions.sql")) + Body(Read("tests/TDV2.NativeVerification/LegacySchema/003_access_contexts.sql"));
         var start = "BEGIN; SET LOCAL tdv2.transition_target='tdv2_transition_test';";
-        var preserve = Read("database/transition/preserve.sql");
-        var verify = Read("database/transition/verify-preservation.sql");
+        var preserve = Read("tests/TDV2.NativeVerification/TransitionSchema/preserve.sql");
+        var verify = Read("tests/TDV2.NativeVerification/TransitionSchema/verify-preservation.sql");
         async Task<bool> Reject(string sql)
         {
             try { await Sql(target, sql); return false; }

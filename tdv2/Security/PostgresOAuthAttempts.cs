@@ -4,7 +4,7 @@ namespace Tdv2.Security;
 
 public sealed class PostgresOAuthAttempts(DatabaseConnections connections, ProtectedValues crypto)
 {
-    public async Task<(string State, string Browser, string Challenge)> Create(CancellationToken cancellation)
+    public async Task<(string State, string Browser, string Challenge, string Nonce)> Create(CancellationToken cancellation)
     {
         var state = ProtectedValues.Random(); var browser = ProtectedValues.Random(); var verifier = ProtectedValues.Random();
         await using var connection = await connections.Open("Tdv2", cancellation);
@@ -15,7 +15,7 @@ public sealed class PostgresOAuthAttempts(DatabaseConnections connections, Prote
         command.Parameters.AddWithValue(ProtectedValues.Hash(state)); command.Parameters.AddWithValue(ProtectedValues.Hash(browser));
         command.Parameters.AddWithValue(crypto.Protect("oauth-pkce", verifier));
         await command.ExecuteNonQueryAsync(cancellation);
-        return (state, browser, ProtectedValues.Challenge(verifier));
+        return (state, browser, ProtectedValues.Challenge(verifier), ProtectedValues.Hash("oidc:" + verifier));
     }
     public async Task<string?> Consume(string state, string browser, CancellationToken cancellation)
     {

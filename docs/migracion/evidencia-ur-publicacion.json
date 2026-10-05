@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-05T12:16:38.461Z",
+  "production": true,
+  "trustedHttps": true,
+  "compiledReact": true,
+  "viteRequired": false,
+  "secretsConfigured": false,
+  "checks": {
+    "login": 503,
+    "private": 401,
+    "csrf": 419
+  },
+  "pageErrors": [],
+  "operatingSystemTested": "Windows",
+  "ubuntuExecuted": false,
+  "deployed": false
+}

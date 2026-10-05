@@ -120,10 +120,22 @@ test('revocación conserva sólo contexto público para terminar representación
     assert.equal(calls.find(c => c.method === 'delete').headers.get('X-TDV2-Context'), 'context-public');
     assert.equal(published.props.contextoEdicion, 'own');
 });
-test('revocación elimina props privadas del documento', async () => {
+test('fallo temporal de recarga conserva página/borrador y comunica el error', async () => {
+    answer = config => ({ component: 'Sincronizaciones', url: config.url, props: props() });
+    await nextPage(() => router.visit('/configuracion/sincronizaciones'));
+    const previous = published;
+    answer = config => { throw new axios.AxiosError('offline', 'ERR_NETWORK', config); };
+    let message, success = false;
+    await new Promise(resolve => router.reload({ only: ['estado'], onError: e => { message = e.general; }, onSuccess: () => { success = true; }, onFinish: resolve }));
+    assert.equal(published, previous);
+    assert.match(message, /actualizar/);
+    assert.equal(success, false);
+});
+
+test('revocación elimina props privadas también al refrescar con callback de error', async () => {
     answer = config => { throw new axios.AxiosError('denied', 'ERR_BAD_REQUEST', config, null,
         { data: { message: 'Acceso revocado' }, status: 403, headers: {}, config }); };
-    await nextPage(() => router.visit('/inicio'));
+    await nextPage(() => router.reload({ only: ['estado'], onError: () => assert.fail('403 no conserva permisos antiguos') }));
     assert.equal(published.component, 'AccesoRestringido');
     assert.equal(published.props.access.status, 403);
     assert.equal(published.props.auth.user, null);

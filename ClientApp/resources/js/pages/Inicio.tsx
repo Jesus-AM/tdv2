@@ -4,16 +4,19 @@ import { PeopleOutlined, Refresh, DescriptionOutlined, DonutLarge, TaskAlt, Arro
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AreaDirectory from '@/Components/AreaDirectory';
 import PageHeading from '@/Components/PageHeading';
+import { displayUnitCode } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
 export default function Inicio({
     formatos,
     administrador,
+    consultaInstitucional = false,
     directorio = [],
     urAdministracion,
     puedeColaboradores,
 }: {
     formatos: FormRow[];
     administrador: boolean;
+    consultaInstitucional?: boolean;
     directorio?: Unit[];
     urAdministracion: Unit | null;
     puedeColaboradores: boolean;
@@ -106,7 +109,7 @@ export default function Inicio({
                             : 'Puedes consultar los formatos de todas las áreas. Para habilitar el llenado necesitas una adscripción vigente en Nexo.'}
                     </Typography>
                 )}
-                {administrador ? (
+                {consultaInstitucional || administrador ? (
                     <AreaDirectory
                         units={directorio}
                         forms={formatos}
@@ -126,7 +129,7 @@ export default function Inicio({
                             >
                                 <Box sx={{ flex: 1, minWidth: 220 }}>
                                     <Typography variant="caption" color="text.secondary">
-                                        {f.cve_ur}
+                                        {displayUnitCode(f.cve_ur)}
                                     </Typography>
                                     <Typography variant="h3">{f.desc_ur}</Typography>
                                     <Chip

@@ -3,10 +3,13 @@ export interface Unit {
     cve_ur: string;
     desc_ur: string;
     nivel_ur: number;
+    tipo_ur?: string | null;
     id_ur_pertenece: string | null;
+    id_ur_principal?: string | null;
     ejercicio: number;
 }
 export interface FormRow extends Unit {
+    propia?: boolean;
     editable: boolean;
     porcentaje: number;
     actualizado_en: string | null;

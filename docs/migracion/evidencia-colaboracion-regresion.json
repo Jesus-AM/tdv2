@@ -1,0 +1,572 @@
+{
+  "utc": "2026-10-05T15:47:18.1647959+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 112,
+  "failed": 0,
+  "results": [
+    {
+      "name": "OAuth: tenant institucional, state, PKCE y cookie segura",
+      "passed": true,
+      "milliseconds": 887
+    },
+    {
+      "name": "OAuth: tenant common es rechazado antes de crear intento",
+      "passed": true,
+      "milliseconds": 343
+    },
+    {
+      "name": "OAuth: state ajeno no consume intento leg\u00EDtimo",
+      "passed": true,
+      "milliseconds": 1422
+    },
+    {
+      "name": "OAuth: callback sin cookie de navegador no autentica",
+      "passed": true,
+      "milliseconds": 331
+    },
+    {
+      "name": "OAuth: caducidad y error del proveedor no canjean c\u00F3digo",
+      "passed": true,
+      "milliseconds": 634
+    },
+    {
+      "name": "OAuth: callback concurrente se consume una sola vez en PostgreSQL",
+      "passed": true,
+      "milliseconds": 736
+    },
+    {
+      "name": "Microsoft simulado \u002B Nexo SQL: identidad, tokens cifrados y sesi\u00F3n revocable",
+      "passed": true,
+      "milliseconds": 1601
+    },
+    {
+      "name": "Nexo: usuario sin aplicaci\u00F3n no crea identidad ni tokens locales",
+      "passed": true,
+      "milliseconds": 447
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n no publicada y conexi\u00F3n ambigua deniegan",
+      "passed": true,
+      "milliseconds": 572
+    },
+    {
+      "name": "Nexo: clave, nivel e ID publicados deben ser v\u00E1lidos",
+      "passed": true,
+      "milliseconds": 680
+    },
+    {
+      "name": "Nexo: cuenta no individual o sin roles denegada",
+      "passed": true,
+      "milliseconds": 481
+    },
+    {
+      "name": "Microsoft: correo externo y object ID inv\u00E1lido no autentican",
+      "passed": true,
+      "milliseconds": 699
+    },
+    {
+      "name": "Microsoft: mismo correo no permite sustituir object ID local",
+      "passed": true,
+      "milliseconds": 1542
+    },
+    {
+      "name": "Sesi\u00F3n activa no se sustituye por otro callback",
+      "passed": true,
+      "milliseconds": 691
+    },
+    {
+      "name": "Logout: CSRF, Nexo ca\u00EDdo, revocaci\u00F3n de cookie copiada y salida Microsoft",
+      "passed": true,
+      "milliseconds": 1197
+    },
+    {
+      "name": "CSRF previo a login no autoriza guardados de nueva identidad",
+      "passed": true,
+      "milliseconds": 2025
+    },
+    {
+      "name": "M\u00F3dulo y ruta se exigen en HTML y JSON aunque React env\u00EDe rol/UR",
+      "passed": true,
+      "milliseconds": 1550
+    },
+    {
+      "name": "Configuraci\u00F3n y jerarqu\u00EDa Nexo: padre, permiso y ruta exactos",
+      "passed": true,
+      "milliseconds": 1926
+    },
+    {
+      "name": "Nexo: permisos se revocan al siguiente request sin cierre de sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 1091
+    },
+    {
+      "name": "Responsable edita subordinadas de su rama y rechaza UR ajena",
+      "passed": true,
+      "milliseconds": 3758
+    },
+    {
+      "name": "Administrador con rol responsable conserva l\u00EDmite de edici\u00F3n de su rama",
+      "passed": true,
+      "milliseconds": 5141
+    },
+    {
+      "name": "Colaboraci\u00F3n exige v\u00EDnculo local y concesi\u00F3n SQL vigente; revocaci\u00F3n inmediata",
+      "passed": true,
+      "milliseconds": 5922
+    },
+    {
+      "name": "Nexo ca\u00EDdo deniega lecturas y guardados sin filtrar error SQL",
+      "passed": true,
+      "milliseconds": 3095
+    },
+    {
+      "name": "PostgreSQL: lectura no crea filas y guardado conserva respuestas can\u00F3nicas",
+      "passed": true,
+      "milliseconds": 3852
+    },
+    {
+      "name": "PostgreSQL: dos primeros guardados concurrentes crean una fila y un 409",
+      "passed": true,
+      "milliseconds": 3595
+    },
+    {
+      "name": "PostgreSQL: dos editores con misma versi\u00F3n no sobrescriben respuestas",
+      "passed": true,
+      "milliseconds": 5355
+    },
+    {
+      "name": "PostgreSQL: error transaccional conserva versi\u00F3n/respuesta y permite reintento",
+      "passed": true,
+      "milliseconds": 7298
+    },
+    {
+      "name": "PostgreSQL: payload inv\u00E1lido o contexto obsoleto no modifica filas",
+      "passed": true,
+      "milliseconds": 4379
+    },
+    {
+      "name": "Sesi\u00F3n PostgreSQL: expiraci\u00F3n y cambio de identidad local invalidan acceso",
+      "passed": true,
+      "milliseconds": 1507
+    },
+    {
+      "name": "Graph: refresco concurrente una vez, rotaci\u00F3n cifrada y foto fallida sin logout",
+      "passed": true,
+      "milliseconds": 3117
+    },
+    {
+      "name": "Graph: sin rotaci\u00F3n conserva refresh anterior; error no cambia token",
+      "passed": true,
+      "milliseconds": 2169
+    },
+    {
+      "name": "Nivel 3: alta local en misma UR y subordinada, rechazo ajeno/global, retiro efectivo",
+      "passed": true,
+      "milliseconds": 6292
+    },
+    {
+      "name": "Nuevo rol solo: consulta institucional, responsabilidad textual, edici\u00F3n/delegaci\u00F3n restringidas",
+      "passed": true,
+      "milliseconds": 4972
+    },
+    {
+      "name": "Tipo 0: nodos internos preservan rama, formatos/historia/contadores no se ofrecen",
+      "passed": true,
+      "milliseconds": 3421
+    },
+    {
+      "name": "Nuevo rol en representaci\u00F3n y vista de prueba respeta identidad efectiva y s\u00F3lo lectura",
+      "passed": true,
+      "milliseconds": 4492
+    },
+    {
+      "name": "Claves 06000/6000: ILDA usa clave original; Nexo usa ID sin mezclar asociaciones",
+      "passed": true,
+      "milliseconds": 1691
+    },
+    {
+      "name": "Delegaci\u00F3n SQL: b\u00FAsqueda, vac\u00EDo y alta local usa formato nivel 3 e identidad publicada",
+      "passed": true,
+      "milliseconds": 2232
+    },
+    {
+      "name": "Delegaci\u00F3n: colaborador local subordinado edita s\u00F3lo formato compartido, nunca nivel 4",
+      "passed": true,
+      "milliseconds": 4077
+    },
+    {
+      "name": "Delegaci\u00F3n: \u00E1reas dependientes ampl\u00EDan s\u00F3lo dentro de rama otorgante",
+      "passed": true,
+      "milliseconds": 3554
+    },
+    {
+      "name": "Delegaci\u00F3n: administrador sin publicaci\u00F3n o encargado coincidente no ejecuta funciones",
+      "passed": true,
+      "milliseconds": 1540
+    },
+    {
+      "name": "Delegaci\u00F3n: roles no asignables, rama ajena y nivel 3 se rechazan directamente",
+      "passed": true,
+      "milliseconds": 1854
+    },
+    {
+      "name": "Delegaci\u00F3n: administrador combinado no delega en otra responsabilidad",
+      "passed": true,
+      "milliseconds": 1083
+    },
+    {
+      "name": "Delegaci\u00F3n: Nexo rechaza persona/origen forjado y distingue error SQL de vac\u00EDo",
+      "passed": true,
+      "milliseconds": 1338
+    },
+    {
+      "name": "Delegaci\u00F3n: identidad no publicada despu\u00E9s del alta no crea v\u00EDnculo; reintento converge",
+      "passed": true,
+      "milliseconds": 1635
+    },
+    {
+      "name": "Delegaci\u00F3n: dos altas concurrentes conservan un v\u00EDnculo y concesi\u00F3n",
+      "passed": true,
+      "milliseconds": 1007
+    },
+    {
+      "name": "Delegaci\u00F3n: retiro local persiste ante falla central y reintento confirma auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1737
+    },
+    {
+      "name": "Auditor\u00EDa: falla revierte alta local y revocaci\u00F3n; nunca escribe sin bit\u00E1cora",
+      "passed": true,
+      "milliseconds": 1861
+    },
+    {
+      "name": "Representaci\u00F3n: administrador sin capacidad no busca ni inicia; sin escritura no la obtiene",
+      "passed": true,
+      "milliseconds": 1803
+    },
+    {
+      "name": "Representaci\u00F3n: b\u00FAsqueda autorizada vac\u00EDa/permitida y objetivo fuera de alcance",
+      "passed": true,
+      "milliseconds": 1441
+    },
+    {
+      "name": "Representaci\u00F3n: identidad real intacta, token s\u00F3lo cifrado y permisos efectivos",
+      "passed": true,
+      "milliseconds": 1332
+    },
+    {
+      "name": "Representaci\u00F3n: escritura y auditor\u00EDa at\u00F3micas respetan alcance y actor real",
+      "passed": true,
+      "milliseconds": 5382
+    },
+    {
+      "name": "Representaci\u00F3n: s\u00F3lo lectura rechaza endpoint directo y conserva permiso te\u00F3rico visible",
+      "passed": true,
+      "milliseconds": 2178
+    },
+    {
+      "name": "Representaci\u00F3n: pesta\u00F1a obsoleta y contextos anidados no ejecutan acciones centrales",
+      "passed": true,
+      "milliseconds": 1709
+    },
+    {
+      "name": "Representaci\u00F3n: dos inicios concurrentes no sustituyen el contexto ganador",
+      "passed": true,
+      "milliseconds": 1095
+    },
+    {
+      "name": "Auditor\u00EDa: rechazo CSRF identifica representaci\u00F3n y no modifica datos",
+      "passed": true,
+      "milliseconds": 2107
+    },
+    {
+      "name": "Logout representado: revocaci\u00F3n y auditor\u00EDa at\u00F3micas incluso con Nexo ca\u00EDdo",
+      "passed": true,
+      "milliseconds": 1688
+    },
+    {
+      "name": "Representaci\u00F3n: delegaci\u00F3n utiliza transporte JSON con actor real y token servidor",
+      "passed": true,
+      "milliseconds": 2384
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n/vencimiento central bloquean sin restaurar administrador",
+      "passed": true,
+      "milliseconds": 1509
+    },
+    {
+      "name": "Representaci\u00F3n: vencimiento local se verifica antes de llamar Nexo",
+      "passed": true,
+      "milliseconds": 1336
+    },
+    {
+      "name": "Representaci\u00F3n: salida con Nexo ca\u00EDdo restaura identidad propia expl\u00EDcitamente y audita",
+      "passed": true,
+      "milliseconds": 2285
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n de m\u00F3dulo actor o persona impide continuidad",
+      "passed": true,
+      "milliseconds": 1738
+    },
+    {
+      "name": "Auditor\u00EDa: falla al iniciar representaci\u00F3n revierte contexto y compensa Nexo",
+      "passed": true,
+      "milliseconds": 1410
+    },
+    {
+      "name": "Vista de prueba: s\u00F3lo escenario y \u00E1reas v\u00E1lidas, sin modo usuario",
+      "passed": true,
+      "milliseconds": 1821
+    },
+    {
+      "name": "Vista de prueba: mutaciones/b\u00FAsquedas/configuraci\u00F3n bloqueadas y salida auditada",
+      "passed": true,
+      "milliseconds": 3171
+    },
+    {
+      "name": "Vista de prueba: caducidad/revocaci\u00F3n no restauran escritura y salida no depende de Nexo",
+      "passed": true,
+      "milliseconds": 1624
+    },
+    {
+      "name": "Sync/reglas: horario Ju\u00E1rez, cambio estacional y zona inv\u00E1lida",
+      "passed": true,
+      "milliseconds": 285
+    },
+    {
+      "name": "Sync/conector simulado: SELECT fijos, READ COMMITTED y valores SII \u00EDntegros",
+      "passed": true,
+      "milliseconds": 301
+    },
+    {
+      "name": "Sync/conector simulado: ILDA completa conserva columnas, nulos, espacios y binarios reversibles",
+      "passed": true,
+      "milliseconds": 663
+    },
+    {
+      "name": "Sync/conector simulado: lectura interrumpida o incompleta jam\u00E1s publica una fracci\u00F3n",
+      "passed": true,
+      "milliseconds": 989
+    },
+    {
+      "name": "Sync/conector simulado: l\u00EDmites de filas y bytes rechazan sin truncar cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 623
+    },
+    {
+      "name": "Sync/SII: cambios y bajas l\u00F3gicas preservan formato, relaci\u00F3n y respuestas",
+      "passed": true,
+      "milliseconds": 2164
+    },
+    {
+      "name": "Sync/SII: publicaci\u00F3n concurrente exige revalidar alcance antes de guardar",
+      "passed": true,
+      "milliseconds": 1579
+    },
+    {
+      "name": "Sync/SII: responsable por empleado Nexo se revalida tras publicar",
+      "passed": true,
+      "milliseconds": 2208
+    },
+    {
+      "name": "Sync/SII: vac\u00EDo, duplicado, ciclo, ejercicio mixto y reducci\u00F3n conservan copia",
+      "passed": true,
+      "milliseconds": 1511
+    },
+    {
+      "name": "Sync/ILDA: duplicados, ID inv\u00E1lido y reducci\u00F3n conservan r\u00E9plica previa",
+      "passed": true,
+      "milliseconds": 1187
+    },
+    {
+      "name": "Sync/ILDA: r\u00E9plica supera 200 filas y formulario usa igualdad exacta de clave",
+      "passed": true,
+      "milliseconds": 921
+    },
+    {
+      "name": "Sync/ILDA: abrir formato s\u00F3lo consulta copia local sin tocar fuentes",
+      "passed": true,
+      "milliseconds": 1304
+    },
+    {
+      "name": "Sync/ILDA: cambios y desaparici\u00F3n de origen no sustituyen respuestas guardadas",
+      "passed": true,
+      "milliseconds": 3118
+    },
+    {
+      "name": "Sync/comprobaci\u00F3n: lee y valida sin publicaciones, cola ni auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 369
+    },
+    {
+      "name": "Sync/HTTP: administrador real, m\u00F3dulos padre/ruta y CSRF obligatorios",
+      "passed": true,
+      "milliseconds": 1760
+    },
+    {
+      "name": "Sync/HTTP: representaci\u00F3n y vista bloquean GET y endpoints directos",
+      "passed": true,
+      "milliseconds": 2929
+    },
+    {
+      "name": "Sync/programaci\u00F3n: versi\u00F3n concurrente, validaciones y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1476
+    },
+    {
+      "name": "Sync/cola: 202 persistente, sin descarga HTTP y exclusi\u00F3n de solicitudes",
+      "passed": true,
+      "milliseconds": 1438
+    },
+    {
+      "name": "Sync/autom\u00E1tica: incluye SII, ILDA opcional, intervalos vencidos no se acumulan",
+      "passed": true,
+      "milliseconds": 763
+    },
+    {
+      "name": "Sync/ILDA deshabilitada: valida manual/activa y conserva SII y copia local",
+      "passed": true,
+      "milliseconds": 1680
+    },
+    {
+      "name": "Sync/parcial: conserva \u00E9xito por fuente y nunca publica secretos del error",
+      "passed": true,
+      "milliseconds": 773
+    },
+    {
+      "name": "Sync/rollback: error SQL revierte toda publicaci\u00F3n y admite reintento",
+      "passed": true,
+      "milliseconds": 1069
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al publicar revierte cat\u00E1logo, metadatos y resultado",
+      "passed": true,
+      "milliseconds": 646
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al configurar o encolar revierte versi\u00F3n y cola",
+      "passed": true,
+      "milliseconds": 1241
+    },
+    {
+      "name": "Sync/comandos: comprobar no escribe y procesar devuelve fallo parcial",
+      "passed": true,
+      "milliseconds": 650
+    },
+    {
+      "name": "Sync/exclusi\u00F3n: dos trabajadores y reserva persistente permiten una descarga",
+      "passed": true,
+      "milliseconds": 345
+    },
+    {
+      "name": "Sync/procesador: latido reciente no renueva ni recupera una reserva vencida",
+      "passed": true,
+      "milliseconds": 464
+    },
+    {
+      "name": "Sync/reserva: trabajador obsoleto no publica ni libera una ejecuci\u00F3n nueva",
+      "passed": true,
+      "milliseconds": 785
+    },
+    {
+      "name": "Sync/reserva: caducidad durante transacci\u00F3n revierte publicaci\u00F3n antes del commit",
+      "passed": true,
+      "milliseconds": 1853
+    },
+    {
+      "name": "Sync/interrupci\u00F3n: proceso terminado conserva parcial y otro proceso recupera reserva",
+      "passed": true,
+      "milliseconds": 1642
+    },
+    {
+      "name": "Edici\u00F3n/SignalR permite el origen p\u00FAblico tras proxy y rechaza otro origen",
+      "passed": true,
+      "milliseconds": 853
+    },
+    {
+      "name": "Edici\u00F3n/rol supervisor funciona solo, rama editable y consulta ajena sin m\u00F3dulos administrativos",
+      "passed": true,
+      "milliseconds": 2493
+    },
+    {
+      "name": "Edici\u00F3n/dos sesiones y dos pesta\u00F1as del mismo usuario compiten por un \u00FAnico bloque",
+      "passed": true,
+      "milliseconds": 1192
+    },
+    {
+      "name": "Edici\u00F3n/bloques distintos guardan concurrentemente sin sobrescribir JSON",
+      "passed": true,
+      "milliseconds": 2005
+    },
+    {
+      "name": "Edici\u00F3n/vencimiento, renovaci\u00F3n, reasignaci\u00F3n y guardado atrasado cercado por testigo",
+      "passed": true,
+      "milliseconds": 2296
+    },
+    {
+      "name": "Edici\u00F3n/lectura pasiva no renueva ni permite liberar una reserva ajena",
+      "passed": true,
+      "milliseconds": 1631
+    },
+    {
+      "name": "Edici\u00F3n/reintento id\u00E9ntico confirma una vez; operaci\u00F3n reutilizada y versi\u00F3n vieja rechazadas",
+      "passed": true,
+      "milliseconds": 1959
+    },
+    {
+      "name": "Edici\u00F3n/revocaci\u00F3n y contexto obsoleto rechazan reserva y escritura",
+      "passed": true,
+      "milliseconds": 921
+    },
+    {
+      "name": "Edici\u00F3n/operaci\u00F3n y auditor\u00EDa son at\u00F3micas y el fallo no pierde propuesta ni versi\u00F3n",
+      "passed": true,
+      "milliseconds": 1320
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo incompleto y reservas ajenas se rechazan; doble env\u00EDo es idempotente",
+      "passed": true,
+      "milliseconds": 3342
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo simult\u00E1neo con adquisici\u00F3n de reserva conserva una sola decisi\u00F3n",
+      "passed": true,
+      "milliseconds": 1505
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo y guardado simult\u00E1neos de la misma sesi\u00F3n no cruzan el cierre",
+      "passed": true,
+      "milliseconds": 1689
+    },
+    {
+      "name": "Edici\u00F3n/reserva que vence durante el commit revierte respuestas, versi\u00F3n y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1662
+    },
+    {
+      "name": "Edici\u00F3n/otra persona colaboradora edita dentro de su formato pero no puede enviarlo",
+      "passed": true,
+      "milliseconds": 2157
+    },
+    {
+      "name": "Edici\u00F3n/enviado conserva ILDA, unidad y respuestas aunque cambien los cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 1939
+    },
+    {
+      "name": "Edici\u00F3n/prioridad no se selecciona por defecto; 5 repetible y valores hist\u00F3ricos conservados",
+      "passed": true,
+      "milliseconds": 3100
+    },
+    {
+      "name": "Edici\u00F3n/OIDC rechaza firma y nonce ajenos, no fuerza selector habitual y usa logout_hint opaco",
+      "passed": true,
+      "milliseconds": 1899
+    }
+  ]
+}

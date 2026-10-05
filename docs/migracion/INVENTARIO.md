@@ -1,5 +1,20 @@
 # Inventario funcional y contratos
 
+## Actualización ASP.NET vigente — 2026-10-05
+
+- **Implementado:** `responsable_ur_supervisor` funciona sin rol adicional, edita su ámbito responsable y consulta las demás áreas. El alias `responsable_ur_institucional` preserva la transición; no eleva el genérico `supervisor`. Nivel 2 edita su rama; nivel 3 conserva su formato y delega sólo colaboración local en su rama. `tipo_ur=0` queda como nodo auxiliar sin ser área elegible. Presentación/búsqueda 06000/6000 conserva identificadores de SII/Nexo/ILDA.
+- **Captura y envío:** `FormEditingService`, `FormBlocks` y `FormHub` centralizan reservas PostgreSQL de 45 segundos, versiones por bloque, UUID de operación, auditoría atómica y consulta SignalR autorizada. PATCH cambia únicamente bloques reservados; PUT completo retirado con 428. Enviar exige responsable, llenado y ausencia de reservas ajenas; congela respuestas/unidad/ILDA y bloquea cambios incluso mediante trigger. Sin reapertura.
+- **EF:** 17 entidades, seis relaciones locales, tres migraciones. `CollaborativeFormsAndSubmission` agrega seis columnas y tres tablas; conserva respuestas/relaciones y completa ejercicio. Se ejecuta explícitamente; no se aplicó a la base institucional en esta entrega.
+- **React:** siete secciones; Contexto conserva los campos de Encabezado. Última sección confirmada por usuario/formato, autoguardado de un segundo, estado compacto, recuperación explícita, prioridad 1–5 sin defecto, navegación superior y menú móvil. Mantiene tema/tipografías, foco y formularios montados, impresión y movimiento reducido.
+- **Microsoft:** ID token validado (firma, emisor, audiencia, caducidad, nonce, oid/tid), login_hint de cuenta real, logout_hint sólo del claim opcional, selección explícita mediante POST protegido. Cuenta representada nunca alimenta los hints.
+- **Implementado en Nexo:** cuatro archivos de fuente con restricciones exclusivas de TDV2; esta entrega añade filtros de roles delegantes/asignables a dos de ellos. Representación hereda las comprobaciones. No se publicó configuración en bases institucionales.
+- **Probado:** dominio/transporte, frontend, SQL real generado por Nexo en PostgreSQL aislado y regresión HTTP/React sintética. Los comandos y resultados finales se mantienen en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md).
+- **Pendiente institucional:** aplicar EF, configurar roles/módulos/delegación/representación y publicar Nexo, habilitar claim Entra y validar con identidades reales. Guías: [captura y envío](COLABORACION_ENVIO.md), [Nexo y Entra](CONFIGURACION_NEXO_ENTRA.md). No hay despliegue Ubuntu ni sincronización automática habilitada.
+
+Rutas nuevas vigentes: `GET /formatos/{ur}/estado`, `POST /formatos/{ur}/reservas`, `/reservas/actividad`, `/reservas/liberar`, `PATCH /formatos/{ur}/bloques`, `POST /formatos/{ur}/enviar`, SignalR `/form-events` y `POST /session/use-another-account`. Las mutaciones exigen CSRF/contexto; reservas/guardado/envío comparten autorización y transacciones breves. Tablas nuevas: `formato_bloques`, `formato_operaciones`, `formato_posiciones`. Los bloques siguientes documentan la fuente y entregas anteriores, no sustituyen este contrato vigente.
+
+## Inventario histórico de la fuente Laravel
+
 Fuente: código raíz de `C:\Users\Jesus Arenas\Herd\tdv2`, inspeccionado el 2026-09-30. `fuente-manifiesto.json` fija los hashes; `EVIDENCIA_FUENTE.md` enumera rutas, columnas/índices declarados y todos los nombres de pruebas encontrados. No se consultó el esquema ni los datos desplegados.
 
 Conteo estático: **27 rutas HTTP propias, 27 tablas creadas declarativamente, 119 métodos de prueba PHP y 12 pruebas frontend**. Los data providers pueden producir más ejecuciones que métodos. Manifestación de 154 archivos de código; no incluye dependencias instaladas, secretos ni bases.
@@ -104,11 +119,25 @@ Priorizar denegación por defecto, revocación al siguiente request, aislamiento
 
 ## Referencias técnicas del destino
 
+### Estructura ASP.NET y EF Core vigente — 2026-10-02 UTC
+
+El backend conserva Controllers, Services, Domain, Security, Synchronization, Web y Hosting. Domain/Entities representa las 14 tablas utilizadas por ASP.NET; Infrastructure/Tdv2DbContext y sus configuraciones usan EF Core 10/Npgsql. Integrations separa Microsoft, Nexo y la lectura SII/ILDA de la persistencia local. Las tablas de infraestructura Laravel y sus catálogos de permisos históricos no se convierten en autoridad local.
+
+Migrations contiene `InitialTdv2`, `InitializePausedSynchronization` y el snapshot estándar. `dotnet ef database update` es el único ejecutor vigente. Ambas se aplicaron al destino autorizado tras confirmar que seguía vacío; la repetición no cambió esquema, historial ni contadores y coincide con la huella del ensayo desechable. Los SQL 001–004 y el DDL de transición anterior se movieron a fixtures de pruebas; Program.cs no ejecuta DDL y el preparador aislado usa EF conservando sus protecciones. El bloque de inicialización SQL de abajo es **evidencia histórica**, sustituida por esta adaptación y por las evidencias EF del estado de migración.
+
+EF se utiliza para lecturas de áreas/formatos/colaboraciones/identidad/inventario y guardado de formatos con token de versión. Se conservan SQL y transacciones especializadas para identidad inicial, tokens, contextos, colaboración central, reservas, publicaciones y auditoría. La política ASP.NET valida acceso antes de servir tanto HTML como JSON; se mantienen los códigos 400/403/409/419/422/503 y contratos React. La regresión actual incluye 25 comprobaciones de migraciones reales, 90 HTTP/PostgreSQL y 31 recorridos React. Evidencia y pendientes: [ESTADO_MIGRACION](../../ESTADO_MIGRACION.md).
+
+### Inicialización SQL anterior (2026-10-01, histórica y reemplazada por EF)
+
+En una ejecución anterior se aplicaron SQL 001–004 y se registraron en `tdv2_schema_migrations`. El usuario volvió a recrear el destino antes de solicitar EF; el preflight de esta adaptación confirmó que ese historial y las tablas anteriores ya no existían. Se conservan las evidencias anteriores sin reutilizar su migrador ni adoptar tablas silenciosamente. Los comandos actuales están en [README](../../README.md#migraciones-ef-core).
+
 ### Organización y ensayo de mantenimiento (2026-10-01)
 
 Las rutas inventariadas conservan su contrato y ahora se implementan en `tdv2/Controllers`, con casos de uso en `Services`, SQL en `Infrastructure`/`Synchronization` y límites HTTP en `Web`. `Program.cs` sólo compone el arranque. React se muestra en `ClientApp.esproj`; los perfiles de solución usan Vite por el mismo origen HTTPS y la publicación compila `wwwroot` desde el backend. No se portó nuevamente la interfaz.
 
 La configuración vigente es appsettings/opciones + User Secrets de desarrollo; el importador DPAPI institucional fue retirado después de comprobar el reemplazo. La [guía local](../ARRANQUE_LOCAL_WINDOWS.md) documenta claves y equivalencias Laravel. DPAPI permanece para la administración del clúster Windows.
+
+Corrección posterior de F5 (2026-10-01): `.vscode/launch.json` de ClientApp define Edge, `.slnLaunch` fija ambos destinos y Vite ofrece una redirección de arranque que espera a Kestrel antes de abrir 7136. JSPS comprueba el puerto 5173 durante Implementar. El error original y el arranque en frío se capturaron del IDE mediante EnvDTE; React/HTTPS/HMR se comprobaron en Edge. Implementado, probado y pendientes se separan en el bloque inicial del estado de migración. No cambian los contratos institucionales ni el inventario de pantallas.
 
 Se revisaron de nuevo las tres migraciones Laravel recientes para preparar [la conversión de una copia](TRANSICION_DATOS.md). El ensayo distingue bootstrap de base vacía y DDL aditivo sobre copia no vacía, conserva datos y exige claves/relaciones válidas. Respaldo/restauración y conservación se ensayaron sólo con datos sintéticos; el esquema y los datos desplegados continúan sin consultar. Resultados actuales separados en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md).
 

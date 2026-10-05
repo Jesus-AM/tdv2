@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Alert, CssBaseline, LinearProgress, ThemeProvider } from '@mui/material';
+import { Alert, CssBaseline, LinearProgress, ThemeProvider, useMediaQuery, createTheme } from '@mui/material';
 import { theme } from '@/theme';
 import type { ComponentType } from 'react';
 import { PageContext, startNavigation } from '@/lib/navigation';
@@ -19,6 +19,15 @@ function App() {
         <Suspense fallback={<LinearProgress />}><Component {...page.props} /></Suspense>
     </PageContext.Provider>;
 }
-createRoot(document.getElementById('app')!).render(
-    <ThemeProvider theme={theme}><CssBaseline /><App /></ThemeProvider>,
-);
+function ThemedApp() {
+    const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
+    const activeTheme = useMemo(() => reduced ? createTheme(theme, {
+        transitions: { duration: Object.fromEntries(Object.keys(theme.transitions.duration).map((key) => [key, 0])) },
+        components: {
+            MuiCollapse: { defaultProps: { timeout: 0 } }, MuiMenu: { defaultProps: { transitionDuration: 0 } },
+            MuiDialog: { defaultProps: { transitionDuration: 0 } }, MuiDrawer: { defaultProps: { transitionDuration: 0 } },
+        },
+    }) : theme, [reduced]);
+    return <ThemeProvider theme={activeTheme}><CssBaseline /><App /></ThemeProvider>;
+}
+createRoot(document.getElementById('app')!).render(<ThemedApp />);

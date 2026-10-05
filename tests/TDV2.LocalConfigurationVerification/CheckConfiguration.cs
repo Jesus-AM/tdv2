@@ -1,3 +1,5 @@
+using Tdv2.Integrations.Microsoft;
+using Tdv2.Integrations.Catalogs;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;

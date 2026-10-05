@@ -23,6 +23,7 @@ import {
     Tooltip,
     Radio,
     RadioGroup,
+    Dialog, DialogTitle, DialogContent, DialogActions,
 } from '@mui/material';
 import {
     Add,
@@ -36,9 +37,12 @@ import {
 } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
-import { FormEditor } from '@/lib/form-editor';
-import type { EditorState } from '@/lib/form-editor';
-import type { FormContent, Unit, SaveResponse, ProcessRow } from '@/types/tdv2';
+import FormProposalComparison from '@/Components/FormProposalComparison';
+import { displayUnitCode } from '@/lib/area-directory';
+import { BlockEditor } from '@/lib/block-editor';
+import type { EditorState, LiveForm } from '@/lib/block-editor';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import type { FormContent, Unit, ProcessRow } from '@/types/tdv2';
 type Definition = {
     criterios: string[];
     medios: string[];
@@ -55,6 +59,8 @@ type Props = {
     actualizadoEn: string | null;
     actualizadoPor: string | null;
     guardarUrl: string;
+    puedeEnviar: boolean;
+    enviadoEn: string | null;
     definicion: Definition;
     ilda?: { estado: string; nuevos: number; total: number; aviso: string | null };
 };
@@ -67,7 +73,6 @@ type Field = {
 };
 const tabs = [
     ['contexto', 'Contexto'],
-    ['encabezado', 'Encabezado'],
     ['identificacion', 'Identificación general'],
     ['sistemas', 'Sistemas y herramientas'],
     ['datos', 'Datos'],
@@ -95,28 +100,70 @@ export default function FormatoUR(props: Props) {
 }
 function Editor(props: Props) {
     const { props: shared } = usePage();
-    const [active, setActive] = useState('identificacion'),
+    const [active, setActive] = useState('contexto'),
         [printing, setPrinting] = useState(false),
         [evalCode, setEvalCode] = useState(''),
-        [notice, setNotice] = useState('');
+        [notice, setNotice] = useState(''),
+        [confirmSend, setConfirmSend] = useState(false),
+        [sending, setSending] = useState(false),
+        [compare, setCompare] = useState<LiveForm | null>(null);
     const redraw = useRef<(s: EditorState) => void>(() => {});
-    const [engine] = useState(
-        () =>
-            new FormEditor(
+    const [engine] = useState<BlockEditor>(
+        () => {
+            const editor: BlockEditor = new BlockEditor(
                 props.contenido,
                 props.version,
                 props.porcentaje,
                 props.editable,
-                async (body) =>
-                    (await axios.put<SaveResponse>(props.guardarUrl, body, { headers: { Accept: 'application/json' } }))
-                        .data,
+                {
+                    read: async () => (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: editor.tabId } })).data,
+                    reserve: async body => (await axios.post(`${props.guardarUrl}/reservas`, body)).data,
+                    renew: async body => (await axios.post(`${props.guardarUrl}/reservas/actividad`, body)).data,
+                    save: async body => (await axios.patch(`${props.guardarUrl}/bloques`, body)).data,
+                    release: async body => (await axios.post(`${props.guardarUrl}/reservas/liberar`, body)).data,
+                    submit: async body => (await axios.post(`${props.guardarUrl}/enviar`, body)).data,
+                },
                 (s) => redraw.current(s),
-            ),
+            );
+            return editor;
+        },
     );
     const [state, setState] = useState({ ...engine.state });
     redraw.current = setState;
     const c = state.content,
-        locked = state.locked;
+        locked = state.locked || !state.initialized;
+    const initializedSection = useRef(false);
+    useEffect(() => {
+        if (state.initialized && !initializedSection.current) {
+            initializedSection.current = true;
+            setActive(tabs.some(([key]) => key === state.section) ? state.section : 'contexto');
+        }
+    }, [state.initialized, state.section]);
+    useEffect(() => {
+        let disposed = false;
+        const connection = new HubConnectionBuilder().withUrl('/form-events', {
+            headers: { 'X-CSRF-TOKEN': String(shared.csrfToken || ''), 'X-TDV2-Context': shared.contextoEdicion || 'own' },
+        }).withAutomaticReconnect([0, 2000, 5000, 10000]).configureLogging(LogLevel.None).build();
+        const watch = () => connection.stream<LiveForm>('Watch', props.unidad.id_ur, shared.contextoEdicion || 'own', engine.tabId)
+            .subscribe({ next: value => engine.receive(value), complete: () => {}, error: () => { engine.connectionLost(); void engine.refresh(); } });
+        void engine.refresh();
+        connection.onreconnecting(() => engine.connectionLost());
+        connection.onreconnected(() => { void engine.refresh(); watch(); });
+        connection.onclose(() => { if (!disposed) engine.connectionLost(); });
+        void connection.start().then(() => { if (!disposed) watch(); }).catch(() => engine.connectionLost());
+        return () => { disposed = true; void connection.stop(); };
+    }, [engine, props.unidad.id_ur, shared.contextoEdicion, shared.csrfToken]);
+    function blockNotice(key: string) {
+        const lease = state.blocks[key]?.reserva;
+        return engine.busy(key) ? <Typography variant="caption" color="text.secondary" role="status">Editando: {lease?.titular}</Typography> : null;
+    }
+    function blockEvents(key: string) {
+        return { 'data-edit-block': key,
+            onFocusCapture: () => { void engine.focus(key); },
+            onBlurCapture: (event: React.FocusEvent<HTMLElement>) => {
+                if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) void engine.endBlock(key);
+            } };
+    }
     const coded = c.identificacion.filter((r) => r.codigo);
     const selectedCode = coded.some((r) => r.codigo === evalCode) ? evalCode : coded[0]?.codigo || '';
     const processOptions = coded.map((r) => ({ value: r.codigo, label: `${r.codigo} · ${r.tramite}` }));
@@ -206,7 +253,21 @@ function Editor(props: Props) {
             }
         });
     }
-    function field(value: string, def: Field, label: string, onChange: (value: string) => void) {
+    function field(value: string, def: Field, label: string, onChange: (value: string) => void, blockKey?: string) {
+        const readOnly = locked || !!blockKey && engine.busy(blockKey);
+        if (def.key === 'prioridad') return (
+            <Box sx={{ minWidth: 225 }}>
+                {value && !['1','2','3','4','5'].includes(value) && <Typography variant="caption">Valor anterior: {value}. Selecciona su prioridad actual.</Typography>}
+                <RadioGroup aria-label={label} value={value} onChange={event => onChange(event.target.value)}>
+                    {[
+                        ['5', 'Extremadamente prioritario', '#b71c1c'], ['4', 'Muy prioritario', '#a63c00'],
+                        ['3', 'Moderadamente prioritario', '#7a5700'], ['2', 'Poco prioritario', '#1256a0'], ['1', 'Nada prioritario', '#216731'],
+                    ].map(([number, text, color]) => <FormControlLabel key={number} value={number}
+                        disabled={readOnly} control={<Radio size="small" sx={{ color, '&.Mui-checked': { color } }} />}
+                        label={<Typography variant="caption" sx={{ color, fontWeight: 600 }}>{number}: {text}</Typography>} />)}
+                </RadioGroup>
+            </Box>
+        );
         return (
             <>
                 <span className="print-only">{def.options?.find((o) => o.value === value)?.label || value || '—'}</span>
@@ -221,8 +282,8 @@ function Editor(props: Props) {
                     value={value || ''}
                     onChange={(e) => onChange(e.target.value)}
                     slotProps={{
-                        input: { readOnly: locked },
-                        select: { readOnly: locked, SelectDisplayProps: { 'aria-label': label } },
+                        input: { readOnly },
+                        select: { readOnly, SelectDisplayProps: { 'aria-label': label } },
                         htmlInput: {
                             'aria-label': label,
                             min: def.type === 'number' ? 1 : undefined,
@@ -260,7 +321,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {rows.map((r, i) => (
-                                <TableRow key={r.id}>
+                                <TableRow key={r.id} {...blockEvents(`${section}:${r.id}`)}>
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
                                             {field(
@@ -269,13 +330,15 @@ function Editor(props: Props) {
                                                 `${f.label} ${i + 1}`,
                                                 (value) =>
                                                     change((d) => Object.assign(d[section][i], { [f.key]: value })),
+                                                `${section}:${r.id}`,
                                             )}
                                         </TableCell>
                                     ))}
                                     <TableCell className="no-print">
+                                        {blockNotice(`${section}:${r.id}`)}
                                         <IconButton
                                             aria-label={`Retirar fila ${i + 1} de ${section}`}
-                                            disabled={locked}
+                                            disabled={locked || engine.busy(`${section}:${r.id}`)}
                                             onClick={() =>
                                                 change((d) => {
                                                     d[section].splice(i, 1);
@@ -316,7 +379,7 @@ function Editor(props: Props) {
         { key: 'resultado', label: 'Resultado o documento' },
         { key: 'responsable', label: 'Responsable' },
         { key: 'validacion', label: 'Validación', options: validation },
-        { key: 'prioridad', label: 'Prioridad', type: 'number' },
+        { key: 'prioridad', label: 'Prioridad' },
     ];
     const sections: Record<string, () => React.ReactNode> = {
         contexto: () => (
@@ -341,6 +404,7 @@ function Editor(props: Props) {
                         <li key={t}>{t}</li>
                     ))}
                 </Box>
+                {sections.encabezado()}
             </div>
         ),
         encabezado: () => (
@@ -348,7 +412,9 @@ function Editor(props: Props) {
                 <Typography variant="h2" sx={{ mb: 2 }}>
                     Datos de la sesión
                 </Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr 2fr' }, gap: 2 }}>
+                {blockNotice('contexto')}
+                <Box component="fieldset" disabled={locked || engine.busy('contexto')} {...blockEvents('contexto')}
+                    sx={{ border: 0, p: 0, m: 0, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr 2fr' }, gap: 2 }}>
                     <TextField
                         label="Fecha de sesión"
                         type="date"
@@ -414,7 +480,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {c.identificacion.map((r, i) => (
-                                <TableRow key={r.id}>
+                                <TableRow key={r.id} {...blockEvents(`identificacion:${r.id}`)}>
                                     <TableCell>
                                         <Typography
                                             variant="body2"
@@ -427,21 +493,14 @@ function Editor(props: Props) {
                                             color={r.fuente === 'ILDA' ? 'primary' : 'default'}
                                             variant="outlined"
                                         />
+                                        {blockNotice(`identificacion:${r.id}`)}
                                     </TableCell>
                                     {processFields.map((f) => (
                                         <TableCell key={f.key}>
                                             {field(r[f.key as keyof ProcessRow], f, `${f.label} ${i + 1}`, (value) => {
-                                                if (
-                                                    f.key === 'prioridad' &&
-                                                    value &&
-                                                    c.identificacion.some((o, j) => j !== i && o.prioridad === value)
-                                                ) {
-                                                    setNotice(`La prioridad ${value} ya está asignada a otro proceso.`);
-                                                    return;
-                                                }
                                                 setNotice('');
                                                 processEdit(i, f.key, value);
-                                            })}
+                                            }, `identificacion:${r.id}`)}
                                         </TableCell>
                                     ))}
                                     <TableCell className="no-print">
@@ -454,7 +513,7 @@ function Editor(props: Props) {
                                         ) : (
                                             <IconButton
                                                 aria-label={`Retirar proceso ${i + 1}`}
-                                                disabled={locked}
+                                                disabled={locked || engine.busy(`identificacion:${r.id}`)}
                                                 onClick={() => removeProcess(i)}
                                             >
                                                 <DeleteOutlined fontSize="small" />
@@ -509,6 +568,8 @@ function Editor(props: Props) {
                 <Typography variant="h3" sx={{ mt: 3, mb: 1 }}>
                     Medios utilizados
                 </Typography>
+                {blockNotice('medios')}
+                <Box component="fieldset" disabled={locked || engine.busy('medios')} {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {Object.keys(c.medios).map((m) => (
                         <FormControlLabel
@@ -539,6 +600,7 @@ function Editor(props: Props) {
                     slotProps={{ input: { readOnly: locked } }}
                     sx={{ mt: 1, minWidth: 250 }}
                 />
+                </Box>
             </>
         ),
         datos: () => (
@@ -600,7 +662,11 @@ function Editor(props: Props) {
                                 {props.definicion.criterios.map((criterion, i) => (
                                     <Box
                                         key={criterion}
+                                        component="fieldset"
+                                        disabled={locked || engine.busy(`evaluaciones:${code}:${i}`)}
+                                        {...blockEvents(`evaluaciones:${code}:${i}`)}
                                         sx={{
+                                            border: 0, m: 0, px: 0, minWidth: 0,
                                             display: 'grid',
                                             gridTemplateColumns: {
                                                 xs: '1fr',
@@ -613,7 +679,7 @@ function Editor(props: Props) {
                                             borderColor: 'divider',
                                         }}
                                     >
-                                        <Typography variant="body2">{criterion}</Typography>
+                                        <Box><Typography variant="body2">{criterion}</Typography>{blockNotice(`evaluaciones:${code}:${i}`)}</Box>
                                         <RadioGroup
                                             row
                                             aria-label={`${criterion} de ${code}`}
@@ -670,7 +736,9 @@ function Editor(props: Props) {
                 </Typography>
                 <Box className="stack">
                     {c.preguntas.map((q, i) => (
-                        <Box key={q.pregunta} sx={{ pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                        <Box key={q.pregunta} component="fieldset" disabled={locked || engine.busy(`preguntas:${i}`)} {...blockEvents(`preguntas:${i}`)}
+                            sx={{ p: 0, m: 0, minWidth: 0, border: 0, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                            {blockNotice(`preguntas:${i}`)}
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -706,7 +774,7 @@ function Editor(props: Props) {
                                 minRows={q.tipo === 'abierta' ? 2 : undefined}
                                 label={`Respuesta ${i + 1}`}
                                 value={q.respuesta}
-                                slotProps={{ input: { readOnly: locked } }}
+                                slotProps={{ input: { readOnly: locked || engine.busy(`preguntas:${i}`) } }}
                                 onChange={(e) =>
                                     change((d) => {
                                         d.preguntas[i].respuesta = e.target.value;
@@ -744,7 +812,7 @@ function Editor(props: Props) {
     };
     return (
         <>
-            <Head title={`Procesos operativos · ${props.unidad.cve_ur}`} />
+            <Head title={`Procesos operativos · ${displayUnitCode(props.unidad.cve_ur)}`} />
             <div className="page">
                 <Button
                     className="no-print"
@@ -756,7 +824,7 @@ function Editor(props: Props) {
                 </Button>
                 <PageHeading
                     title="Identificación de procesos operativos"
-                    description={`${props.unidad.cve_ur} · ${props.unidad.desc_ur}`}
+                    description={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
                     actions={
                         <Box sx={{ minWidth: 135 }}>
                             <Typography variant="caption" color="text.secondary">
@@ -773,11 +841,13 @@ function Editor(props: Props) {
                         </Box>
                     }
                 />
-                {!props.editable && (
+                {!state.initialized && <LinearProgress aria-label="Cargando estado de colaboración" sx={{ mb: 2 }} />}
+                {(state.submitted || props.enviadoEn) && <Typography role="status" sx={{ mb: 2 }}>Enviado el {new Date(state.submitted || props.enviadoEn!).toLocaleString('es-MX')}. Este formato está bloqueado para edición.</Typography>}
+                {!props.editable && !props.enviadoEn && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {shared.simulacion
                             ? 'Esta vista de prueba es de solo lectura.'
-                            : 'Puedes consultar las respuestas y el avance de esta área.'}
+                            : 'Solo consulta. Puedes revisar las respuestas y el avance de esta área.'}
                     </Typography>
                 )}
                 {state.error && (
@@ -788,6 +858,11 @@ function Editor(props: Props) {
                                 Descargar mis cambios
                             </Button>
                             {state.conflict && <Button onClick={reload}>Cargar versión compartida</Button>}
+                            {state.dirty && <Button onClick={async () => {
+                                try { setCompare((await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data); }
+                                catch { setNotice('No se pudo consultar la versión compartida. Tu propuesta sigue disponible.'); }
+                            }}>Comparar y recuperar propuesta</Button>}
+                            <Button onClick={() => void engine.refresh()}>Actualizar estado</Button>
                             {!state.locked && <Button onClick={() => void engine.flush()}>Reintentar guardado</Button>}
                         </Box>
                     </Alert>
@@ -809,7 +884,7 @@ function Editor(props: Props) {
                     <Tabs
                         className="no-print"
                         value={active}
-                        onChange={(_, v) => setActive(v)}
+                        onChange={(_, v) => { void engine.flush(true); setActive(v); engine.setSection(v); }}
                         variant="scrollable"
                         scrollButtons="auto"
                         allowScrollButtonsMobile
@@ -819,14 +894,14 @@ function Editor(props: Props) {
                             <Tab id={`tab-${key}`} aria-controls={`panel-${key}`} value={key} key={key} label={label} />
                         ))}
                     </Tabs>
-                    {tabs
-                        .filter(([key]) => printing || key === active)
-                        .map(([key]) => (
+                    {tabs.map(([key]) => (
                             <Box
                                 key={key}
                                 id={`panel-${key}`}
                                 role="tabpanel"
                                 aria-labelledby={`tab-${key}`}
+                                hidden={!printing && key !== active}
+                                className="form-panel"
                                 sx={{ p: { xs: 2, md: 3 }, pageBreakBefore: printing ? 'auto' : undefined }}
                             >
                                 {sections[key]()}
@@ -841,21 +916,21 @@ function Editor(props: Props) {
                             <CheckCircleOutlined color={state.error ? 'error' : state.dirty ? 'warning' : 'success'} />
                         )}
                         <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            <Typography variant="body2" role="status" aria-live="polite" sx={{ fontWeight: 500 }}>
                                 {!props.editable
                                     ? 'Solo consulta'
                                     : state.saving
                                       ? 'Guardando…'
                                       : state.error
-                                        ? 'Cambios sin guardar'
+                                        ? 'No se pudo guardar'
                                         : state.dirty
                                           ? 'Cambios pendientes'
-                                          : 'Sin cambios pendientes'}
+                                          : state.updatedAt ? 'Guardado' : 'Sin cambios pendientes'}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                                 {state.updatedAt
                                     ? `Guardado a las ${new Date(state.updatedAt).toLocaleTimeString('es-MX')}`
-                                    : 'Tus respuestas se guardan automáticamente al editar.'}
+                                    : ''}
                             </Typography>
                         </Box>
                     </Box>
@@ -869,10 +944,35 @@ function Editor(props: Props) {
                             disabled={locked || state.saving}
                             onClick={() => void engine.flush(true)}
                         >
-                            Guardar
+                            Guardar borrador
                         </Button>
                     </div>
                 </div>
+                {state.canSubmit && <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }} className="no-print">
+                    <Button variant="contained" disabled={sending || state.conflict} onClick={async () => {
+                        setSending(true);
+                        try { if (await engine.flush(true) && !engine.state.dirty) setConfirmSend(true); }
+                        finally { setSending(false); }
+                    }}>Enviar</Button>
+                </Box>}
+                <Dialog open={confirmSend} onClose={() => !sending && setConfirmSend(false)} aria-labelledby="confirm-send-title">
+                    <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
+                    <DialogContent>Se enviarán las respuestas guardadas de esta UR y ejercicio. La edición quedará bloqueada para todas las personas, incluidos los administradores. No se podrá reabrir.</DialogContent>
+                    <DialogActions><Button disabled={sending} onClick={() => setConfirmSend(false)}>Cancelar</Button>
+                        <Button variant="contained" disabled={sending} onClick={async () => {
+                            setSending(true); try { if (await engine.submit()) setConfirmSend(false); } finally { setSending(false); }
+                        }}>{sending ? 'Enviando…' : 'Confirmar envío'}</Button></DialogActions>
+                </Dialog>
+                <Dialog open={!!compare} onClose={() => setCompare(null)} fullWidth maxWidth="lg" aria-labelledby="recover-title">
+                    <DialogTitle id="recover-title">Comparar respuestas y recuperar propuesta</DialogTitle>
+                    <DialogContent>
+                        <Typography sx={{ mb: 2 }}>Revisa las diferencias. Recuperar conservará tu propuesta para que la ajustes; deberás pulsar Guardar borrador para aplicarla con una reserva nueva.</Typography>
+                        {compare && <FormProposalComparison proposal={c} shared={compare.contenido} />}
+                    </DialogContent>
+                    <DialogActions><Button onClick={() => setCompare(null)}>Cancelar</Button><Button variant="contained" disabled={!compare?.editable} onClick={async () => {
+                        try { await engine.recover(compare!.version); setCompare(null); } catch { setNotice('La versión compartida cambió o no está disponible. Compara de nuevo antes de recuperar.'); }
+                    }}>Recuperar propuesta para revisar</Button></DialogActions>
+                </Dialog>
             </div>
         </>
     );

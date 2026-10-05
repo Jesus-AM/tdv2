@@ -1,0 +1,3 @@
+# Conservar los bytes de parches y salidas originales de verificación.
+docs/migracion/*.patch -text -whitespace
+docs/migracion/*.txt -text -whitespace

@@ -1,0 +1,212 @@
+using System.Security.Cryptography;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql;
+using Tdv2.Domain.Entities;
+using Tdv2.Infrastructure;
+
+namespace Tdv2.NativeVerification;
+
+internal static class MigrationTests
+{
+    internal static Tdv2DbContext Context(string cs) => new(new DbContextOptionsBuilder<Tdv2DbContext>()
+        .UseNpgsql(cs, p => p.MigrationsHistoryTable("__EFMigrationsHistory", "public")).Options);
+
+    public static async Task<int> Run(NativeDatabase database)
+    {
+        var checks = new List<string>();
+        var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(24));
+        async Task<object?> Sql(string cs, string sql)
+        {
+            await using var connection = new NpgsqlConnection(cs); await connection.OpenAsync();
+            return await DatabaseInspection.Scalar(connection, sql);
+        }
+        void Check(bool condition, string name)
+        {
+            if (!condition) throw new InvalidOperationException(name);
+            checks.Add(name); Console.WriteLine("EF PASS " + name);
+        }
+        async Task<bool> Reject(Func<Task> work)
+        {
+            try { await work(); return false; }
+            catch (PostgresException) { return true; }
+            catch (DbUpdateException) { return true; }
+            catch (InvalidOperationException error) when (error.InnerException is PostgresException) { return true; }
+        }
+        async Task<bool> Inspect(string connection)
+        {
+            var settings = new NpgsqlConnectionStringBuilder(connection);
+            var previous = Environment.GetEnvironmentVariable("ConnectionStrings__Tdv2");
+            var output = Console.Out;
+            using var capture = new StringWriter();
+            try
+            {
+                Environment.SetEnvironmentVariable("ConnectionStrings__Tdv2", connection);
+                Console.SetOut(capture);
+                return await DatabaseInspection.Run(["--database-check", "--environment", "Production",
+                    "--target-host=" + settings.Host, "--target-port=" + settings.Port,
+                    "--target-database=" + settings.Database, "--target-user=" + settings.Username]) == 0;
+            }
+            finally { Console.SetOut(output); Environment.SetEnvironmentVariable("ConnectionStrings__Tdv2", previous); }
+        }
+        async Task<string> Fresh(string suffix)
+        {
+            var name = "tdv2_ef_" + suffix;
+            await Sql(database.Admin, "CREATE DATABASE " + name + " OWNER tdv2_ef_owner TEMPLATE template0");
+            return new NpgsqlConnectionStringBuilder(database.Admin) { Database = name, Username = "tdv2_ef_owner", Password = password, SearchPath = "public" }.ConnectionString;
+        }
+        const string historySql = "SELECT string_agg(\"MigrationId\"||':'||\"ProductVersion\",',' ORDER BY \"MigrationId\") FROM public.\"__EFMigrationsHistory\"";
+        try
+        {
+            await Sql(database.Admin, $"CREATE ROLE tdv2_ef_owner LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD '{password}'");
+            var cs = await Fresh("baseline");
+            await using var db = Context(cs);
+            Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
+            Check(db.Model.GetEntityTypes().Count() == 17 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 6, "17 entidades y seis relaciones locales; sin esquemas institucionales");
+            Check(db.Database.GetMigrations().Count() == 3, "tres migraciones estándar descubiertas por EF");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
+            await db.Database.MigrateAsync();
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 3 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 18, "17 tablas y único historial __EFMigrationsHistory");
+            Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
+            var columns = (string)(await Sql(cs, DatabaseInspection.ColumnsSql))!;
+            var indexes = (string)(await Sql(cs, DatabaseInspection.IndexesSql))!;
+            var constraints = (string)(await Sql(cs, DatabaseInspection.ConstraintsSql))!;
+            var history = await Sql(cs, historySql);
+            await db.Database.MigrateAsync();
+            Check(Equals(history, await Sql(cs, historySql)) && columns == (string)(await Sql(cs, DatabaseInspection.ColumnsSql))!
+                && indexes == (string)(await Sql(cs, DatabaseInspection.IndexesSql))!, "repetir Migrate no cambia esquema ni historial");
+
+            var legacy = await Fresh("legacy");
+            foreach (var file in Directory.GetFiles(Path.Combine(database.Workspace, "tests/TDV2.NativeVerification/LegacySchema"), "*.sql").Order())
+                await Sql(legacy, await File.ReadAllTextAsync(file));
+            var legacyColumns = (string)(await Sql(legacy, DatabaseInspection.ColumnsSql))!;
+            Check(legacyColumns.Split('\n').All(column => columns.Split('\n').Contains(column)), "columnas, tipos, nulabilidad y defaults anteriores conservados; ampliación aditiva");
+            Check((string)(await Sql(cs, DatabaseInspection.SequencesSql))! == (string)(await Sql(legacy, DatabaseInspection.SequencesSql))!, "secuencias serial/bigserial conservadas");
+            var oldIndexes = ((string)(await Sql(legacy, DatabaseInspection.IndexesSql))!).Split('\n');
+            Check(oldIndexes.All(i => indexes.Split('\n').Contains(i)), "todos los índices y unicidades anteriores conservados");
+            var oldConstraints = ((string)(await Sql(legacy, DatabaseInspection.ConstraintsSql))!).Split('\n')
+                .Where(c => !c.Contains(":users_microsoft_identity_unique:") && !c.Contains(":ms_graph_tokens_user_id_key:"));
+            Check(oldConstraints.All(c => constraints.Split('\n').Contains(c)), "PK, FK, RESTRICT, CASCADE, check singleton y claves alternativas conservadas");
+            await using (var legacyDb = Context(legacy))
+                Check(await Reject(() => legacyDb.Database.MigrateAsync()) && legacyColumns == (string)(await Sql(legacy, DatabaseInspection.ColumnsSql))!,
+                    "base previa sin historial EF se rechaza y conserva; no adopción implícita");
+
+            var occupied = await Fresh("occupied");
+            await Sql(occupied, "CREATE TABLE previa(id integer PRIMARY KEY); INSERT INTO previa VALUES(17)");
+            await using (var occupiedDb = Context(occupied))
+                Check(await Reject(() => occupiedDb.Database.MigrateAsync()) && Convert.ToInt32(await Sql(occupied, "SELECT id FROM previa")) == 17
+                    && await Sql(occupied, "SELECT to_regclass('public.users')::text") is DBNull, "contenido inesperado conservado tras rechazo");
+
+            var partial = await Fresh("partial");
+            await using (var partialDb = Context(partial))
+            {
+                await partialDb.GetService<IMigrator>().MigrateAsync(partialDb.Database.GetMigrations().First());
+                await Sql(partial, """
+                    CREATE FUNCTION fixture_fail_seed() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC'; END $$;
+                    CREATE TRIGGER fail_seed BEFORE INSERT ON sincronizacion_configuracion FOR EACH ROW EXECUTE FUNCTION fixture_fail_seed();
+                    """);
+                Check(await Reject(() => partialDb.Database.MigrateAsync())
+                    && Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM sincronizacion_configuracion")) == 0
+                    && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
+                await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
+                await partialDb.Database.MigrateAsync();
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 3, "reanudación aplica sólo la pendiente");
+                await partialDb.GetService<IMigrator>().MigrateAsync("0");
+                Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
+                    "Down revierte únicamente las tablas EF en la base desechable");
+                await partialDb.Database.MigrateAsync();
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 3, "Up después de Down recrea esquema y configuración pausada");
+            }
+            var upgrade = await Fresh("upgrade");
+            await using (var previous = Context(upgrade))
+            {
+                await previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1));
+                await Sql(upgrade, """
+                    INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur,num_empleado,tipo_ur) VALUES('HIST',2025,'06000','00001','0');
+                    INSERT INTO formatos_ur(id_ur,contenido,version,porcentaje,actualizado_por)
+                    VALUES('HIST','{"encabezado":{"responsable":"Histórico"},"identificacion":[{"id":"original","prioridad":"17"}],"nulo":null,"vacio":""}',7,25,'synthetic@example.test');
+                    """);
+                var original = await Sql(upgrade, "SELECT contenido::text FROM formatos_ur");
+                await using (var baselineConnection = new NpgsqlConnection(upgrade))
+                {
+                    await baselineConnection.OpenAsync();
+                    await File.WriteAllTextAsync(Path.Combine(database.Workspace, "docs/migracion/evidencia-ef-esquema.json"),
+                        JsonSerializer.Serialize(new { utc = DateTimeOffset.UtcNow, synthetic = true, initialMigrations = 2,
+                            schemaSha256 = await DatabaseInspection.Fingerprint(baselineConnection) }, new JsonSerializerOptions { WriteIndented = true }));
+                }
+                Check(await Inspect(upgrade), "verificador de sólo lectura reconoce esquema previo y migración pendiente");
+                await previous.Database.MigrateAsync();
+                Check(await Inspect(upgrade), "verificador reconoce tablas actuales y trigger de protección sin objetos ajenos");
+                Check(Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur"))
+                    && (bool)(await Sql(upgrade, "SELECT ejercicio=2025 AND version=7 AND porcentaje=25 AND enviado_en IS NULL FROM formatos_ur"))!,
+                    "actualización conserva JSON, prioridad antigua, versión e historia tipo 0; completa ejercicio sin enviar");
+                await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
+                Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
+                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 3
+                    && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
+                    "Down rechaza retirar protección de formatos enviados y conserva contenido e historial");
+            }
+            var concurrent = await Fresh("concurrent");
+            await using (var a = Context(concurrent))
+            await using (var b = Context(concurrent))
+            {
+                // El bloqueo estándar de Npgsql se toma sobre __EFMigrationsHistory.
+                // El primer bootstrap se ejecuta por un operador; comprobamos dos aplicadores
+                // de una migración pendiente con ese historial ya establecido.
+                await a.GetService<IMigrator>().MigrateAsync(a.Database.GetMigrations().ElementAt(1));
+                await Task.WhenAll(a.Database.MigrateAsync(), b.Database.MigrateAsync());
+                Check((await a.Database.GetAppliedMigrationsAsync()).Count() == 3, "dos aplicadores de migración pendiente serializados por EF/Npgsql");
+            }
+            var scriptTarget = await Fresh("script");
+            var script = db.GetService<IMigrator>().GenerateScript(options: MigrationsSqlGenerationOptions.Idempotent);
+            await Sql(scriptTarget, script);
+            var scriptHistory = await Sql(scriptTarget, historySql);
+            await Sql(scriptTarget, script);
+            Check(Equals(scriptHistory, await Sql(scriptTarget, historySql))
+                && columns == (string)(await Sql(scriptTarget, DatabaseInspection.ColumnsSql))!, "script idempotente generado por EF se aplica y repite sin cambios");
+            await using (var scriptConnection = new NpgsqlConnection(scriptTarget))
+            {
+                await scriptConnection.OpenAsync();
+                await File.WriteAllTextAsync(Path.Combine(database.Workspace, "docs/migracion/evidencia-colaboracion-esquema.json"),
+                    JsonSerializer.Serialize(new { utc = DateTimeOffset.UtcNow, synthetic = true,
+                        schemaSha256 = await DatabaseInspection.Fingerprint(scriptConnection) }, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            // Comprueba el token de concurrencia del proveedor real, además de los conflictos HTTP de la suite completa.
+            await Sql(cs, "INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur,num_empleado) VALUES('EF',2026,'001','00001')");
+            db.UnitForms.Add(new UnitForm { UnitId = "EF", Content = "{\"nulo\":null,\"vacio\":\"\"}", UpdatedBy = "synthetic@example.test", Version = 1 });
+            await db.SaveChangesAsync();
+            await using (var a = Context(cs))
+            await using (var b = Context(cs))
+            {
+                var first = await a.UnitForms.SingleAsync(); var second = await b.UnitForms.SingleAsync();
+                first.Version++; first.Content = "{\"guardado\":true}"; await a.SaveChangesAsync();
+                second.Version++; second.Content = "{}";
+                var rejected = false;
+                try { await b.SaveChangesAsync(); } catch (DbUpdateConcurrencyException) { rejected = true; }
+                Check(rejected && (await db.UnitForms.AsNoTracking().SingleAsync()).Content.Contains("guardado"), "EF rechaza versión obsoleta sin sobrescribir");
+            }
+            Check(await Reject(() => Sql(cs, "DELETE FROM unidades_responsables_poa WHERE id_ur='EF'")), "FK impide borrar UR con formato");
+            Check(await Reject(() => Sql(cs, "INSERT INTO sincronizacion_configuracion(id) VALUES(2)")), "CHECK limita configuración a id=1");
+            Check((await db.ResponsibleUnits.AsNoTracking().SingleAsync()).EmployeeNumber == "00001", "EF conserva ceros iniciales del empleado");
+            var report = new { utc = DateTimeOffset.UtcNow, realPostgreSql = true, passed = checks.Count, checks,
+                schemaSha256 = DatabaseInspection.Hash(columns + "\n" + constraints + "\n" + indexes),
+                legacyDifference = "Unicidades nullable pasan de restricciones UNIQUE a índices UNIQUE; se añade el índice de FK en configuración." };
+            var json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(Path.Combine(database.Artifacts, "ef-migrations.json"), json);
+            await File.WriteAllTextAsync(Path.Combine(database.Workspace, "docs/migracion/evidencia-colaboracion-migraciones.json"), json);
+            return 0;
+        }
+        catch (Exception error)
+        {
+            // No incluir mensajes del proveedor, SQL ni credenciales en la evidencia.
+            Console.Error.WriteLine("EF FAIL " + error.GetType().Name + " después de " + checks.Count + " comprobaciones.");
+            if (error is PostgresException pg) Console.Error.WriteLine("SQLSTATE=" + pg.SqlState);
+            if (error is InvalidOperationException) Console.Error.WriteLine(error.Message);
+            return 1;
+        }
+    }
+}

@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
+    transitions: { duration: { shortest: 150, shorter: 180, short: 180, standard: 200, complex: 220, enteringScreen: 200, leavingScreen: 180 } },
     palette: {
         primary: { main: '#245bb6', dark: '#183e80' },
         secondary: { main: '#157e83' },
@@ -20,6 +21,9 @@ export const theme = createTheme({
     },
     shape: { borderRadius: 10 },
     components: {
+        MuiCollapse: { defaultProps: { timeout: 180 } },
+        MuiMenu: { defaultProps: { transitionDuration: 180 } },
+        MuiDialog: { defaultProps: { transitionDuration: 180 } },
         MuiButton: {
             defaultProps: { disableElevation: true, size: 'small' },
             styleOverrides: { root: { minHeight: 36, paddingInline: 14 } },

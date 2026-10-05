@@ -88,12 +88,12 @@ public sealed class FormSchema
             }
             result[section] = normalized;
         }
-        var codes = new HashSet<string>(StringComparer.Ordinal); var priorities = new HashSet<string>(StringComparer.Ordinal);
+        var codes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in result["identificacion"]!.AsArray().Cast<JsonObject>())
         {
             var code = Text(row, "codigo"); var priority = Text(row, "prioridad");
             if (code != "" && (!Regex.IsMatch(code, @"\APO-[0-9]{2,6}\z") || !codes.Add(code))
-                || priority != "" && (!Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z") || !priorities.Add(priority))) throw Invalid("Códigos o prioridades inválidos o duplicados.");
+                || priority != "" && !Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z")) throw Invalid("Código o prioridad inválidos.");
             Choice(Text(row, "validacion"), "V", "A", "D", "N");
         }
         foreach (var section in new[] { "sistemas", "datos" })
@@ -147,7 +147,7 @@ public sealed class FormSchema
             return (double)weight * rows.Sum(r => fields.Count(k => Filled(r?[k]))) / (Math.Max(1, rows.Length) * fields.Length);
         }
         var value = Score([data["encabezado"]], ["fecha", "responsable"], 10)
-            + Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion"], 25)
+            + Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion", "prioridad"], 25)
             + Score(data["sistemas"]!.AsArray(), ["sistema", "uso", "estado"], 15)
             + Score(data["datos"]!.AsArray(), ["dato", "fuente", "origen"], 10)
             + Score(data["preguntas"]!.AsArray(), ["respuesta"], 20)
@@ -155,5 +155,13 @@ public sealed class FormSchema
         var codes = data["identificacion"]!.AsArray().Where(r => Filled(r!["codigo"])).Select(r => r!["codigo"]!.GetValue<string>()).ToArray();
         var filled = codes.Sum(c => (data["evaluaciones"]?[c] as JsonArray)?.Count(r => Filled(r?["valor"])) ?? 0);
         return (int)Math.Floor(value + 15d * filled / (Math.Max(1, codes.Length) * 9) + 0.000001);
+    }
+
+    public static void RequireComplete(JsonObject content)
+    {
+        // El borrador admite campos vacíos; enviar exige todos los campos que componen el avance.
+        if (Progress(content) != 100 || content["identificacion"]!.AsArray().Any(r =>
+            string.IsNullOrWhiteSpace(r!["codigo"]?.ToString()) || r["prioridad"]?.ToString() is not ("1" or "2" or "3" or "4" or "5")))
+            throw new DomainProblem(422, "Completa los datos de Contexto, los procesos y su prioridad de 1 a 5, sistemas, datos, las doce preguntas, acuerdos y evaluaciones antes de enviar.");
     }
 }

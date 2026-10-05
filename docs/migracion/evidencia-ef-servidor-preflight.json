@@ -1,0 +1,34 @@
+{
+  "utc": "2026-10-02T05:59:51.1251765+00:00",
+  "readOnly": true,
+  "target": {
+    "host": "SERVIDOR_TDV2",
+    "port": 5432,
+    "database": "tdv2_db",
+    "user": "USUARIO_TDV2"
+  },
+  "address": "SERVIDOR_TDV2",
+  "tls": true,
+  "permissionsVerified": true,
+  "serverVersion": "18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+  "empty": true,
+  "recognized": false,
+  "tables": [],
+  "counts": {},
+  "otherObjects": 0,
+  "applied": [],
+  "pending": [
+    "20261002051005_InitialTdv2",
+    "20261002051340_InitializePausedSynchronization"
+  ],
+  "automaticSynchronizationDisabled": null,
+  "schemaSha256": "6A3CF5192354F71615AC51034B3E97C20EDA99643FCAF5BBE6D41AD59BD12167",
+  "valid": true,
+  "publicationRedaction": {
+    "fields": [
+      "institutionalHost",
+      "institutionalUser"
+    ],
+    "note": "Identificadores del destino omitidos para publicación. Resultados de la verificación original sin cambios."
+  }
+}

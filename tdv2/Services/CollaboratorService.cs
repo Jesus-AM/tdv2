@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using System.Text.Json.Nodes;
 using Npgsql;
 using Tdv2.Domain;
@@ -18,6 +19,7 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
         var context = await access.Resolve(http); var roots = await delegation.Roots(http); var profile = context.Profile;
         var admin = profile.Has("administrador"); var branch = admin ? context.Directory.AdministratorRoot(profile.User) : null;
         var kinds = access.Selection?.Kind == "preview" ? new[] { "local", "dependencias" } : roots.Count > 0 ? (await delegation.Roles(http.RequestAborted)).Keys.ToArray() : [];
+        kinds = kinds.Where(kind => kind == "local" || roots.Values.Any(u => u.Level == 2)).ToArray();
         string? notice = null;
         if (roots.Count == 0)
         {
@@ -47,7 +49,7 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
         var people = new List<object>();
         foreach (var row in rows.OfType<JsonObject>())
         {
-            var origin = NexoOperations.Text(row, "id_ur"); var owner = context.Directory.FormUnit(origin);
+            var origin = NexoOperations.Text(row, "id_ur"); var owner = context.Directory.LocalCollaborationUnit(origin, unit);
             if (origin is null || owner is null || !context.Directory.Within(origin, unit) || !context.Directory.Within(owner.Id, unit)) continue;
             people.Add(new
             {
@@ -70,7 +72,7 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
         if (kind is not ("local" or "dependencias")) throw Inputs.Invalid("tipo", "Selecciona un tipo de colaboración válido.");
         var root = await delegation.Root(http, unit); var roles = await delegation.Roles(http.RequestAborted);
         if (!roles.TryGetValue(kind, out var role) || kind == "dependencias" && root.Level != 2) throw new DomainProblem(403, "El rol no está habilitado para asignar en esta área.");
-        var owner = context.Directory.FormUnit(origin);
+        var owner = context.Directory.LocalCollaborationUnit(origin, unit);
         if (owner is null || !context.Directory.Within(origin, unit) || !context.Directory.Within(owner.Id, unit)) throw new DomainProblem(403, "El área seleccionada no pertenece a esta rama.");
         var scope = kind == "local" ? owner.Id : unit;
         await using var connection = await connections.Open("Tdv2", http.RequestAborted);

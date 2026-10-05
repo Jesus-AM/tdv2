@@ -1,0 +1,51 @@
+{
+  "environment": "Development",
+  "connectionProvider": "secrets.json",
+  "report": {
+    "Utc": "2026-10-02T04:34:33.3928598+00:00",
+    "Target": {
+      "Host": "SERVIDOR_TDV2",
+      "Port": 5432,
+      "Database": "tdv2_db",
+      "User": "USUARIO_TDV2"
+    },
+    "ServerAddress": "SERVIDOR_TDV2",
+    "ServerVersion": "18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+    "Tls": true,
+    "PermissionsVerified": true,
+    "Mode": "apply",
+    "Applied": [],
+    "Skipped": [
+      "001_core.sql",
+      "002_aspnet_sessions.sql",
+      "003_access_contexts.sql",
+      "004_synchronizations.sql"
+    ],
+    "Pending": [],
+    "Tables": [
+      "users",
+      "ms_graph_tokens",
+      "activity_logs",
+      "unidades_responsables_poa",
+      "formatos_ur",
+      "colaboraciones_ur",
+      "tdv2_sessions",
+      "tdv2_oauth_attempts",
+      "tdv2_access_contexts",
+      "sincronizaciones_institucionales",
+      "sincronizacion_catalogos",
+      "ilda_informacion_area",
+      "sincronizacion_ejecuciones",
+      "sincronizacion_configuracion"
+    ],
+    "SchemaSha256": "363D719968151C41B1A619590A88F38D60EFE7B3C3F5E357A8902FB6466F6AE3",
+    "AutomaticSynchronizationDisabled": true
+  },
+  "publicationRedaction": {
+    "fields": [
+      "institutionalHost",
+      "institutionalUser"
+    ],
+    "note": "Identificadores del destino omitidos para publicación. Resultados de la verificación original sin cambios."
+  }
+}

@@ -32,6 +32,8 @@ public static class ScenarioRoles
     public static readonly IReadOnlyDictionary<string, (string Key, string Label)> All = new Dictionary<string, (string, string)>
     {
         ["responsable"] = ("responsable_ur", "Responsable de UR"),
+        ["responsable_institucional"] = ("responsable_ur_institucional", "Responsable UR con consulta institucional"),
+        ["responsable_supervisor"] = ("responsable_ur_supervisor", "Responsable de UR con supervisión"),
         ["local"] = ("colaborador_local", "Colaborador local"),
         ["dependencias"] = ("colaborador_dependencias", "Colaborador de áreas dependientes"),
         ["consulta"] = ("consulta_institucional", "Consulta institucional"),
@@ -41,8 +43,8 @@ public static class ScenarioRoles
     public static Profile Resolve(AccessSelection selection, UnitDirectory directory, Profile real)
     {
         var unit = directory.Get(selection.UnitId);
-        if (!All.TryGetValue(selection.Role ?? "", out var role) || unit is null
-            || selection.Role == "responsable" && !UnitDirectory.IsForm(unit)
+        if (!All.TryGetValue(selection.Role ?? "", out var role) || unit is null || !UnitDirectory.IsEligible(unit)
+            || selection.Role is "responsable" or "responsable_institucional" or "responsable_supervisor" && !UnitDirectory.IsForm(unit)
             || selection.Role is "local" or "dependencias" && directory.LevelTwo(unit.Id) is null)
             throw new DomainProblem(422, "Selecciona un rol y un área activa válidos para la vista de prueba.", new { errors = new { ur = "El área no admite este escenario." } });
         return new(new("", "Vista de prueba", "vista-de-prueba", unit.Id), [new(0, role.Key, role.Label)], real.Modules);

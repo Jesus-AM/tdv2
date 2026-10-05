@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Nexo;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -5,9 +6,14 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
-namespace Tdv2.Security;
+using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
+using Tdv2.Security;
+namespace Tdv2.Integrations.Microsoft;
 
-public sealed record MicrosoftTokens(string Access, string Refresh, long Expires);
+public sealed record MicrosoftTokens(string Access, string Refresh, long Expires, string? IdToken = null);
 public sealed record MicrosoftPerson(string ObjectId, string Email);
 
 // Conserva OAuth y Graph /me de Laravel; un claim JWT sin verificar nunca autentica.
@@ -16,7 +22,7 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
     public const string Scopes = "openid profile offline_access User.Read";
     private MicrosoftSettings Settings { get { options.Value.Validate(); return options.Value; } }
     private static DomainProblem Failure() => new(503, "Microsoft no pudo completar la operación. Inicia sesión nuevamente.");
-    public string Authorize(string state, string challenge) => QueryHelpers.AddQueryString(Settings.Authority + "authorize", new Dictionary<string, string?>
+    public string Authorize(string state, string challenge, string? nonce = null, string? loginHint = null, bool otherAccount = false) => QueryHelpers.AddQueryString(Settings.Authority + "authorize", new Dictionary<string, string?>
     {
         ["client_id"] = Settings.ClientId,
         ["redirect_uri"] = Settings.Callback,
@@ -25,6 +31,8 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
         ["state"] = state,
         ["code_challenge"] = challenge,
         ["code_challenge_method"] = "S256"
+        , ["nonce"] = nonce, ["login_hint"] = otherAccount ? null : loginHint,
+        ["prompt"] = otherAccount ? "select_account" : null
     });
     public Task<MicrosoftTokens> Exchange(string code, string verifier, CancellationToken cancellation) => Tokens(new()
     { ["grant_type"] = "authorization_code", ["code"] = code, ["code_verifier"] = verifier, ["redirect_uri"] = Settings.Callback }, null, cancellation);
@@ -45,7 +53,25 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
         if (string.IsNullOrWhiteSpace(access) || string.IsNullOrWhiteSpace(refresh)
             || !string.Equals(String(root, "token_type"), "Bearer", StringComparison.OrdinalIgnoreCase)
             || !int.TryParse(expiresText, out var seconds) || seconds is < 1 or > 31_536_000 || started + seconds <= DateTimeOffset.UtcNow.ToUnixTimeSeconds()) throw Failure();
-        return new(access, refresh, started + seconds);
+        return new(access, refresh, started + seconds, String(root, "id_token"));
+    }
+    public async Task<string?> ValidatedLoginHint(string? idToken, string verifier, string objectId, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(idToken) || idToken.Length > 65536) throw Failure();
+        var metadata = $"https://login.microsoftonline.com/{Settings.Tenant}/v2.0/.well-known/openid-configuration";
+        var configuration = await OpenIdConnectConfigurationRetriever.GetAsync(metadata, new HttpDocumentRetriever(http) { RequireHttps = true }, ct);
+        var result = await new JsonWebTokenHandler { MapInboundClaims = false }.ValidateTokenAsync(idToken, new TokenValidationParameters
+        {
+            RequireSignedTokens = true, ValidateIssuerSigningKey = true, IssuerSigningKeys = configuration.SigningKeys,
+            ValidateIssuer = true, ValidIssuer = $"https://login.microsoftonline.com/{Settings.Tenant}/v2.0",
+            ValidateAudience = true, ValidAudience = Settings.ClientId, ValidateLifetime = true, RequireExpirationTime = true,
+            ClockSkew = TimeSpan.FromMinutes(1), ValidAlgorithms = [SecurityAlgorithms.RsaSha256]
+        });
+        if (!result.IsValid || result.ClaimsIdentity.FindFirst("nonce")?.Value != ProtectedValues.Hash("oidc:" + verifier)
+            || result.ClaimsIdentity.FindFirst("tid")?.Value != Settings.Tenant || result.ClaimsIdentity.FindFirst("oid")?.Value != objectId)
+            throw Failure();
+        var hint = result.ClaimsIdentity.FindFirst("login_hint")?.Value;
+        return hint is { Length: > 0 and <= 8192 } ? hint : null;
     }
     public async Task<MicrosoftPerson> Me(string token, CancellationToken cancellation)
     {

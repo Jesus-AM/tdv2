@@ -1,0 +1,54 @@
+{
+  "utc": "2026-10-05T15:39:01.182Z",
+  "browser": "154.0.4258.37",
+  "checks": [
+    {
+      "name": "Pantalla original: administrador, programación pausada, zona Juárez y sin alertas innecesarias",
+      "passed": true
+    },
+    {
+      "name": "React encola ambas; PostgreSQL conserva pendiente y ejecutando, excluye nuevas solicitudes",
+      "passed": true
+    },
+    {
+      "name": "Identificación usa sólo copia local, fuente ILDA y trámite informacion_generada; guarda desde React",
+      "passed": true
+    },
+    {
+      "name": "Cambio y baja ILDA conservan respuesta y versión; GET incorpora IDs nuevos sin persistir",
+      "passed": true
+    },
+    {
+      "name": "Fallo de una fuente muestra Parcial y conserva la última copia ILDA íntegra",
+      "passed": true
+    },
+    {
+      "name": "Error SQL revierte publicación completa, muestra Con error y permite reintento",
+      "passed": true
+    },
+    {
+      "name": "Programación diaria, hora y zona se persisten; otra pestaña no sobrescribe versión vigente",
+      "passed": true
+    },
+    {
+      "name": "Automática siempre incluye SII, admite ILDA optativa y no acumula intervalos vencidos",
+      "passed": true
+    },
+    {
+      "name": "Reserva interrumpida visible termina fallida y permite nueva ejecución manual",
+      "passed": true
+    },
+    {
+      "name": "Revocar módulo Nexo bloquea pantalla y llamada directa; auditoría no contiene secretos",
+      "passed": true
+    },
+    {
+      "name": "Encabezado adaptable, refresco conserva borrador y error temporal permite reintento",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "externalFontsBlocked": true,
+  "identity": "Microsoft HTTP and Nexo SQL simulated",
+  "sources": "Synthetic ADO.NET readers; real mapping/publication; no SQL Server/MySQL wire"
+}

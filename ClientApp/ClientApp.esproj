@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.6778455">
   <PropertyGroup>
     <StartupCommand>npm run dev</StartupCommand>
+    <StartupCommandWorkingDirectory>$(MSBuildProjectDirectory)</StartupCommandWorkingDirectory>
+    <!-- Visual Studio necesita .vscode/launch.json también durante Implementar,
+         antes de ejecutar StartupCommand y arrancar Vite. -->
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
     <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
     <BuildOutputFolder>$(MSBuildThisFileDirectory)..\tdv2\wwwroot</BuildOutputFolder>

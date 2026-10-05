@@ -1,3 +1,4 @@
+using Tdv2.Integrations.Microsoft;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -14,9 +15,24 @@ namespace Tdv2.Controllers;
 
 public sealed class AuthenticationController(IOptions<MicrosoftSettings> settings, PostgresOAuthAttempts attempts,
     MicrosoftClient microsoft, MicrosoftLoginService login, SessionTerminationService termination,
-    AuthenticationAudit audit, AccessState state, RequestAccess access, ILogger<AuthenticationController> logger) : ControllerBase
+    AuthenticationAudit audit, AccessState state, RequestAccess access, ProtectedValues crypto, ILogger<AuthenticationController> logger) : ControllerBase
 {
     private const string BrowserCookie = "__Host-tdv2.oauth";
+    private const string HintCookie = "__Host-tdv2.microsoft-hint";
+    private const string LogoutCookie = "__Host-tdv2.microsoft-logout";
+    private string? Hint(string cookie)
+    {
+        try
+        {
+            var stored = Request.Cookies[cookie];
+            if (stored is null) return null;
+            var parts = crypto.Unprotect(cookie, stored).Split('|', 2);
+            return parts.Length == 2 && long.TryParse(parts[0], out var expires) && expires > DateTimeOffset.UtcNow.ToUnixTimeSeconds() ? parts[1] : null;
+        }
+        catch (System.Security.Cryptography.CryptographicException) { return null; }
+    }
+    private void StoreHint(string cookie, string hint) => Response.Cookies.Append(cookie,
+        crypto.Protect(cookie, DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds() + "|" + hint), BrowserOptions());
     private static CookieOptions BrowserOptions() => new()
     {
         HttpOnly = true,
@@ -38,7 +54,8 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
         {
             var attempt = await attempts.Create(ct);
             Response.Cookies.Append(BrowserCookie, attempt.Browser, BrowserOptions());
-            return Results.Redirect(microsoft.Authorize(attempt.State, attempt.Challenge));
+            return Results.Redirect(microsoft.Authorize(attempt.State, attempt.Challenge, attempt.Nonce,
+                Hint(HintCookie), Request.Query["account"] == "other"));
         }
         string? email = null;
         try
@@ -57,6 +74,7 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticated.Principal,
                 new AuthenticationProperties { IsPersistent = false, IssuedUtc = DateTimeOffset.UtcNow, ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2) });
             Response.Cookies.Delete("tdv2.aspnet.csrf");
+            StoreHint(HintCookie, authenticated.Principal.FindFirstValue("tdv2.microsoft_login_hint") ?? authenticated.Email);
             await audit.Record("login", email, authenticated.Name, ct);
             return Results.Redirect("/inicio");
         }
@@ -72,6 +90,14 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     public async Task<IResult> Logout()
     {
         var email = User.FindFirstValue(ClaimTypes.Email);
+        if (User.FindFirstValue("tdv2.microsoft_login_hint") is { } hint)
+        { StoreHint(LogoutCookie, hint); StoreHint(HintCookie, hint); }
+        else
+        {
+            // El correo real puede orientar el próximo login, nunca el logout.
+            Response.Cookies.Delete(LogoutCookie, BrowserOptions());
+            if (email is not null) StoreHint(HintCookie, email);
+        }
         await termination.Revoke(email, HttpContext.RequestAborted);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         Response.Cookies.Delete(BrowserCookie, BrowserOptions());
@@ -87,7 +113,20 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     public IResult MicrosoftLogout()
     {
         settings.Value.Validate();
-        return Results.Redirect(QueryHelpers.AddQueryString(settings.Value.Authority + "logout", "post_logout_redirect_uri", settings.Value.PublicOrigin.TrimEnd('/') + "/"));
+        var hint = Hint(LogoutCookie);
+        Response.Cookies.Delete(LogoutCookie, BrowserOptions());
+        return Results.Redirect(QueryHelpers.AddQueryString(settings.Value.Authority + "logout", new Dictionary<string, string?>
+        { ["post_logout_redirect_uri"] = settings.Value.PublicOrigin.TrimEnd('/') + "/", ["logout_hint"] = hint }));
+    }
+
+    [HttpPost("/session/use-another-account")]
+    public async Task<IResult> OtherAccount()
+    {
+        await termination.Revoke(User.FindFirstValue(ClaimTypes.Email), HttpContext.RequestAborted);
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        Response.Cookies.Delete(HintCookie, BrowserOptions()); Response.Cookies.Delete(LogoutCookie, BrowserOptions());
+        Response.Cookies.Delete(BrowserCookie, BrowserOptions()); Response.Cookies.Delete("tdv2.aspnet.csrf");
+        return Results.Json(new { redirect = "/connect?account=other" });
     }
 
     [HttpGet("/user/photo")]

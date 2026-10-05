@@ -2,17 +2,24 @@
 
 Abrir `tdv2.slnx`. `tdv2` es ASP.NET Core 10; `ClientApp/ClientApp.esproj` muestra la aplicación React existente mediante el sistema de proyectos JavaScript de Visual Studio. Los verificadores están agrupados en Pruebas y no se inician con F5.
 
+**Conexión vigente:** el usuario recreó `SERVIDOR_TDV2:5432 / tdv2_db` y actualizó User Secrets. Se aplicaron las dos migraciones EF y se repitió el comando sin cambios el 2026-10-02 UTC. Historial `__EFMigrationsHistory`; [comandos dotnet ef](../README.md#migraciones-ef-core) y evidencia final en ESTADO_MIGRACION. Las instrucciones de clúster/DPAPI/StartDatabase que siguen se refieren exclusivamente al entorno local aislado; no inicializan el servidor ni son necesarias para arrancar el sitio conectado al servidor.
+
 ## F5 con actualización de React
 
-1. Restaurar paquetes .NET al abrir/compilar. Ejecutar `npm.cmd ci --ignore-scripts` desde ClientApp si faltan dependencias o cambió el lockfile.
-2. Desde la raíz, ejecutar `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Local-Tdv2.ps1 StartDatabase`. Inicia sólo el clúster aislado registrado, sin recrear la base ni aplicar migraciones. La terminal puede cerrarse.
-3. Seleccionar el perfil compartido **TDV2 HTTPS + React** de la solución y **https** del backend; pulsar F5. Abrir `https://localhost:7136`.
-4. Editar `ClientApp/resources/js` o `resources/css`. Vite actualiza la interfaz por el WebSocket HTTPS del mismo origen.
-5. Mayús+F5 detiene la depuración. `Local-Tdv2.ps1 Stop` detiene PostgreSQL cuando ya no se necesite; los datos permanecen.
+1. Abrir `tdv2.slnx` y seleccionar **TDV2 HTTPS + React**. Si la solución estaba abierta durante esta corrección, volver a abrirla una vez para recargar los destinos compartidos.
+2. Pulsar F5 o el botón verde. Visual Studio inicia Vite y ASP.NET y abre Edge en `https://localhost:7136`. No ejecutar npm ni dotnet manualmente en cada arranque.
+3. Editar `ClientApp/resources/js` o `resources/css`. Vite actualiza la interfaz por el WebSocket HTTPS del mismo origen.
+4. Mayús+F5 detiene la depuración. El sistema JavaScript puede conservar Vite para reutilizarlo en el siguiente F5.
 
-Si el perfil compartido no aparece, habilitar perfiles de inicio de varios proyectos en las opciones de Visual Studio o configurar manualmente **ClientApp → Iniciar** y **tdv2 → Iniciar**; los proyectos de pruebas en **Ninguno**. Es el [mecanismo estándar de perfiles .slnLaunch](https://learn.microsoft.com/en-us/visualstudio/ide/how-to-set-multiple-startup-projects). La configuración de `StartupCommand` procede del [sistema JavaScript .esproj](https://learn.microsoft.com/en-us/visualstudio/javascript/javascript-project-system-msbuild-reference).
+La restauración .NET y `npm.cmd ci --ignore-scripts` sólo son preparación cuando faltan dependencias o cambia el lockfile. Las operaciones con datos requieren el clúster aislado ya disponible; su administración continúa explícita mediante `Local-Tdv2.ps1 StartDatabase` / `Stop`. F5 no administra bases, migra ni sincroniza. La comprobación de portada/React de esta corrección no consultó bases.
 
-El perfil `https` usa `ASPNETCORE_ENVIRONMENT=Development` y `ReactDevelopment__UseVite=true`. El perfil **https-compiled** sirve el último `npm run build` sin Vite. No iniciar ambos a la vez. `Local-Tdv2.ps1 Start` usa el perfil compilado; `Prepare` sigue siendo una operación explícita que compila y verifica/aplica SQL pendiente únicamente en la base de validación.
+El perfil fija **tdv2 → Iniciar → https** y **ClientApp → Iniciar → TDV2 React (Edge)**, en ese orden; pruebas en **Ninguno**. No depende del último depurador seleccionado. Es el [mecanismo estándar de perfiles .slnLaunch](https://learn.microsoft.com/en-us/visualstudio/ide/how-to-set-multiple-startup-projects). `ClientApp/.vscode/launch.json` configura el [depurador JavaScript de Visual Studio](https://learn.microsoft.com/en-us/visualstudio/javascript/tutorial-asp-net-core-with-react?view=visualstudio); el nombre `.vscode` también es requerido por Visual Studio.
+
+`ClientApp.esproj` ejecuta `npm run dev` en ClientApp. Ese script conserva `vite --host 127.0.0.1 --port 5173 --strictPort`. JSPS verifica el puerto de `launch.json` durante **Implementar**, antes de iniciar Kestrel: por eso el destino es `http://127.0.0.1:5173/__vite/__launch`. Esta ruta sólo existe en desarrollo, espera hasta 30 segundos a `/health/live` local y redirige al HTTPS fijo. El depurador sigue el origen 7136 y mapea `/__vite/` a los archivos locales. Sólo ClientApp abre navegador; `https` tiene `launchBrowser=false` y `https-compiled` conserva `true`.
+
+El perfil `https` usa `ASPNETCORE_ENVIRONMENT=Development` y `ReactDevelopment__UseVite=true`. El perfil **https-compiled** sirve el último `npm run build` sin Vite. No iniciar ambos a la vez. `Local-Tdv2.ps1 Start` usa el perfil compilado; `Prepare` aplica EF explícitamente sólo en su clúster verificado. Una base local anterior sin historial EF se conserva y requiere revisión; no se adopta ni se elimina automáticamente.
+
+`appsettings.Development.json` conserva `UseVite=false`: la variable del perfil `https` tiene prioridad. Se comprobó que User Secrets y las variables ambientales del proceso de comprobación/usuario/equipo no aportaban otra sobrescritura de esa clave. No se modificaron credenciales.
 
 | Elemento | Destino |
 |---|---|
@@ -54,7 +61,7 @@ ASP.NET carga ese proveedor mediante `WebApplication.CreateBuilder` en Developme
 | MSSQL_ENCRYPT / MSSQL_TRUST_SERVER_CERTIFICATE | Encrypt / TrustServerCertificate en SQL Server |
 | ILDA_DB_HOST/PORT/DATABASE/USERNAME/PASSWORD | ConnectionStrings:Ilda; Server/Port/Database/User ID/Password |
 | ILDA_DB_SSL_CA | SslCa y VerifyFull si había CA; se conservó Preferred cuando no había CA |
-| DB_* de Laravel | **No trasladado**: ConnectionStrings:Tdv2 conserva tdv2_local_validation |
+| DB_* de Laravel | No se importan; ConnectionStrings:Tdv2 es ahora el servidor recreado, configurado directamente por el usuario |
 | Activación remota o automática anterior | **No trasladada**; Synchronization:IldaEnabled=false y programación local pausada |
 | APP_KEY / NEXO_APP_ID | No se importan. Nexo se resuelve por la clave fija tdv2; sus roles no se configuran localmente |
 
@@ -65,13 +72,17 @@ No cambiar TLS para conseguir acceso. Las cadenas ya fueron analizadas por los p
 ```powershell
 # Raíz, sin depuración activa
 dotnet build tdv2.slnx
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-UserSecrets.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-Development.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-Development.ps1 -Compiled
+dotnet run --project tests/TDV2.Verification --no-build --no-restore
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -MigrationsOnly
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
 ```
 
-Test-UserSecrets edita temporalmente un ClientId sintético, comprueba la precedencia y que los comandos retirados no lo reponen, y restaura el archivo byte por byte si no hubo otra edición concurrente. No inicia sesión. Test-Development usa Edge con confianza TLS real, prueba `/connect` **sin seguir** la redirección y verifica React/CSRF/HMR. Conserva la pantalla modificada ante una edición concurrente en vez de sobrescribirla; en operación normal restaura sus bytes exactos.
+Test-UserSecrets y Test-Development son verificadores históricos del clúster local anterior. No ejecutarlos para validar el servidor vigente. Para F5 ya iniciado, `node ClientApp/tests/browser/visual-studio-startup.mjs` desde la raíz comprueba portada, React y HMR sin OAuth ni consultas institucionales.
 
 Si falta el certificado de desarrollo en otra cuenta/equipo, ejecutar personalmente `dotnet dev-certs https --trust`. En esta sesión se utilizó el certificado ya existente. No se instaló otro certificado ni un servicio PostgreSQL.
 
-**Verificado por CLI y Edge; pendiente operar F5 dentro de la interfaz de Visual Studio.** Un 302 a Microsoft sólo confirma el armado del inicio OAuth y su callback. Faltan registro Entra, consentimiento, MFA, token/Graph y acceso institucional real. Para Nexo y sus funciones publicadas consultar [autenticación](migracion/AUTENTICACION_POSTGRESQL.md) y [delegación/representación](migracion/DELEGACION_REPRESENTACION.md). No se introducen usuarios o roles de demostración en la aplicación.
+**F5 verificado el 2026-10-01 en la instancia abierta de Visual Studio Community 2026 18.10.3 mediante `EnvDTE.ExecuteCommand("Debug.Start")`, incluido arranque en frío.** Se leyó su panel de salida: implementación correcta y depuradores .NET/JavaScript activos. El [error original completo](migracion/evidencia-vs-implementacion-antes.txt) era `Value cannot be null. Parameter name: source` al leer una configuración `launch.json` inexistente. [Resultado corregido](migracion/evidencia-vs-implementacion-despues.txt), [precedencia](migracion/evidencia-vs-configuracion.json) y [React/HTTPS](migracion/evidencia-vs-react.json).
+
+Con ese perfil ya iniciado, `node tests/browser/visual-studio-startup.mjs` desde ClientApp repite la comprobación anónima de Vite, redirección, React, props, 401 y WebSocket HMR. No inicia servicios ni OAuth. Los artefactos quedan en `.artifacts/visual-studio`.
+
+La verificación histórica de un 302 a Microsoft sólo confirma el armado del inicio OAuth y su callback. Faltan registro Entra, consentimiento, MFA, token/Graph y acceso institucional real. Esta corrección no repitió login ni accedió a bases. Para Nexo y sus funciones publicadas consultar [autenticación](migracion/AUTENTICACION_POSTGRESQL.md) y [delegación/representación](migracion/DELEGACION_REPRESENTACION.md).

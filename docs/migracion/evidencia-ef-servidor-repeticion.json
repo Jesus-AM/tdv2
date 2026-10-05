@@ -1,0 +1,64 @@
+{
+  "utc": "2026-10-02T06:00:02.0161465+00:00",
+  "readOnly": true,
+  "target": {
+    "host": "SERVIDOR_TDV2",
+    "port": 5432,
+    "database": "tdv2_db",
+    "user": "USUARIO_TDV2"
+  },
+  "address": "SERVIDOR_TDV2",
+  "tls": true,
+  "permissionsVerified": true,
+  "serverVersion": "18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+  "empty": false,
+  "recognized": true,
+  "tables": [
+    "activity_logs",
+    "colaboraciones_ur",
+    "formatos_ur",
+    "ilda_informacion_area",
+    "ms_graph_tokens",
+    "sincronizacion_catalogos",
+    "sincronizacion_configuracion",
+    "sincronizacion_ejecuciones",
+    "sincronizaciones_institucionales",
+    "tdv2_access_contexts",
+    "tdv2_oauth_attempts",
+    "tdv2_sessions",
+    "unidades_responsables_poa",
+    "users"
+  ],
+  "counts": {
+    "activity_logs": 0,
+    "colaboraciones_ur": 0,
+    "formatos_ur": 0,
+    "ilda_informacion_area": 0,
+    "ms_graph_tokens": 0,
+    "sincronizacion_catalogos": 0,
+    "sincronizacion_configuracion": 1,
+    "sincronizacion_ejecuciones": 0,
+    "sincronizaciones_institucionales": 0,
+    "tdv2_access_contexts": 0,
+    "tdv2_oauth_attempts": 0,
+    "tdv2_sessions": 0,
+    "unidades_responsables_poa": 0,
+    "users": 0
+  },
+  "otherObjects": 0,
+  "applied": [
+    "20261002051005_InitialTdv2",
+    "20261002051340_InitializePausedSynchronization"
+  ],
+  "pending": [],
+  "automaticSynchronizationDisabled": true,
+  "schemaSha256": "15667972B43215FF2A439AB9FCC36B7636CEE7B3137CF92E3E94BE9E2D44E57A",
+  "valid": true,
+  "publicationRedaction": {
+    "fields": [
+      "institutionalHost",
+      "institutionalUser"
+    ],
+    "note": "Identificadores del destino omitidos para publicación. Resultados de la verificación original sin cambios."
+  }
+}

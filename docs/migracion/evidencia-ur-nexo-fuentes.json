@@ -1,0 +1,26 @@
+﻿[
+    {
+        "path":  "app/Services/DelegacionPostgres.php",
+        "before":  "AC9FB0059DD2DABDC7127F860C58E5369A4340CC88446809D3C93C1EFB36ADD6",
+        "after":  "23ED2739C0224838B3DE60A3A2E826ADB565DE4C6E5C89B4D0B00F6440F5693F",
+        "matchesTestedSource":  true
+    },
+    {
+        "path":  "app/Services/AdministracionDelegada.php",
+        "before":  "523995265D05EE478FEB99049F95C27275572BC8F4CB34201EA34DDFCC4435A9",
+        "after":  "55D737647907E072FED17402B3095F51B64AE5399BC9D61D87508349296D1137",
+        "matchesTestedSource":  true
+    },
+    {
+        "path":  "app/Services/Postgres/conceder_acceso.sql",
+        "before":  "BFEA8FEB2625F70B635642C6B2BDA5AB25FDB840127DF2B9EB026FFBD8031DD2",
+        "after":  "C2769F49B260796C9841D853EB632AA0259D1CFD4147BB2912E15461085D44A0",
+        "matchesTestedSource":  true
+    },
+    {
+        "path":  "app/Services/Postgres/retirar_acceso.sql",
+        "before":  "697EC8381C897110308E44D17BE5DC6F5FD84D713A8946F664DCD4C0FDC060FB",
+        "after":  "2CE35D7C0600314983D1730D6CFECF2DA77726B8ECCE11EBE16F9ABFA979360D",
+        "matchesTestedSource":  true
+    }
+]

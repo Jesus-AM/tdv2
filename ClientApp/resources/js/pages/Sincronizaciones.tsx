@@ -21,7 +21,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { ArrowBack, Refresh, SaveOutlined, StorageOutlined, SyncOutlined, ScheduleOutlined } from '@mui/icons-material';
+import { Refresh, SaveOutlined, StorageOutlined, SyncOutlined, ScheduleOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import { errorResponse, errorText } from '@/lib/http';
@@ -86,7 +86,9 @@ export default function Sincronizaciones({
 }) {
     const [draft, setDraft] = useState(configuracion),
         [busy, setBusy] = useState(false),
+        [refreshing, setRefreshing] = useState(false),
         [error, setError] = useState(''),
+        [statusError, setStatusError] = useState(''),
         [message, setMessage] = useState(''),
         [conflict, setConflict] = useState(false);
     useEffect(() => {
@@ -95,13 +97,21 @@ export default function Sincronizaciones({
     useEffect(() => {
         const timer = setInterval(
             () => {
-                if (document.visibilityState === 'visible')
-                    router.reload({ only: ['estado', 'historial', 'catalogos'] });
+                if (document.visibilityState === 'visible' && !refreshing && !busy) refresh();
             },
             estado.ejecucion_activa ? 5000 : 15000,
         );
         return () => clearInterval(timer);
-    }, [estado.ejecucion_activa]);
+    }, [estado.ejecucion_activa, refreshing, busy]);
+    function refresh(manual = false) {
+        if (refreshing) return;
+        setRefreshing(true);
+        router.reload({ only: ['estado', 'historial', 'catalogos'],
+            onError: (errors) => setStatusError(errors.general),
+            onSuccess: () => { setStatusError(''); if (manual) setMessage('Estado actualizado.'); },
+            onFinish: () => setRefreshing(false),
+        });
+    }
     const date = (value: string | null) =>
         value
             ? new Intl.DateTimeFormat('es-MX', {
@@ -147,21 +157,20 @@ export default function Sincronizaciones({
         <AuthenticatedLayout>
             <Head title="Sincronizaciones" />
             <div className="page">
-                <Button startIcon={<ArrowBack />} sx={{ mb: 2 }} onClick={() => router.visit('/configuracion')}>
-                    Configuración
-                </Button>
                 <PageHeading
+                    back={{ label: 'Configuración', href: '/configuracion' }}
                     title="Sincronizaciones"
                     description="Mantén actualizadas las áreas y el inventario que utilizan los formatos."
                     actions={
-                        <Button variant="outlined" startIcon={<Refresh />} onClick={() => router.reload()}>
-                            Actualizar estado
+                        <Button variant="outlined" startIcon={<Refresh />} disabled={refreshing} onClick={() => refresh(true)}>
+                            {refreshing ? 'Actualizando…' : 'Actualizar estado'}
                         </Button>
                     }
                 />
-                {error && (
-                    <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-                        {error}
+                {refreshing && <LinearProgress aria-label="Actualizando estado" sx={{ mb: 2 }} />}
+                {(error || statusError) && (
+                    <Alert severity="error" sx={{ mb: 3 }} onClose={() => { setError(''); setStatusError(''); }}>
+                        {error || statusError}
                         {conflict && (
                             <Button
                                 sx={{ ml: 1 }}

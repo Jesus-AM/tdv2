@@ -1,0 +1,52 @@
+﻿Debugger mode: dbgRunMode
+Build state: vsBuildStateDone
+Startup: tdv2\tdv2.csproj
+Startup: ClientApp\ClientApp.esproj
+Window: Automático
+Window: Inspección 1
+Window: Variables locales
+Window: Herramientas de diagnóstico
+Window: Pila de llamadas
+Debugged: localhost:7136 « Adaptador de depuración de JavaScript
+Debugged: 
+Debugged: C:\Users\Jesus Arenas\source\repos\tdv2\tdv2\bin\Debug\net10.0\tdv2.exe
+Panel: Control de código fuente - Team Foundation
+Panel: Compilación
+Compilación iniciada a las 02:44 p. m....
+1>------ Operación Compilar iniciada: Proyecto: ClientApp, configuración: Debug Any CPU ------
+2>------ Operación Implementar iniciada: Proyecto: ClientApp, configuración: Debug Any CPU ------
+2>Iniciando la implementación del proyecto "C:\Users\Jesus Arenas\source\repos\tdv2\ClientApp\ClientApp.esproj"...
+2>Iniciando la siguiente configuración desde launch.json:
+2>{
+2>  "name": "TDV2 React (Edge)",
+2>  "type": "edge",
+2>  "request": "launch",
+2>  "url": "http://127.0.0.1:5173/__vite/__launch",
+2>  "webRoot": "C:\\Users\\Jesus Arenas\\source\\repos\\tdv2\\ClientApp",
+2>  "urlFilter": "https://localhost:7136/*",
+2>  "pathMapping": {
+2>    "/__vite/": "C:\\Users\\Jesus Arenas\\source\\repos\\tdv2\\ClientApp/"
+2>  }
+2>}
+2>La implementación del proyecto "C:\Users\Jesus Arenas\source\repos\tdv2\ClientApp\ClientApp.esproj" se realizó correctamente.
+========== Compilación: 1 correcto, 0 erróneo, 1 actualizado, 0 omitido ==========
+========== Compilar completado a las 02:44 p. m. y tardó 00.709 segundos ==========
+========== Implementación: 1 correcta, 0 con errores, 0 omitido ===========
+========== Implementar completado a las 02:44 p. m. y tardó 00.709 segundos ==========
+
+Panel: Orden de compilación
+Panel: Resultado de base de datos
+Panel: Pruebas
+Panel: Control de código fuente
+Panel: Depurar
+'tdv2.exe' (CoreCLR: clrhost): 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\PrivateAssemblies\Runtime\Microsoft.VisualStudio.Debugger.Runtime.NetCoreApp.dll' cargado. Se omitió la carga de símbolos. El módulo está optimizado y la opción del depurador 'Sólo mi código' está habilitada.
+
+Panel: Control de código fuente - GIT
+Panel: Administrador de paquetes
+Panel: Dependencias del servicio
+Panel: Dev Tunnel
+Panel: IntelliSense
+Panel: Extensión de lenguaje ESLint
+Panel: GitHub Copilot
+Panel: Recarga activa
+
