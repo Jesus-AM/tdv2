@@ -1,0 +1,22 @@
+{
+  "checks": [
+    {
+      "name": "Nuevo rol: tipo N excluido, tipo 0 elegible en niveles 2 y 3; Mis áreas y Todas las áreas conservan alcance",
+      "passed": true
+    },
+    {
+      "name": "Claves: busca 06000/6000, muestra 6000 y mantiene la ruta A3",
+      "passed": true
+    },
+    {
+      "name": "Nivel 3: botón visible, sólo opción local y alta sintética en su formato",
+      "passed": true
+    },
+    {
+      "name": "Móvil y movimiento reducido: expansión, foco y menús sin desbordamiento",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "failed": false
+}

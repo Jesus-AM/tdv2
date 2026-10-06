@@ -8,13 +8,15 @@ El botón y las ramas candidatas de TDV2 estaban limitados a nivel 2. Se habilit
 
 `responsable_ur_institucional` funciona sin `responsable_ur`: añade lectura institucional a la responsabilidad comprobada por `num_empleado` textual. No concede funciones administrativas. Se distinguen Mis áreas y Todas las áreas, con formatos de consulta marcados; PUT y delegación siguen verificando el alcance efectivo en el servidor. La representación no hereda permisos del actor real y el escenario nuevo de vista de prueba no permite escribir.
 
-El campo real es `TIPO_UR` de SII, replicado como `unidades_responsables_poa.tipo_ur` y mapeado por EF en `ResponsibleUnit.Kind`. Las UR tipo 0 permanecen en la réplica y en el cálculo interno de jerarquía, pero no son elegibles ni aparecen en formatos, selectores o contadores. La jerarquía pública agrupa nivel 2 con sus dependientes de nivel 3 atravesando nodos auxiliares. No se borraron filas históricas.
+El campo real es `TIPO_UR` de SII, replicado como `unidades_responsables_poa.tipo_ur` y mapeado por EF en `ResponsibleUnit.Kind`. Corrección vigente: se excluye **sólo tipo N**, comparando sin espacios exteriores y sin distinguir mayúsculas; tipo **0 sí es elegible** si cumple actividad, alcance y nivel. Los formatos siguen limitados a niveles 2/3. Los nodos N se conservan en la réplica y en el cálculo interno de jerarquía, pero no se ofrecen en formatos, selectores ni contadores. La jerarquía pública agrupa nivel 2 con sus dependientes de nivel 3 atravesando nodos auxiliares. No se borran filas de catálogo ni formatos históricos; no se cambia el tipo almacenado.
 
 `displayUnitCode` sólo presenta claves numéricas sin ceros iniciales. La búsqueda acepta `06000` y `6000`; los ID, las claves originales y los vínculos siguen intactos. ILDA continúa usando la igualdad exacta de su clave de origen: dos códigos de origen diferentes no se fusionan por tener la misma presentación.
 
 React/MUI conserva tipografía, barra clara y botones azules. El encabezado de Sincronizaciones usa regreso discreto y distribución adaptable. Actualizar estado conserva el borrador de programación; un fallo temporal permite reintentar sin desmontarlo. Se mantienen los rechazos de autorización. Transiciones de 150–220 ms se desactivan con `prefers-reduced-motion`; las áreas conservan sus componentes y el foco al expandirse.
 
 ## Código de Nexo
+
+Esta sección describe la implementación externa de una entrega anterior. La corrección posterior de tipo `N` se aplica a TDV2; no modifica ni ejecuta Herd/Nexo. Cualquier ajuste de esa publicación central requiere un trabajo separado autorizado; TDV2 sigue exigiendo la capacidad vigente de Nexo para delegar.
 
 Se revisó la raíz `C:\Users\Jesus Arenas\Herd\nexo`, sin ejecutar Laravel ni leer credenciales. Nexo ya publicaba delegación para niveles 2 y 3; faltaba limitar el rol asignable de TDV2 por nivel. Se modificaron sólo:
 

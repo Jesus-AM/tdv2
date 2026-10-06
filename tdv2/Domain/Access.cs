@@ -39,8 +39,9 @@ public sealed class UnitDirectory(IEnumerable<Unit> units)
         .Where(u => u.Present && u.Status.Trim().Equals("activo", StringComparison.OrdinalIgnoreCase))
         .ToDictionary(u => u.Id, StringComparer.Ordinal);
     public Unit? Get(string? id) => id is not null && Units.TryGetValue(id, out var unit) ? unit : null;
-    // TIPO_UR es independiente del nivel y de CVE_UR. Los nodos auxiliares siguen en Units.
-    public static bool IsEligible(Unit unit) => !int.TryParse(unit.Kind, out var kind) || kind != 0;
+    // Sólo el tipo N se excluye; 0 sigue siendo válido. No alterar el dato de origen ni retirar nodos de la jerarquía.
+    // TIPO_UR es independiente de NIVEL_UR y de los ceros iniciales de CVE_UR.
+    public static bool IsEligible(Unit unit) => !string.Equals(unit.Kind?.Trim(), "N", StringComparison.OrdinalIgnoreCase);
     public static bool IsForm(Unit unit) => IsEligible(unit) && unit.Level is 2 or 3;
     private IEnumerable<Unit> Ancestors(string? id)
     {

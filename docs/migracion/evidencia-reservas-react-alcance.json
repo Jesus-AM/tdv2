@@ -1,0 +1,22 @@
+{
+  "checks": [
+    {
+      "name": "Nuevo rol: navegación sin configuración, Mis áreas/Todas las áreas y tipo 0 excluido",
+      "passed": true
+    },
+    {
+      "name": "Claves: busca 06000/6000, muestra 6000 y mantiene la ruta A3",
+      "passed": true
+    },
+    {
+      "name": "Nivel 3: botón visible, sólo opción local y alta sintética en su formato",
+      "passed": true
+    },
+    {
+      "name": "Móvil y movimiento reducido: expansión, foco y menús sin desbordamiento",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "failed": false
+}

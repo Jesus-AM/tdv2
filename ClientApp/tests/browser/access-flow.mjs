@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -46,8 +46,8 @@ async function control(action) {
 }
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
-    await target.getByRole('tab', { name: 'Contexto', exact: true }).click();
-    return target.getByLabel('Responsable del llenado', { exact: true });
+    await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
+    return target.getByLabel('Trámite / servicio 1', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
     const response = target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH');
@@ -118,6 +118,33 @@ try {
         await page.getByRole('heading', { name: 'Actuar como usuario', exact: true }).waitFor();
         await page.getByRole('button', { name: 'Probar rol y área', exact: true }).waitFor();
     });
+    await check('módulos principales y desplegable de Configuración respetan jerarquía, teclado y móvil', async () => {
+        const navigation = page.getByRole('navigation', { name: 'Módulos', exact: true });
+        await expect(navigation.getByRole('button')).toHaveCount(2);
+        await expect(navigation.getByRole('button', { name: 'Sincronizaciones', exact: true })).toHaveCount(0);
+        const config = navigation.getByRole('button', { name: 'Configuración', exact: true });
+        await config.click();
+        await expect(page.getByRole('menuitem', { name: 'Pruebas de acceso', exact: true })).toHaveAttribute('aria-current', 'page');
+        await expect(page.getByRole('menuitem', { name: 'Sincronizaciones', exact: true })).toHaveCount(0);
+        await page.getByRole('menuitem', { name: 'Configuración', exact: true }).focus();
+        await page.keyboard.press('ArrowDown');
+        await expect(page.getByRole('menuitem', { name: 'Pruebas de acceso', exact: true })).toBeFocused();
+        await page.keyboard.press('Enter');
+        await page.getByRole('heading', { name: 'Actuar como usuario', exact: true }).waitFor();
+        await config.click(); await expect(page.getByRole('menuitem', { name: 'Pruebas de acceso', exact: true })).toHaveAttribute('aria-current', 'page');
+        await page.keyboard.press('Escape'); await expect(config).toBeFocused();
+        await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.getByRole('button', { name: 'Abrir navegación', exact: true }).click();
+        await navigation.getByRole('button', { name: 'Configuración', exact: true }).click();
+        await page.getByRole('menuitem', { name: 'Pruebas de acceso', exact: true }).waitFor();
+        await page.screenshot({ path: path.join(artifacts, 'modulos-menu-movil.png') });
+        await page.getByRole('menuitem', { name: 'Pruebas de acceso', exact: true }).click();
+        await page.getByRole('heading', { name: 'Actuar como usuario', exact: true }).waitFor();
+        await expect(navigation).toHaveCount(0);
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        await page.screenshot({ path: path.join(artifacts, 'modulos-movil.png'), fullPage: true });
+        await page.setViewportSize({ width: 1440, height: 1000 }); await page.emulateMedia({ reducedMotion: 'no-preference' });
+    });
     await check('búsqueda distingue resultado vacío, falta de delegación y conexión fallida', async () => {
         await page.goto(origin + '/colaboradores');
         await searchCollaborator('inexistente');
@@ -170,8 +197,9 @@ try {
         await startRepresentation(true);
         await page.getByText('Cambios reales habilitados', { exact: true }).waitFor();
         await page.goto(origin + '/formatos/A');
-        await savedAfter(async () => (await header()).fill('Operación representada desde React'));
-        assert.equal((await stored()).contenido.encabezado.responsable, 'Operación representada desde React');
+        const field = await header(); await field.focus(); await expect(field).toHaveJSProperty('readOnly', false);
+        await savedAfter(() => field.fill('Operación representada desde React'));
+        assert.equal((await stored()).contenido.identificacion[0].tramite, 'Operación representada desde React');
         const form = await request('/formatos/A');
         assert.equal((await request('/formatos/B', 'PUT', { version: 0, contenido: form.body.props.contenido })).status, 403);
         assert.equal((await request('/configuracion')).status, 409);
@@ -227,4 +255,3 @@ try {
     }, null, 2));
     await browser.close();
 }
-

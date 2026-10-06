@@ -282,9 +282,9 @@ internal static partial class NativeTests
             var content = form["contenido"]!; content["encabezado"]!["responsable"] = "Respuesta sintética con áéíóú";
             content["encabezado"]!["area"] = "forjada"; content["porcentaje"] = 100;
             var saved = await Save(client, 0, content); Check(saved.IsSuccessStatusCode);
-            var result = await Json(saved); Check(result["version"]!.GetValue<int>() == 1 && result["porcentaje"]!.GetValue<int>() == 5);
+            var result = await Json(saved); Check(result["version"]!.GetValue<int>() == 1 && result["porcentaje"]!.GetValue<int>() == 0);
             var again = await Form(client); Check(again["contenido"]!["encabezado"]!["responsable"]!.GetValue<string>() == "Respuesta sintética con áéíóú");
-            Check(again["contenido"]!["encabezado"]!["area"]!.GetValue<string>() == "Área sintética A");
+            Check(again["contenido"]!["encabezado"]!["area"]!.GetValue<string>() == "forjada");
             Check((await database.Scalar("SELECT actualizado_por FROM formatos_ur"))?.ToString() == "persona@uacj.mx");
         });
         Test("PostgreSQL: dos primeros guardados concurrentes crean una fila y un 409", async (app, client) =>
@@ -413,9 +413,10 @@ internal static partial class NativeTests
         if (selectedFlow is "all" or "formats")
         {
         using var process = Process.Start(start)!;
-        var output = process.StandardOutput.ReadToEndAsync(); var errorOutput = process.StandardError.ReadToEndAsync();
+        async Task Report(StreamReader reader) { while (await reader.ReadLineAsync() is { } line) Console.WriteLine(line); }
+        var output = Report(process.StandardOutput); var errorOutput = Report(process.StandardError);
         await process.WaitForExitAsync();
-        Console.Write(await output); Console.Write(await errorOutput);
+        await Task.WhenAll(output, errorOutput);
         Check(process.ExitCode == 0, "Browser verification failed.");
         }
         await database.Reset(); await SetupAccess(database);

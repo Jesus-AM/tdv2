@@ -29,6 +29,22 @@ a {
 .page-heading-copy { min-width: 0; max-width: 760px; }
 .page-back.MuiButton-root { color: #65748a; padding-inline: 0; margin-bottom: 8px; min-height: 30px; }
 .page-heading .row-actions { flex-shrink: 0; }
+.operational-heading .page-heading { align-items: flex-start; flex-wrap: wrap; gap: 12px 24px; }
+.operational-heading .page-heading-copy { flex: 1 1 360px; max-width: none; }
+.operational-heading h1 { font-size: 26px; font-weight: 600; line-height: 1.4; }
+.operational-heading .MuiTypography-body2 { font-size: 14px; }
+.operational-heading .row-actions { gap: 10px; }
+.operational-heading .MuiButton-root:focus-visible { outline: 2px solid #245bb6; outline-offset: 3px; }
+.operational-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 10px; }
+.surface.operational-stat { display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 12px 16px; }
+.operational-stat-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; color: #245bb6; background: #edf3fd; border-radius: 10px; }
+.operational-stat-icon .MuiSvgIcon-root { font-size: 20px; }
+.operational-stat-copy { min-width: 0; }
+.operational-stat-value.MuiTypography-root { font-size: 26px; font-weight: 600; line-height: 1.2; }
+.surface.personal-area-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 80px; padding: 12px 16px; }
+.area-root-trigger:focus-visible { outline: 2px solid #245bb6; outline-offset: -3px; }
+.area-format-row { transition: background-color 180ms ease; }
+.area-format-row:hover, .area-format-row:focus-within { background-color: #f8faff; }
 .area-root-trigger { transition: background-color 180ms ease; }
 .page-header { animation: content-appear 180ms ease-out; }
 @keyframes content-appear { from { opacity: 0; } to { opacity: 1; } }
@@ -130,9 +146,6 @@ a {
     align-items: center;
     flex-wrap: wrap;
 }
-.print-only {
-    display: none;
-}
 @media (max-width: 900px) {
     .page {
         padding: 22px 18px;
@@ -145,6 +158,12 @@ a {
     }
 }
 @media (max-width: 600px) {
+    .operational-stats { gap: 12px; }
+    .surface.operational-stat { align-items: flex-start; min-height: 80px; padding: 10px; }
+    .operational-stat-icon { display: none; }
+    .operational-stat-value.MuiTypography-root { margin-top: 4px; }
+    .operational-heading h1 { font-size: 24px; }
+    .operational-heading .page-heading-copy { flex-basis: 100%; }
     .page {
         padding: 20px 12px;
     }
@@ -165,33 +184,13 @@ a {
 .form-panel:not([hidden]) { animation: form-content-enter 180ms ease-out; }
 @keyframes form-content-enter { from { opacity: .7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .form-panel { animation: none; } }
-@media print {
-    .no-print,
-    .app-footer {
-        display: none !important;
-    }
-    .page {
-        padding: 0;
-        max-width: none;
-    }
-    .app-content {
-        margin-left: 0 !important;
-        padding-top: 0 !important;
-    }
-    .capture-scroll {
-        max-height: none;
-        overflow: visible;
-    }
-    .capture-scroll table {
-        min-width: 0;
-    }
-    .form-actions {
-        display: none;
-    }
-    .print-only {
-        display: block;
-    }
-    .screen-only {
-        display: none !important;
-    }
+[data-edit-block] {
+    transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+[data-edit-state="occupied"] {
+    background-color: #fff8e8;
+    box-shadow: inset 3px 0 #d6aa50;
+}
+@media (prefers-reduced-motion: reduce) {
+    [data-edit-block] { transition: none; }
 }

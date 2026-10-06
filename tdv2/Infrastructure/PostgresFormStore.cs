@@ -38,7 +38,7 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
 
     private static StoredForm Stored(UnitForm form) => new(form.UnitId, JsonNode.Parse(form.Content)!.AsObject(),
         form.Version, form.Progress, new DateTimeOffset(DateTime.SpecifyKind(form.UpdatedAt!.Value, DateTimeKind.Utc)), form.UpdatedBy,
-        form.SubmittedAt, form.SubmissionSnapshot, form.Year);
+        form.SubmittedAt, form.SubmissionSnapshot, form.Year, form.SubmittedEffective);
 
     public async Task LockUnit(string unit, NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken cancellation)
     {

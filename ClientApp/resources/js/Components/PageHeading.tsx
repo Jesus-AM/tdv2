@@ -7,14 +7,16 @@ export default function PageHeading({
     description,
     actions,
     back,
+    className,
 }: {
     title: string;
     description?: string;
     actions?: ReactNode;
     back?: { label: string; href: string };
+    className?: string;
 }) {
     return (
-        <header className="page-header">
+        <header className={['page-header', className].filter(Boolean).join(' ')}>
             {back && (
                 <Button className="page-back" startIcon={<ArrowBack />} onClick={() => router.visit(back.href)}>
                     {back.label}

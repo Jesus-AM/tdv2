@@ -19,6 +19,14 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         foreach (var scope in context.Scopes.Values.OrderBy(s => s.Unit.Code, StringComparer.OrdinalIgnoreCase))
         {
             var record = await store.Get(scope.Unit.Id, http.RequestAborted);
+            var progress = record?.Progress ?? 0;
+            if (record?.SubmittedAt is null)
+            {
+                // Recalcular sólo la proyección de consulta; un GET no modifica borradores ni instantáneas enviadas.
+                var draft = record?.Content.DeepClone().AsObject() ?? schema.Blank(scope.Unit);
+                LocalCatalog.Merge(draft, await catalogs.Inventory(scope.Unit, http.RequestAborted));
+                progress = FormSchema.Progress(draft);
+            }
             rows.Add(new()
             {
                 ["id_ur"] = scope.Unit.Id,
@@ -32,7 +40,7 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
                 ["ejercicio"] = scope.Unit.Year,
                 ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
                 ["enviado_en"] = record?.SubmittedAt,
-                ["porcentaje"] = record?.Progress ?? 0,
+                ["porcentaje"] = progress,
                 ["actualizado_en"] = record?.UpdatedAt,
                 ["actualizado_por"] = record?.UpdatedBy,
                 ["url"] = "/formatos/" + Uri.EscapeDataString(scope.Unit.Id)
@@ -59,7 +67,6 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         if (!context.Scopes.TryGetValue(ur, out var scope)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
         var record = await store.Get(ur, http.RequestAborted);
         var content = record?.Content.DeepClone() ?? schema.Blank(scope.Unit);
-        if (record?.SubmittedAt is null) content["encabezado"]!["area"] = scope.Unit.Description ?? scope.Unit.Code;
         object inventory = record?.SubmittedAt is null
             ? LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted)).Status
             : new { estado = "enviado", nuevos = 0, total = content["identificacion"]!.AsArray().Count, aviso = (string?)null };
@@ -73,9 +80,10 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
             ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
             ["puedeEnviar"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
             ["enviadoEn"] = record?.SubmittedAt,
+            ["enviadoPor"] = record?.SubmittedEffective,
             ["permisoEdicion"] = scope.Edit,
             ["version"] = record?.Version ?? 0,
-            ["porcentaje"] = record?.Progress ?? 0,
+            ["porcentaje"] = record?.SubmittedAt is not null ? record.Progress : FormSchema.Progress(content.AsObject()),
             ["actualizadoEn"] = record?.UpdatedAt,
             ["actualizadoPor"] = record?.UpdatedBy,
             ["guardarUrl"] = "/formatos/" + Uri.EscapeDataString(ur),

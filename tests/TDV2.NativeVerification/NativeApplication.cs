@@ -155,8 +155,9 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                         DELETE FROM fixture_delegation WHERE email='persona@uacj.mx';
                         INSERT INTO fixture_delegation VALUES('persona@uacj.mx','A3','0002',3);
                         INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur,desc_ur,id_ur_pertenece,nivel_ur,tipo_ur,estatus_ur,presente)
-                        VALUES('aux',2026,'00000','Nodo auxiliar excluido','A',3,'0','Activo',true);
-                        UPDATE unidades_responsables_poa SET cve_ur='06000',id_ur_pertenece='aux',tipo_ur='1' WHERE id_ur='A3';
+                        VALUES('aux',2026,'00000','Nodo auxiliar excluido','A',3,' n ','Activo',true);
+                        UPDATE unidades_responsables_poa SET cve_ur='06000',id_ur_pertenece='aux',tipo_ur='0' WHERE id_ur='A3';
+                        UPDATE unidades_responsables_poa SET tipo_ur=' 0 ' WHERE id_ur='A';
                         """); break;
                 case "/sync-tick":
                     using (var scope=http.RequestServices.CreateScope()) await scope.ServiceProvider.GetRequiredService<SyncCoordinator>().Tick(http.RequestAborted);

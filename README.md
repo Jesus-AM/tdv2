@@ -8,6 +8,10 @@ Código: [Jesus-AM/tdv2](https://github.com/Jesus-AM/tdv2), rama `main`. [Archiv
 
 Actualización 2026-10-05: `responsable_ur_supervisor`, colaboradores locales para nivel 3, reservas por bloque, autoguardado parcial, SignalR y envío definitivo. Aplicar explícitamente **CollaborativeFormsAndSubmission** antes de usar esta versión. Véanse [captura y migración](docs/migracion/COLABORACION_ENVIO.md) y [configuración de Nexo/Entra](docs/migracion/CONFIGURACION_NEXO_ENTRA.md). Los cambios de fuente de Nexo no publican funciones automáticamente.
 
+Ajustes de captura posteriores: Contexto sin Datos de la sesión, sin Imprimir, prioridad mediante Select, eliminación con diálogo y navegación jerárquica según Nexo. **Revisión y envío** está al final de Acuerdos y usa requisitos del servidor. Se conservan históricos, propuestas pendientes y formatos enviados. Estos ajustes no añaden migraciones. [Recorrido de comprobación en Visual Studio](docs/migracion/COLABORACION_ENVIO.md#comprobar-los-ajustes-en-visual-studio).
+
+Reservas y SignalR: entrar en un campo reserva automáticamente el registro y confirma su versión antes de aceptar cambios. Salir guarda y libera; las demás sesiones reciben el estado y pueden entrar directamente, sin botones de edición ni recarga. La fila ocupada muestra nombre y candado. El intervalo de 15 segundos ya no cancela lecturas. Los fallos reales conservan propuestas con recuperación contextual mediante **Resolver**. [Comportamiento y pruebas con dos sesiones desde Visual Studio](docs/migracion/RESERVAS_SIGNALR.md). Sin migración adicional.
+
 ## Dónde modificar cada cosa
 
 | Responsabilidad | Ubicación | Equivalente Laravel |

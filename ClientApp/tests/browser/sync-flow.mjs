@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -46,8 +46,8 @@ async function control(action) {
 }
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
-    await target.getByRole('tab', { name: 'Contexto', exact: true }).click();
-    return target.getByLabel('Responsable del llenado', { exact: true });
+    await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
+    return target.getByLabel('Trámite / servicio 1', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
     const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
@@ -88,6 +88,14 @@ try {
         await page.waitForURL(origin + '/inicio');
         assert.equal((await page.goto(origin + syncPath)).status(), 200);
         await page.getByRole('heading', { name: 'Sincronizaciones', exact: true }).waitFor();
+        const navigation = page.getByRole('navigation', { name: 'Módulos', exact: true });
+        assert.equal(await navigation.getByRole('button').count(), 2);
+        await navigation.getByRole('button', { name: 'Configuración', exact: true }).click();
+        const submenu = page.getByRole('menuitem', { name: 'Sincronizaciones', exact: true });
+        await submenu.waitFor(); assert.equal(await submenu.getAttribute('aria-current'), 'page');
+        assert.deepEqual(await page.getByRole('menuitem').allTextContents(), ['Configuración', 'Sincronizaciones', 'Pruebas de acceso']);
+        await page.screenshot({ path: path.join(artifacts, 'modulos-escritorio.png') });
+        await page.keyboard.press('Escape');
         assert.equal(await page.getByLabel('Zona horaria', { exact: true }).inputValue(), 'America/Ciudad_Juarez');
         assert.equal(await page.getByRole('alert').count(), 0);
         assert.equal((await report()).remoteCommands, 0);
@@ -113,6 +121,8 @@ try {
         await page.goto(origin + '/formatos/A');
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
         assert.equal(await page.getByLabel('Trámite / servicio 1', { exact: true }).inputValue(), 'Constancias sintéticas');
+        await page.getByLabel('Trámite / servicio 1', { exact: true }).focus();
+        await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveJSProperty('readOnly', false);
         await savedAfter(() => page.getByLabel('Trámite / servicio 1', { exact: true }).fill('Respuesta conservada React'));
         const after = await report();
         assert.equal(after.remoteCommands, before.remoteCommands);

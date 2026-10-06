@@ -1,0 +1,117 @@
+{
+  "utc": "2026-10-05T20:15:36.5115454+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 21,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Edici\u00F3n/revisi\u00F3n omite sesi\u00F3n, recalcula borradores sin escribir y conserva historia al enviar",
+      "passed": true,
+      "milliseconds": 5586
+    },
+    {
+      "name": "Edici\u00F3n/100 por ciento no autoriza enviar prioridad hist\u00F3rica y pendientes usan ID estable",
+      "passed": true,
+      "milliseconds": 2923
+    },
+    {
+      "name": "Edici\u00F3n/lectura preserva avance, contenido e instant\u00E1nea de un env\u00EDo hist\u00F3rico",
+      "passed": true,
+      "milliseconds": 2945
+    },
+    {
+      "name": "Edici\u00F3n/eliminar proceso exige reservas de sus relaciones y conserva registros ILDA",
+      "passed": true,
+      "milliseconds": 4804
+    },
+    {
+      "name": "Edici\u00F3n/SignalR permite el origen p\u00FAblico tras proxy y rechaza otro origen",
+      "passed": true,
+      "milliseconds": 1191
+    },
+    {
+      "name": "Edici\u00F3n/rol supervisor funciona solo, rama editable y consulta ajena sin m\u00F3dulos administrativos",
+      "passed": true,
+      "milliseconds": 3681
+    },
+    {
+      "name": "Edici\u00F3n/dos sesiones y dos pesta\u00F1as del mismo usuario compiten por un \u00FAnico bloque",
+      "passed": true,
+      "milliseconds": 1565
+    },
+    {
+      "name": "Edici\u00F3n/bloques distintos guardan concurrentemente sin sobrescribir JSON",
+      "passed": true,
+      "milliseconds": 3031
+    },
+    {
+      "name": "Edici\u00F3n/vencimiento, renovaci\u00F3n, reasignaci\u00F3n y guardado atrasado cercado por testigo",
+      "passed": true,
+      "milliseconds": 3542
+    },
+    {
+      "name": "Edici\u00F3n/lectura pasiva no renueva ni permite liberar una reserva ajena",
+      "passed": true,
+      "milliseconds": 2047
+    },
+    {
+      "name": "Edici\u00F3n/reintento id\u00E9ntico confirma una vez; operaci\u00F3n reutilizada y versi\u00F3n vieja rechazadas",
+      "passed": true,
+      "milliseconds": 2289
+    },
+    {
+      "name": "Edici\u00F3n/revocaci\u00F3n y contexto obsoleto rechazan reserva y escritura",
+      "passed": true,
+      "milliseconds": 1454
+    },
+    {
+      "name": "Edici\u00F3n/operaci\u00F3n y auditor\u00EDa son at\u00F3micas y el fallo no pierde propuesta ni versi\u00F3n",
+      "passed": true,
+      "milliseconds": 1360
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo incompleto y reservas ajenas se rechazan; doble env\u00EDo es idempotente",
+      "passed": true,
+      "milliseconds": 4170
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo simult\u00E1neo con adquisici\u00F3n de reserva conserva una sola decisi\u00F3n",
+      "passed": true,
+      "milliseconds": 2080
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo y guardado simult\u00E1neos de la misma sesi\u00F3n no cruzan el cierre",
+      "passed": true,
+      "milliseconds": 2598
+    },
+    {
+      "name": "Edici\u00F3n/reserva que vence durante el commit revierte respuestas, versi\u00F3n y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1461
+    },
+    {
+      "name": "Edici\u00F3n/otra persona colaboradora edita dentro de su formato pero no puede enviarlo",
+      "passed": true,
+      "milliseconds": 2848
+    },
+    {
+      "name": "Edici\u00F3n/enviado conserva ILDA, unidad y respuestas aunque cambien los cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 2882
+    },
+    {
+      "name": "Edici\u00F3n/prioridad no se selecciona por defecto; 5 repetible y valores hist\u00F3ricos conservados",
+      "passed": true,
+      "milliseconds": 4329
+    },
+    {
+      "name": "Edici\u00F3n/OIDC rechaza firma y nonce ajenos, no fuerza selector habitual y usa logout_hint opaco",
+      "passed": true,
+      "milliseconds": 2239
+    }
+  ]
+}

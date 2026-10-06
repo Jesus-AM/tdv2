@@ -21,7 +21,7 @@ Administrador y módulo Pruebas de acceso son requisitos locales; la capacidad c
 
 ## Vista y auditoría
 
-Vista de prueba sólo mode=escenario, roles responsable/responsable_institucional/local/dependencias/consulta/administrador y UR activa elegible (tipo distinto de 0); duración 30 minutos. Prohibidos modo usuario/email, escrituras y búsqueda delegada. Roles y áreas simulados jamás constituyen una autorización de escritura.
+Vista de prueba sólo mode=escenario, roles responsable/responsable_institucional/local/dependencias/consulta/administrador y UR activa elegible (tipo distinto de `N`, normalizando espacios exteriores y mayúsculas; `0` es elegible); duración 30 minutos. Formatos sólo para niveles 2 y 3. Prohibidos modo usuario/email, escrituras y búsqueda delegada. Roles y áreas simulados jamás constituyen una autorización de escritura.
 
 Laravel RepresentationAudit sólo registra cambios durante representación. Este bloque amplía el registro a operaciones propias por petición del usuario, conservando actor real, representado, acción, recurso y resultado. Guardado/vínculo local y auditoría comparten transacción. Entre Nexo y TDV2 no existe transacción distribuida: documentar altas centrales sin vínculo local y retiros pendientes, sin inventar permisos para recuperarlos.
 

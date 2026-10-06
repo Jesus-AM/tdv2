@@ -21,9 +21,9 @@ function fields(value: unknown, prefix = ''): Record<string, string> {
 }
 
 /** Compara sólo las respuestas diferentes; los identificadores técnicos no forman parte de la captura. */
-export default function FormProposalComparison({ proposal, shared }: { proposal: FormContent; shared: FormContent }) {
+export default function FormProposalComparison({ proposal, shared, keys }: { proposal: FormContent; shared: FormContent; keys?: string[] }) {
     const mine = splitBlocks(proposal), theirs = splitBlocks(shared);
-    const differences = changedBlocks(shared, proposal);
+    const differences = changedBlocks(shared, proposal).filter(key => !keys || keys.includes(key));
     return <Box className="stack">
         {!differences.length && <Typography>No hay diferencias con las respuestas compartidas.</Typography>}
         {differences.map(key => {

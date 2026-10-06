@@ -30,11 +30,12 @@ import {
     ArrowBack,
 } from '@mui/icons-material';
 import { errorResponse } from '@/lib/http';
+import ModuleNavigation from '@/Components/ModuleNavigation';
 
 function AccessNotice({ children, writing }: { children: ReactNode; writing: boolean }) {
     return writing ? (
         <Alert
-            className="no-print"
+
             severity="warning"
             icon={<ManageAccountsOutlined />}
             sx={{ borderRadius: 0, py: 0.75, px: { xs: 2, md: 4 }, '& .MuiAlert-message': { width: '100%' } }}
@@ -46,7 +47,7 @@ function AccessNotice({ children, writing }: { children: ReactNode; writing: boo
             component="aside"
             role="status"
             aria-label="Contexto de acceso"
-            className="no-print"
+
             sx={{
                 bgcolor: 'background.paper',
                 borderBottom: '1px solid',
@@ -112,48 +113,13 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
         setOpen(false);
         router.visit(path);
     };
-    const modules = auth.modules.filter(
-        (m) =>
-            m.route &&
-            ((m.route.startsWith('/') && !m.route.startsWith('//')) ||
-                (() => {
-                    try {
-                        return new URL(m.route).origin === window.location.origin;
-                    } catch {
-                        return false;
-                    }
-                })()),
-    );
-    const currentPath = new URL(url, window.location.origin).pathname;
-    const activeModule =
-        [...modules]
-            .sort((a, b) => b.route.length - a.route.length)
-            .find((module) => {
-                const path = new URL(module.route, window.location.origin).pathname;
-                return currentPath === path || (path !== '/' && currentPath.startsWith(path + '/'));
-            }) ||
-        (/^\/(formatos|colaboradores|vista-prueba|actuar-como-usuario)(\/|$)/.test(currentPath)
-            ? modules.find((module) => module.key === 'procesos_operativos')
-            : undefined);
-    const navigation = (
-        <Box component="nav" id={mobile ? 'application-navigation' : 'desktop-navigation'} aria-label="Módulos"
-            sx={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: .5, p: mobile ? 2 : 0 }}>
-            {modules.map(module => <Button key={module.key}
-                aria-current={module.key === activeModule?.key ? 'page' : undefined}
-                onClick={() => visit(module.route)}
-                sx={{ justifyContent: mobile ? 'flex-start' : 'center', fontSize: 13,
-                    bgcolor: module.key === activeModule?.key ? '#eaf1fc' : 'transparent',
-                    color: module.key === activeModule?.key ? 'primary.main' : 'text.secondary' }}>
-                {module.name}
-            </Button>)}
-        </Box>
-    );
+    const navigation = <ModuleNavigation modules={auth.modules} url={url} mobile={mobile} onVisit={visit} />;
     return (
         <>
             <a href="#main-content" className="skip-link">
                 Ir al contenido
             </a>
-            <Drawer className="no-print" anchor="top" open={mobile && open} onClose={() => setOpen(false)}>
+            <Drawer  anchor="top" open={mobile && open} onClose={() => setOpen(false)}>
                 <Box sx={{ display: 'flex', alignItems: 'center', px: 2, pt: 1 }}>
                     <Typography sx={{ flex: 1, fontWeight: 600 }}>Transformación Digital</Typography>
                     <IconButton aria-label="Cerrar navegación" onClick={() => setOpen(false)}><Close /></IconButton>
@@ -161,7 +127,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 {navigation}
             </Drawer>
             <AppBar
-                className="no-print"
+
                 position="fixed"
                 color="inherit"
                 elevation={0}
@@ -177,8 +143,8 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                     {mobile && <IconButton aria-label="Abrir navegación" aria-controls="application-navigation"
                         aria-expanded={open} onClick={() => setOpen(true)}><MenuIcon /></IconButton>}
                     <Box component="a" href={routes.inicio} onClick={event => { event.preventDefault(); visit(routes.inicio); }}
-                        sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                        <img src="/images/logos/TRANSFORMACION_DIGITAL_logo.svg" alt="Transformación Digital" style={{ width: mobile ? 125 : 150, maxHeight: 43 }} />
+                        sx={{ display: 'flex', alignItems: 'center', flexShrink: 0, mr: mobile ? 0 : 2.5 }}>
+                        <img src="/images/logos/TRANSFORMACION_DIGITAL_logo.svg" alt="Transformación Digital" style={{ display: 'block', width: mobile ? 150 : 180, height: 'auto' }} />
                     </Box>
                     {!mobile && navigation}
                     <Box sx={{ flex: 1 }} />

@@ -24,7 +24,7 @@ internal static partial class NativeTests
     internal static JsonObject Complete(FormSchema schema)
     {
         var content = schema.Blank(new("A", "100", "Área sintética A", 2, null, 2026));
-        content["encabezado"] = Header("Responsable sintético");
+        // Los datos de sesión retirados permanecen vacíos; el formato completo no los necesita.
         foreach (var section in new[] { "identificacion", "sistemas", "datos", "acuerdos" })
             foreach (var key in content[section]![0]!.AsObject().Select(p => p.Key).ToArray())
                 if (key != "id") content[section]![0]![key] = "Respuesta sintética";
@@ -38,6 +38,68 @@ internal static partial class NativeTests
     }
     private static void RegisterEditingCases(NativeDatabase database, Action<string, Func<NativeApplication, HttpClient, Task>> Test)
     {
+        Test("Edición/revisión omite sesión, recalcula borradores sin escribir y conserva historia al enviar", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); var complete = Complete(app);
+            // Un encabezado heredado irregular no puede convertirse en un requisito invisible.
+            complete["encabezado"] = new JsonObject { ["area"] = "Área histórica", ["fecha"] = "fecha heredada", ["responsable"] = null };
+            Check((await Save(client, 0, complete)).IsSuccessStatusCode);
+            await database.Sql("UPDATE formatos_ur SET porcentaje=45 WHERE id_ur='A'");
+            var before = (await database.Scalar("SELECT contenido::text FROM formatos_ur WHERE id_ur='A'"))!.ToString();
+            var tab = Guid.NewGuid(); var live = await Live(client, tab);
+            Check(live["revisionEnvio"]!["listo"]!.GetValue<bool>() && live["porcentaje"]!.GetValue<int>() == 100);
+            Check((await Form(client))["porcentaje"]!.GetValue<int>() == 100);
+            var index = await Json(await client.GetAsync("/inicio"));
+            Check(index["props"]!["formatos"]!.AsArray().Single(r => r!["id_ur"]!.ToString() == "A")!["porcentaje"]!.GetValue<int>() == 100);
+            Check(Convert.ToInt32(await database.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == 45);
+            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).IsSuccessStatusCode);
+            Check((await database.Scalar("SELECT contenido::text FROM formatos_ur WHERE id_ur='A'"))!.ToString() == before);
+            live = await Live(client, tab);
+            Check(live["enviadoPor"]!.ToString() == "persona@uacj.mx" && live["revisionEnvio"] is null && !live["editable"]!.GetValue<bool>());
+        });
+        Test("Edición/100 por ciento no autoriza enviar prioridad histórica y pendientes usan ID estable", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await database.Sql("UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,prioridad}','\"17\"')::json WHERE id_ur='A'");
+            var tab = Guid.NewGuid(); var live = await Live(client, tab);
+            Check(live["porcentaje"]!.GetValue<int>() == 100 && !live["revisionEnvio"]!["listo"]!.GetValue<bool>());
+            var pending = live["revisionEnvio"]!["pendientes"]!.AsArray().Single()!;
+            Check(pending["bloque"]!.ToString() == "identificacion:inicial" && pending["campo"]!.ToString() == "prioridad");
+            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            Check((await Live(client, tab))["editable"]!.GetValue<bool>());
+        });
+        Test("Edición/lectura preserva avance, contenido e instantánea de un envío histórico", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await database.Sql("""
+                UPDATE formatos_ur SET porcentaje=37,enviado_en=clock_timestamp(),enviado_por='actor@example.test',
+                  enviado_como='responsable@example.test',envio_id=gen_random_uuid(),
+                  instantanea_envio=jsonb_build_object('unidad',jsonb_build_object('id_ur','A','cve_ur','100','desc_ur','Área histórica'),
+                    'contenido',contenido::jsonb,'version',version) WHERE id_ur='A'
+                """);
+            var before = (await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='A'"))!.ToString();
+            var live = await Live(client, Guid.NewGuid()); var page = await Form(client);
+            Check(live["porcentaje"]!.GetValue<int>() == 37 && page["porcentaje"]!.GetValue<int>() == 37);
+            Check(page["unidad"]!["desc_ur"]!.ToString() == "Área histórica" && page["enviadoPor"]!.ToString() == "responsable@example.test");
+            Check(!live["editable"]!.GetValue<bool>() && live["revisionEnvio"] is null);
+            var index = await Json(await client.GetAsync("/inicio"));
+            Check(index["props"]!["formatos"]!.AsArray().Single(r => r!["id_ur"]!.ToString() == "A")!["porcentaje"]!.GetValue<int>() == 37);
+            Check((await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='A'"))!.ToString() == before);
+        });
+        Test("Edición/eliminar proceso exige reservas de sus relaciones y conserva registros ILDA", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            var tab = Guid.NewGuid(); var process = await Lease(client, tab, "identificacion:inicial", 1);
+            Check((await Patch(client, Edit(tab, process with { Value = null }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            var other = await Lease(client, Guid.NewGuid(), "sistemas:inicial", 1);
+            var content = (await Live(client, tab))["contenido"]!.AsObject();
+            var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = "";
+            Check((await Patch(client, Edit(tab, process with { Value = null }, other with { Value = system }))).StatusCode == HttpStatusCode.Conflict);
+            Check((await Live(client, tab))["contenido"]!["identificacion"]!.AsArray().Count == 1);
+            await database.Sql("UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,id}','\"ilda:17\"')::json WHERE id_ur='A'");
+            var ilda = await Lease(client, tab, "identificacion:ilda:17");
+            Check((await Patch(client, Edit(tab, ilda with { Value = null }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+        });
         Test("Edición/SignalR permite el origen público tras proxy y rechaza otro origen", async (app, client) =>
         {
             await Login(app, client); await Csrf(client);
@@ -98,6 +160,20 @@ internal static partial class NativeTests
             Check(Equals(before, await database.Scalar("SELECT vence_en FROM formato_bloques")));
             var foreign = (await Live(client, Guid.NewGuid()))["bloques"]![0]!["reserva"]!;
             Check(foreign["id"] is null && !foreign["propia"]!.GetValue<bool>() && foreign["titular"]!.ToString() == "Persona sintética");
+            Check(foreign["otraPestana"]!.GetValue<bool>());
+            using var separate = app.Client(); await Login(app, separate); await Csrf(separate);
+            var independent = (await Live(separate, Guid.NewGuid()))["bloques"]![0]!["reserva"]!;
+            Check(!independent["otraPestana"]!.GetValue<bool>() && independent["id"] is null);
+        });
+        Test("Edición/adquisición confirma contenido vigente y rechaza versión obsoleta", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); var tab = Guid.NewGuid(); var first = await Lease(client, tab);
+            Check((await Patch(client, Edit(tab, first with { Value = Header("Respuesta vigente") }) with { Release = true })).IsSuccessStatusCode);
+            var next = Guid.NewGuid();
+            Check((await client.PostAsJsonAsync("/formatos/A/reservas", Edit(next, new BlockRequest("contexto", 0)))).StatusCode == HttpStatusCode.Conflict);
+            var grant = await Json(await client.PostAsJsonAsync("/formatos/A/reservas", Edit(next, new BlockRequest("contexto", 1))));
+            Check(grant["bloques"]![0]!["value"]!["responsable"]!.ToString() == "Respuesta vigente");
+            Check(grant["bloques"]![0]!["version"]!.GetValue<int>() == 1);
         });
         Test("Edición/reintento idéntico confirma una vez; operación reutilizada y versión vieja rechazadas", async (app, client) =>
         {
@@ -173,7 +249,17 @@ internal static partial class NativeTests
             await Login(app, client); await Csrf(client); Check((await AddCollaborator(client)).IsSuccessStatusCode);
             using var helper = app.Client(); app.Microsoft.Email = app.Microsoft.Mail = "colaboradora@uacj.mx"; app.Microsoft.Id = Guid.NewGuid().ToString();
             await Login(app, helper); await Csrf(helper); var tab = Guid.NewGuid(); var block = await Lease(helper, tab, unit: "A3");
+            var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A3/reservas", Edit(Guid.NewGuid(), new BlockRequest("identificacion:inicial", 0))),
+                helper.PostAsJsonAsync("/formatos/A3/reservas", Edit(Guid.NewGuid(), new BlockRequest("identificacion:inicial", 0))));
+            Check(race.Count(r => r.IsSuccessStatusCode) == 1 && race.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1);
             Check((await Patch(helper, Edit(tab, block with { Value = Header("Colaboradora") }), "A3")).IsSuccessStatusCode);
+            var ownerTab = Guid.NewGuid();
+            Check((await client.PostAsJsonAsync("/formatos/A3/reservas", Edit(ownerTab, new BlockRequest("contexto", 1)))).StatusCode == HttpStatusCode.Conflict);
+            var ownerBlock = await Lease(client, ownerTab, "medios", unit: "A3");
+            var medios = (await Live(client, ownerTab, "A3"))["contenido"]!["medios"]!.DeepClone();
+            Check((await Patch(client, Edit(ownerTab, ownerBlock with { Value = new JsonObject { ["medios"] = medios, ["medioOtro"] = "Otro usuario, otro bloque" } }), "A3")).IsSuccessStatusCode);
+            var holder = (await Live(client, ownerTab, "A3"))["bloques"]!.AsArray().Single(b => b!["key"]!.ToString() == "contexto")!["reserva"]!;
+            Check(holder["titular"]!.ToString() == "Colaboradora sintética" && !holder["otraPestana"]!.GetValue<bool>());
             Check((await helper.PostAsJsonAsync("/formatos/A3/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.Forbidden);
             var foreign = await helper.PostAsJsonAsync("/formatos/B/reservas", Edit(tab, new BlockRequest("contexto", 0)));
             Check(foreign.StatusCode == HttpStatusCode.Forbidden);

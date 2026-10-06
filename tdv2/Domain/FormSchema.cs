@@ -21,7 +21,7 @@ public sealed class FormSchema
     {
         var result = new JsonObject
         {
-            ["encabezado"] = new JsonObject { ["fecha"] = "", ["area"] = unit.Description ?? unit.Code, ["responsable"] = "" },
+            ["encabezado"] = new JsonObject { ["fecha"] = "", ["area"] = "", ["responsable"] = "" },
             ["medioOtro"] = "",
             ["evaluaciones"] = new JsonObject(),
             ["medios"] = new JsonObject(definition["medios"]!.AsArray().Select(x => KeyValuePair.Create<string, JsonNode?>(x!.GetValue<string>(), JsonValue.Create(false)))),
@@ -69,10 +69,8 @@ public sealed class FormSchema
     {
         if (Encoding.UTF8.GetByteCount(input.ToJsonString()) > 1_500_000) throw Invalid("El formato supera el tamaño permitido.");
         var result = Blank(unit);
-        var header = Object(input["encabezado"], "fecha", "area", "responsable");
-        Date(Text(header, "fecha", 10)); Text(header, "area", 500);
-        result["encabezado"]!["fecha"] = Text(header, "fecha");
-        result["encabezado"]!["responsable"] = Text(header, "responsable", 255);
+        // Datos de sesión retirados: conservar su historia sin normalizarla ni exigir campos invisibles.
+        if (input.ContainsKey("encabezado")) result["encabezado"] = input["encabezado"]?.DeepClone();
         result["medioOtro"] = Text(input, "medioOtro", 500);
         foreach (var (section, fields) in Fields)
         {
@@ -146,22 +144,20 @@ public sealed class FormSchema
             var rows = nodes.ToArray();
             return (double)weight * rows.Sum(r => fields.Count(k => Filled(r?[k]))) / (Math.Max(1, rows.Length) * fields.Length);
         }
-        var value = Score([data["encabezado"]], ["fecha", "responsable"], 10)
-            + Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion", "prioridad"], 25)
+        var value = Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion", "prioridad"], 25)
             + Score(data["sistemas"]!.AsArray(), ["sistema", "uso", "estado"], 15)
             + Score(data["datos"]!.AsArray(), ["dato", "fuente", "origen"], 10)
             + Score(data["preguntas"]!.AsArray(), ["respuesta"], 20)
             + Score(data["acuerdos"]!.AsArray(), ["acuerdo", "responsable", "fecha"], 5);
         var codes = data["identificacion"]!.AsArray().Where(r => Filled(r!["codigo"])).Select(r => r!["codigo"]!.GetValue<string>()).ToArray();
-        var filled = codes.Sum(c => (data["evaluaciones"]?[c] as JsonArray)?.Count(r => Filled(r?["valor"])) ?? 0);
-        return (int)Math.Floor(value + 15d * filled / (Math.Max(1, codes.Length) * 9) + 0.000001);
+        var filled = codes.Sum(c => ((data["evaluaciones"] as JsonObject)?[c] as JsonArray)?.Count(r => Filled(r?["valor"])) ?? 0);
+        // Se redistribuyen proporcionalmente los 90 puntos vigentes; no se inventan respuestas de sesión.
+        return (int)Math.Floor((value + 15d * filled / (Math.Max(1, codes.Length) * 9)) * 100 / 90 + 0.000001);
     }
 
     public static void RequireComplete(JsonObject content)
     {
-        // El borrador admite campos vacíos; enviar exige todos los campos que componen el avance.
-        if (Progress(content) != 100 || content["identificacion"]!.AsArray().Any(r =>
-            string.IsNullOrWhiteSpace(r!["codigo"]?.ToString()) || r["prioridad"]?.ToString() is not ("1" or "2" or "3" or "4" or "5")))
-            throw new DomainProblem(422, "Completa los datos de Contexto, los procesos y su prioridad de 1 a 5, sistemas, datos, las doce preguntas, acuerdos y evaluaciones antes de enviar.");
+        var review = FormReview.Inspect(content);
+        if (!review.listo) throw new DomainProblem(422, "Completa los pendientes de Revisión y envío antes de enviar.", new { revisionEnvio = review });
     }
 }

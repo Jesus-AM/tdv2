@@ -17,7 +17,7 @@ namespace Tdv2.Services;
 public sealed record BlockRequest(string Key, [property: JsonRequired] int Version, Guid? LeaseId = null, JsonNode? Value = null);
 public sealed record EditRequest(Guid TabId, Guid OperationId, BlockRequest[] Blocks, string Section = "contexto", bool Release = false);
 public sealed record SubmitRequest(Guid TabId, Guid OperationId, [property: JsonRequired] int Version);
-public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn);
+public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn, bool otraPestana);
 public sealed record BlockView(string key, int version, LeaseView? reserva);
 
 /// <summary>PostgreSQL arbitra reservas, escrituras parciales y envío; la red sólo transporta propuestas.</summary>
@@ -89,9 +89,11 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (form?.SubmittedAt is null) LocalCatalog.Merge(content, await catalogs.Inventory(scope.Unit, Ct));
         var blocks = await db.FormBlocks.AsNoTracking().Where(b => b.UnitId == ur).ToListAsync(Ct);
         var section = await db.FormPositions.AsNoTracking().Where(p => p.UnitId == ur && p.Actor == Actor && p.Effective == context.Profile.User.Email).Select(p => p.Section).SingleOrDefaultAsync(Ct);
-        var result = new { contenido = content, version = form?.Version ?? 0, porcentaje = form?.Progress ?? 0,
+        var result = new { contenido = content, version = form?.Version ?? 0,
+            porcentaje = form?.SubmittedAt is not null ? form.Progress : FormSchema.Progress(content),
+            revisionEnvio = form?.SubmittedAt is null ? FormReview.Inspect(content) : null,
             actualizadoEn = form?.UpdatedAt is { } updated ? new DateTimeOffset(DateTime.SpecifyKind(updated, DateTimeKind.Utc)) : (DateTimeOffset?)null,
-            actualizadoPor = form?.UpdatedBy, enviadoEn = form?.SubmittedAt,
+            actualizadoPor = form?.UpdatedBy, enviadoEn = form?.SubmittedAt, enviadoPor = form?.SubmittedEffective,
             editable = scope.Edit && !context.ReadOnly && form?.SubmittedAt is null,
             puedeEnviar = scope.Edit && !context.ReadOnly && form?.SubmittedAt is null && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
             seccion = section ?? "contexto", servidorEn = now,
@@ -101,7 +103,8 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
     }
     private BlockView Public(FormBlock block, Guid tab, DateTimeOffset now) => new(block.Key, block.Version,
         block.ExpiresAt > now && block.LeaseId is not null ? new(Owner(block, tab, block.LeaseId) ? block.LeaseId : null,
-            Owner(block, tab, block.LeaseId), block.Holder, block.ExpiresAt) : null);
+            Owner(block, tab, block.LeaseId), block.Holder, block.ExpiresAt,
+            block.SessionHash == state.SessionHash && block.ContextRevision == Revision && block.TabId != tab) : null);
     public async Task<object> Reserve(string ur, EditRequest input, bool renew = false)
     {
         Validate(input); var (context, scope) = await Authorize(ur, true);
@@ -131,7 +134,11 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         }
         await db.SaveChangesAsync(Ct); await tx.CommitAsync(Ct);
         notifications.Changed(ur);
-        return new { bloques = result.Select(b => Public(b, input.TabId, now)), servidorEn = now };
+        // La reserva y sus respuestas/versiones se confirman bajo el mismo bloqueo de UR.
+        // El navegador habilita el bloque sólo después de recibir este contenido vigente.
+        var values = FormBlocks.Split(JsonNode.Parse(form.Content)!.AsObject());
+        return new { bloques = result.Select(b => new { key = b.Key, version = b.Version,
+            reserva = Public(b, input.TabId, now).reserva, value = values.GetValueOrDefault(b.Key) }), servidorEn = now };
     }
     private async Task<JsonNode?> Receipt(string ur, Guid operation, Guid tab, string fingerprint)
     {
@@ -181,6 +188,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (position is null) { position = new() { UnitId = ur, Actor = Actor, Effective = context.Profile.User.Email }; db.FormPositions.Add(position); }
         position.Section = input.Section;
         var response = new { version = form.Version, porcentaje = form.Progress, actualizadoEn = now, actualizadoPor = form.UpdatedBy,
+            revisionEnvio = FormReview.Inspect(content),
             bloques = input.Blocks.Select(b => new { key = b.Key, version = all[b.Key].Version, value = changes[b.Key], reserva = Public(all[b.Key], input.TabId, now).reserva }).ToArray() };
         Remember(ur, input.OperationId, input.TabId, fingerprint, response, now);
         await db.SaveChangesAsync(Ct);
@@ -220,6 +228,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (blocks.Any(b => b.LeaseId is not null && b.ExpiresAt > now && (b.SessionHash != state.SessionHash || b.TabId != input.TabId || b.ContextRevision != Revision)))
             throw Conflict("Otra sesión mantiene una reserva de edición. Espera a que termine antes de enviar.");
         var content = schema.Validate(JsonNode.Parse(form.Content)!.AsObject(), scope.Unit); FormSchema.RequireComplete(content);
+        form.Progress = checked((short)FormSchema.Progress(content));
         form.SubmissionSnapshot = JsonSerializer.Serialize(new { unidad = scope.Unit.Public(), contenido = JsonNode.Parse(form.Content), version = form.Version + 1 });
         form.SubmittedAt = now; form.SubmittedBy = Actor; form.SubmittedEffective = context.Profile.User.Email;
         form.SubmissionId = input.OperationId; form.Version++;

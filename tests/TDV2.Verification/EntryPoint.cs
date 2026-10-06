@@ -47,13 +47,35 @@ internal static class EntryPoint
             Check(scopes["A"].Own && !scopes["B"].Own);
             Check(!ModuleAccess.Allows(profile, "configuracion") && !ModuleAccess.Allows(profile, "sincronizaciones") && !ModuleAccess.Allows(profile, "pruebas_acceso"));
         });
-        Test("Tipo 0 conserva ascendientes pero no autoriza formatos ni responsabilidad", () =>
+        Test("Tipo N conserva ascendientes pero no autoriza formatos ni responsabilidad", () =>
         {
             var units = new UnitDirectory([new("A", "06000", "Principal", 2, null, 2026, "0001", Kind: "1"),
-                new("aux", "6001", "Auxiliar", 3, "A", 2026, "0001", Kind: "0"),
+                new("aux", "6001", "Auxiliar", 3, "A", 2026, "0001", Kind: " n "),
                 new("child", "6002", "Dependiente", 3, "aux", 2026, Kind: "1")]);
             Check(units.Get("aux") is not null && units.Within("child", "A") && units.DirectoryParent(units.Get("child")!) == "A");
             Check(!UnitDirectory.IsForm(units.Get("aux")!) && units.Responsibilities(Fixtures.Profile().User).Count() == 1);
+        });
+        Test("Tipo N normalizado se excluye; tipo 0 admite formatos sólo en niveles 2 y 3", () =>
+        {
+            foreach (var kind in new string?[] { "N", "n", " N ", "\t n\r\n", "0", " 0 ", "00", "1", "NA", "", null })
+                foreach (var level in new[] { 1, 2, 3, 4 })
+                {
+                    var unit = new Unit("tipo", "06000", "Unidad sintética", level, null, 2026, Kind: kind);
+                    var excluded = kind?.Trim().Equals("N", StringComparison.OrdinalIgnoreCase) == true;
+                    Check(UnitDirectory.IsEligible(unit) == !excluded);
+                    Check(UnitDirectory.IsForm(unit) == (!excluded && level is 2 or 3));
+                    Check(unit.Kind == kind && unit.Code == "06000");
+                }
+            var zero = new Unit("zero", "06000", "Principal tipo 0", 2, null, 2026, "0001", Kind: "0");
+            var child = new Unit("child", "06001", "Dependiente tipo 0", 3, "zero", 2026, Kind: "0");
+            var units = new UnitDirectory([zero, child, new("aux", "99", "Auxiliar", 3, "zero", 2026, Kind: "N")]);
+            foreach (var role in new[] { "administrador", "responsable_ur", "responsable_ur_supervisor", "consulta_institucional" })
+            {
+                var profile = Fixtures.Profile(role) with { User = Fixtures.Profile().User with { UnitId = "child" } };
+                var scopes = new FormAccess(units).Scopes(profile);
+                Check(scopes.Keys.Order().SequenceEqual(new[] { "child", "zero" }));
+                Check(scopes.Values.All(scope => scope.Edit == (role != "consulta_institucional")));
+            }
         });
         Test("Administrador combinado no rebasa rama", () => { var s = access.Scopes(Fixtures.Profile("administrador", "responsable_ur", "colaborador_dependencias")); Check(s["A"].Edit && s["A3"].Edit && !s["B"].Edit && !s["B3"].Edit); });
         Test("Administrador ambiguo conserva lectura sin edición", () => Check(access.Scopes(Fixtures.Profile("administrador") with { User = Fixtures.Profile().User with { Origin = "multiple", UnitId = null } }).Values.All(s => !s.Edit)));
@@ -71,7 +93,7 @@ internal static class EntryPoint
         Test("Configuración exige administrador además de módulo", () => Check(!ModuleAccess.Allows(Fixtures.Profile("responsable_ur"), "configuracion")));
         Test("Módulo hijo exige padre y vínculo exactos", () => { var p = Fixtures.Profile("administrador"); Check(ModuleAccess.Allows(p, "sincronizaciones")); Check(!ModuleAccess.Allows(p with { Modules = p.Modules.Where(m => m.Key != "configuracion").ToArray() }, "sincronizaciones")); Check(!ModuleAccess.Allows(p with { Modules = p.Modules.Select(m => m.Key == "sincronizaciones" ? m with { Parent = 99 } : m).ToArray() }, "sincronizaciones")); });
         Test("Formato inicial válido y avance cero", () => Check(FormSchema.Progress(schema.Validate(Blank(), Fixtures.Units[0])) == 0));
-        Test("Área y preguntas son canónicas", () => { var data = Blank(); data["encabezado"]!["area"] = "forjada"; data["preguntas"]![0]!["pregunta"] = "forjada"; var valid = schema.Validate(data, Fixtures.Units[0]); Check(valid["encabezado"]!["area"]!.GetValue<string>() == Fixtures.Units[0].Description && valid["preguntas"]![0]!["pregunta"]!.GetValue<string>() != "forjada"); });
+        Test("Encabezado histórico se conserva y preguntas son canónicas", () => { var data = Blank(); data["encabezado"]!["area"] = "forjada"; data["preguntas"]![0]!["pregunta"] = "forjada"; var valid = schema.Validate(data, Fixtures.Units[0]); Check(valid["encabezado"]!["area"]!.GetValue<string>() == "forjada" && valid["preguntas"]![0]!["pregunta"]!.GetValue<string>() != "forjada"); });
         Reject("No eliminar preguntas fijas", d => d["preguntas"]!.AsArray().RemoveAt(0));
         Reject("No inventar opción de respuesta", d => d["preguntas"]![0]!["respuesta"] = "inventada");
         Reject("No repetir ID de fila", d => d["identificacion"]!.AsArray().Add(d["identificacion"]![0]!.DeepClone()));
@@ -79,23 +101,23 @@ internal static class EntryPoint
         Reject("Código debe coincidir completamente", d => d["identificacion"]![0]!["codigo"] = "PO-01\n");
         Reject("No aceptar prioridad cero", d => d["identificacion"]![0]!["prioridad"] = "0");
         Reject("Proceso ajeno denegado", d => d["sistemas"]![0]!["proceso"] = "PO-99");
-        Reject("Fecha imposible denegada", d => d["encabezado"]!["fecha"] = "2026-02-30");
+        Reject("Fecha imposible denegada", d => d["acuerdos"]![0]!["fecha"] = "2026-02-30");
         Reject("Campo adicional en fila denegado", d => d["datos"]![0]!["extra"] = "x");
         Reject("Texto sobre límite denegado", d => d["datos"]![0]!["dato"] = new string('x', 4001));
-        Reject("Campos requeridos no se omiten", d => d["encabezado"]!.AsObject().Remove("fecha"));
+        Reject("Campos requeridos no se omiten", d => d["acuerdos"]![0]!.AsObject().Remove("fecha"));
         Reject("Máximo 200 filas", d => { var rows = d["acuerdos"]!.AsArray(); for (var i = 1; i <= 200; i++) { var row = rows[0]!.DeepClone(); row["id"] = i.ToString(); rows.Add(row); } });
         Test("Evaluaciones vacías heredadas se normalizan", () => { var data = Blank(); data["evaluaciones"] = new JsonArray(); Check(schema.Validate(data, Fixtures.Units[0])["evaluaciones"] is JsonObject); });
         Test("Porcentaje cliente no se usa", () => { var data = Blank(); data["porcentaje"] = 100; Check(FormSchema.Progress(schema.Validate(data, Fixtures.Units[0])) == 0); });
         Test("Todos los campos contabilizados llegan a 100", () =>
         {
-            var data = Blank(); data["encabezado"]!["fecha"] = "2026-09-30"; data["encabezado"]!["responsable"] = "Sintético";
+            var data = Blank();
             foreach (var section in new[] { "identificacion", "sistemas", "datos", "acuerdos" }) foreach (var (key, _) in data[section]![0]!.AsObject().ToArray()) if (key != "id") data[section]![0]![key] = "Texto";
             data["identificacion"]![0]!["codigo"] = "PO-01"; data["identificacion"]![0]!["prioridad"] = "1"; data["identificacion"]![0]!["validacion"] = "V";
             data["sistemas"]![0]!["proceso"] = "PO-01"; data["sistemas"]![0]!["estado"] = "Funciona";
             data["datos"]![0]!["proceso"] = "PO-01"; data["datos"]![0]!["origen"] = "Se origina en este proceso"; data["acuerdos"]![0]!["fecha"] = "2026-09-30";
             foreach (var q in data["preguntas"]!.AsArray()) q!["respuesta"] = q["opciones"] is JsonArray choices ? choices[0]!.DeepClone() : JsonValue.Create("Respuesta");
             data["evaluaciones"]!["PO-01"] = new JsonArray(Enumerable.Range(0, 9).Select(_ => (JsonNode)new JsonObject { ["criterio"] = "alterado", ["valor"] = "5", ["obs"] = "" }).ToArray());
-            var valid = schema.Validate(data, Fixtures.Units[0]); Check(FormSchema.Progress(valid) == 100); Check(valid["evaluaciones"]!["PO-01"]![0]!["criterio"]!.GetValue<string>() != "alterado");
+            var valid = schema.Validate(data, Fixtures.Units[0]); Check(FormSchema.Progress(valid) == 100); FormSchema.RequireComplete(valid); Check(valid["encabezado"]!["fecha"]!.ToString() == ""); Check(valid["evaluaciones"]!["PO-01"]![0]!["criterio"]!.GetValue<string>() != "alterado");
         });
 
         Http("Portada pública no consulta Nexo y conserva tipografía", async (app, client) => { app.Nexo.Outage = true; var r = await client.GetAsync("/"); Check(r.IsSuccessStatusCode); var html = await r.Content.ReadAsStringAsync(); Check(html.Contains("Space+Grotesk") && html.Contains("IBM+Plex+Sans") && html.Contains("Registrar un proceso operativo")); });

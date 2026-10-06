@@ -1,4 +1,5 @@
 import { Head, router, usePage } from '@/lib/navigation';
+import { useState } from 'react';
 import { Box, Button, Typography, LinearProgress, Chip } from '@mui/material';
 import { PeopleOutlined, Refresh, DescriptionOutlined, DonutLarge, TaskAlt, ArrowForward } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -23,6 +24,7 @@ export default function Inicio({
     sincronizadoEn: string | null;
 }) {
     const { props } = usePage();
+    const [refreshing, setRefreshing] = useState(false);
     const readOnly = !!props.simulacion || !!(props.representacion && !props.representacion.escritura);
     const avg = formatos.length
         ? Math.round(formatos.reduce((s, f) => s + Number(f.porcentaje), 0) / formatos.length)
@@ -32,8 +34,9 @@ export default function Inicio({
             <Head title="Procesos operativos" />
             <div className="page">
                 <PageHeading
+                    className="operational-heading"
                     title="Procesos operativos"
-                    description="Identifica los procesos de tu área y da seguimiento al llenado de sus formatos."
+                    description="Consulta las áreas y da seguimiento al llenado de sus formatos"
                     actions={
                         <>
                             {puedeColaboradores && (
@@ -45,20 +48,19 @@ export default function Inicio({
                                     Colaboradores
                                 </Button>
                             )}
-                            <Button variant="outlined" startIcon={<Refresh />} onClick={() => router.reload()}>
+                            <Button variant="text" color="primary" startIcon={<Refresh />}
+                                loading={refreshing} loadingPosition="start" aria-busy={refreshing}
+                                onClick={() => {
+                                    if (refreshing) return;
+                                    setRefreshing(true);
+                                    router.reload({ onFinish: () => setRefreshing(false) });
+                                }}>
                                 Actualizar
                             </Button>
                         </>
                     }
                 />
-                <Box
-                    sx={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3,minmax(0,1fr))',
-                        gap: { xs: 1, md: 2 },
-                        mb: 3,
-                    }}
-                >
+                <Box className="operational-stats">
                     {[
                         { label: 'Formatos disponibles', value: formatos.length, icon: <DescriptionOutlined /> },
                         { label: 'Avance promedio', value: `${avg}%`, icon: <DonutLarge /> },
@@ -69,33 +71,17 @@ export default function Inicio({
                         },
                     ].map((s) => (
                         <Box
-                            className="surface"
+                            className="surface operational-stat"
                             key={s.label}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                                p: { xs: '12px!important', md: '20px!important' },
-                            }}
                         >
-                            <Box
-                                sx={{
-                                    display: { xs: 'none', sm: 'flex' },
-                                    color: 'primary.main',
-                                    bgcolor: '#edf3fd',
-                                    p: 1.2,
-                                    borderRadius: 2,
-                                }}
-                            >
+                            <Box className="operational-stat-icon">
                                 {s.icon}
                             </Box>
-                            <Box>
-                                <Typography variant="caption" color="text.secondary">
+                            <Box className="operational-stat-copy">
+                                <Typography variant="body2" color="text.secondary">
                                     {s.label}
                                 </Typography>
-                                <Typography
-                                    sx={{ fontSize: { xs: 24, md: 28 }, fontWeight: 600, lineHeight: 1.3, mt: 0.4 }}
-                                >
+                                <Typography className="operational-stat-value">
                                     {s.value}
                                 </Typography>
                             </Box>
@@ -103,7 +89,7 @@ export default function Inicio({
                     ))}
                 </Box>
                 {administrador && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                         {urAdministracion
                             ? `Puedes consultar todas las áreas y llenar los formatos de ${urAdministracion.desc_ur} y sus áreas dependientes.`
                             : 'Puedes consultar los formatos de todas las áreas. Para habilitar el llenado necesitas una adscripción vigente en Nexo.'}
@@ -117,34 +103,31 @@ export default function Inicio({
                         readOnly={readOnly}
                     />
                 ) : (
-                    <Box className="stack">
+                    <Box className="stack" sx={{ gap: '8px' }}>
                         <Typography component="h2" variant="h2">
                             Formatos de mis áreas
                         </Typography>
                         {formatos.map((f) => (
                             <Box
                                 key={f.id_ur}
-                                className="surface"
-                                sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}
+                                className="surface personal-area-row"
                             >
-                                <Box sx={{ flex: 1, minWidth: 220 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {displayUnitCode(f.cve_ur)}
-                                    </Typography>
+                                <Box sx={{ flex: 1, minWidth: { xs: '100%', sm: 180 }, overflowWrap: 'anywhere' }}>
                                     <Typography variant="h3">{f.desc_ur}</Typography>
-                                    <Chip
-                                        sx={{ mt: 1 }}
-                                        label={f.editable && !readOnly ? 'Puedes llenar' : 'Solo consulta'}
-                                        variant="outlined"
-                                    />
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {displayUnitCode(f.cve_ur)}
+                                        </Typography>
+                                        <Chip label={f.editable && !readOnly ? 'Puedes llenar' : 'Solo consulta'} variant="outlined" />
+                                    </Box>
                                 </Box>
                                 <Box sx={{ width: 100 }}>
-                                    <Typography variant="body2">{f.porcentaje}%</Typography>
+                                    <Typography variant="body2" sx={{ textAlign: 'right' }}>{f.porcentaje}%</Typography>
                                     <LinearProgress
                                         variant="determinate"
                                         value={Number(f.porcentaje)}
                                         color="secondary"
-                                        sx={{ mt: 1 }}
+                                        sx={{ mt: 0.5 }}
                                     />
                                 </Box>
                                 <Button

@@ -51,7 +51,8 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'No se pudo generar el contrato desde el código fuente de Nexo.' }
         }
         $testArguments = if ($EditingOnly) { @('--', '--editing-only') } elseif ($NexoDelegationOnly) { @('--', '--nexo-delegation-only') } elseif ($MigrationsOnly) { @('--', '--migrations-only') } elseif ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
-        & dotnet run --project tests/TDV2.NativeVerification -p:NuGetAudit=false @testArguments
+        # Usar Release sin apphost evita disputar el ejecutable Debug abierto por F5 en Visual Studio.
+        & dotnet run --project tests/TDV2.NativeVerification -c Release -p:UseAppHost=false -p:NuGetAudit=false @testArguments
         $result = $LASTEXITCODE
         if ($result -ne 0) { throw 'Native verification failed. See results in the isolated artifacts directory.' }
     } finally { Pop-Location }

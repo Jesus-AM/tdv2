@@ -68,18 +68,21 @@ export default function AreaDirectory({
         !node.contextOnly && (
             <Box
                 key={node.unit.id_ur}
+                className="area-format-row"
                 sx={{
-                    display: 'flex',
-                    gap: 2,
+                    display: 'grid',
+                    gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', sm: '18px minmax(0, 1fr) auto 100px auto' },
+                    gap: 1,
                     alignItems: 'center',
-                    py: 1.75,
+                    minHeight: 76,
+                    py: 1,
                     borderBottom: '1px solid',
                     borderColor: 'divider',
-                    flexWrap: { xs: 'wrap', md: 'nowrap' },
+                    '&:last-child': { borderBottom: 0 },
                 }}
             >
-                <SubdirectoryArrowRight sx={{ fontSize: 18, color: 'text.secondary' }} />
-                <Box sx={{ flex: 1, minWidth: 150 }}>
+                <SubdirectoryArrowRight sx={{ fontSize: 18, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }} />
+                <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {main ? 'Formato del área principal' : node.unit.desc_ur}
                     </Typography>
@@ -92,8 +95,8 @@ export default function AreaDirectory({
                               : 'Sin iniciar'}
                     </Typography>
                 </Box>
-                {!node.form.editable && <Chip label="Solo consulta" variant="outlined" />}
-                <Box sx={{ width: 85 }}>
+                {!node.form.editable && <Chip label="Solo consulta" variant="outlined" sx={{ justifySelf: 'start', gridColumn: { xs: 1, sm: 3 }, gridRow: { xs: 2, sm: 1 } }} />}
+                <Box sx={{ width: { xs: 85, sm: 100 }, textAlign: 'right', justifySelf: 'end', gridColumn: { xs: 2, sm: 4 }, gridRow: 1 }}>
                     <Typography variant="caption" color="secondary" sx={{ fontWeight: 600 }}>
                         {node.form.porcentaje}%
                     </Typography>
@@ -108,6 +111,7 @@ export default function AreaDirectory({
                     variant={node.form.editable && !readOnly ? 'contained' : 'outlined'}
                     aria-label={`Abrir formato de ${node.unit.desc_ur}`}
                     onClick={() => router.visit(node.form!.url)}
+                    sx={{ gridColumn: { xs: 2, sm: 5 }, gridRow: { xs: 2, sm: 1 }, justifySelf: 'end' }}
                 >
                     {node.form.editable && !readOnly ? 'Continuar' : 'Ver formato'}
                 </Button>
@@ -122,30 +126,40 @@ export default function AreaDirectory({
         ));
     return (
         <section aria-labelledby="directory-title">
-            <Tabs value={scope} onChange={(_, value) => setScope(value)} aria-label="Ámbito de consulta" sx={{ mb: 2 }}>
+            <Tabs value={scope} onChange={(_, value) => setScope(value)} aria-label="Ámbito de consulta"
+                sx={{ mb: 1, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 1 } }}>
                 <Tab value="mis" label="Mis áreas" />
                 <Tab value="todas" label="Todas las áreas" />
             </Tabs>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
                 <Box>
                     <Typography id="directory-title" component="h2" variant="h2">
                         {scope === 'mis' ? 'Mis áreas' : 'Áreas de la universidad'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
+                        {q || filter !== 'todos' ? `${roots.length} de ` : ''}
                         {tree.roots.length} áreas principales ·{' '}
                         {visibleForms.length} áreas con formato
                     </Typography>
                 </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
-                    Abre un área para consultar sus áreas dependientes
-                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    <Button
+                        disabled={!roots.length && !others.length}
+                        onClick={() => setOpen(new Set(expandableAreaIds([...pageRoots, ...others])))}
+                    >
+                        Expandir visibles
+                    </Button>
+                    <Button disabled={!open.size} onClick={() => setOpen(new Set())}>
+                        Contraer
+                    </Button>
+                </Box>
             </Box>
-            <Box className="surface" sx={{ p: '14px!important', display: 'flex', gap: 2, mb: 1, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, mb: 1.5, pt: 0.5 }}>
                 <TextField
                     label="Buscar área o clave"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    sx={{ flex: 1, minWidth: 180 }}
+                    sx={{ flex: 1, minWidth: 0 }}
                     slotProps={{
                         input: {
                             startAdornment: (
@@ -166,7 +180,7 @@ export default function AreaDirectory({
                     label="Mostrar"
                     value={filter}
                     onChange={(e) => setFilter(e.target.value as AreaFilter)}
-                    sx={{ minWidth: 180 }}
+                    sx={{ width: { xs: '100%', sm: 200 }, flexShrink: 0 }}
                 >
                     {[
                         ['todos', 'Todas las áreas'],
@@ -181,32 +195,7 @@ export default function AreaDirectory({
                     ))}
                 </TextField>
             </Box>
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 1,
-                    gap: 1,
-                    flexWrap: 'wrap',
-                }}
-            >
-                <Typography variant="caption" color="text.secondary">
-                    {roots.length} áreas principales{q || filter !== 'todos' ? ' con coincidencias' : ''}
-                </Typography>
-                <Box>
-                    <Button
-                        disabled={!roots.length && !others.length}
-                        onClick={() => setOpen(new Set(expandableAreaIds([...pageRoots, ...others])))}
-                    >
-                        Expandir visibles
-                    </Button>
-                    <Button disabled={!open.size} onClick={() => setOpen(new Set())}>
-                        Contraer
-                    </Button>
-                </Box>
-            </Box>
-            <Box className="stack" sx={{ gap: '10px!important' }}>
+            <Box className="stack" sx={{ gap: '8px' }}>
                 {pageRoots.map((node) => {
                     const avg = node.forms.length
                         ? Math.round(node.forms.reduce((s, f) => s + Number(f.porcentaje), 0) / node.forms.length)
@@ -225,6 +214,8 @@ export default function AreaDirectory({
                             <Box
                                 component="button"
                                 className="area-root-trigger"
+                                aria-label={`${displayUnitCode(node.unit.cve_ur)} · ${node.unit.desc_ur}`}
+                                aria-describedby={`area-summary-${node.unit.id_ur} area-progress-${node.unit.id_ur}`}
                                 aria-expanded={open.has(node.unit.id_ur)}
                                 aria-controls={`area-${node.unit.id_ur}`}
                                 onClick={() => toggle(node.unit.id_ur)}
@@ -235,8 +226,10 @@ export default function AreaDirectory({
                                     display: 'flex',
                                     alignItems: 'center',
                                     textAlign: 'left',
-                                    p: 2.25,
-                                    gap: 2,
+                                    minHeight: 80,
+                                    py: 1.5,
+                                    px: { xs: 1.5, sm: 2 },
+                                    gap: 1.5,
                                     cursor: 'pointer',
                                     color: 'text.primary',
                                     '&:hover': { background: '#f5f8fd' },
@@ -244,7 +237,11 @@ export default function AreaDirectory({
                             >
                                 <Box
                                     sx={{
-                                        p: 1.1,
+                                        width: 34,
+                                        height: 34,
+                                        flexShrink: 0,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
                                         bgcolor: '#edf3fd',
                                         color: 'primary.main',
                                         borderRadius: 2,
@@ -253,30 +250,28 @@ export default function AreaDirectory({
                                 >
                                     <AccountTreeOutlined fontSize="small" />
                                 </Box>
-                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.5 }}>
-                                        <Typography variant="caption" color="text.secondary">
-                                            {displayUnitCode(node.unit.cve_ur)}
+                                <Box sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+                                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 15 }}>
+                                            {node.unit.desc_ur}
                                         </Typography>
                                         {ownRoot === node.unit.id_ur && (
                                             <Chip
                                                 label="Tu área"
                                                 color="primary"
                                                 variant="outlined"
-                                                sx={{ height: 19, fontSize: 10 }}
+                                                sx={{ height: 20, fontSize: 11 }}
                                             />
                                         )}
                                     </Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                        {node.unit.desc_ur}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography id={`area-summary-${node.unit.id_ur}`} variant="caption" color="text.secondary">
+                                        {displayUnitCode(node.unit.cve_ur)} ·{' '}
                                         {node.areaCount - 1} áreas dependientes ·{' '}
                                         {node.forms.filter((f) => Number(f.porcentaje) === 100).length}/
                                         {node.forms.length} completos
                                     </Typography>
                                 </Box>
-                                <Box sx={{ width: { xs: 58, sm: 115 }, flexShrink: 0 }}>
+                                <Box id={`area-progress-${node.unit.id_ur}`} sx={{ width: { xs: 58, sm: 115 }, flexShrink: 0, textAlign: 'right' }}>
                                     <Typography color="secondary" sx={{ fontWeight: 600, fontSize: 17 }}>
                                         {avg}%
                                     </Typography>
@@ -305,11 +300,11 @@ export default function AreaDirectory({
                             <Collapse in={open.has(node.unit.id_ur)} timeout={reducedMotion ? 0 : 180}>
                                 <Box
                                     id={`area-${node.unit.id_ur}`}
-                                    sx={{ px: { xs: 2, md: 3 }, pb: 1, borderTop: '1px solid', borderColor: 'divider' }}
+                                    sx={{ px: { xs: 1.5, sm: 2 }, borderTop: '1px solid', borderColor: 'divider' }}
                                 >
                                     {formRow(node, true)}
                                     {!!node.children.length && (
-                                        <Typography className="eyebrow" sx={{ mt: 2, mb: 0 }}>
+                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 0, fontWeight: 600 }}>
                                             Áreas dependientes
                                         </Typography>
                                     )}
@@ -321,7 +316,7 @@ export default function AreaDirectory({
                 })}
             </Box>
             {others.length > 0 && (
-                <Box className="surface" sx={{ mt: 2 }}>
+                <Box className="surface" sx={{ mt: 1.5, p: '12px 16px' }}>
                     <Typography variant="h2">Otras áreas del catálogo</Typography>
                     {children(others)}
                 </Box>
@@ -348,7 +343,7 @@ export default function AreaDirectory({
                     sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
                 />
             )}
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                 El avance del conjunto promedia el formato principal y los de sus áreas dependientes.
             </Typography>
         </section>

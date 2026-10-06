@@ -1,14 +1,18 @@
 # Captura colaborativa y envío
 
+Actualización: [SignalR, exclusión por registro y pruebas con dos sesiones](RESERVAS_SIGNALR.md). No requiere migración adicional.
+
 ## Captura
 
-Cada fila de Identificación, Sistemas, Datos y Acuerdos es un bloque con identificador estable. Contexto agrupa fecha/responsable; Medios agrupa sus opciones y otro medio; cada pregunta y criterio de evaluación tiene su propio bloque. Otras personas consultan los bloques reservados y ven el nombre del titular.
+Cada fila de Identificación, Sistemas, Datos y Acuerdos es un bloque con identificador estable. Medios agrupa sus opciones y otro medio; cada pregunta y criterio de evaluación tiene su propio bloque. Otras personas consultan los bloques reservados y ven el nombre del titular. Los datos de sesión ya no se capturan; el encabezado histórico permanece en el JSON sin generar respuestas ni requisitos nuevos.
 
 La reserva dura **45 segundos**, distingue sesión, revisión de representación y pestaña, y se renueva únicamente por cambios en respuestas. Una pantalla abierta o SignalR no la renuevan. Salir del bloque guarda y libera después de confirmar; cierres inesperados se resuelven por vencimiento. Reabrir/recargar el editor crea otra identidad de pestaña: no se copia mediante sessionStorage al duplicar pestañas.
 
-El autoguardado espera un segundo de pausa. **Guardar borrador** guarda inmediatamente; el estado compacto sólo confirma éxito después del servidor. Ante conflicto/desconexión se conserva la propuesta en memoria, con descarga y recuperación explícita. Comparar y recuperar no guarda automáticamente: después de revisar, Guardar borrador obtiene una reserva nueva. No se guardan respuestas en localStorage.
+El autoguardado espera un segundo de pausa. **Guardar borrador** guarda inmediatamente; el estado compacto sólo confirma éxito después del servidor y espera la liberación al terminar manualmente. Ante un fallo real se conserva la propuesta en memoria y aparece **Resolver** junto al registro. El diálogo permite comparar y confirmar explícitamente, conservar la respuesta compartida o descargar la propuesta. La ocupación normal se muestra dentro de la fila, sin panel global de recuperación. Ningún cambio se acepta antes de confirmar la reserva y cargar su contenido vigente. No se guardan respuestas en localStorage.
 
-Contexto conserva los campos del anterior Encabezado y los incluye en impresión. Las secciones permanecen montadas. Formatos nuevos abren Contexto; cada operación confirmada recuerda su sección por actor real, usuario efectivo y formato. Claves numéricas se formatean sólo al mostrar/buscar; los identificadores de origen permanecen intactos.
+Contexto conserva las instrucciones y la identificación de la UR permanece en el encabezado de página. Se retiraron Datos de la sesión y la función Imprimir; permanecen descarga de propuestas, autoguardado y Guardar borrador. Las secciones permanecen montadas. Formatos nuevos abren Contexto; cada operación confirmada recuerda su sección por actor real, usuario efectivo y formato. Claves numéricas se formatean sólo al mostrar/buscar; los identificadores de origen permanecen intactos.
+
+Eliminar usa un diálogo MUI con Cancelar enfocado inicialmente. Identifica el registro por ID y, si cambió mientras se confirmaba, exige revisar de nuevo. El icono disponible es rojo; el tooltip explica bloqueos por consulta, envío, ILDA o reservas. Eliminar un proceso retira su evaluación y desvincula sistemas/datos dentro de una sola operación que necesita todas las reservas implicadas; tras confirmarse, libera también esas relaciones. Si falla, la propuesta sigue disponible para recuperar.
 
 ## Autoridad del servidor
 
@@ -21,17 +25,35 @@ Contexto conserva los campos del anterior Encabezado y los incluye en impresión
 
 ## Envío definitivo
 
-Enviar guarda los cambios del usuario y solicita confirmación. El backend exige responsabilidad institucional, alcance editable, versión vigente, llenado completo y ausencia de reservas de otras sesiones/pestañas. Colaboradores o consulta institucional no conceden envío. Un administrador necesita ser responsable institucional además de estar en su rama editable.
+Al final de Acuerdos, Revisión y envío muestra los pendientes del servidor con enlaces a los campos. Enviar formato aparece sólo para un responsable autorizado, sin cambios pendientes ni errores y con revisión aprobada. Antes del diálogo se guarda y se vuelve a consultar el servidor; se confirma la UR y la versión revisada. El backend exige responsabilidad institucional, alcance editable, versión vigente, llenado completo y ausencia de reservas de otras sesiones/pestañas. Colaboradores o consulta institucional no conceden envío. Un administrador necesita ser responsable institucional además de estar en su rama editable.
 
-Se guardan fecha UTC, ejercicio, UUID, versión, actor Microsoft real, identidad efectiva y auditoría. La instantánea conserva unidad y respuestas, incluidos los trámites ILDA incorporados. Consulta e impresión dejan de combinar nuevos inventarios o descripciones. Un trigger impide UPDATE/DELETE del formato enviado incluso desde otros procesos. **No existe reapertura**.
+Se guardan fecha UTC, ejercicio, UUID, versión, actor Microsoft real, identidad efectiva y auditoría. La instantánea conserva unidad y respuestas, incluidos los trámites ILDA incorporados. La consulta deja de combinar nuevos inventarios o descripciones y muestra fecha e identidad efectiva del envío. Un trigger impide UPDATE/DELETE del formato enviado incluso desde otros procesos. **No existe reapertura**.
 
-Requisitos visibles: fecha/responsable de Contexto; procesos con código, validación, prioridad y los campos de avance; sistemas; datos; doce preguntas; acuerdos; nueve criterios por proceso. El cálculo de avance es del servidor. Si un ID de UR reaparece con otro ejercicio, se bloquea la sobrescritura del histórico y debe resolverse su correspondencia institucional.
+Requisitos visibles: procesos con código, validación, prioridad y los campos de avance; sistemas; datos; doce preguntas; acuerdos; nueve criterios por proceso. `FormReview` centraliza los pendientes y `RequireComplete` los exige durante el envío. Un 100 % no sustituye esa revisión, por ejemplo ante una prioridad histórica fuera de 1–5.
+
+El avance de borradores usa los pesos restantes (25/15/10/15/20/5, total 90), normalizados a 100 y redondeados hacia abajo. Consultar recalcula la proyección sin escribir filas; el próximo guardado o envío persiste el valor vigente. Los formatos enviados conservan avance, contenido e instantánea originales. Este ajuste no necesita migración ni backfill. Si un ID de UR reaparece con otro ejercicio, se bloquea la sobrescritura del histórico y debe resolverse su correspondencia institucional.
 
 ## Prioridad y valores anteriores
 
-Selección única accesible: 5 extremadamente prioritario (rojo), 4 muy prioritario (naranja), 3 moderadamente prioritario (ámbar), 2 poco prioritario (azul), 1 nada prioritario (verde). Sin selección predeterminada; se admite la misma prioridad en varios procesos.
+Select de MUI de selección única, con opción inicial «Selecciona una prioridad»: 5 extremadamente prioritario (rojo), 4 muy prioritario (naranja), 3 moderadamente prioritario (ámbar), 2 poco prioritario (azul), 1 nada prioritario (verde). Sin selección predeterminada; se admite la misma prioridad en varios procesos. El menú pertenece al bloque de la fila aunque MUI lo renderice en un portal; abrirlo no finaliza la reserva.
 
-La migración **no convierte ni elimina valores previos**. Los números 1–5 se conservan; la escala anterior era un orden numérico y su significado requiere revisión humana. Los mayores de 5 se muestran como valor anterior, se conservan en borrador y deben reclasificarse explícitamente para enviar. No hay conversión automática fiable de un orden 1–9999 a intensidad 1–5.
+El cambio a Select **no convierte ni elimina valores previos**. Los números 1–5 conservan su significado vigente. Los valores del orden numérico histórico mayores de 5 se muestran como valor anterior, se conservan en borrador y deben reclasificarse explícitamente para enviar. No hay conversión automática fiable de un orden 1–9999 a intensidad 1–5.
+
+## Comprobar los ajustes en Visual Studio
+
+1. Abre `tdv2.slnx`, selecciona **TDV2 HTTPS + React** e inicia F5. Se conservan el perfil, HMR, User Secrets y `https://localhost:7136/connect`. F5 no aplica migraciones. Este cambio no requiere una migración adicional; la tercera migración de la entrega previa sigue siendo requisito de la captura colaborativa.
+2. En una sesión autorizada, comprueba Contexto sin Datos de la sesión y la UR en el encabezado. Verifica la ausencia de Imprimir y la presencia de Guardar borrador/estado. No uses un formato institucional para ensayar eliminaciones o envío.
+3. Para las escrituras sintéticas, ejecuta desde la terminal de la solución `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly`. Crea su propia base desechable y sesiones; no utiliza la conexión institucional de User Secrets. Prueba las cuatro tablas, Cancelar, ID estable ante otra pestaña, prioridad con teclado, móvil y movimiento reducido, revisión de pendientes y envío bloqueado después de confirmar.
+4. Para concurrencia y casos negativos, ejecuta `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -EditingOnly -SkipBrowser`. Incluye reservas ajenas/vencidas, reintentos, envío concurrente, roles sin permiso e instantáneas inmutables. Sus datos y auditoría son sintéticos.
+5. En Configuración, comprueba el desplegable de Sincronizaciones y Pruebas de acceso únicamente cuando Nexo publique esos módulos y su padre. Cuenta, Usar otra cuenta, Cerrar sesión y Actuar como usuario conservan su flujo independiente. No hay nuevas claves ni cambios de OAuth/representación.
+
+Las pruebas de navegador usan Microsoft y Nexo sintéticos con ASP.NET, React y PostgreSQL reales. No equivalen a F5 interactivo autenticado ni a aceptación institucional. Las fuentes externas están bloqueadas en ese navegador; la tipografía configurada en el producto permanece intacta.
+
+Las suites necesitan `node` en PATH. En esta estación se usó el Node ya incluido en Visual Studio; si la terminal no lo encuentra, agregarlo sólo a esa sesión antes de ejecutar los comandos:
+
+```powershell
+$env:PATH = 'C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Microsoft/VisualStudio/NodeJs;' + $env:PATH
+```
 
 ## Actualizar desde la raíz
 

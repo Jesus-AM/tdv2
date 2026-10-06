@@ -6,7 +6,7 @@ const source = readFileSync(new URL('../../resources/js/lib/area-directory.ts', 
 const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
-const { buildAreaDirectory, filterAreaTree, displayUnitCode } = await import(
+const { buildAreaDirectory, filterAreaTree, displayUnitCode, eligibleArea } = await import(
     `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
 );
 const unit = (id, level, parent, name = id) => ({
@@ -32,14 +32,27 @@ const form = (u, p, edit) => ({
 const flatten = (nodes) => nodes.flatMap((n) => [n.unit.id_ur, ...flatten(n.children)]);
 const data = () => buildAreaDirectory([c, d, b, a], [form(a, 0, true), form(b, 100, true), form(d, 30, false)]);
 
-test('tipo 0 queda como puente interno, sin formato ni contador; clave no determina tipo', () => {
-    const bridge = { ...unit('bridge', 3, 'a'), tipo_ur: '0' };
-    const child = { ...b, id_ur_pertenece: 'bridge', cve_ur: '06000', tipo_ur: '1' };
+test('tipo N queda como puente interno, sin formato ni contador; clave no determina tipo', () => {
+    const bridge = { ...unit('bridge', 2, 'a'), tipo_ur: ' n ' };
+    const child = { ...b, id_ur_pertenece: 'bridge', id_ur_principal: 'bridge', cve_ur: '06000', tipo_ur: '0' };
     const tree = buildAreaDirectory([a, bridge, child], [form(a, 0, true), form(bridge, 100, true), form(child, 40, true)]);
     assert.deepEqual(flatten(tree.roots), ['a', 'b']);
     assert.equal(tree.roots[0].areaCount, 2);
     assert.equal(tree.roots[0].forms.length, 2);
     assert.equal(tree.roots[0].children[0].unit.cve_ur, '06000');
+    assert.equal(bridge.tipo_ur, ' n ');
+    assert.equal(child.id_ur_pertenece, 'bridge');
+});
+
+test('excluye únicamente N normalizado; 0 puede aparecer en niveles 2 y 3 con sus contadores', () => {
+    for (const kind of ['N', 'n', ' N ', '\t n\r\n']) assert.equal(eligibleArea({ ...a, tipo_ur: kind }), false);
+    for (const kind of [null, undefined, '', ' ', '0', ' 0 ', '00', '1', 'NA']) assert.equal(eligibleArea({ ...a, tipo_ur: kind }), true);
+    const units = [2, 3, 4].map(level => ({ ...unit('zero' + level, level, level === 2 ? null : 'zero2'), tipo_ur: ' 0 ', cve_ur: '06000' }));
+    const tree = buildAreaDirectory(units, units.map(u => form(u, 40, true)));
+    assert.deepEqual(flatten(tree.roots), ['zero2', 'zero3']);
+    assert.equal(tree.roots[0].areaCount, 2); assert.equal(tree.roots[0].forms.length, 2);
+    assert.equal(tree.roots[0].forms.reduce((sum, f) => sum + f.porcentaje, 0), 80);
+    for (const code of ['06000', '6000']) assert.deepEqual(flatten(filterAreaTree(tree.roots, code, 'todos')), ['zero2', 'zero3']);
 });
 
 test('06000 y 6000 encuentran la misma UR sin modificar identificadores ni agrupar duplicados', () => {

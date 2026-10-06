@@ -3,7 +3,7 @@ export function normalizeContent(input: FormContent): FormContent {
     const c = structuredClone(input);
     const text = <T extends object>(row: T): T =>
         Object.fromEntries(Object.entries(row).map(([key, value]) => [key, value === null ? '' : value])) as T;
-    c.encabezado = text(c.encabezado);
+    // El encabezado retirado es histórico: incluso sus nulos se conservan sin normalización.
     c.identificacion = c.identificacion.map(text);
     c.sistemas = c.sistemas.map((row) => text({ ...row, proceso: row.proceso ?? row.procesos?.[0] ?? '' }));
     c.datos = c.datos.map(text);

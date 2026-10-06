@@ -30,7 +30,6 @@ import {
     ArrowBack,
     DeleteOutlined,
     DownloadOutlined,
-    PrintOutlined,
     SaveOutlined,
     CheckCircleOutlined,
     CloudSyncOutlined,
@@ -38,6 +37,14 @@ import {
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import FormProposalComparison from '@/Components/FormProposalComparison';
+import BlockEditingStatus from '@/Components/BlockEditingStatus';
+import { splitBlocks } from '@/lib/form-blocks';
+import PrioritySelect from '@/Components/PrioritySelect';
+import RemoveRowDialog from '@/Components/RemoveRowDialog';
+import FormSubmissionReview from '@/Components/FormSubmissionReview';
+import type { FormPending } from '@/Components/FormSubmissionReview';
+import { removalBlocks, removeRow, rowLabel, targetRow } from '@/lib/form-deletion';
+import type { RowTarget } from '@/lib/form-deletion';
 import { displayUnitCode } from '@/lib/area-directory';
 import { BlockEditor } from '@/lib/block-editor';
 import type { EditorState, LiveForm } from '@/lib/block-editor';
@@ -61,6 +68,7 @@ type Props = {
     guardarUrl: string;
     puedeEnviar: boolean;
     enviadoEn: string | null;
+    enviadoPor: string | null;
     definicion: Definition;
     ilda?: { estado: string; nuevos: number; total: number; aviso: string | null };
 };
@@ -101,12 +109,16 @@ export default function FormatoUR(props: Props) {
 function Editor(props: Props) {
     const { props: shared } = usePage();
     const [active, setActive] = useState('contexto'),
-        [printing, setPrinting] = useState(false),
         [evalCode, setEvalCode] = useState(''),
         [notice, setNotice] = useState(''),
-        [confirmSend, setConfirmSend] = useState(false),
+        [confirmSend, setConfirmSend] = useState<number | null>(null),
+        [removal, setRemoval] = useState<(RowTarget & { snapshot: string }) | null>(null),
         [sending, setSending] = useState(false),
-        [compare, setCompare] = useState<LiveForm | null>(null);
+        [finishing, setFinishing] = useState(false),
+        [compare, setCompare] = useState<{ live: LiveForm; keys: string[] } | null>(null);
+    const modalBlocks = useRef<string[]>([]);
+    const [openSelect, setOpenSelect] = useState<{ key: string; field: string } | null>(null);
+    const [resolving, setResolving] = useState(false), [resolutionError, setResolutionError] = useState('');
     const redraw = useRef<(s: EditorState) => void>(() => {});
     const [engine] = useState<BlockEditor>(
         () => {
@@ -134,6 +146,10 @@ function Editor(props: Props) {
         locked = state.locked || !state.initialized;
     const initializedSection = useRef(false);
     useEffect(() => {
+        // Perder la reserva cierra el menú; una adquisición posterior no debe reabrir una intención antigua.
+        if (openSelect && !engine.canEdit(openSelect.key)) setOpenSelect(null);
+    }, [engine, openSelect, state]);
+    useEffect(() => {
         if (state.initialized && !initializedSection.current) {
             initializedSection.current = true;
             setActive(tabs.some(([key]) => key === state.section) ? state.section : 'contexto');
@@ -150,19 +166,57 @@ function Editor(props: Props) {
         connection.onreconnecting(() => engine.connectionLost());
         connection.onreconnected(() => { void engine.refresh(); watch(); });
         connection.onclose(() => { if (!disposed) engine.connectionLost(); });
+        const offline = () => engine.connectionLost(), online = () => { void engine.refresh(); };
+        window.addEventListener('offline', offline); window.addEventListener('online', online);
         void connection.start().then(() => { if (!disposed) watch(); }).catch(() => engine.connectionLost());
-        return () => { disposed = true; void connection.stop(); };
+        return () => { disposed = true; window.removeEventListener('offline', offline); window.removeEventListener('online', online); void connection.stop(); };
     }, [engine, props.unidad.id_ur, shared.contextoEdicion, shared.csrfToken]);
+    async function resolveBlock(key: string) {
+        modalBlocks.current = engine.proposalKeys(key); setResolutionError('');
+        try {
+            const live = (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data;
+            setCompare({ live, keys: modalBlocks.current });
+        } catch { setNotice('No se pudo consultar la respuesta guardada. Tu propuesta se conserva en este registro.'); modalBlocks.current = []; }
+    }
+    async function refreshComparison() {
+        try {
+            const live = (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data;
+            setCompare(previous => previous && { ...previous, live });
+        } catch { /* Conservar la comparación y la propuesta si sigue desconectado. */ }
+    }
     function blockNotice(key: string) {
-        const lease = state.blocks[key]?.reserva;
-        return engine.busy(key) ? <Typography variant="caption" color="text.secondary" role="status">Editando: {lease?.titular}</Typography> : null;
+        return <BlockEditingStatus engine={engine} state={state} blockKey={key} onResolve={() => void resolveBlock(key)} />;
     }
     function blockEvents(key: string) {
-        return { 'data-edit-block': key,
+        return { 'data-edit-block': key, 'data-edit-state': engine.busy(key) ? 'occupied' : engine.canEdit(key) ? 'owned' : 'idle',
             onFocusCapture: () => { void engine.focus(key); },
-            onBlurCapture: (event: React.FocusEvent<HTMLElement>) => {
-                if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) void engine.endBlock(key);
+            onPointerDownCapture: (event: React.PointerEvent<HTMLElement>) => {
+                // Un campo que conservó el foco tras vencer o liberarse una reserva también puede retomarse.
+                // Consultar el código o seleccionar texto fuera de los campos no inicia una reserva.
+                if (!engine.canEdit(key) && event.target instanceof Element
+                    && event.target.closest('input, textarea, label, [role="combobox"]')) void engine.focus(key);
+            },
+            onKeyDownCapture: (event: React.KeyboardEvent<HTMLElement>) => {
+                if (!engine.canEdit(key) && !['Tab', 'Escape'].includes(event.key)) void engine.focus(key);
+            },
+            onBlurCapture: () => {
+                // Select y Dialog usan portales: comprobar el foco final, no el blur intermedio hacia body.
+                setTimeout(() => {
+                    const target = document.activeElement;
+                    if (modalBlocks.current.includes(key) || target?.closest('[role="listbox"]') || document.querySelector('[role="listbox"]')) return;
+                    if (target?.closest('[data-edit-block]')?.getAttribute('data-edit-block') !== key) void engine.endBlock(key);
+                }, 0);
             } };
+    }
+    function choiceDisabled(key: string) { return locked || engine.busy(key) || !!state.issues[key]; }
+    async function changeChoice(key: string, edit: (data: FormContent) => void) {
+        // Las casillas y radios reciben foco sin habilitar escrituras: confirmar primero y usar el contenido vigente.
+        if (engine.canEdit(key) || await engine.focus(key)) engine.change(edit);
+    }
+    function selectEvents(key: string, field: string) {
+        return { readOnly: choiceDisabled(key), open: openSelect?.key === key && openSelect.field === field && engine.canEdit(key),
+            onOpen: async () => { if (await engine.focus(key)) setOpenSelect({ key, field }); },
+            onClose: () => setOpenSelect(null) };
     }
     const coded = c.identificacion.filter((r) => r.codigo);
     const selectedCode = coded.some((r) => r.codigo === evalCode) ? evalCode : coded[0]?.codigo || '';
@@ -182,13 +236,10 @@ function Editor(props: Props) {
                 event.preventDefault();
         });
         window.addEventListener('beforeunload', before);
-        const afterPrint = () => setPrinting(false);
-        window.addEventListener('afterprint', afterPrint);
         return () => {
             engine.dispose();
             remove();
             window.removeEventListener('beforeunload', before);
-            window.removeEventListener('afterprint', afterPrint);
         };
     }, [engine]);
     const change = (edit: (data: FormContent) => void) => engine.change(edit);
@@ -203,22 +254,11 @@ function Editor(props: Props) {
         a.click();
         URL.revokeObjectURL(url);
     }
-    function reload() {
-        if (
-            (state.dirty || state.saving) &&
-            !window.confirm('¿Ya conservaste tus cambios? Se cargará la última versión guardada.')
-        )
-            return;
-        engine.state.dirty = false;
-        window.location.reload();
-    }
-    function print() {
-        setPrinting(true);
-        requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
-    }
-    function processEdit(index: number, key: string, value: string) {
-        change((d) => {
-            const row = d.identificacion[index];
+    function processEdit(rowId: string, key: string, value: string) {
+        if (!engine.canEdit(`identificacion:${rowId}`)) return;
+        void engine.edit((d) => {
+            const row = d.identificacion.find(item => item.id === rowId);
+            if (!row) return;
             Object.assign(row, { [key]: value });
             if (key === 'validacion' && value && !row.codigo) {
                 const max = Math.max(0, ...d.identificacion.map((r) => Number(r.codigo.match(/^PO-(\d+)$/)?.[1] || 0)));
@@ -232,47 +272,54 @@ function Editor(props: Props) {
                 }));
         });
     }
-    function removeProcess(index: number) {
-        const row = c.identificacion[index];
-        if (row.id.startsWith('ilda:')) return;
-        if (
-            row.codigo &&
-            !window.confirm('¿Retirar este proceso? Se quitará su evaluación y se desvinculará de sistemas y datos.')
-        )
-            return;
-        change((d) => {
-            d.identificacion.splice(index, 1);
-            if (row.codigo) {
-                delete d.evaluaciones[row.codigo];
-                d.sistemas.forEach((r) => {
-                    if (r.proceso === row.codigo) r.proceso = '';
-                });
-                d.datos.forEach((r) => {
-                    if (r.proceso === row.codigo) r.proceso = '';
-                });
-            }
-        });
+    function removalReason(target: RowTarget) {
+        if (!state.initialized) return 'Espera a que termine de cargar el formato.';
+        if (state.submitted || props.enviadoEn) return 'El formato enviado está bloqueado para edición.';
+        if (locked) return 'Tu acceso actual es de solo consulta.';
+        const row = targetRow(c, target);
+        if (!row) return 'Otra sesión ya retiró este registro.';
+        if (row.id.startsWith('ilda:')) return 'Los registros de ILDA se conservan. Selecciona N en Validación si no corresponde.';
+        if (removalBlocks(c, target).some(key => engine.busy(key))) return 'Otra sesión está editando este registro o una de sus relaciones.';
+        if (!engine.canEdit(`${target.section}:${target.id}`)) return 'Entra en un campo del registro y espera la confirmación de la reserva.';
+        if (removalBlocks(c, target).some(key => state.issues[key])) return 'Resuelve los cambios pendientes de este registro antes de eliminarlo.';
+        return '';
+    }
+    function removeButton(target: RowTarget, label: string) {
+        const reason = removalReason(target);
+        return <Tooltip title={reason || 'Eliminar registro'}><span tabIndex={reason ? 0 : undefined}>
+            <IconButton aria-label={label} color="error" disabled={!!reason}
+                onClick={() => { modalBlocks.current = removalBlocks(c, target); setRemoval({ ...target, snapshot: JSON.stringify(targetRow(c, target)) }); }}>
+                <DeleteOutlined fontSize="small" />
+            </IconButton>
+        </span></Tooltip>;
+    }
+    function navigatePending(pending: FormPending) {
+        void engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
+        if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            const panel = document.getElementById('panel-' + pending.seccion);
+            const block = Array.from(panel?.querySelectorAll<HTMLElement>('[data-edit-block]') || [])
+                .find(element => element.dataset.editBlock === pending.bloque);
+            const field = block?.querySelector<HTMLElement>('[data-field="' + pending.campo + '"]');
+            const focus = field?.matches('[tabindex="-1"]') ? field.parentElement?.querySelector<HTMLElement>('[role="combobox"]') : field;
+            (focus || block?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, [role="combobox"]') || panel)?.focus();
+            (block || panel)?.scrollIntoView({ block: 'center' });
+        }));
+    }
+    async function reviewForSubmission() {
+        setSending(true);
+        try {
+            if (await engine.flush(true) && await engine.refresh() && !engine.state.dirty && !engine.state.saving
+                && engine.state.canSubmit && engine.state.review?.listo) setConfirmSend(engine.state.version);
+        } finally { setSending(false); }
     }
     function field(value: string, def: Field, label: string, onChange: (value: string) => void, blockKey?: string) {
-        const readOnly = locked || !!blockKey && engine.busy(blockKey);
-        if (def.key === 'prioridad') return (
-            <Box sx={{ minWidth: 225 }}>
-                {value && !['1','2','3','4','5'].includes(value) && <Typography variant="caption">Valor anterior: {value}. Selecciona su prioridad actual.</Typography>}
-                <RadioGroup aria-label={label} value={value} onChange={event => onChange(event.target.value)}>
-                    {[
-                        ['5', 'Extremadamente prioritario', '#b71c1c'], ['4', 'Muy prioritario', '#a63c00'],
-                        ['3', 'Moderadamente prioritario', '#7a5700'], ['2', 'Poco prioritario', '#1256a0'], ['1', 'Nada prioritario', '#216731'],
-                    ].map(([number, text, color]) => <FormControlLabel key={number} value={number}
-                        disabled={readOnly} control={<Radio size="small" sx={{ color, '&.Mui-checked': { color } }} />}
-                        label={<Typography variant="caption" sx={{ color, fontWeight: 600 }}>{number}: {text}</Typography>} />)}
-                </RadioGroup>
-            </Box>
-        );
+        const readOnly = locked || !!blockKey && !engine.canEdit(blockKey);
+        if (def.key === 'prioridad') return <PrioritySelect value={value} label={label} onChange={onChange} {...selectEvents(blockKey!, def.key)} />;
         return (
             <>
-                <span className="print-only">{def.options?.find((o) => o.value === value)?.label || value || '—'}</span>
                 <TextField
-                    className={`screen-only ${def.wide ? 'wide-field' : ''}`}
+                    className={def.wide ? 'wide-field' : ''}
                     fullWidth
                     select={!!def.options}
                     multiline={!def.options && !def.type}
@@ -283,9 +330,10 @@ function Editor(props: Props) {
                     onChange={(e) => onChange(e.target.value)}
                     slotProps={{
                         input: { readOnly },
-                        select: { readOnly, SelectDisplayProps: { 'aria-label': label } },
+                        select: { ...(blockKey ? selectEvents(blockKey, def.key) : { readOnly }), SelectDisplayProps: { 'aria-label': label, ...{ 'data-field': def.key } } },
                         htmlInput: {
                             'aria-label': label,
+                            'data-field': def.key,
                             min: def.type === 'number' ? 1 : undefined,
                             max: def.type === 'number' ? 9999 : undefined,
                         },
@@ -316,7 +364,7 @@ function Editor(props: Props) {
                                 {fields.map((f) => (
                                     <TableCell key={f.key}>{f.label}</TableCell>
                                 ))}
-                                <TableCell className="no-print">Acciones</TableCell>
+                                <TableCell>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -329,24 +377,14 @@ function Editor(props: Props) {
                                                 f,
                                                 `${f.label} ${i + 1}`,
                                                 (value) =>
-                                                    change((d) => Object.assign(d[section][i], { [f.key]: value })),
+                                                    change((d) => { const row = d[section].find(item => item.id === r.id); if (row) Object.assign(row, { [f.key]: value }); }),
                                                 `${section}:${r.id}`,
                                             )}
                                         </TableCell>
                                     ))}
-                                    <TableCell className="no-print">
+                                    <TableCell>
                                         {blockNotice(`${section}:${r.id}`)}
-                                        <IconButton
-                                            aria-label={`Retirar fila ${i + 1} de ${section}`}
-                                            disabled={locked || engine.busy(`${section}:${r.id}`)}
-                                            onClick={() =>
-                                                change((d) => {
-                                                    d[section].splice(i, 1);
-                                                })
-                                            }
-                                        >
-                                            <DeleteOutlined fontSize="small" />
-                                        </IconButton>
+                                        {removeButton({ section, id: r.id }, `Retirar fila ${i + 1} de ${section}`)}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -354,19 +392,18 @@ function Editor(props: Props) {
                     </Table>
                 </div>
                 <Button
-                    className="no-print"
+
                     sx={{ mt: 2 }}
                     startIcon={<Add />}
                     disabled={locked || rows.length >= 200}
-                    onClick={() =>
-                        change((d) => {
-                            const blank = props.plantilla[section][0];
-                            const row = { ...blank, id: id() };
+                    onClick={() => {
+                        const row = { ...props.plantilla[section][0], id: id() };
+                        void engine.edit((d) => {
                             if (section === 'sistemas') d.sistemas.push(row as FormContent['sistemas'][0]);
                             else if (section === 'datos') d.datos.push(row as FormContent['datos'][0]);
                             else d.acuerdos.push(row as FormContent['acuerdos'][0]);
-                        })
-                    }
+                        });
+                    }}
                 >
                     Agregar fila
                 </Button>
@@ -404,45 +441,7 @@ function Editor(props: Props) {
                         <li key={t}>{t}</li>
                     ))}
                 </Box>
-                {sections.encabezado()}
             </div>
-        ),
-        encabezado: () => (
-            <>
-                <Typography variant="h2" sx={{ mb: 2 }}>
-                    Datos de la sesión
-                </Typography>
-                {blockNotice('contexto')}
-                <Box component="fieldset" disabled={locked || engine.busy('contexto')} {...blockEvents('contexto')}
-                    sx={{ border: 0, p: 0, m: 0, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 2fr 2fr' }, gap: 2 }}>
-                    <TextField
-                        label="Fecha de sesión"
-                        type="date"
-                        value={c.encabezado.fecha}
-                        onChange={(e) =>
-                            change((d) => {
-                                d.encabezado.fecha = e.target.value;
-                            })
-                        }
-                        slotProps={{ input: { readOnly: locked }, inputLabel: { shrink: true } }}
-                    />
-                    <TextField
-                        label="Área participante"
-                        value={c.encabezado.area}
-                        slotProps={{ input: { readOnly: true } }}
-                    />
-                    <TextField
-                        label="Responsable del llenado"
-                        value={c.encabezado.responsable}
-                        onChange={(e) =>
-                            change((d) => {
-                                d.encabezado.responsable = e.target.value;
-                            })
-                        }
-                        slotProps={{ input: { readOnly: locked } }}
-                    />
-                </Box>
-            </>
         ),
         identificacion: () => (
             <>
@@ -475,7 +474,7 @@ function Editor(props: Props) {
                                 {processFields.map((f) => (
                                     <TableCell key={f.key}>{f.label}</TableCell>
                                 ))}
-                                <TableCell className="no-print">Acciones</TableCell>
+                                <TableCell>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -499,41 +498,26 @@ function Editor(props: Props) {
                                         <TableCell key={f.key}>
                                             {field(r[f.key as keyof ProcessRow], f, `${f.label} ${i + 1}`, (value) => {
                                                 setNotice('');
-                                                processEdit(i, f.key, value);
+                                                processEdit(r.id, f.key, value);
                                             }, `identificacion:${r.id}`)}
                                         </TableCell>
                                     ))}
-                                    <TableCell className="no-print">
-                                        {r.id.startsWith('ilda:') ? (
-                                            <Tooltip title="Si este registro no corresponde, selecciona N en Validación.">
-                                                <Typography variant="caption" color="text.secondary">
-                                                    Origen ILDA
-                                                </Typography>
-                                            </Tooltip>
-                                        ) : (
-                                            <IconButton
-                                                aria-label={`Retirar proceso ${i + 1}`}
-                                                disabled={locked || engine.busy(`identificacion:${r.id}`)}
-                                                onClick={() => removeProcess(i)}
-                                            >
-                                                <DeleteOutlined fontSize="small" />
-                                            </IconButton>
-                                        )}
+                                    <TableCell>
+                                        {removeButton({ section: 'identificacion', id: r.id }, `Retirar proceso ${i + 1}`)}
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </div>
-                <Box className="row-actions no-print" sx={{ mt: 2, justifyContent: 'space-between' }}>
+                <Box className="row-actions" sx={{ mt: 2, justifyContent: 'space-between' }}>
                     <Button
                         startIcon={<Add />}
                         disabled={locked || c.identificacion.length >= 200}
-                        onClick={() =>
-                            change((d) => {
-                                d.identificacion.push({ ...props.plantilla.identificacion[0], id: id() });
-                            })
-                        }
+                        onClick={() => {
+                            const row = { ...props.plantilla.identificacion[0], id: id() };
+                            void engine.edit(d => { d.identificacion.push(row); });
+                        }}
                     >
                         Agregar trámite o servicio
                     </Button>
@@ -568,8 +552,8 @@ function Editor(props: Props) {
                 <Typography variant="h3" sx={{ mt: 3, mb: 1 }}>
                     Medios utilizados
                 </Typography>
+                <Box component="fieldset" {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
                 {blockNotice('medios')}
-                <Box component="fieldset" disabled={locked || engine.busy('medios')} {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {Object.keys(c.medios).map((m) => (
                         <FormControlLabel
@@ -577,12 +561,9 @@ function Editor(props: Props) {
                             control={
                                 <Checkbox
                                     checked={c.medios[m]}
-                                    disabled={locked}
-                                    onChange={(e) =>
-                                        change((d) => {
-                                            d.medios[m] = e.target.checked;
-                                        })
-                                    }
+                                    disabled={choiceDisabled('medios')}
+                                    onChange={(e) => { const checked = e.target.checked;
+                                        void changeChoice('medios', d => { d.medios[m] = checked; }); }}
                                 />
                             }
                             label={<Typography variant="body2">{m}</Typography>}
@@ -597,7 +578,7 @@ function Editor(props: Props) {
                             d.medioOtro = e.target.value;
                         })
                     }
-                    slotProps={{ input: { readOnly: locked } }}
+                    slotProps={{ input: { readOnly: !engine.canEdit('medios') } }}
                     sx={{ mt: 1, minWidth: 250 }}
                 />
                 </Box>
@@ -640,7 +621,7 @@ function Editor(props: Props) {
                 ) : (
                     <>
                         <TextField
-                            className="no-print"
+
                             select
                             label="Proceso a evaluar"
                             value={selectedCode}
@@ -654,7 +635,7 @@ function Editor(props: Props) {
                                 </MenuItem>
                             ))}
                         </TextField>
-                        {(printing ? coded.map((r) => r.codigo) : [selectedCode]).map((code) => (
+                        {[selectedCode].map((code) => (
                             <Box key={code}>
                                 <Typography variant="h3" sx={{ mb: 1 }}>
                                     {processOptions.find((o) => o.value === code)?.label}
@@ -663,7 +644,6 @@ function Editor(props: Props) {
                                     <Box
                                         key={criterion}
                                         component="fieldset"
-                                        disabled={locked || engine.busy(`evaluaciones:${code}:${i}`)}
                                         {...blockEvents(`evaluaciones:${code}:${i}`)}
                                         sx={{
                                             border: 0, m: 0, px: 0, minWidth: 0,
@@ -684,21 +664,20 @@ function Editor(props: Props) {
                                             row
                                             aria-label={`${criterion} de ${code}`}
                                             value={c.evaluaciones[code]?.[i]?.valor || ''}
-                                            onChange={(e) =>
-                                                change((d) => {
+                                            onChange={(e) => { const value = e.target.value;
+                                                void changeChoice(`evaluaciones:${code}:${i}`, (d) => {
                                                     if (!d.evaluaciones[code])
                                                         d.evaluaciones[code] = props.definicion.criterios.map(
                                                             (criterio) => ({ criterio, valor: '', obs: '' }),
                                                         );
-                                                    d.evaluaciones[code][i].valor = e.target.value;
-                                                })
-                                            }
+                                                    d.evaluaciones[code][i].valor = value;
+                                                }); }}
                                         >
                                             {['1', '2', '3', '4', '5'].map((v) => (
                                                 <FormControlLabel
                                                     key={v}
                                                     value={v}
-                                                    disabled={locked}
+                                                    disabled={choiceDisabled(`evaluaciones:${code}:${i}`)}
                                                     control={<Radio size="small" sx={{ p: 0.6 }} />}
                                                     label={<Typography variant="caption">{v}</Typography>}
                                                     sx={{ mr: 1, ml: 0 }}
@@ -710,7 +689,7 @@ function Editor(props: Props) {
                                             value={c.evaluaciones[code]?.[i]?.obs || ''}
                                             multiline
                                             maxRows={4}
-                                            slotProps={{ input: { readOnly: locked } }}
+                                            slotProps={{ input: { readOnly: !engine.canEdit(`evaluaciones:${code}:${i}`) } }}
                                             onChange={(e) =>
                                                 change((d) => {
                                                     if (!d.evaluaciones[code])
@@ -736,7 +715,7 @@ function Editor(props: Props) {
                 </Typography>
                 <Box className="stack">
                     {c.preguntas.map((q, i) => (
-                        <Box key={q.pregunta} component="fieldset" disabled={locked || engine.busy(`preguntas:${i}`)} {...blockEvents(`preguntas:${i}`)}
+                        <Box key={q.pregunta} component="fieldset" {...blockEvents(`preguntas:${i}`)}
                             sx={{ p: 0, m: 0, minWidth: 0, border: 0, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                             {blockNotice(`preguntas:${i}`)}
                             <Box
@@ -756,12 +735,9 @@ function Editor(props: Props) {
                                         <Checkbox
                                             size="small"
                                             checked={q.marcada}
-                                            disabled={locked}
-                                            onChange={(e) =>
-                                                change((d) => {
-                                                    d.preguntas[i].marcada = e.target.checked;
-                                                })
-                                            }
+                                            disabled={choiceDisabled(`preguntas:${i}`)}
+                                            onChange={(e) => { const checked = e.target.checked;
+                                                void changeChoice(`preguntas:${i}`, d => { d.preguntas[i].marcada = checked; }); }}
                                         />
                                     }
                                     label={<Typography variant="caption">Revisada</Typography>}
@@ -774,7 +750,7 @@ function Editor(props: Props) {
                                 minRows={q.tipo === 'abierta' ? 2 : undefined}
                                 label={`Respuesta ${i + 1}`}
                                 value={q.respuesta}
-                                slotProps={{ input: { readOnly: locked || engine.busy(`preguntas:${i}`) } }}
+                                slotProps={{ input: { readOnly: !engine.canEdit(`preguntas:${i}`) }, select: selectEvents(`preguntas:${i}`, 'respuesta') }}
                                 onChange={(e) =>
                                     change((d) => {
                                         d.preguntas[i].respuesta = e.target.value;
@@ -807,6 +783,10 @@ function Editor(props: Props) {
                     { key: 'responsable', label: 'Responsable' },
                     { key: 'fecha', label: 'Fecha compromiso', type: 'date' },
                 ])}
+                <FormSubmissionReview review={state.review} canSubmit={state.canSubmit}
+                    settled={state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict}
+                    submitting={sending} submitted={!!(state.submitted || props.enviadoEn)}
+                    onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />
             </>
         ),
     };
@@ -815,7 +795,7 @@ function Editor(props: Props) {
             <Head title={`Procesos operativos · ${displayUnitCode(props.unidad.cve_ur)}`} />
             <div className="page">
                 <Button
-                    className="no-print"
+
                     startIcon={<ArrowBack />}
                     sx={{ mb: 2 }}
                     onClick={() => router.visit('/inicio')}
@@ -842,7 +822,7 @@ function Editor(props: Props) {
                     }
                 />
                 {!state.initialized && <LinearProgress aria-label="Cargando estado de colaboración" sx={{ mb: 2 }} />}
-                {(state.submitted || props.enviadoEn) && <Typography role="status" sx={{ mb: 2 }}>Enviado el {new Date(state.submitted || props.enviadoEn!).toLocaleString('es-MX')}. Este formato está bloqueado para edición.</Typography>}
+                {(state.submitted || props.enviadoEn) && <Typography role="status" sx={{ mb: 2 }}>Enviado el {new Date(state.submitted || props.enviadoEn!).toLocaleString('es-MX')} por {state.submittedBy || props.enviadoPor || 'el responsable registrado'}. Este formato está bloqueado para edición.</Typography>}
                 {!props.editable && !props.enviadoEn && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {shared.simulacion
@@ -850,23 +830,9 @@ function Editor(props: Props) {
                             : 'Solo consulta. Puedes revisar las respuestas y el avance de esta área.'}
                     </Typography>
                 )}
-                {state.error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {state.error}
-                        <Box className="row-actions" sx={{ mt: 1 }}>
-                            <Button onClick={download} startIcon={<DownloadOutlined />}>
-                                Descargar mis cambios
-                            </Button>
-                            {state.conflict && <Button onClick={reload}>Cargar versión compartida</Button>}
-                            {state.dirty && <Button onClick={async () => {
-                                try { setCompare((await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data); }
-                                catch { setNotice('No se pudo consultar la versión compartida. Tu propuesta sigue disponible.'); }
-                            }}>Comparar y recuperar propuesta</Button>}
-                            <Button onClick={() => void engine.refresh()}>Actualizar estado</Button>
-                            {!state.locked && <Button onClick={() => void engine.flush()}>Reintentar guardado</Button>}
-                        </Box>
-                    </Alert>
-                )}
+                {state.error && <Typography role="status" color="error.main" sx={{ mb: 2 }}>{state.error}
+                    <Button size="small" onClick={() => void engine.refresh()}>Volver a comprobar</Button>
+                </Typography>}
                 {notice && (
                     <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setNotice('')}>
                         {notice}
@@ -882,7 +848,7 @@ function Editor(props: Props) {
                     }}
                 >
                     <Tabs
-                        className="no-print"
+
                         value={active}
                         onChange={(_, v) => { void engine.flush(true); setActive(v); engine.setSection(v); }}
                         variant="scrollable"
@@ -891,7 +857,9 @@ function Editor(props: Props) {
                         sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1 }}
                     >
                         {tabs.map(([key, label]) => (
-                            <Tab id={`tab-${key}`} aria-controls={`panel-${key}`} value={key} key={key} label={label} />
+                            <Tab id={`tab-${key}`} aria-controls={`panel-${key}`} value={key} key={key} label={label}
+                                // Pulsar Contexto durante la carga también es una elección, aunque ya aparezca seleccionado.
+                                onClick={() => engine.setSection(key)} />
                         ))}
                     </Tabs>
                     {tabs.map(([key]) => (
@@ -900,28 +868,31 @@ function Editor(props: Props) {
                                 id={`panel-${key}`}
                                 role="tabpanel"
                                 aria-labelledby={`tab-${key}`}
-                                hidden={!printing && key !== active}
+                                hidden={key !== active}
                                 className="form-panel"
-                                sx={{ p: { xs: 2, md: 3 }, pageBreakBefore: printing ? 'auto' : undefined }}
+                                tabIndex={-1}
+                                sx={{ p: { xs: 2, md: 3 } }}
                             >
                                 {sections[key]()}
+                                {Object.keys(state.issues).filter(block => block.startsWith(key + ':') && !splitBlocks(c)[block]).map(block =>
+                                    <Box key={block} sx={{ mt: 2 }}><Typography variant="body2">Eliminación pendiente: {rowLabel(engine.proposalBase(), { section: key, id: block.slice(key.length + 1) } as RowTarget)}</Typography>{blockNotice(block)}</Box>)}
                             </Box>
                         ))}
                 </Box>
-                <div className="form-actions no-print">
+                <div className="form-actions">
                     <Box sx={{ display: 'flex', gap: 1.2, alignItems: 'center' }}>
-                        {state.saving ? (
+                        {state.saving || finishing ? (
                             <CloudSyncOutlined color="primary" />
                         ) : (
-                            <CheckCircleOutlined color={state.error ? 'error' : state.dirty ? 'warning' : 'success'} />
+                            <CheckCircleOutlined color={state.error || Object.keys(state.issues).length ? 'error' : state.dirty ? 'warning' : 'success'} />
                         )}
                         <Box>
                             <Typography variant="body2" role="status" aria-live="polite" sx={{ fontWeight: 500 }}>
-                                {!props.editable
+                                {locked
                                     ? 'Solo consulta'
-                                    : state.saving
+                                    : state.saving || finishing
                                       ? 'Guardando…'
-                                      : state.error
+                                      : state.error || Object.keys(state.issues).length
                                         ? 'No se pudo guardar'
                                         : state.dirty
                                           ? 'Cambios pendientes'
@@ -935,43 +906,81 @@ function Editor(props: Props) {
                         </Box>
                     </Box>
                     <div className="row-actions">
-                        <Button variant="outlined" startIcon={<PrintOutlined />} onClick={print}>
-                            Imprimir
-                        </Button>
+                        {/* El blur puede iniciar autoguardado antes del clic. El editor serializa ambos sin deshabilitar el botón a mitad del gesto. */}
                         <Button
                             variant="contained"
                             startIcon={<SaveOutlined />}
-                            disabled={locked || state.saving}
-                            onClick={() => void engine.flush(true)}
+                            disabled={locked}
+                            aria-busy={state.saving || finishing}
+                            onClick={async () => {
+                                setFinishing(true);
+                                try { await engine.flush(true); } finally { setFinishing(false); }
+                            }}
                         >
                             Guardar borrador
                         </Button>
                     </div>
                 </div>
-                {state.canSubmit && <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }} className="no-print">
-                    <Button variant="contained" disabled={sending || state.conflict} onClick={async () => {
-                        setSending(true);
-                        try { if (await engine.flush(true) && !engine.state.dirty) setConfirmSend(true); }
-                        finally { setSending(false); }
-                    }}>Enviar</Button>
-                </Box>}
-                <Dialog open={confirmSend} onClose={() => !sending && setConfirmSend(false)} aria-labelledby="confirm-send-title">
+                <RemoveRowDialog open={!!removal} label={removal ? rowLabel(c, removal) : ''}
+                    process={removal?.section === 'identificacion'} reason={removal ? removalReason(removal) : ''}
+                    changed={!!removal && removal.snapshot !== JSON.stringify(targetRow(c, removal))}
+                    onCancel={() => { modalBlocks.current = []; setRemoval(null); }} onConfirm={async () => {
+                        if (!removal || removalReason(removal)) return;
+                        const keys = removalBlocks(engine.state.content, removal);
+                        if (!await engine.prepare(keys)) { setNotice('No se pudo reservar el registro o sus relaciones. Revisa quién está editando.'); return; }
+                        // Si cambió desde la apertura, renovar la confirmación sobre la fila vigente.
+                        const snapshot = JSON.stringify(targetRow(engine.state.content, removal));
+                        if (snapshot !== removal.snapshot) { setRemoval({ ...removal, snapshot }); return; }
+                        if (await engine.edit(data => removeRow(data, removal))) {
+                            modalBlocks.current = []; setRemoval(null);
+                            // Eliminar termina el bloque: confirmar y liberar también las relaciones de la cascada.
+                            void engine.flush(true);
+                        }
+                    }} />
+                <Dialog open={confirmSend !== null} onClose={() => !sending && setConfirmSend(null)} aria-labelledby="confirm-send-title">
                     <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
-                    <DialogContent>Se enviarán las respuestas guardadas de esta UR y ejercicio. La edición quedará bloqueada para todas las personas, incluidos los administradores. No se podrá reabrir.</DialogContent>
-                    <DialogActions><Button disabled={sending} onClick={() => setConfirmSend(false)}>Cancelar</Button>
-                        <Button variant="contained" disabled={sending} onClick={async () => {
-                            setSending(true); try { if (await engine.submit()) setConfirmSend(false); } finally { setSending(false); }
+                    <DialogContent>
+                        <Typography sx={{ fontWeight: 600, mb: 2 }}>{displayUnitCode(props.unidad.cve_ur)} · {props.unidad.desc_ur}</Typography>
+                        <Typography>Se enviarán las respuestas guardadas de esta UR y ejercicio. Después de enviar, este formato quedará bloqueado para edición.</Typography>
+                        {state.error && <Alert severity="error" sx={{ mt: 2 }}>{state.error}</Alert>}
+                    </DialogContent>
+                    <DialogActions><Button autoFocus disabled={sending} onClick={() => setConfirmSend(null)}>Cancelar</Button>
+                        <Button variant="contained" disabled={sending || !state.canSubmit} onClick={async () => {
+                            setSending(true); try { if (await engine.submit(confirmSend!)) setConfirmSend(null); } finally { setSending(false); }
                         }}>{sending ? 'Enviando…' : 'Confirmar envío'}</Button></DialogActions>
                 </Dialog>
-                <Dialog open={!!compare} onClose={() => setCompare(null)} fullWidth maxWidth="lg" aria-labelledby="recover-title">
-                    <DialogTitle id="recover-title">Comparar respuestas y recuperar propuesta</DialogTitle>
+                <Dialog open={!!compare} onClose={() => { if (!resolving) { modalBlocks.current = []; setCompare(null); } }} fullWidth maxWidth="md" aria-labelledby="recover-title">
+                    <DialogTitle id="recover-title">Resolver cambios pendientes</DialogTitle>
                     <DialogContent>
-                        <Typography sx={{ mb: 2 }}>Revisa las diferencias. Recuperar conservará tu propuesta para que la ajustes; deberás pulsar Guardar borrador para aplicarla con una reserva nueva.</Typography>
-                        {compare && <FormProposalComparison proposal={c} shared={compare.contenido} />}
+                        <Typography sx={{ mb: 2 }}>Revisa tu propuesta y la respuesta guardada antes de confirmar. Sólo se aplicarán los cambios de este registro y sus relaciones.</Typography>
+                        {compare && <FormProposalComparison proposal={c} shared={compare.live.contenido} keys={compare.keys} />}
+                        {resolutionError && <Typography role="status" color="error.main" sx={{ mt: 2 }}>{resolutionError}</Typography>}
+                        <Button size="small" onClick={download} startIcon={<DownloadOutlined />} sx={{ mt: 2 }}>Descargar mi propuesta</Button>
                     </DialogContent>
-                    <DialogActions><Button onClick={() => setCompare(null)}>Cancelar</Button><Button variant="contained" disabled={!compare?.editable} onClick={async () => {
-                        try { await engine.recover(compare!.version); setCompare(null); } catch { setNotice('La versión compartida cambió o no está disponible. Compara de nuevo antes de recuperar.'); }
-                    }}>Recuperar propuesta para revisar</Button></DialogActions>
+                    <DialogActions><Button autoFocus disabled={resolving} onClick={() => { modalBlocks.current = []; setCompare(null); }}>Cancelar</Button>
+                        <Button disabled={resolving} onClick={async () => {
+                            setResolving(true);
+                            try {
+                                await engine.discard(compare!.live.version, compare!.keys);
+                                modalBlocks.current = []; setCompare(null);
+                            } catch (error) {
+                                setResolutionError(error instanceof Error ? error.message : 'No se pudo confirmar la respuesta guardada.');
+                                await refreshComparison();
+                            }
+                            finally { setResolving(false); }
+                        }}>Conservar respuesta guardada</Button>
+                        <Button variant="contained" disabled={resolving || !compare?.live.editable} onClick={async () => {
+                            setResolving(true);
+                            try {
+                                await engine.recover(compare!.live.version, compare!.keys);
+                                if (!await engine.flush(true)) throw new Error('No se pudo confirmar el guardado. Tu propuesta se conserva.');
+                                modalBlocks.current = []; setCompare(null);
+                            } catch (error) {
+                                setResolutionError(error instanceof Error ? error.message : 'No se pudo confirmar la propuesta.');
+                                await refreshComparison();
+                            } finally { setResolving(false); }
+                        }}>{resolving ? 'Confirmando…' : 'Confirmar propuesta'}</Button>
+                    </DialogActions>
                 </Dialog>
             </div>
         </>

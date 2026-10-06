@@ -89,7 +89,7 @@ internal static partial class NativeTests
             Check(!(await Json(await client.GetAsync("/formatos/A")))["props"]!["editable"]!.GetValue<bool>());
             Check((await AddCollaborator(client)).StatusCode == HttpStatusCode.Forbidden);
         });
-        Test("Tipo 0: nodos internos preservan rama, formatos/historia/contadores no se ofrecen", async (app, client) =>
+        Test("Tipo N: exclusión normalizada conserva rama e historia; tipo 0 vuelve a listados y selectores del administrador", async (app, client) =>
         {
             await SetupAccess(database);
             await database.Sql("""
@@ -100,18 +100,33 @@ internal static partial class NativeTests
             await Login(app, client); await Csrf(client);
             var historical = (await Json(await client.GetAsync("/formatos/bridge")))["props"]!["contenido"]!;
             Check((await SaveAll(client, "bridge", 0, historical )).IsSuccessStatusCode);
-            await database.Sql("UPDATE unidades_responsables_poa SET tipo_ur='0' WHERE id_ur='bridge'");
-            var page = (await Json(await client.GetAsync("/inicio")))["props"]!;
-            Check(page["formatos"]!.AsArray().Count == 3);
-            var child = page["formatos"]!.AsArray().Single(f => f!["id_ur"]!.ToString() == "A3")!;
-            Check(child["id_ur_pertenece"]!.ToString() == "bridge" && child["id_ur_principal"]!.ToString() == "A" && child["cve_ur"]!.ToString() == "06000" && child["editable"]!.GetValue<bool>());
-            Check((await client.GetAsync("/formatos/bridge")).StatusCode == HttpStatusCode.Forbidden);
-            Check((await SaveAll(client, "bridge", 1, historical )).StatusCode == HttpStatusCode.Forbidden);
-            var selector = (await Json(await client.GetAsync("/configuracion/pruebas-acceso/rol-area")))["props"]!["unidades"]!.AsArray();
-            Check(selector.All(u => u!["id_ur"]!.ToString() != "bridge"));
-            Check((await StartPreview(client, "responsable_institucional", "bridge")).StatusCode == HttpStatusCode.UnprocessableEntity);
+            var stored = await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='bridge'");
+            foreach (var kind in new[] { "N", "n", " \tN\r\n " })
+            {
+                await database.Sql($"UPDATE unidades_responsables_poa SET tipo_ur='{kind}' WHERE id_ur='bridge'");
+                var page = (await Json(await client.GetAsync("/inicio")))["props"]!;
+                Check(page["administrador"]!.GetValue<bool>() && page["formatos"]!.AsArray().Count == 3);
+                Check(page["directorio"]!.AsArray().All(u => u!["id_ur"]!.ToString() != "bridge"));
+                var child = page["formatos"]!.AsArray().Single(f => f!["id_ur"]!.ToString() == "A3")!;
+                Check(child["id_ur_pertenece"]!.ToString() == "bridge" && child["id_ur_principal"]!.ToString() == "A" && child["cve_ur"]!.ToString() == "06000" && child["editable"]!.GetValue<bool>());
+                Check((await client.GetAsync("/formatos/bridge")).StatusCode == HttpStatusCode.Forbidden);
+                Check((await SaveAll(client, "bridge", 1, historical)).StatusCode == HttpStatusCode.Forbidden);
+                var selector = (await Json(await client.GetAsync("/configuracion/pruebas-acceso/rol-area")))["props"]!["unidades"]!.AsArray();
+                Check(selector.All(u => u!["id_ur"]!.ToString() != "bridge"));
+                Check((await StartPreview(client, "responsable_institucional", "bridge")).StatusCode == HttpStatusCode.UnprocessableEntity);
+                Check(Equals(stored, await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='bridge'")));
+            }
+            await database.Sql("UPDATE unidades_responsables_poa SET tipo_ur=' 0 ' WHERE id_ur IN ('A','A3','A4','bridge')");
+            var zeroPage = (await Json(await client.GetAsync("/inicio")))["props"]!;
+            Check(zeroPage["formatos"]!.AsArray().Count == 4 && zeroPage["directorio"]!.AsArray().Count == 4);
+            Check(zeroPage["formatos"]!.AsArray().All(u => u!["nivel_ur"]!.GetValue<int>() is 2 or 3));
+            Check(zeroPage["formatos"]!.AsArray().Single(u => u!["id_ur"]!.ToString() == "A3")!["cve_ur"]!.ToString() == "06000");
+            var zeroSelector = (await Json(await client.GetAsync("/configuracion/pruebas-acceso/rol-area")))["props"]!["unidades"]!.AsArray();
+            Check(new[] { "A", "A3", "bridge" }.All(id => zeroSelector.Any(u => u!["id_ur"]!.ToString() == id)));
+            var restored = (await Json(await client.GetAsync("/formatos/bridge")))["props"]!;
+            Check(restored["editable"]!.GetValue<bool>() && JsonNode.DeepEquals(restored["contenido"], historical));
             Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM unidades_responsables_poa WHERE id_ur='bridge'")) == 1);
-            Check(Convert.ToInt64(await database.Scalar("SELECT version FROM formatos_ur WHERE id_ur='bridge'")) == 1);
+            Check(Equals(stored, await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='bridge'")));
         });
         Test("Nuevo rol en representación y vista de prueba respeta identidad efectiva y sólo lectura", async (app, client) =>
         {

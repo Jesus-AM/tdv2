@@ -25,7 +25,7 @@ try {
     assert.equal((await context.request.post(origin + '/__fixture/scope-level3', { headers: { 'X-Fixture-Key': key } })).status(), 200);
     await page.goto(origin + '/connect');
     await page.getByRole('heading', { name: 'Procesos operativos', exact: true }).waitFor();
-    await check('Nuevo rol: navegación sin configuración, Mis áreas/Todas las áreas y tipo 0 excluido', async () => {
+    await check('Nuevo rol: tipo N excluido, tipo 0 elegible en niveles 2 y 3; Mis áreas y Todas las áreas conservan alcance', async () => {
         await expect(page.getByRole('button', { name: 'Configuración', exact: true })).toHaveCount(0);
         await expect(page.getByText('Nodo auxiliar excluido')).toHaveCount(0);
         await page.getByRole('tab', { name: 'Mis áreas', exact: true }).click();
@@ -33,6 +33,10 @@ try {
         await expect(page.getByRole('button', { name: 'Abrir formato de Área sintética A3', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Abrir formato de Área sintética A', exact: true })).toHaveCount(0);
         await page.getByRole('tab', { name: 'Todas las áreas', exact: true }).click();
+        await expect(page.getByText('3', { exact: true })).toBeVisible();
+        await page.getByRole('button', { name: /100.*Área sintética A/ }).click();
+        await expect(page.getByRole('button', { name: 'Abrir formato de Área sintética A', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Abrir formato de Área sintética A3', exact: true })).toBeVisible();
     });
     await check('Claves: busca 06000/6000, muestra 6000 y mantiene la ruta A3', async () => {
         const search = page.getByLabel('Buscar área o clave');

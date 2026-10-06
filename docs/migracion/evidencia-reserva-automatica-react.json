@@ -1,0 +1,91 @@
+{
+  "browser": "154.0.4258.37",
+  "checks": [
+    {
+      "name": "portada y login Microsoft simulado crean sesión segura",
+      "passed": true
+    },
+    {
+      "name": "captura React persiste respuestas y avance en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "SignalR rechaza suscripción a UR ajena sin entregar contenido",
+      "passed": true
+    },
+    {
+      "name": "reserva pendiente mantiene lectura; cambiar campos del registro conserva el mismo titular",
+      "passed": true
+    },
+    {
+      "name": "dos pestañas: SignalR muestra titular, bloquea la misma reserva y permite otro bloque",
+      "passed": true
+    },
+    {
+      "name": "dos sesiones compiten al enfocar; salir guarda y libera, la otra edita directamente sin recargar",
+      "passed": true
+    },
+    {
+      "name": "prioridad accesible sin defecto, Contexto inicial y navegación superior móvil",
+      "passed": true
+    },
+    {
+      "name": "casillas reservan automáticamente y no cambian antes de confirmar; teclado y salida guardan y liberan",
+      "passed": true
+    },
+    {
+      "name": "error PostgreSQL conserva borrador; reintento recupera guardado",
+      "passed": true
+    },
+    {
+      "name": "UR ajena deniega documento HTML y muestra pantalla conservada",
+      "passed": true
+    },
+    {
+      "name": "módulo no autorizado se aplica en React y servidor",
+      "passed": true
+    },
+    {
+      "name": "usuario sin aplicación publicada no conserva acceso de su sesión",
+      "passed": true
+    },
+    {
+      "name": "Nexo no disponible no concede permisos y permite recuperar sesión",
+      "passed": true
+    },
+    {
+      "name": "el resumen del servidor enlaza pendientes y no ofrece envío de formato incompleto",
+      "passed": true
+    },
+    {
+      "name": "Cancelar tiene foco y no elimina filas en las cuatro tablas; borrar disponible es rojo",
+      "passed": true
+    },
+    {
+      "name": "criterios individuales mantienen reservas independientes y guardan sin sobrescribirse",
+      "passed": true
+    },
+    {
+      "name": "el diálogo conserva el ID elegido cuando otra pestaña elimina una fila anterior",
+      "passed": true
+    },
+    {
+      "name": "desconexión conserva propuesta contextual; reconectar exige confirmarla y no pierde respuestas",
+      "passed": true
+    },
+    {
+      "name": "SignalR inactivo revalida durante tres intervalos, vence reserva sin actividad y cancela limpiamente",
+      "passed": true
+    },
+    {
+      "name": "Enviar formato aparece sólo en Acuerdos; confirma sin datos de sesión y bloquea la captura",
+      "passed": true
+    },
+    {
+      "name": "logout desde React revoca sesión y redirige a Microsoft",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "externalFontsBlocked": true
+}

@@ -2,7 +2,160 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-05**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
-## Captura colaborativa, supervisión y envío — entrega vigente 2026-10-05
+## Distribución compacta de Procesos operativos — entrega vigente 2026-10-05
+
+### Implementado
+
+Indicadores de 80 px en escritorio, números de 26 px y separación de 14 px; etiquetas completas en móvil. Alcance y pestañas más próximos, conteo único agrupado con título y acciones del listado, filtros sin contenedor de relleno adicional. Filas normales de 80 px separadas 8 px, nombre prioritario, clave/cantidades secundarias y avance a la derecha; crecimiento libre para nombres largos. Se conservan cabecera, tipografía, permisos, cálculos, tipo N, acceso a formatos sin dependientes y cambios locales. No se modificó captura, backend ni esquema.
+
+### Probado
+
+TypeScript, Vite y compilación Release correctos, cero advertencias/errores .NET; **55/55** frontend. Revisión visual y funcional del bundle real con catálogo sintético en 1920×1080, 1366×768, tableta 768×1024 y móviles 390×844/320×740, sin desbordamientos ni errores JavaScript. En 1366×768 la primera área sube de 600 a 459 px y caben tres filas completas en lugar de una; en 1920×1080 pasa de cuatro a siete filas. Comprobados búsqueda, filtros, pestañas, expansión, paginación, formato propio sin dependientes, carga de Actualizar, teclado y movimiento reducido.
+
+Capturas, medidas antes/después, comandos y reproducción en Visual Studio: [DISTRIBUCION_PROCESOS.md](docs/migracion/DISTRIBUCION_PROCESOS.md).
+
+### Pendiente y límites
+
+Aceptación institucional por el operador. Las capturas usan props sintéticas y no certifican de nuevo la autorización del servidor. No hubo conexiones a bases, cambios de credenciales/Herd, migraciones, push ni despliegue.
+
+## Cabecera y elegibilidad de UR tipo N — entrega anterior 2026-10-05
+
+### Implementado
+
+- Se integra la cabecera ya ajustada: logo original a 180/150 px, separación de 32 px hasta el primer módulo en escritorio y barra blanca compacta. Procesos operativos mantiene título 26/24 px semibold, descripción solicitada de 14 px, separación de 4 px y acciones separadas 10 px. Colaboradores sigue azul y autorizado; Actualizar es de texto, con icono azul, carga y foco visible. En móvil las acciones pasan debajo cuando falta espacio; no se cambia la tipografía ni la organización de módulos.
+- `UnitDirectory.IsEligible` y `eligibleArea` excluyen **únicamente tipo N**, normalizando espacios exteriores y mayúsculas para comparar. Se retira la exclusión por tipo 0: esas UR pueden aparecer si cumplen actividad, alcance y demás condiciones. La regla compartida alcanza formatos, directorios, contadores y selectores, también del administrador; los formatos siguen siendo sólo de niveles **2 y 3**.
+- Los nodos N permanecen internamente para resolver adscripciones y ramas. El directorio no toma un nodo excluido como agrupador aunque llegue como principal explícito. Se conservan catálogo, formatos históricos y valores originales de tipo, ID y clave; `06000` se muestra como `6000` y ambas representaciones se pueden buscar.
+- No hay cambios de esquema, migraciones ni dependencias. Autenticación, permisos, representación, reservas automáticas, autoguardado, SignalR y envío conservan su implementación.
+
+### Probado
+
+TypeScript, Vite y compilación Release de la solución correctos, sin errores ni advertencias de .NET. **55/55** pruebas frontend y **54/54** de dominio/transporte. Incluyen variantes `N`, `n`, espacios, tipo `0` en niveles 2/3, exclusión del nivel 4, ramas con nodos auxiliares y conservación de claves originales.
+
+**117/117** casos de servidor/PostgreSQL y **4/4** recorridos Edge correctos, cero errores JavaScript. La prueba HTTP del administrador excluye `N`, `n` y espacios de formatos/selectores; permite tipo 0 en niveles 2/3; conserva el registro histórico completo antes y después del cambio sintético de tipo. La regresión cubre permisos, reservas por sesión/pestaña, autoguardado, versiones atrasadas, revocación, auditoría, envío concurrente e inmutabilidad. El navegador comprueba además supervisor, colaboradores de nivel 3, claves, jerarquía y móvil con movimiento reducido. Evidencias: [PostgreSQL](docs/migracion/evidencia-ur-tipo-n-postgresql.json), [React](docs/migracion/evidencia-ur-tipo-n-react.json). Corrida `.artifacts/native-postgres-20261006-000019-c8c8e5e8`; el total agregado 118 incluye una entrada para el grupo de navegador, no son 118 pruebas de backend.
+
+Vista del bundle real en Edge con datos sintéticos del administrador en siete anchos: 320, 390, 600, 768, 901, 1024 y 1440 px. Tipo N ausente, tipos 0 de niveles 2/3 visibles y agrupados, contadores y búsqueda `06000`/`6000` correctos. Sin desbordamientos; comprobados separación del logo, alineación de acciones, carga de Actualizar, foco, permisos de Colaboradores, submódulos, menú móvil y movimiento reducido. Capturas revisadas: [escritorio](docs/migracion/ur-tipo-n-escritorio.png), [móvil](docs/migracion/ur-tipo-n-movil.png). [Medidas y comprobaciones visuales](docs/migracion/evidencia-ur-tipo-n-visual.json).
+
+Comandos desde la raíz, con Node/npm y .NET 10 en PATH:
+
+```powershell
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run test:forms
+npm.cmd --prefix ClientApp run build
+dotnet build tdv2.slnx -c Release --no-restore -p:UseAppHost=false
+dotnet run --project tests/TDV2.Verification -c Release --no-build --no-restore -p:UseAppHost=false
+$env:TDV2_TEST_BROWSER_FLOW='scope'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1
+Remove-Item Env:TDV2_TEST_BROWSER_FLOW
+```
+
+El último comando de pruebas crea y detiene un PostgreSQL desechable local, usa dobles de Microsoft/Nexo y no toma la conexión institucional de User Secrets. La corrida terminó con código 0 y el clúster detenido. No ejecutar `database update` para esta corrección.
+
+### Pendiente y límites
+
+La aceptación institucional con cuentas y catálogos reales queda pendiente del operador. No se accedió a bases institucionales, credenciales, Herd ni Ubuntu; no hubo push ni despliegue. La publicación externa de Nexo documentada en entregas anteriores no se modifica: se siguen exigiendo sus capacidades vigentes, y cualquier cambio de esa publicación necesita un trabajo separado autorizado. La prueba visual aislada usa props sintéticas y no sustituye las pruebas del servidor.
+
+Para revisar desde Visual Studio: abrir `tdv2.slnx`, seleccionar **TDV2 HTTPS + React** y ejecutar F5. En Procesos operativos comprobar la cabecera, Actualizar y la adaptación al estrechar la ventana. Para escribir o alterar tipos, usar exclusivamente el verificador sintético indicado en la evidencia; no modificar catálogos institucionales para probar. El arranque habitual no aplica migraciones.
+
+## Cabecera y encabezado de Procesos operativos — entrega anterior 2026-10-05
+
+### Implementado
+
+Logo original ampliado 20 % (180 px escritorio, 150 px móvil), proporción conservada, barra blanca de 68 px y separación de 32 px hasta el primer módulo en escritorio. Se conserva la jerarquía de módulos/submódulos. Sólo Procesos operativos usa título 26/24 px semibold, descripción solicitada de 14 px en gris secundario y separación de 4 px. Acciones a la derecha y al nivel del título, con 10 px entre ellas; se acomodan debajo de la descripción cuando falta espacio. Colaboradores conserva icono, botón azul y condición de permiso. Actualizar usa texto/icono azul sin contorno, indicador MUI de carga, bloqueo durante la solicitud y foco visible con teclado. Tipografía y cambios locales conservados.
+
+### Probado
+
+TypeScript y Vite correctos; `dotnet build tdv2.slnx -c Release --no-restore -p:UseAppHost=false` sin advertencias ni errores. Vista del bundle real en Edge con datos sintéticos, sin ASP.NET ni conexiones a bases/autenticación: siete anchos (320, 390, 600, 768, 901, 1024 y 1440 px), sin desbordamientos. Verificados carga/GET de Actualizar, foco por teclado, ocultación de Colaboradores según su prop, menú de submódulos y navegación móvil con movimiento reducido. Revisión visual de las capturas: [escritorio](docs/migracion/cabecera-inicio-escritorio.png), [móvil](docs/migracion/cabecera-inicio-movil.png). [Medidas y comprobaciones](docs/migracion/evidencia-cabecera-inicio.json).
+
+### Alcance y pendientes
+
+No se cambió lógica de formatos, permisos del servidor, autenticación ni bases. No hubo despliegue ni push. La comprobación visual utiliza props sintéticas; no representa una nueva verificación de autorización institucional. Los pendientes institucionales de las entregas anteriores se conservan.
+
+## Reserva automática al entrar en el registro — entrega anterior 2026-10-05
+
+### Implementado
+
+- Retirado **Editar registro**: entrar directamente en un campo, casilla, criterio o Select solicita la reserva. No hay botones ni confirmaciones para iniciar/terminar edición. Consultar el texto estático de una fila no la reserva.
+- Antes de aceptar respuestas se confirma reserva, versión y contenido vigente. Se muestra «Preparando edición…» durante la espera. El Select abre tras confirmar; una intención pendiente no se aplica después de abandonar el registro. Un menú cerrado al perder reserva no se reabre por una adquisición posterior.
+- Al salir se guarda y después se libera automáticamente. Cambiar campos o abrir Select/Dialog conserva el bloque. Las otras sesiones reciben por SignalR el valor/estado y pueden entrar directamente sin recarga. También se admite una nueva interacción si el campo conservaba foco después de liberarse o vencer.
+- La fila ocupada conserva fondo ámbar suave, candado y nombre una sola vez; otra pestaña de la misma sesión tiene su texto específico. Reserva propia y preparación son indicadores discretos, sin acciones de edición. Se conserva accesibilidad, tipografía y movimiento reducido.
+- Se mantienen las correcciones de `FormHub.Watch`, permisos, versiones, auditoría, autoguardado, recuperación contextual explícita ante fallos y formatos enviados inmutables. No se añaden dependencias ni cambios de esquema.
+- El verificador aislado usa Release sin apphost para evitar el bloqueo del ejecutable Debug abierto por Visual Studio; no se detuvo ese proceso.
+
+### Probado
+
+- TypeScript y Vite correctos. Compilación de `tdv2.slnx` Release sin advertencias ni errores. **54/54** pruebas frontend y **53/53** dominio/transporte.
+- **22/22** casos de captura HTTP/PostgreSQL en base desechable: reservas de usuarios/sesiones/pestañas, bloques distintos, versión vigente, vencimiento/reasignación, solicitudes atrasadas, idempotencia, revocación y carreras de envío. [Evidencia PostgreSQL](docs/migracion/evidencia-reserva-automatica-postgresql.json), corrida `225426-54c0e628`. Su total 23 incluye además una entrada agregada para el navegador; no son 23 casos de backend.
+- **21/21** recorridos Edge del frontend compilado, cero errores JavaScript: [evidencia React](docs/migracion/evidencia-reserva-automatica-react.json), corrida `225926-48c179e4`. Dos sesiones autenticadas con cookies independientes compiten al enfocar (una respuesta 200 y otra 409); salir guarda/libera y la otra entra sin recarga. También pasan dos pestañas, bloques/criterios distintos, preparación sin escritura, Select, casillas con teclado, Cancelar y eliminación por ID, desconexión/recuperación, permisos y enviados inmutables. [Captura móvil, movimiento reducido](docs/migracion/reserva-automatica-movil.png).
+- SignalR abierto durante tres intervalos de 15 segundos, reserva vencida sin actividad, cancelación/reapertura limpia y revocación por logout. Ambos clústeres de evidencia finalizaron detenidos. El primer intento de iniciar PostgreSQL fue impedido por el token restringido de Windows; se ejecutó fuera del aislamiento y exclusivamente en el clúster desechable. Un intento posterior encontró Debug ocupado por Visual Studio; se corrigió el verificador para usar Release antes de las corridas aprobadas.
+
+Comandos exactos y recorrido con dos sesiones: [RESERVAS_SIGNALR.md](docs/migracion/RESERVAS_SIGNALR.md). Las evidencias de la entrega anterior se conservan por separado.
+
+### Pendiente y límites
+
+La aceptación manual con F5, identidades institucionales y proxy real corresponde al operador en un entorno de pruebas. Las pruebas locales usan ASP.NET, React/MUI, Edge y PostgreSQL reales con Nexo/Microsoft sintéticos. No se modificaron bases institucionales, credenciales, Herd ni Ubuntu; sin push, despliegue ni migración. Una propuesta sin confirmar vive en la pestaña; se mantienen el aviso de salida, la recuperación explícita y la descarga de emergencia.
+
+## Exclusión por registro y SignalR — entrega anterior 2026-10-05
+
+### Implementado
+
+- `Watch` usa un temporizador periódico de 15 segundos, sin cancelar la lectura por intervalo. Cancelar el stream/desconectar termina limpiamente; las cancelaciones de consultas se filtran por sus tokens. Se mantienen reautorización, revocación, contexto y limpieza del iterador. No se alteró el depurador.
+- La adquisición PostgreSQL devuelve contenido y versión confirmados. React no acepta modificaciones antes de reservar, ni durante liberación, desconexión, vencimiento o pérdida de titular. Altas/cascadas reservan los bloques necesarios; preguntas y criterios mantienen su granularidad.
+- Un indicador por registro distingue reserva propia, otra persona y otra pestaña de la misma sesión. Consulta/copia disponibles, eliminación bloqueada si no hay reserva propia. Fondo ámbar, candado y texto legible; transición de 180 ms con movimiento reducido.
+- Autoguardado y Guardar borrador conservados. Guardar precede a liberar; Select/Dialog no liberan por cambiar foco dentro del registro. El foco durante la carga inicial se retoma después de verificar acceso. Reintentos conservan UUID/cuerpo; recibos antiguos no sustituyen versiones compartidas recientes.
+- Se sustituye el panel global habitual por mensaje y **Resolver** junto al registro afectado. Comparación contextual, confirmación explícita, conservación de la respuesta compartida y descarga de emergencia. Una reconexión no recupera propuestas automáticamente.
+- Sin nuevas dependencias ni migración; se preservaron cambios locales, estructura, permisos, tipografía, OAuth y bloqueo de enviados. [Diseño y recorrido en Visual Studio con dos sesiones](docs/migracion/RESERVAS_SIGNALR.md).
+
+### Probado
+
+- TypeScript, Vite y compilación Release correctos; backend sin advertencias. **52/52** frontend y **53/53** dominio/transporte. EF: sin cambios pendientes del modelo.
+- **117/117** casos HTTP/PostgreSQL: [evidencia](docs/migracion/evidencia-reservas-postgresql.json). Incluye 22 de captura/envío, adquisición con contenido vigente, competencia simultánea entre dos usuarios, sesiones/pestañas, escrituras en bloques distintos, versiones, vencimiento/reasignación, auditoría e inmutabilidad. También valida permisos, representación y sincronizaciones. Los 22 casos dirigidos están incluidos en los 117, no se suman otra vez.
+- **47/47** recorridos Edge: [19 formatos](docs/migracion/evidencia-reservas-react-formatos.json), [13 acceso](docs/migracion/evidencia-reservas-react-acceso.json), [4 alcance](docs/migracion/evidencia-reservas-react-alcance.json), [11 sincronizaciones](docs/migracion/evidencia-reservas-react-sincronizaciones.json). Cero errores JS. Incluye reserva pendiente sin aceptar texto, foco mantenido, criterios independientes, Select, Cancelar, eliminación por ID, desconexión/reconexión con propuesta conservada, envío inmutable y revocación del stream por logout.
+- SignalR permaneció abierto al menos 45 segundos, con cuatro entregas durante tres intervalos de 15 segundos. La reserva venció sin actividad; cancelar/reabrir el stream terminó sin error y sin falso conflicto. [Captura móvil con reserva ajena y movimiento reducido](docs/migracion/reserva-otra-pestana-movil.png).
+
+Comandos exactos desde la raíz: [guía de verificación](docs/migracion/RESERVAS_SIGNALR.md#verificación-desde-la-raíz). Regresión: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1`, corrida `220508-35bbd093`. Sus 117 casos de backend pasaron; el grupo navegador detectó una importación faltante de `expect` en la prueba de sincronizaciones. La evidencia PostgreSQL conserva explícitamente ese resultado original. Se corrigió la prueba y se ejecutó nuevamente **todo** el grupo con `-BrowserOnly`: corrida `221547-584400be`, 47 recorridos aprobados. No se presenta la corrida inicial como aprobación del navegador. Se corrigieron además el foco durante carga y la visualización de recibos antiguos, con pruebas específicas. Todos los clústeres de prueba terminaron detenidos.
+
+### Pendiente y límites
+
+Aceptación interactiva con F5 y sistemas institucionales reales. Las pruebas usan identidades, concesiones, respuestas y envíos sintéticos; no se tocaron bases institucionales, Herd, credenciales ni Ubuntu. No se hizo push ni despliegue. No se creó/aplicó una migración. Los borradores sin confirmar permanecen en la pestaña y pueden descargarse; un cierre forzado no implica persistencia local automática. La guía anterior separa la reproducción sintética desde Visual Studio de la aceptación institucional.
+
+## Ajustes de captura y navegación — entrega anterior 2026-10-05
+
+### Implementado
+
+- Se retiraron Datos de la sesión e Imprimir, conservando Contexto, identificación de UR, Guardar borrador, autoguardado y descarga/recuperación de propuestas. El JSON histórico de encabezado no se normaliza ni se exige para enviar.
+- El servidor recalcula la proyección de avance de borradores con los 90 puntos restantes normalizados a 100, sin escribir durante GET ni inventar respuestas. Guardar/envío persisten el cálculo. Los enviados conservan avance, contenido e instantánea, incluso ante nuevas sincronizaciones.
+- Prioridad usa Select MUI con placeholder y escala vigente 1–5. Los valores históricos se conservan hasta una reclasificación explícita. El menú en portal mantiene el bloque de edición; solicitudes de foco canceladas no adquieren reservas tardías y salir espera adquisiciones en curso antes de liberar. Guardar borrador sigue recibiendo el clic aunque el blur inicie autoguardado; el editor serializa las operaciones.
+- Eliminación en las cuatro tablas mediante diálogo MUI, Cancelar enfocado, icono rojo disponible y tooltip para bloqueo real. La confirmación usa ID estable y comprueba la fila actual; eliminar proceso incluye evaluación y desvinculación de sistemas/datos. Se mantienen todas las reservas y restricciones de ILDA.
+- Navegación superior agrupa sólo la jerarquía autorizada por Nexo: Procesos operativos y Configuración con submódulos. Selección activa, teclado, móvil y movimiento reducido; acciones de cuenta y reglas OAuth/representación sin cambios.
+- Revisión y envío está únicamente al final de Acuerdos. `FormReview` comparte pendientes concretos entre interfaz y requisitos del servidor. Enviar exige respuestas guardadas y una revisión válida, además de permisos, versión, reservas y auditoría ya existentes. Confirmación MUI con UR y bloqueo definitivo; consulta muestra fecha e identidad efectiva. Sin reapertura.
+- No se añadieron librerías ni migraciones. Los cambios reutilizan ASP.NET/EF/React y se separan en componentes pequeños.
+- Guardar borrador indica actividad hasta terminar la liberación; una eliminación confirma y libera toda su cascada. Una elección explícita de Contexto durante la carga prevalece sobre la última sección recuperada del servidor.
+
+### Probado
+
+| Comando desde la raíz | Resultado y alcance |
+|---|---|
+| `dotnet build tdv2.slnx -c Release --no-restore -p:UseAppHost=false` | Correcto, cero errores y advertencias |
+| `dotnet run --project tests/TDV2.Verification -c Release --no-build --no-restore -p:UseAppHost=false` | 53/53 dominio/transporte; encabezado histórico conservado y formato completo sin datos de sesión |
+| `npm.cmd --prefix ClientApp run types:check`, `run test:forms` y `run build` | TypeScript y Vite correctos; 41/41 frontend: concurrencia, respuestas atrasadas, foco/reservas, recuperación, eliminación por ID y jerarquía |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -SkipBrowser` | [115/115 regresión PostgreSQL](docs/migracion/evidencia-ajustes-regresion.json). Posteriormente se agregó el caso de enviado histórico de la fila siguiente |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -EditingOnly -SkipBrowser` | [21/21 captura y envío](docs/migracion/evidencia-ajustes-edicion.json): incluye proyección sin escribir, 100 % con prioridad histórica aún pendiente, enviados históricos inmutables, cascadas incompletas/reserva ajena/ILDA rechazadas, sesiones independientes y carreras |
+| `dotnet ef migrations has-pending-model-changes --project tdv2 --configuration Release --no-build -- --environment Production` | Sin cambios de modelo; no requiere conexión institucional |
+| `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly` (recorridos dirigidos indicados debajo) | **43/43**: [15 formatos](docs/migracion/evidencia-ajustes-react-formatos.json), [13 acceso](docs/migracion/evidencia-ajustes-react-acceso.json), [4 alcance](docs/migracion/evidencia-ajustes-react-alcance.json), [11 sincronizaciones](docs/migracion/evidencia-ajustes-react-sincronizaciones.json). Escritorio/móvil, movimiento reducido, teclado, Cancelar en cuatro tablas, borrado concurrente por ID, pendientes, confirmación/envío y bloqueo posterior. Permisos, representación, revocaciones e ILDA conservados; cero errores JS |
+
+Las escrituras se hicieron sólo en clústeres desechables con datos sintéticos. No se cuentan intentos fallidos como aprobación. Los 21 casos de edición incluyen casos ya presentes en la regresión, no se suman como pruebas independientes adicionales.
+
+Capturas sintéticas revisadas: [prioridad móvil](docs/migracion/ajustes-prioridad-movil.png), [enviado en consulta](docs/migracion/ajustes-formato-enviado.png), menú en [escritorio](docs/migracion/ajustes-modulos-escritorio.png) y [móvil](docs/migracion/ajustes-modulos-movil.png). Los intentos previos detectaron carreras de foco/guardado y liberación, y una elección de Contexto ignorada durante carga. Se corrigieron antes de las corridas aprobadas. Las pruebas esperan carga y finalización de solicitudes, no un `networkidle` que ya había ocurrido; la prueba de requisitos de envío vence reservas de casos anteriores para aislar esa validación. Se corrigieron también expectativas de menú para respetar los módulos realmente publicados por cada fixture de Nexo, sin ampliar sus permisos.
+
+Corridas aprobadas bajo `.artifacts/native-postgres-20261005-*`: backend `195115-6ef85165`; edición `201428-c72e92e8`; formatos `205514-516f6638`; acceso `205842-7072f304`; alcance `210050-d091fed9`; sincronizaciones `210320-d7aab87d`. Todos los clústeres terminaron detenidos. En la corrida de formatos pasó ese recorrido y falló la expectativa inicial del menú de acceso; acceso se corrigió y verificó por separado. No se presenta esa corrida como aprobación del grupo completo. Para reproducir cada recorrido: `$env:TDV2_TEST_BROWSER_FLOW='formats'` (o `access`, `scope`, `sync`), ejecutar `-BrowserOnly` y después `Remove-Item Env:TDV2_TEST_BROWSER_FLOW`. Sin esa variable se ejecutan los cuatro.
+
+### Pendiente y límites de esta entrega
+
+La aceptación con Nexo/Microsoft y usuarios institucionales reales sigue pendiente. No se iniciaron sesiones institucionales, no se modificaron Herd, secretos ni bases institucionales, y no hubo push, despliegue ni acceso a Ubuntu. No se aplicaron migraciones remotas. La tercera migración de la entrega anterior y la configuración institucional documentada siguen siendo pasos del operador; estos ajustes no añaden requisitos de esquema.
+
+Abrir `tdv2.slnx` → **TDV2 HTTPS + React** → F5. El perfil y `/connect` no cambiaron; F5 no migra. [Recorrido y comandos de prueba](docs/migracion/COLABORACION_ENVIO.md#comprobar-los-ajustes-en-visual-studio). La evidencia de F5 de la entrega anterior es histórica; no se presenta como una nueva validación interactiva de este cambio.
+
+## Captura colaborativa, supervisión y envío — entrega anterior 2026-10-05
 
 ### Implementado
 

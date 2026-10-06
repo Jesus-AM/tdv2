@@ -18,7 +18,8 @@ export function displayUnitCode(code: string): string {
 }
 
 export function eligibleArea(unit: Unit): boolean {
-    return unit.tipo_ur == null || unit.tipo_ur.trim() === '' || Number(unit.tipo_ur) !== 0;
+    // Tipo N no se ofrece como área; tipo 0 sí puede tener formato. Se conserva el valor original.
+    return unit.tipo_ur?.trim().toUpperCase() !== 'N';
 }
 
 export function normalizeAreaText(value: string): string {
@@ -59,7 +60,8 @@ export function buildAreaDirectory(units: Unit[], forms: FormRow[]): { roots: Ar
     const byId = new Map(units.map((unit) => [unit.id_ur, unit]));
     function parentOf(unit: Unit): string | null {
         if (Number(unit.nivel_ur) === 2) return null;
-        if (unit.id_ur_principal && unit.id_ur_principal !== unit.id_ur && byId.has(unit.id_ur_principal)) return unit.id_ur_principal;
+        const principal = byId.get(unit.id_ur_principal || '');
+        if (principal && principal.id_ur !== unit.id_ur && eligibleArea(principal) && Number(principal.nivel_ur) === 2) return principal.id_ur;
         const seen = new Set([unit.id_ur]);
         let parent = byId.get(unit.id_ur_pertenece || '');
         let fallback: string | null = null;

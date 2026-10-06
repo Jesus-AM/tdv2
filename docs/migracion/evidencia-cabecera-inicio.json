@@ -1,0 +1,382 @@
+{
+  "synthetic": true,
+  "database": false,
+  "authentication": false,
+  "measurements": [
+    {
+      "viewport": 1440,
+      "overflow": false,
+      "logo": {
+        "x": 24,
+        "y": 14.53125,
+        "width": 180,
+        "height": 38.921875,
+        "right": 204,
+        "bottom": 53.453125
+      },
+      "navigation": {
+        "x": 236,
+        "y": 16,
+        "width": 348,
+        "height": 36,
+        "right": 584,
+        "bottom": 52
+      },
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 68,
+        "right": 1440,
+        "bottom": 68
+      },
+      "title": {
+        "x": 32,
+        "y": 96,
+        "width": 1084.109375,
+        "height": 36.390625,
+        "right": 1116.109375,
+        "bottom": 132.390625
+      },
+      "description": {
+        "x": 32,
+        "y": 136.390625,
+        "width": 1084.109375,
+        "height": 22.390625,
+        "right": 1116.109375,
+        "bottom": 158.78125
+      },
+      "actions": {
+        "x": 1140.109375,
+        "y": 96,
+        "width": 267.890625,
+        "height": 36,
+        "right": 1408,
+        "bottom": 132
+      },
+      "titleSize": "26px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 1024,
+      "overflow": false,
+      "logo": {
+        "x": 24,
+        "y": 14.53125,
+        "width": 180,
+        "height": 38.921875,
+        "right": 204,
+        "bottom": 53.453125
+      },
+      "navigation": {
+        "x": 236,
+        "y": 16,
+        "width": 348,
+        "height": 36,
+        "right": 584,
+        "bottom": 52
+      },
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 68,
+        "right": 1024,
+        "bottom": 68
+      },
+      "title": {
+        "x": 32,
+        "y": 96,
+        "width": 668.109375,
+        "height": 36.390625,
+        "right": 700.109375,
+        "bottom": 132.390625
+      },
+      "description": {
+        "x": 32,
+        "y": 136.390625,
+        "width": 668.109375,
+        "height": 22.390625,
+        "right": 700.109375,
+        "bottom": 158.78125
+      },
+      "actions": {
+        "x": 724.109375,
+        "y": 96,
+        "width": 267.890625,
+        "height": 36,
+        "right": 992,
+        "bottom": 132
+      },
+      "titleSize": "26px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 901,
+      "overflow": false,
+      "logo": {
+        "x": 24,
+        "y": 14.53125,
+        "width": 180,
+        "height": 38.921875,
+        "right": 204,
+        "bottom": 53.453125
+      },
+      "navigation": {
+        "x": 236,
+        "y": 16,
+        "width": 348,
+        "height": 36,
+        "right": 584,
+        "bottom": 52
+      },
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 901,
+        "height": 68,
+        "right": 901,
+        "bottom": 68
+      },
+      "title": {
+        "x": 32,
+        "y": 96,
+        "width": 545.109375,
+        "height": 36.390625,
+        "right": 577.109375,
+        "bottom": 132.390625
+      },
+      "description": {
+        "x": 32,
+        "y": 136.390625,
+        "width": 545.109375,
+        "height": 22.390625,
+        "right": 577.109375,
+        "bottom": 158.78125
+      },
+      "actions": {
+        "x": 601.109375,
+        "y": 96,
+        "width": 267.890625,
+        "height": 36,
+        "right": 869,
+        "bottom": 132
+      },
+      "titleSize": "26px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 768,
+      "overflow": false,
+      "logo": {
+        "x": 58,
+        "y": 17.78125,
+        "width": 150,
+        "height": 32.4375,
+        "right": 208,
+        "bottom": 50.21875
+      },
+      "navigation": null,
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 68,
+        "right": 768,
+        "bottom": 68
+      },
+      "title": {
+        "x": 18,
+        "y": 90,
+        "width": 440.109375,
+        "height": 36.390625,
+        "right": 458.109375,
+        "bottom": 126.390625
+      },
+      "description": {
+        "x": 18,
+        "y": 130.390625,
+        "width": 440.109375,
+        "height": 22.390625,
+        "right": 458.109375,
+        "bottom": 152.78125
+      },
+      "actions": {
+        "x": 482.109375,
+        "y": 90,
+        "width": 267.890625,
+        "height": 36,
+        "right": 750,
+        "bottom": 126
+      },
+      "titleSize": "26px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 600,
+      "overflow": false,
+      "logo": {
+        "x": 64,
+        "y": 17.78125,
+        "width": 150,
+        "height": 32.4375,
+        "right": 214,
+        "bottom": 50.21875
+      },
+      "navigation": null,
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 68,
+        "right": 600,
+        "bottom": 68
+      },
+      "title": {
+        "x": 12,
+        "y": 88,
+        "width": 576,
+        "height": 33.59375,
+        "right": 588,
+        "bottom": 121.59375
+      },
+      "description": {
+        "x": 12,
+        "y": 125.59375,
+        "width": 576,
+        "height": 22.390625,
+        "right": 588,
+        "bottom": 147.984375
+      },
+      "actions": {
+        "x": 12,
+        "y": 159.984375,
+        "width": 267.890625,
+        "height": 36,
+        "right": 279.890625,
+        "bottom": 195.984375
+      },
+      "titleSize": "24px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 390,
+      "overflow": false,
+      "logo": {
+        "x": 64,
+        "y": 17.78125,
+        "width": 150,
+        "height": 32.4375,
+        "right": 214,
+        "bottom": 50.21875
+      },
+      "navigation": null,
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 68,
+        "right": 390,
+        "bottom": 68
+      },
+      "title": {
+        "x": 12,
+        "y": 88,
+        "width": 366,
+        "height": 33.59375,
+        "right": 378,
+        "bottom": 121.59375
+      },
+      "description": {
+        "x": 12,
+        "y": 125.59375,
+        "width": 366,
+        "height": 44.78125,
+        "right": 378,
+        "bottom": 170.375
+      },
+      "actions": {
+        "x": 12,
+        "y": 182.375,
+        "width": 267.890625,
+        "height": 36,
+        "right": 279.890625,
+        "bottom": 218.375
+      },
+      "titleSize": "24px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    },
+    {
+      "viewport": 320,
+      "overflow": false,
+      "logo": {
+        "x": 64,
+        "y": 17.78125,
+        "width": 150,
+        "height": 32.4375,
+        "right": 214,
+        "bottom": 50.21875
+      },
+      "navigation": null,
+      "bar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 68,
+        "right": 320,
+        "bottom": 68
+      },
+      "title": {
+        "x": 12,
+        "y": 88,
+        "width": 296,
+        "height": 33.59375,
+        "right": 308,
+        "bottom": 121.59375
+      },
+      "description": {
+        "x": 12,
+        "y": 125.59375,
+        "width": 296,
+        "height": 44.78125,
+        "right": 308,
+        "bottom": 170.375
+      },
+      "actions": {
+        "x": 12,
+        "y": 182.375,
+        "width": 267.890625,
+        "height": 36,
+        "right": 279.890625,
+        "bottom": 218.375
+      },
+      "titleSize": "24px",
+      "titleWeight": "600",
+      "descriptionSize": "14px",
+      "fontFamily": "Roboto, sans-serif"
+    }
+  ],
+  "checks": [
+    "Sin desbordamiento de 320 a 1440 px; logo/navegación separados 32 px en escritorio; acciones debajo en móvil.",
+    "Actualizar mantiene GET, indica carga, impide repetición mientras carga y conserva foco visible por teclado.",
+    "Submódulos conservados y menú móvil con retorno de foco y movimiento reducido.",
+    "La prop de autorización sigue ocultando Colaboradores; no verifica autorización backend."
+  ],
+  "errors": [],
+  "focus": {
+    "outline": "2px",
+    "style": "solid"
+  }
+}
