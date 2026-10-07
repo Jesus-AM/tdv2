@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
+import { ParticipantPhotos } from '@/Components/ParticipantAvatar';
+import { participantColor } from '@/lib/participant-colors';
 import { Head, router, usePage } from '@/lib/navigation';
 import axios from 'axios';
 import {
@@ -38,12 +40,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import FormProposalComparison from '@/Components/FormProposalComparison';
 import BlockEditingStatus from '@/Components/BlockEditingStatus';
-import { splitBlocks } from '@/lib/form-blocks';
+import { changedBlocks, splitBlocks } from '@/lib/form-blocks';
 import PrioritySelect from '@/Components/PrioritySelect';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
 import FormSubmissionReview from '@/Components/FormSubmissionReview';
 import type { FormPending } from '@/Components/FormSubmissionReview';
-import { removalBlocks, removeRow, rowLabel, targetRow } from '@/lib/form-deletion';
+import { removalBlocks, removalSnapshot, removeRow, rowLabel, targetRow } from '@/lib/form-deletion';
 import type { RowTarget } from '@/lib/form-deletion';
 import { displayUnitCode } from '@/lib/area-directory';
 import { BlockEditor } from '@/lib/block-editor';
@@ -55,6 +57,9 @@ type Definition = {
     medios: string[];
     preguntas: { texto: string; tipo: string; opciones?: string[] }[];
 };
+// El motor conserva las propuestas fuera de las pestañas. Una tecla sólo renderiza la fila afectada.
+const CaptureRow = memo(function CaptureRow({ render }: { dependencies: unknown[]; render: () => React.ReactNode }) { return render(); },
+    (a, b) => a.dependencies.length === b.dependencies.length && a.dependencies.every((value, i) => Object.is(value, b.dependencies[i])));
 type Props = {
     unidad: Unit;
     contenido: FormContent;
@@ -99,10 +104,9 @@ export default function FormatoUR(props: Props) {
     const page = usePage();
     return (
         <AuthenticatedLayout>
-            <Editor
-                key={`${props.unidad.id_ur}:${page.props.contextoEdicion}:${page.props.simulacion?.expiresAt || ''}`}
-                {...props}
-            />
+            <ParticipantPhotos key={`${props.unidad.id_ur}:${page.props.contextoEdicion}:${page.props.simulacion?.expiresAt || ''}`}>
+                <Editor {...props} />
+            </ParticipantPhotos>
         </AuthenticatedLayout>
     );
 }
@@ -112,11 +116,15 @@ function Editor(props: Props) {
         [evalCode, setEvalCode] = useState(''),
         [notice, setNotice] = useState(''),
         [confirmSend, setConfirmSend] = useState<number | null>(null),
-        [removal, setRemoval] = useState<(RowTarget & { snapshot: string }) | null>(null),
+        [removal, setRemoval] = useState<(RowTarget & { snapshot: string; label: string }) | null>(null),
         [sending, setSending] = useState(false),
         [finishing, setFinishing] = useState(false),
         [compare, setCompare] = useState<{ live: LiveForm; keys: string[] } | null>(null);
     const modalBlocks = useRef<string[]>([]);
+    const presenceFocus = useRef<string | null>(null);
+    const removing = useRef(false);
+    const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
+    const [failedRemovals, setFailedRemovals] = useState<Record<string, string>>({});
     const [openSelect, setOpenSelect] = useState<{ key: string; field: string } | null>(null);
     const [resolving, setResolving] = useState(false), [resolutionError, setResolutionError] = useState('');
     const redraw = useRef<(s: EditorState) => void>(() => {});
@@ -188,30 +196,37 @@ function Editor(props: Props) {
         return <BlockEditingStatus engine={engine} state={state} blockKey={key} onResolve={() => void resolveBlock(key)} />;
     }
     function blockEvents(key: string) {
+        // Las acciones de la fila no son campos: enfocar Eliminar o volver de Cancelar no toma una reserva.
+        const isField = (target: EventTarget) => target instanceof Element && !!target.closest('input, textarea, label, [role="combobox"]');
         return { 'data-edit-block': key, 'data-edit-state': engine.busy(key) ? 'occupied' : engine.canEdit(key) ? 'owned' : 'idle',
-            onFocusCapture: () => { void engine.focus(key); },
+            style: { '--participant-color': participantColor(state.blocks[key]?.reserva?.color) } as React.CSSProperties,
+            onFocusCapture: (event: React.FocusEvent<HTMLElement>) => { if (isField(event.target)) void engine.focus(key); },
             onPointerDownCapture: (event: React.PointerEvent<HTMLElement>) => {
                 // Un campo que conservó el foco tras vencer o liberarse una reserva también puede retomarse.
                 // Consultar el código o seleccionar texto fuera de los campos no inicia una reserva.
-                if (!engine.canEdit(key) && event.target instanceof Element
-                    && event.target.closest('input, textarea, label, [role="combobox"]')) void engine.focus(key);
+                if (!engine.canEdit(key) && isField(event.target)) void engine.focus(key);
             },
             onKeyDownCapture: (event: React.KeyboardEvent<HTMLElement>) => {
-                if (!engine.canEdit(key) && !['Tab', 'Escape'].includes(event.key)) void engine.focus(key);
+                if (!engine.canEdit(key) && isField(event.target) && !['Tab', 'Escape'].includes(event.key)) void engine.focus(key);
             },
             onBlurCapture: () => {
                 // Select y Dialog usan portales: comprobar el foco final, no el blur intermedio hacia body.
                 setTimeout(() => {
                     const target = document.activeElement;
                     if (modalBlocks.current.includes(key) || target?.closest('[role="listbox"]') || document.querySelector('[role="listbox"]')) return;
-                    if (target?.closest('[data-edit-block]')?.getAttribute('data-edit-block') !== key) void engine.endBlock(key);
+                    // El avatar es consulta, incluso con Tab. Retomar el bloque original al salir
+                    // evita liberar por el tooltip o dejar una reserva viva tras visitar otro avatar.
+                    if (target?.closest('[data-participant-avatar]')) { presenceFocus.current ||= key; return; }
+                    const previous = presenceFocus.current; presenceFocus.current = null;
+                    for (const candidate of new Set([key, ...(previous ? [previous] : [])]))
+                        if (target?.closest('[data-edit-block]')?.getAttribute('data-edit-block') !== candidate) void engine.endBlock(candidate);
                 }, 0);
             } };
     }
     function choiceDisabled(key: string) { return locked || engine.busy(key) || !!state.issues[key]; }
-    async function changeChoice(key: string, edit: (data: FormContent) => void) {
+    async function changeChoice<T extends object>(key: string, edit: (data: T) => void) {
         // Las casillas y radios reciben foco sin habilitar escrituras: confirmar primero y usar el contenido vigente.
-        if (engine.canEdit(key) || await engine.focus(key)) engine.change(edit);
+        if (engine.canEdit(key) || await engine.focus(key)) engine.changeBlock(key, edit);
     }
     function selectEvents(key: string, field: string) {
         return { readOnly: choiceDisabled(key), open: openSelect?.key === key && openSelect.field === field && engine.canEdit(key),
@@ -242,7 +257,11 @@ function Editor(props: Props) {
             window.removeEventListener('beforeunload', before);
         };
     }, [engine]);
-    const change = (edit: (data: FormContent) => void) => engine.change(edit);
+    function collaborationStamp(rowId: string) {
+        // La renovación de otra fila no cambia ésta. El borrado sí observa sus relaciones reales.
+        return removalBlocks(c, { section: 'identificacion', id: rowId }).map(key =>
+            `${key}:${state.blocks[key]?.version}:${JSON.stringify(state.blocks[key]?.reserva)}:${engine.busy(key)}:${state.issues[key] || ''}`).join('|');
+    }
     function download() {
         const blob = new Blob([JSON.stringify({ ur: props.unidad, version: state.version, contenido: c }, null, 2)], {
             type: 'application/json',
@@ -256,6 +275,10 @@ function Editor(props: Props) {
     }
     function processEdit(rowId: string, key: string, value: string) {
         if (!engine.canEdit(`identificacion:${rowId}`)) return;
+        const current = engine.state.content.identificacion.find(row => row.id === rowId);
+        if (key !== 'validacion' && !(current?.codigo && !engine.state.content.evaluaciones[current.codigo])) {
+            engine.changeBlock<Record<string, string>>(`identificacion:${rowId}`, row => { row[key] = value; }); return;
+        }
         void engine.edit((d) => {
             const row = d.identificacion.find(item => item.id === rowId);
             if (!row) return;
@@ -273,25 +296,66 @@ function Editor(props: Props) {
         });
     }
     function removalReason(target: RowTarget) {
-        if (!state.initialized) return 'Espera a que termine de cargar el formato.';
-        if (state.submitted || props.enviadoEn) return 'El formato enviado está bloqueado para edición.';
-        if (locked) return 'Tu acceso actual es de solo consulta.';
-        const row = targetRow(c, target);
+        const current = engine.state;
+        if (!current.initialized) return 'Espera a que termine de cargar el formato.';
+        if (current.submitted || props.enviadoEn) return 'El formato enviado está bloqueado para edición.';
+        if (current.locked) return 'Tu acceso actual es de solo consulta.';
+        const row = targetRow(current.content, target);
         if (!row) return 'Otra sesión ya retiró este registro.';
         if (row.id.startsWith('ilda:')) return 'Los registros de ILDA se conservan. Selecciona N en Validación si no corresponde.';
-        if (removalBlocks(c, target).some(key => engine.busy(key))) return 'Otra sesión está editando este registro o una de sus relaciones.';
-        if (!engine.canEdit(`${target.section}:${target.id}`)) return 'Entra en un campo del registro y espera la confirmación de la reserva.';
-        if (removalBlocks(c, target).some(key => state.issues[key])) return 'Resuelve los cambios pendientes de este registro antes de eliminarlo.';
+        const keys = removalBlocks(current.content, target), occupied = keys.find(key => engine.busy(key));
+        if (occupied) {
+            const lease = current.blocks[occupied]?.reserva;
+            const subject = occupied === keys[0] ? 'este registro' : 'un registro relacionado';
+            return lease?.otraPestana ? `Estás editando ${subject} en otra pestaña.`
+                : `${lease?.titular || 'Otra persona'} está editando ${subject}.`;
+        }
+        // Poder confirmar la intención no concede escritura: prepare/canEdit se comprueban al ejecutar.
+        if (keys.some(key => current.issues[key])) return 'Resuelve los cambios pendientes de este registro antes de eliminarlo.';
         return '';
     }
     function removeButton(target: RowTarget, label: string) {
         const reason = removalReason(target);
         return <Tooltip title={reason || 'Eliminar registro'}><span tabIndex={reason ? 0 : undefined}>
             <IconButton aria-label={label} color="error" disabled={!!reason}
-                onClick={() => { modalBlocks.current = removalBlocks(c, target); setRemoval({ ...target, snapshot: JSON.stringify(targetRow(c, target)) }); }}>
+                onClick={() => {
+                    if (removalReason(target)) return;
+                    const current = engine.state;
+                    modalBlocks.current = removalBlocks(current.content, target); setRemovalError('');
+                    setRemoval({ ...target, label: rowLabel(current.content, target), snapshot: removalSnapshot(current.content, target, current.blocks) });
+                }}>
                 <DeleteOutlined fontSize="small" />
             </IconButton>
         </span></Tooltip>;
+    }
+    async function confirmRemoval() {
+        if (!removal || removing.current || removalReason(removal)) return;
+        const target = removal, keys = removalBlocks(engine.state.content, target);
+        const unchanged = () => removalSnapshot(engine.state.content, target, engine.state.blocks) === target.snapshot;
+        if (!unchanged()) return;
+        removing.current = true; setRemovingRow(true); setRemovalError('');
+        try {
+            // La reserva es atómica e incluye evaluación y vínculos. Abrir/Cancelar no la adquiere.
+            if (!await engine.prepare(keys)) {
+                setRemovalError('No se pudo confirmar la reserva del registro y sus relaciones. Revisa su estado e inténtalo de nuevo.');
+                return;
+            }
+            if (!await engine.edit(data => removeRow(data, target), () => !removalReason(target) && unchanged())) {
+                setRemovalError('No se pudo eliminar. Revisa la versión vigente y las reservas del registro y sus relaciones.');
+                return;
+            }
+            // La fila puede desaparecer de la propuesta, pero sólo el servidor confirma la eliminación.
+            // Ante un fallo se conserva una vía contextual de recuperación aunque ya no haya fila visible.
+            let saved = await engine.flush(true);
+            // Confirmar un recibo pendiente anterior no basta: esperar también los bloques de esta eliminación.
+            while (saved && changedBlocks(engine.proposalBase(), engine.state.content).some(key => keys.includes(key)))
+                saved = await engine.flush(true);
+            if (!saved) setFailedRemovals(previous => ({ ...previous, [keys[0]]: target.label }));
+            modalBlocks.current = []; setRemoval(null);
+        } finally {
+            await engine.releaseClean(keys); // Nunca libera bloques con propuestas sin confirmar.
+            removing.current = false; setRemovingRow(false);
+        }
     }
     function navigatePending(pending: FormPending) {
         void engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
@@ -369,7 +433,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {rows.map((r, i) => (
-                                <TableRow key={r.id} {...blockEvents(`${section}:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect.field : null, c.identificacion]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
                                             {field(
@@ -377,7 +441,7 @@ function Editor(props: Props) {
                                                 f,
                                                 `${f.label} ${i + 1}`,
                                                 (value) =>
-                                                    change((d) => { const row = d[section].find(item => item.id === r.id); if (row) Object.assign(row, { [f.key]: value }); }),
+                                                    engine.changeBlock<Record<string, string>>(`${section}:${r.id}`, row => { row[f.key] = value; }),
                                                 `${section}:${r.id}`,
                                             )}
                                         </TableCell>
@@ -386,7 +450,7 @@ function Editor(props: Props) {
                                         {blockNotice(`${section}:${r.id}`)}
                                         {removeButton({ section, id: r.id }, `Retirar fila ${i + 1} de ${section}`)}
                                     </TableCell>
-                                </TableRow>
+                                </TableRow>} />
                             ))}
                         </TableBody>
                     </Table>
@@ -479,7 +543,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {c.identificacion.map((r, i) => (
-                                <TableRow key={r.id} {...blockEvents(`identificacion:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.preparing.includes(`identificacion:${r.id}`), state.issues[`identificacion:${r.id}`], engine.canEdit(`identificacion:${r.id}`), collaborationStamp(r.id), openSelect?.key === `identificacion:${r.id}` ? openSelect.field : null, c.sistemas, c.datos, c.evaluaciones]} render={() => <TableRow {...blockEvents(`identificacion:${r.id}`)}>
                                     <TableCell>
                                         <Typography
                                             variant="body2"
@@ -505,7 +569,7 @@ function Editor(props: Props) {
                                     <TableCell>
                                         {removeButton({ section: 'identificacion', id: r.id }, `Retirar proceso ${i + 1}`)}
                                     </TableCell>
-                                </TableRow>
+                                </TableRow>} />
                             ))}
                         </TableBody>
                     </Table>
@@ -563,7 +627,7 @@ function Editor(props: Props) {
                                     checked={c.medios[m]}
                                     disabled={choiceDisabled('medios')}
                                     onChange={(e) => { const checked = e.target.checked;
-                                        void changeChoice('medios', d => { d.medios[m] = checked; }); }}
+                                        void changeChoice<Pick<FormContent, 'medios' | 'medioOtro'>>('medios', d => { d.medios[m] = checked; }); }}
                                 />
                             }
                             label={<Typography variant="body2">{m}</Typography>}
@@ -574,7 +638,7 @@ function Editor(props: Props) {
                     label="Otro medio"
                     value={c.medioOtro}
                     onChange={(e) =>
-                        change((d) => {
+                        engine.changeBlock<Pick<FormContent, 'medios' | 'medioOtro'>>('medios', (d) => {
                             d.medioOtro = e.target.value;
                         })
                     }
@@ -665,12 +729,8 @@ function Editor(props: Props) {
                                             aria-label={`${criterion} de ${code}`}
                                             value={c.evaluaciones[code]?.[i]?.valor || ''}
                                             onChange={(e) => { const value = e.target.value;
-                                                void changeChoice(`evaluaciones:${code}:${i}`, (d) => {
-                                                    if (!d.evaluaciones[code])
-                                                        d.evaluaciones[code] = props.definicion.criterios.map(
-                                                            (criterio) => ({ criterio, valor: '', obs: '' }),
-                                                        );
-                                                    d.evaluaciones[code][i].valor = value;
+                                                void changeChoice<FormContent['evaluaciones'][string][number]>(`evaluaciones:${code}:${i}`, (d) => {
+                                                    d.valor = value;
                                                 }); }}
                                         >
                                             {['1', '2', '3', '4', '5'].map((v) => (
@@ -691,12 +751,8 @@ function Editor(props: Props) {
                                             maxRows={4}
                                             slotProps={{ input: { readOnly: !engine.canEdit(`evaluaciones:${code}:${i}`) } }}
                                             onChange={(e) =>
-                                                change((d) => {
-                                                    if (!d.evaluaciones[code])
-                                                        d.evaluaciones[code] = props.definicion.criterios.map(
-                                                            (criterio) => ({ criterio, valor: '', obs: '' }),
-                                                        );
-                                                    d.evaluaciones[code][i].obs = e.target.value;
+                                                engine.changeBlock<FormContent['evaluaciones'][string][number]>(`evaluaciones:${code}:${i}`, (d) => {
+                                                    d.obs = e.target.value;
                                                 })
                                             }
                                         />
@@ -715,7 +771,7 @@ function Editor(props: Props) {
                 </Typography>
                 <Box className="stack">
                     {c.preguntas.map((q, i) => (
-                        <Box key={q.pregunta} component="fieldset" {...blockEvents(`preguntas:${i}`)}
+                        <CaptureRow key={q.pregunta} dependencies={[q, i, locked, state.initialized, state.preparing.includes(`preguntas:${i}`), state.issues[`preguntas:${i}`], engine.canEdit(`preguntas:${i}`), engine.busy(`preguntas:${i}`), JSON.stringify(state.blocks[`preguntas:${i}`]?.reserva), openSelect?.key === `preguntas:${i}` ? openSelect.field : null]} render={() => <Box component="fieldset" {...blockEvents(`preguntas:${i}`)}
                             sx={{ p: 0, m: 0, minWidth: 0, border: 0, pb: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
                             {blockNotice(`preguntas:${i}`)}
                             <Box
@@ -737,7 +793,7 @@ function Editor(props: Props) {
                                             checked={q.marcada}
                                             disabled={choiceDisabled(`preguntas:${i}`)}
                                             onChange={(e) => { const checked = e.target.checked;
-                                                void changeChoice(`preguntas:${i}`, d => { d.preguntas[i].marcada = checked; }); }}
+                                                void changeChoice<FormContent['preguntas'][number]>(`preguntas:${i}`, d => { d.marcada = checked; }); }}
                                         />
                                     }
                                     label={<Typography variant="caption">Revisada</Typography>}
@@ -752,8 +808,8 @@ function Editor(props: Props) {
                                 value={q.respuesta}
                                 slotProps={{ input: { readOnly: !engine.canEdit(`preguntas:${i}`) }, select: selectEvents(`preguntas:${i}`, 'respuesta') }}
                                 onChange={(e) =>
-                                    change((d) => {
-                                        d.preguntas[i].respuesta = e.target.value;
+                                    engine.changeBlock<FormContent['preguntas'][number]>(`preguntas:${i}`, (d) => {
+                                        d.respuesta = e.target.value;
                                     })
                                 }
                             >
@@ -768,7 +824,7 @@ function Editor(props: Props) {
                                     )),
                                 ]}
                             </TextField>
-                        </Box>
+                        </Box>} />
                     ))}
                 </Box>
             </>
@@ -862,7 +918,7 @@ function Editor(props: Props) {
                                 onClick={() => engine.setSection(key)} />
                         ))}
                     </Tabs>
-                    {tabs.map(([key]) => (
+                    {tabs.filter(([key]) => key === active).map(([key]) => (
                             <Box
                                 key={key}
                                 id={`panel-${key}`}
@@ -921,22 +977,19 @@ function Editor(props: Props) {
                         </Button>
                     </div>
                 </div>
-                <RemoveRowDialog open={!!removal} label={removal ? rowLabel(c, removal) : ''}
-                    process={removal?.section === 'identificacion'} reason={removal ? removalReason(removal) : ''}
-                    changed={!!removal && removal.snapshot !== JSON.stringify(targetRow(c, removal))}
-                    onCancel={() => { modalBlocks.current = []; setRemoval(null); }} onConfirm={async () => {
-                        if (!removal || removalReason(removal)) return;
-                        const keys = removalBlocks(engine.state.content, removal);
-                        if (!await engine.prepare(keys)) { setNotice('No se pudo reservar el registro o sus relaciones. Revisa quién está editando.'); return; }
-                        // Si cambió desde la apertura, renovar la confirmación sobre la fila vigente.
-                        const snapshot = JSON.stringify(targetRow(engine.state.content, removal));
-                        if (snapshot !== removal.snapshot) { setRemoval({ ...removal, snapshot }); return; }
-                        if (await engine.edit(data => removeRow(data, removal))) {
-                            modalBlocks.current = []; setRemoval(null);
-                            // Eliminar termina el bloque: confirmar y liberar también las relaciones de la cascada.
-                            void engine.flush(true);
-                        }
-                    }} />
+                {Object.entries(failedRemovals).filter(([key]) => state.issues[key]).map(([key, label]) => <Box key={key} role="status" sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="error.main">No se confirmó la eliminación de «{label}». Tu propuesta se conserva.</Typography>
+                    <Button onClick={() => void resolveBlock(key)}>Resolver eliminación</Button>
+                </Box>)}
+                <RemoveRowDialog open={!!removal} label={removal?.label || ''}
+                    process={removal?.section === 'identificacion'} reason={!removingRow && removal ? removalReason(removal) : ''}
+                    changed={!removingRow && !!removal && removal.snapshot !== removalSnapshot(c, removal, state.blocks)}
+                    busy={removingRow} error={removalError}
+                    onCancel={() => {
+                        if (removing.current) return;
+                        const keys = modalBlocks.current; modalBlocks.current = []; setRemoval(null); setRemovalError('');
+                        for (const key of keys) void engine.endBlock(key);
+                    }} onConfirm={() => void confirmRemoval()} />
                 <Dialog open={confirmSend !== null} onClose={() => !sending && setConfirmSend(null)} aria-labelledby="confirm-send-title">
                     <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
                     <DialogContent>

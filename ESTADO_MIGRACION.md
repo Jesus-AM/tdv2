@@ -1,8 +1,132 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-05**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-07**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
-## Distribución compacta de Procesos operativos — entrega vigente 2026-10-05
+## Presentación de módulos y Configuración — actualización 2026-10-07
+
+### Implementado
+
+Encabezado compartido con título único de 24–26 px/600, descripción de 14 px, acciones adaptables y rutas de navegación en submódulos. Barra blanca alineada con el contenido, logo y tipografía conservados, separación de 32 px en escritorio y altura reservada medida mediante `ResizeObserver`. Menús con selección accesible, jerarquía publicada y cuenta separada sin desplazar la página.
+
+Accesos compactos y componente `SettingsSection` para Configuración. Sincronizaciones separa fuentes, programación y ejecuciones; carga y errores no desplazan los campos, y el historial vacío es legible en móvil. Pruebas de acceso diferencia consulta de representación con escritura; se conserva su advertencia real. Configuración procesos sólo cambia presentación, etiquetas y ubicación de acciones/errores. Sin cambios de opciones, reglas de participación, autorización, autenticación, sincronización ni edición colaborativa.
+
+[Detalle, comandos y capturas antes/después](docs/migracion/UI_MODULOS_CONFIGURACION.md). Se conservaron los cambios locales; [119 archivos de backend/lógica protegida sin variación](docs/migracion/ui-modulos-20261007/codigo-conservado.json). No se crea ninguna migración en esta entrega.
+
+### Probado
+
+TypeScript y compilación Vite correctos; **64/64** pruebas frontend. Edge con ASP.NET y PostgreSQL desechable: **32/32** recorridos de captura, **13/13** de acceso, **4/4** de alcance y **11/11** de sincronización (`native-postgres-20261007-174835-2f9c9823`). Después del ajuste de los avisos, **11/11** de sincronización repetidos sobre esa versión final (`native-postgres-20261007-175933-719f3118`); no se suman como casos diferentes. Sin errores JavaScript. Se comprobaron reservas, eliminación directa, foco, avatares/fotografía, autoguardado, propuestas, revocación, enviados y representación con dobles institucionales sintéticos.
+
+Siete pantallas completas a **360/768/1366/1920 px** y ampliación **CSS 200 %**, con capturas comparables, un H1, sin desbordamiento de página ni títulos ocultos por la barra. Pruebas de teclado, menú móvil, selección activa, movimiento reducido, textos largos, permisos distintos, carga/error sin salto, conservación del borrador, Select y cancelación de confirmación sin escrituras. [Evidencia visual y funcional](docs/migracion/ui-modulos-20261007/after.json), corrida final `native-postgres-20261007-181024-1b50e32d`; **73 imágenes** anteriores/posteriores conservadas. Los intentos que detectaron capturas prematuras o pérdida de propiedades del selector se descartaron: el verificador espera que React monte el título y el ajuste de etiqueta conserva todos los `slotProps` originales de Autocomplete.
+
+### Pendiente
+
+Revisión manual con zoom nativo del navegador, lector de pantalla y dispositivos físicos: la evidencia automática de 200 % es ampliación CSS, no una sesión manual del navegador. Las nuevas reglas de participación continúan aplazadas y los pendientes institucionales anteriores permanecen vigentes. No se modificaron Nexo, Herd, User Secrets ni bases institucionales; no hubo push ni despliegue. Las bases de prueba fueron exclusivamente desechables.
+
+## Respuesta de captura, avatares y fotografía — actualización 2026-10-07
+
+### Implementado
+
+Seguimiento incremental de bloques modificados; una tecla no compara todo el documento ni reprograma todas las reservas. Las filas memoizadas dependen de su reserva y sus relaciones reales. Estados remotos equivalentes conservan referencias y evitan avisar otra vez a React; mantienen comprobaciones de autorización/caducidad. Se integra el montaje previo de pestaña activa, sin perder propuestas ni cambiar autoguardado, eliminación directa, envío o SignalR.
+
+Avatar con fotografía Microsoft opcional, tooltip MUI con nombre, foco visible y manejo de ratón/teclado/tacto sin adquirir/liberar reservas. Colores coordinados por identidad efectiva conservados. Endpoint protegido por acceso al formato y participante con reserva vigente, identidad Microsoft verificada, caché renovable sin permisos cacheados ni directorio público. Representación usa foto del objetivo o iniciales, nunca la foto del administrador.
+
+Nueva migración `20261007161549_ParticipantPhotographs`: FK opcional en reservas a usuario Microsoft verificado, sin cambiar contenido ni instantáneas. **Las nuevas reglas de participación permanecen pendientes**; configuración/alcance existentes conservados, con [huellas antes/después](docs/migracion/evidencia-captura-politicas-conservadas.json). Continúan separadas las vías central explícita y delegada. [Detalle, comandos y recorrido de prueba](docs/migracion/CAPTURA_FOTOGRAFIAS_RENDIMIENTO.md).
+
+### Probado
+
+TypeScript y Vite correctos; **64/64** casos frontend y **62/62** de dominio/transporte. **34/34** comprobaciones EF en PostgreSQL desechable, incluyendo upgrade con enviado intacto, FK, repetición y script idempotente: [evidencia](docs/migracion/evidencia-captura-fotografias-migraciones.json), corrida `native-postgres-20261007-163801-c1df0a41`. Los intentos anteriores que detectaron el rollback parcial y un dato sintético incompleto no se cuentan como aprobados.
+
+Compilación final `dotnet build tdv2.slnx -c Release --no-restore -p:UseAppHost=false`: cero errores y advertencias. `dotnet ef migrations has-pending-model-changes --project tdv2 --configuration Release --no-build`, en Production y sin conexión, confirma snapshot vigente. SQL de la nueva migración generado en `.artifacts/participant-photographs.sql`. El bundle final está reconstruido sin contadores de instrumentación.
+
+**144/144** casos HTTP/PostgreSQL de regresión completos: [evidencia](docs/migracion/evidencia-captura-fotografias-postgresql.json), `native-postgres-20261007-165619-f90bd19c`. Incluyen fotografía protegida/cacheada/renovable, rechazo de identidad Graph ajena, representación con objetivo verificado o iniciales, permisos, colaboradores centrales/delegados, concurrencia, revocación, auditoría, ILDA y bloqueo de enviados. La corrida anterior interrumpida por el reinicio de la sesión no se usa como evidencia final. Todos los clústeres de prueba terminaron detenidos.
+
+**31/31** escenarios de captura en Edge, sin errores JS: [evidencia](docs/migracion/evidencia-captura-fotografias-react.json), `native-postgres-20261007-162753-76a64950`. Reservas simultáneas, distintas filas/pestañas/sesiones, cancelación y eliminación sin foco en cuatro tablas, versiones/dependencias, desconexión/propuestas, revocación central, envío, Select, avatar/tooltip y tres ciclos de SignalR de 15 segundos.
+
+**2/2** escenarios adicionales sobre la versión final del avatar: primera escritura confirmada, selección/cursor, inserción múltiple, Tab, fotografía, tooltip con ratón/teclado/toque real emulado y liberación sin recarga. [Evidencia táctil](docs/migracion/evidencia-captura-avatar-tactil.json), `native-postgres-20261007-165504-84389d5b`. La prueba táctil detectó que impedir el foco del puntero suprimía los eventos compatibles que esperaba el tooltip; se corrigió con apertura controlada para touch/pen, sin adquirir/liberar reservas. No se cuenta como aprobada la corrida que detectó ese defecto.
+
+Medición antes/después con 20/100/200 registros del código local: filas ajenas renderizadas **19/99/199 → 0/0/0**. Una sola renovación durante 58 entradas, sin PATCH por tecla. La fotografía agrega una solicitud protegida por participante. La latencia a frame no mejora uniformemente; medias/p95 y comandos EF se publican sin porcentajes inferidos en [comparación](docs/migracion/evidencia-captura-comparacion.json). El motor reduce trabajo por cambio; Inicio conserva **8 comandos EF para 102 áreas**, optimización previa. No se confunde el contador EF con todas las consultas Npgsql/Nexo.
+
+Arranque equivalente al perfil **TDV2 HTTPS + React**: Vite 5173, Kestrel 5064/7136, certificado existente, portada/React, HMR por 7136 y rechazo anónimo; cero consultas EF durante esas páginas. [Evidencia](docs/migracion/evidencia-captura-arranque-https.json), `native-postgres-20261007-163851-a21dc7a0`. Host sintético con el pipeline real; no se operó la interfaz gráfica del depurador ni se usaron User Secrets. Capturas en 1920, 1366, 768 y 390 px, sin desbordamiento de página y con movimiento reducido.
+
+### Pendiente
+
+Aplicación institucional de la nueva migración por el operador, después de revisar destino e historial; fotografías/consentimiento Microsoft reales, lectores de pantalla y dispositivos físicos. No hacen falta nuevos roles, permisos Graph de directorio ni publicación Nexo para esta entrega. Se conservan los pendientes institucionales anteriores. No hubo cambios de Nexo/Herd/User Secrets/bases institucionales, push ni despliegue. F5 continúa sin DDL ni sincronización automática.
+
+## Participación, rendimiento y presencia — actualización 2026-10-06
+
+### Implementado
+
+Submódulo `configuracion_procesos` bajo `configuracion`, exclusivo de administrador en contexto propio. Configuración EF versionada de niveles/tipos, revisión de impacto, confirmación protegida contra cambios de catálogo/formatos y auditoría transaccional. Participación separada de catálogo y permisos; conservación de históricos y distinción central/delegada. Reservas/escrituras se coordinan con cambios de participación mediante bloqueos breves. Migración nueva `20261006233010_ProcessParticipationAndPresence`, sin modificar las anteriores.
+
+Sólo se monta la pestaña activa; propuestas y colaboración permanecen en el motor. Cambios parciales con referencias estables, filas memoizadas y consulta de Inicio por conjuntos. Presencia con color coordinado por identidad efectiva, avatar de iniciales, nombre e indicadores de reserva; sin modificar OAuth ni los intervalos de SignalR. [Detalle, instalación, Nexo y pruebas desde Visual Studio](docs/migracion/PARTICIPACION_RENDIMIENTO_PRESENCIA.md).
+
+### Probado
+
+TypeScript y Vite correctos; **60/60** pruebas frontend y **62/62** de dominio/transporte. Compilación Release con cero advertencias y errores; `dotnet ef migrations has-pending-model-changes --project tdv2 --configuration Release --no-build` confirma el modelo sin cambios pendientes.
+
+**135/135** casos de regresión HTTP/PostgreSQL ([evidencia](docs/migracion/evidencia-participacion-regresion.json), corrida `native-postgres-20261006-234641-10f1571c`). **13/13** comprobaciones finales específicas de participación, presencia y rendimiento ([evidencia](docs/migracion/evidencia-participacion-postgresql.json), `native-postgres-20261007-003025-959cb54a`): incluyen contexto propio, permisos, vista previa obsoleta, auditoría atómica, carreras con captura, reactivación sin pérdida, enviados inmutables, restricciones de delegación, colisión de colores y límite/asociaciones ILDA. Son grupos parcialmente superpuestos; no se suman como 148 casos distintos.
+
+**31/31** comprobaciones EF en PostgreSQL desechable ([evidencia](docs/migracion/evidencia-participacion-migraciones.json), `native-postgres-20261007-001318-f3d1379c`): preservación del esquema previo, repetición sin cambios, recuperación transaccional, actualización y protección de enviados. Dos aplicadores EF simultáneos pueden competir por DDL: se verificó convergencia al repetir secuencialmente, no éxito simultáneo garantizado. Instalación con un solo operador.
+
+**30/30** comprobaciones Edge de captura ([evidencia](docs/migracion/evidencia-participacion-captura-react.json), `native-postgres-20261007-002227-02515193`), sin errores JavaScript: eliminación directa y concurrente, Select, foco, pestañas/sesiones, reconexión, criterios individuales, enviados, revocación central y tres ciclos de 15 segundos de SignalR. Se corrigió la prioridad CSS del contorno frente a MUI tras detectarla en navegador. No se cuentan como aprobados los dos intentos anteriores que detectaron la expectativa fija de ámbar y el contorno oculto.
+
+Medición sintética del motor con 800 filas: media **4,87 → 0,075 ms** por cambio. Inicio con 102 áreas: **311 → 8 consultas EF**; 21,4 s antes y 1,02–2,66 s después en estas corridas locales. [Mediciones y límites](docs/migracion/evidencia-participacion-rendimiento.json). El bundle anterior montaba siete pestañas y 7.445 controles; no completó su ensayo de escritura, por lo que no es una latencia válida ni una prueba aprobada.
+
+Revisión final del bundle actual con 800 filas y **tres escenarios agrupados aprobados** ([evidencia](docs/migracion/evidencia-participacion-navegador.json), `native-postgres-20261007-003326-318d776e`): sólo una pestaña montada; apertura 2,23 s; escritura a siguiente frame media 28 ms/p95 45,4 ms en 31 eventos. Configuración y presencia revisadas en **1920×1080, 1366×768, 768×1024 y 390×844**, sin desbordamiento de página ni errores JavaScript; las tablas conservan su desplazamiento horizontal interior. Contorno de 2 px, avatar, lectura en otra pestaña, liberación automática, movimiento reducido, Cancelar sin cambios y confirmación comprobados. [Capturas y reproducción](docs/migracion/PARTICIPACION_RENDIMIENTO_PRESENCIA.md#capturas). Todos los clústeres de estas pruebas quedaron detenidos.
+
+### Pendiente
+
+Publicar el módulo en Nexo y aplicar la migración institucional corresponde al operador, después de su revisión. La aceptación con identidades y jerarquías institucionales reales continúa pendiente. El mensaje recibido termina en «Al pasar el mouse sobre el»; el avatar tiene tooltip con el nombre, sin asumir el texto faltante. No hubo conexiones institucionales, cambios de credenciales/Herd, push ni despliegue.
+
+## Colaboradores asignados desde Nexo — entrega anterior 2026-10-06
+
+### Implementado
+
+Dos vías de autorización independientes en `FormAccess.Scopes`: concesión explícita `central` + rol efectivo coincidente, calculada por adscripción vigente, o vínculo local + concesión `aplicacion`, con las validaciones delegadas conservadas. No hay fallback por `Has`, altas locales artificiales ni conversión de una revocación local pendiente en acceso central. Local resuelve un solo formato nivel 2/3; dependencias, su nivel 2 y la rama nivel 3. Tipo N sigue excluido y los IDs de jerarquía no se sustituyen por claves visibles.
+
+`RequestAccess` consulta concesiones vigentes aun sin enlaces locales y usa la identidad representada cuando corresponde. Es la misma autorización para listado, apertura, reservas, guardado/eliminación y SignalR. No concede envío, administración ni representación a los colaboradores. El estado vacío explica problemas de empleado, adscripción, jerarquía o asignación. Se conserva el trabajo previo de eliminación directa y captura colaborativa.
+
+La fuente de Nexo ya publica los orígenes reales `central` y `aplicacion`; no necesita cambios de código para distinguirlos. No requiere migración EF. [Implementación, comandos y pruebas](docs/migracion/COLABORADORES_CENTRALES.md); [configuración de ambas vías](docs/migracion/CONFIGURACION_NEXO_ENTRA.md).
+
+### Probado
+
+TypeScript y Vite correctos; **57/57** pruebas frontend y **61/61** de dominio/transporte. Compilación Release de la solución con cero advertencias y errores. **31/31** pruebas HTTP/PostgreSQL de captura y colaboradores (23 de captura + 8 centrales), incluidos enviados inmutables y cambios/retiros de alcance. [Evidencia seleccionada de backend](docs/migracion/evidencia-colaboradores-centrales-postgresql.json), extraída de `.artifacts/native-postgres-20261006-184324-cf999ac5/verification.json`; su intento de navegador se registra aparte.
+
+**30/30** comprobaciones finales Edge sobre React → ASP.NET → PostgreSQL, sin errores JavaScript: los 27 casos de captura conservados y tres de colaboración central. La revocación durante una escritura pendiente devuelve 403, conserva la propuesta visible, no altera la versión compartida y termina SignalR por revalidación. El estado vacío explica empleado ausente. [Evidencia de navegador](docs/migracion/evidencia-colaboradores-centrales-react.json), corrida `.artifacts/native-postgres-20261006-185205-3459ed50`, código 0 y clúster detenido. `-BrowserOnly` registra un grupo agregado, no una sola comprobación de interfaz.
+
+**8/8** pruebas del SQL generado desde la fuente local de Nexo en otra base sintética, incluida su consulta de concesiones: confirma separación `central`/`aplicacion`, revocación y suspensión. [Evidencia SQL Nexo](docs/migracion/evidencia-colaboradores-centrales-nexo.json). Corrida `.artifacts/native-postgres-20261006-184131-6bced401`, clúster detenido. No fue una consulta a Nexo institucional.
+
+Intentos previos conservados: `.artifacts/native-postgres-20261006-183043-648c2348` tuvo 120 casos aprobados y seis fallidos por dos sentencias parametrizadas juntas en el preparador central (cinco casos centrales y navegador). Se separaron. La corrida `184324-cf999ac5` pasó los 31 casos de backend, pero su navegador encontró que una prueba previa había retirado el módulo del colaborador; el servidor denegó correctamente. Se corrigió la publicación de módulos **del fixture** y se repitió sólo el navegador completo, con los 30 resultados aprobados indicados arriba. No se cuentan esos intentos como suites completas aprobadas. Todos sus clústeres quedaron detenidos.
+
+### Pendiente y límites
+
+Comprobar por el operador la publicación institucional de `nexo_concesiones` y las asignaciones explícitas. Si la vista existente ya coincide con el contrato de la fuente, no hace falta republicar Nexo; si está desactualizada, aplicar la publicación existente sin recrear recursos. No hubo conexiones a bases institucionales, cambios de credenciales, modificación de Herd, push ni despliegue. La validación sintética no certifica la configuración institucional real.
+
+## Eliminación directa de registros — entrega anterior 2026-10-06
+
+### Implementado
+
+El icono rojo permite abrir la confirmación sin enfocar campos ni tener reserva propia; foco del icono y Cancelar no adquieren reservas. `removalReason` conserva permisos, carga, enviados, ILDA, propuestas pendientes y reservas ajenas con nombre/otra pestaña. Al confirmar, `engine.prepare(keys)` reserva el registro y sus relaciones. Se comparan contenido y versiones por ID antes y después de esperar; cambios requieren cancelar y revisar. El diálogo espera el guardado, bloquea doble clic y después libera; los fallos conservan recuperación contextual incluso si ya no aparece la fila en la propuesta.
+
+Se corrigió también el orden de la confirmación de reserva: su fecha PostgreSQL se obtiene después del commit, con apertura/cierre explícitos de conexión EF, para no invalidarla con una lectura simultánea tardía. No prolonga el vencimiento ni concede escritura desde SignalR. Se conservan `canEdit`, versiones, auditoría, relaciones y enviados inmutables. Sin migraciones ni dependencias nuevas.
+
+Archivos corregidos, comportamiento y comandos: [ELIMINACION_DIRECTA.md](docs/migracion/ELIMINACION_DIRECTA.md).
+
+### Probado
+
+TypeScript y Vite correctos; **57/57** pruebas frontend. Compilación Release de `tdv2.slnx` sin errores ni advertencias. **23/23** casos de captura en PostgreSQL desechable, incluida la lectura concurrente durante adquisición, relaciones, ILDA, revocación, sesiones/pestañas, auditoría, envío e inmutabilidad.
+
+**27/27** comprobaciones Edge sobre React → ASP.NET → PostgreSQL, sin errores JavaScript. Incluyen cargar y eliminar sin enfocar campos en las cuatro tablas, Cancelar sin reservas ni cambios, otra pestaña y relaciones ocupadas, liberación que rehabilita automáticamente, contenido actualizado durante el diálogo/adquisición, competencia de dos sesiones (200/409, un PATCH y un incremento de versión) y recuperación explícita tras fallo SQL. La regresión también conserva autoguardado, prioridad, sesiones revocadas, tres intervalos SignalR y envío inmutable.
+
+Evidencia: [PostgreSQL](docs/migracion/evidencia-eliminacion-directa-postgresql.json), [navegador](docs/migracion/evidencia-eliminacion-directa-react.json), [captura del conflicto entre sesiones](docs/migracion/eliminacion-reserva-ajena.png). Corrida final `.artifacts/native-postgres-20261006-174139-1410854d`, código 0 y clúster detenido (sin `postmaster.pid`). El total agregado 24 incluye 23 casos de backend y una entrada para el grupo de navegador; no representa 24 pruebas de backend.
+
+Los intentos previos se conservan en `.artifacts`: `native-postgres-20261006-172736-869505a2` detectó la lectura que invalidaba la reserva; `native-postgres-20261006-173308-99b8ee8e` permitió corregir la expectativa del fallo SQL (503); `native-postgres-20261006-173943-b9769ef5` detectó que EF cerraba la conexión al confirmar. Se corrigieron antes de la corrida final y no se cuentan como ejecuciones aprobadas.
+
+### Pendiente y límites
+
+Publicación y aceptación institucional por el operador: el servidor publicado no se actualizó. No se modificaron bases institucionales, credenciales ni Herd; sin push ni despliegue. Las pruebas usan identidades y contenido sintéticos.
+
+## Distribución compacta de Procesos operativos — entrega anterior 2026-10-05
 
 ### Implementado
 

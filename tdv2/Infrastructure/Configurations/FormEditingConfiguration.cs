@@ -17,6 +17,10 @@ public sealed class FormBlockConfiguration : IEntityTypeConfiguration<FormBlock>
         b.Property(x => x.TabId).HasColumnName("pestana");
         b.Property(x => x.ContextRevision).HasColumnName("revision_contexto");
         b.Property(x => x.Holder).HasColumnName("titular").HasMaxLength(512);
+        b.Property(x => x.Participant).HasColumnName("participante").HasMaxLength(64);
+        b.Property(x => x.ParticipantUserId).HasColumnName("usuario_participante_id");
+        b.HasOne<User>().WithMany().HasForeignKey(x => x.ParticipantUserId).OnDelete(DeleteBehavior.SetNull);
+        b.Property(x => x.Color).HasColumnName("color");
         b.Property(x => x.ExpiresAt).HasColumnName("vence_en");
         b.HasIndex(x => new { x.UnitId, x.ExpiresAt });
         b.HasOne<UnitForm>().WithMany().HasForeignKey(x => x.UnitId).HasPrincipalKey(x => x.UnitId).OnDelete(DeleteBehavior.Restrict);

@@ -8,8 +8,7 @@ namespace Tdv2.Services;
 public sealed record MicrosoftLogin(ClaimsPrincipal Principal, string Email, string Name);
 
 /// <summary>Confirma Microsoft y Nexo antes de persistir una identidad institucional.</summary>
-public sealed class MicrosoftLoginService(MicrosoftClient microsoft, INexoProfiles nexo, PostgresIdentity identities,
-    GraphTokens tokens, ILogger<MicrosoftLoginService> logger)
+public sealed class MicrosoftLoginService(MicrosoftClient microsoft, INexoProfiles nexo, PostgresIdentity identities)
 {
     public string? VerifiedEmail { get; private set; }
 
@@ -27,22 +26,4 @@ public sealed class MicrosoftLoginService(MicrosoftClient microsoft, INexoProfil
         return new(principal, person.Email, profile.User.Name);
     }
 
-    public async Task<string?> Photo(long userId, CancellationToken ct)
-    {
-        try
-        {
-            var token = await tokens.Ensure(userId, ct);
-            if (token is null) return null;
-            var result = await microsoft.Photo(token, ct);
-            if (result.Unauthorized && await tokens.Ensure(userId, ct, token) is { } renewed)
-                result = await microsoft.Photo(renewed, ct);
-            return result.Photo;
-        }
-        catch (Exception error) when (error is not OperationCanceledException)
-        {
-            // La foto es opcional; fallar Graph no concede permisos ni invalida por sí solo la sesión.
-            logger.LogInformation("Foto Microsoft no disponible. Tipo: {Type}", error.GetType().Name);
-            return null;
-        }
-    }
 }

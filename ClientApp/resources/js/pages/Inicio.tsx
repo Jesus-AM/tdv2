@@ -5,7 +5,7 @@ import { PeopleOutlined, Refresh, DescriptionOutlined, DonutLarge, TaskAlt, Arro
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AreaDirectory from '@/Components/AreaDirectory';
 import PageHeading from '@/Components/PageHeading';
-import { displayUnitCode } from '@/lib/area-directory';
+import { displayUnitCode, type Participation } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
 export default function Inicio({
     formatos,
@@ -14,6 +14,8 @@ export default function Inicio({
     directorio = [],
     urAdministracion,
     puedeColaboradores,
+    sinFormatosMotivo,
+    participacion,
 }: {
     formatos: FormRow[];
     administrador: boolean;
@@ -21,7 +23,9 @@ export default function Inicio({
     directorio?: Unit[];
     urAdministracion: Unit | null;
     puedeColaboradores: boolean;
+    sinFormatosMotivo?: string | null;
     sincronizadoEn: string | null;
+    participacion?: Participation;
 }) {
     const { props } = usePage();
     const [refreshing, setRefreshing] = useState(false);
@@ -96,7 +100,7 @@ export default function Inicio({
                     </Typography>
                 )}
                 {consultaInstitucional || administrador ? (
-                    <AreaDirectory
+                    <AreaDirectory participation={participacion}
                         units={directorio}
                         forms={formatos}
                         ownRoot={urAdministracion?.id_ur || null}
@@ -141,7 +145,7 @@ export default function Inicio({
                         ))}
                         {!formatos.length && (
                             <div className="empty">
-                                No tienes formatos asignados. Consulta tu acceso con el responsable del área.
+                                {sinFormatosMotivo || 'No tienes formatos asignados. Consulta tu acceso con el responsable del área.'}
                             </div>
                         )}
                     </Box>

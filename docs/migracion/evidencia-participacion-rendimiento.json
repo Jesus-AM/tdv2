@@ -1,0 +1,60 @@
+{
+    "synthetic":  true,
+    "limits":  "Mediciones locales; no representan tiempos institucionales. La corrida antigua del navegador no completó escritura.",
+    "editor":  {
+                   "before":  {
+                                  "synthetic":  true,
+                                  "rows":  800,
+                                  "keystrokes":  150,
+                                  "averageMs":  4.871527333333335,
+                                  "p95Ms":  6.6761000000000195,
+                                  "notifications":  154
+                              },
+                   "after":  {
+                                 "synthetic":  true,
+                                 "rows":  800,
+                                 "keystrokes":  150,
+                                 "averageMs":  0.0754226666666644,
+                                 "p95Ms":  0.12959999999998217,
+                                 "notifications":  154
+                             }
+               },
+    "inicio":  {
+                   "before":  {
+                                  "synthetic":  true,
+                                  "units":  102,
+                                  "efCommands":  311,
+                                  "elapsedMs":  21428.3501
+                              },
+                   "after":  {
+                                 "synthetic":  true,
+                                 "units":  102,
+                                 "efCommands":  8,
+                                 "elapsedMs":  1024.4307
+                             },
+                   "isolatedRepeat":  {
+                                          "synthetic":  true,
+                                          "units":  102,
+                                          "efCommands":  8,
+                                          "elapsedMs":  2661.7506
+                                      }
+               },
+    "browserBefore":  {
+                          "phase":  "before",
+                          "synthetic":  true,
+                          "rows":  800,
+                          "checks":  [
+
+                                     ],
+                          "errors":  [
+
+                                     ],
+                          "mountMs":  10708.0591,
+                          "contextControls":  7445,
+                          "mountedPanels":  7,
+                          "inputToFrame":  {
+                                               "samples":  0,
+                                               "averageMs":  null
+                                           }
+                      }
+}

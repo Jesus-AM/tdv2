@@ -83,6 +83,8 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
     /// <remarks>El coordinador incluye resultado, metadatos y auditoría en esta misma transacción por fuente.</remarks>
     public async Task Apply(SyncSql db, CatalogSnapshot snapshot, CancellationToken ct)
     {
+        // Serializa la publicación con la confirmación de participación, sin bloquear lecturas o capturas entre sí.
+        await db.Scalar("SELECT version FROM configuracion_procesos WHERE id=1 FOR SHARE", ct);
         await CheckReduction(db, snapshot, ct);
         var sii = snapshot.Source == "sii"; var table = sii ? "unidades_responsables_poa" : "ilda_informacion_area";
         var fields = sii ? CatalogSource.SiiColumns : new[] { "id_origen", "ur2", "informacion_generada", "datos" };

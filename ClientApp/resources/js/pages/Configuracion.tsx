@@ -1,14 +1,17 @@
 import { Head, router } from '@/lib/navigation';
 import { Box, Button, Typography } from '@mui/material';
-import { SyncOutlined, ManageAccountsOutlined, ArrowForward } from '@mui/icons-material';
+import { SyncOutlined, ManageAccountsOutlined, ArrowForward, Tune } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
+import SettingsSection from '@/Components/SettingsSection';
 export default function Configuracion({
     secciones,
 }: {
-    secciones: { sincronizaciones: boolean; pruebas_acceso: boolean };
+    secciones: { configuracion_procesos?: boolean; sincronizaciones: boolean; pruebas_acceso: boolean };
 }) {
     const cards = [
+        { visible: secciones.configuracion_procesos, title: 'Configuración procesos', icon: <Tune />,
+            text: 'Configura la participación de áreas y revisa su impacto antes de guardar.', path: '/configuracion/procesos' },
         {
             visible: secciones.sincronizaciones,
             title: 'Sincronizaciones',
@@ -27,48 +30,19 @@ export default function Configuracion({
     return (
         <AuthenticatedLayout>
             <Head title="Configuración" />
-            <div className="page">
+            <div className="page settings-page">
                 <PageHeading
                     title="Configuración"
                     description="Administra los catálogos y las herramientas de acceso de TDV2."
                 />
-                <Box
-                    sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2,minmax(0,1fr))' }, gap: 3 }}
-                >
-                    {cards
-                        .filter((c) => c.visible)
-                        .map((c) => (
-                            <Box
-                                key={c.path}
-                                className="surface"
-                                sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}
-                            >
-                                <Box
-                                    sx={{
-                                        color: 'primary.main',
-                                        bgcolor: '#edf3fd',
-                                        p: 1.5,
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                    }}
-                                >
-                                    {c.icon}
-                                </Box>
-                                <Typography component="h2" variant="h2">
-                                    {c.title}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
-                                    {c.text}
-                                </Typography>
-                                <Button
-                                    variant="outlined"
-                                    endIcon={<ArrowForward />}
-                                    onClick={() => router.visit(c.path)}
-                                >
-                                    Abrir {c.title.toLocaleLowerCase('es')}
-                                </Button>
-                            </Box>
-                        ))}
+                <Box className="settings-grid">
+                    {cards.filter(c => c.visible).map(c => (
+                        <SettingsSection key={c.path} className="settings-access" title={c.title} icon={c.icon} description={c.text}>
+                            <Button endIcon={<ArrowForward />} onClick={() => router.visit(c.path)}>
+                                Abrir {c.title.toLocaleLowerCase('es')}
+                            </Button>
+                        </SettingsSection>
+                    ))}
                 </Box>
                 {!cards.some((c) => c.visible) && (
                     <Typography variant="body2" color="text.secondary">

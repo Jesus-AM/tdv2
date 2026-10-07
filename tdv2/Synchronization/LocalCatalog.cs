@@ -10,10 +10,57 @@ public sealed record UnitInventory(string State, IReadOnlyList<JsonObject> Rows,
 public interface ILocalCatalog
 {
     Task<UnitInventory> Inventory(Unit unit, CancellationToken ct);
+    async Task<IReadOnlyDictionary<string, UnitInventory>> Inventories(Unit[] units, CancellationToken ct)
+    {
+        var result = new Dictionary<string, UnitInventory>();
+        foreach (var unit in units) result[unit.Id] = await Inventory(unit, ct);
+        return result;
+    }
     Task<DateTimeOffset?> LastSii(CancellationToken ct);
 }
 public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger) : ILocalCatalog
 {
+    public sealed record InventoryRow(string Code, string Id, string? Information);
+    public async Task<IReadOnlyDictionary<string, UnitInventory>> Inventories(Unit[] units, CancellationToken ct)
+    {
+        var result = units.ToDictionary(u => u.Id, _ => new UnitInventory("pendiente", [], null));
+        if (units.Length == 0) return result;
+        try
+        {
+            if (!await db.CatalogSynchronizations.AnyAsync(c => c.Id == "ilda", ct)) return result;
+            var codes = units.Select(u => u.Code.Trim()).Where(c => c.Length > 0).Distinct(StringComparer.Ordinal).ToArray();
+            // Una consulta acotada por clave: conserva orden C y 200 filas por UR, sin cargar toda la réplica
+            // ni ejecutar consultas concurrentes sobre este DbContext. El registro 201 detecta excedentes.
+            var records = await db.Database.SqlQueryRaw<InventoryRow>("""
+                SELECT c.code AS "Code", r.id_origen AS "Id", r.informacion_generada AS "Information"
+                FROM unnest(@codes::text[]) AS c(code)
+                CROSS JOIN LATERAL (SELECT id_origen,informacion_generada FROM ilda_informacion_area
+                    WHERE presente AND ur2 COLLATE "C" = c.code COLLATE "C"
+                    ORDER BY id_origen COLLATE "C" LIMIT 201) r
+                """, new Npgsql.NpgsqlParameter("codes", codes)).ToListAsync(ct);
+            var grouped = records.ToLookup(r => r.Code, StringComparer.Ordinal);
+            foreach (var unit in units)
+            {
+                var code = unit.Code.Trim();
+                if (code.Length == 0) { result[unit.Id] = new("sin_clave", [], "Esta área no tiene una clave institucional para consultar ILDA."); continue; }
+                var source = grouped[code].ToArray(); var rows = new List<JsonObject>(); var invalid = false;
+                foreach (var record in source.Take(200))
+                {
+                    var text = record.Information?.Trim() ?? "";
+                    if (!Regex.IsMatch(record.Id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
+                    rows.Add(new() { ["id"] = "ilda:" + record.Id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = "", ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
+                }
+                result[unit.Id] = new("disponible", rows, source.Length > 200 ? "ILDA tiene más de 200 registros para esta área. Se muestran los primeros 200; solicita revisar el inventario."
+                    : invalid ? "Algunos registros de ILDA no tienen un trámite válido o exceden el tamaño permitido. Solicita revisar el inventario." : null);
+            }
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            logger.LogWarning("Inventario ILDA local no disponible. Tipo {Type}", error.GetType().Name);
+            foreach (var unit in units) result[unit.Id] = new("no_disponible", [], "No fue posible consultar la copia local de ILDA. Puedes continuar con la información guardada.");
+        }
+        return result;
+    }
     public async Task<DateTimeOffset?> LastSii(CancellationToken ct)
     {
         var date = await db.InstitutionalSynchronizations.MaxAsync(s => (DateTime?)s.CompletedAt, ct);

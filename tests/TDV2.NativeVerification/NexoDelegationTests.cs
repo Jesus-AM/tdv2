@@ -79,6 +79,18 @@ internal static class NexoDelegationTests
             await database.Sql("UPDATE sesiones_representacion SET expira_en=(clock_timestamp() AT TIME ZONE 'UTC')-interval '1 second'");
             await Denied(() => Call("SELECT * FROM nexo_a47_representar_conceder('jefe3@uacj.mx','A3','persona@uacj.mx',30,'A4','jefe2@uacj.mx',$1)", session));
         });
+        await Test("Nexo real: publicación distingue central/aplicacion y retira concesiones revocadas o suspendidas", async () =>
+        {
+            await database.Sql($"CREATE VIEW nexo_concesiones WITH (security_barrier=true) AS {contract["grants"]!.GetValue<string>()}; GRANT SELECT ON nexo_concesiones TO nexo_scope_client;");
+            await database.Sql("INSERT INTO concesiones_acceso(usuario_aplicacion_id,rol_id,id_ur,origen,otorgado_en) SELECT id,30,'A4','central',now() FROM usuario_aplicacion WHERE usuario_id=(SELECT id FROM usuarios WHERE email='persona@uacj.mx')");
+            Check(Convert.ToInt64(await Call("SELECT count(*) FROM nexo_concesiones WHERE email='persona@uacj.mx' AND rol_id=30 AND origen='central'")) == 1);
+            Check(Convert.ToInt64(await Call("SELECT count(*) FROM nexo_concesiones WHERE email='persona@uacj.mx' AND rol_id=30 AND origen='aplicacion'")) == 1);
+            await database.Sql("UPDATE usuario_aplicacion SET suspendido=true WHERE usuario_id=(SELECT id FROM usuarios WHERE email='persona@uacj.mx')");
+            Check(Convert.ToInt64(await Call("SELECT count(*) FROM nexo_concesiones WHERE email='persona@uacj.mx'")) == 0);
+            await database.Sql("UPDATE usuario_aplicacion SET suspendido=false; UPDATE concesiones_acceso SET revocado_en=now() WHERE origen='central'");
+            Check(Convert.ToInt64(await Call("SELECT count(*) FROM nexo_concesiones WHERE origen='central'")) == 0);
+            Check(Convert.ToInt64(await Call("SELECT count(*) FROM nexo_concesiones WHERE email='persona@uacj.mx' AND rol_id=30 AND origen='aplicacion'")) == 1);
+        });
         await Test("Nexo real: otra aplicación conserva roles y UR antes permitidos", async () =>
         {
             await database.Sql("UPDATE aplicaciones SET clave='otra'; UPDATE unidades_responsables_poa SET tipo_ur='0' WHERE id_ur='A3'");

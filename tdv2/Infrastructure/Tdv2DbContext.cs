@@ -14,6 +14,7 @@ public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbC
     public DbSet<FormBlock> FormBlocks => Set<FormBlock>();
     public DbSet<FormMutation> FormMutations => Set<FormMutation>();
     public DbSet<FormPosition> FormPositions => Set<FormPosition>();
+    public DbSet<ProcessSettings> ProcessSettings => Set<ProcessSettings>();
     public DbSet<UnitCollaboration> UnitCollaborations => Set<UnitCollaboration>();
     public DbSet<SessionTicket> SessionTickets => Set<SessionTicket>();
     public DbSet<OAuthAttempt> OAuthAttempts => Set<OAuthAttempt>();

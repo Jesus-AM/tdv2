@@ -1,7 +1,7 @@
 import type { Auth } from '../types/auth';
 export type NavigationModule = Auth['modules'][number];
 export function moduleGroups(modules: NavigationModule[], origin: string) {
-    const order: Record<string, number> = { procesos_operativos: 0, configuracion: 1, sincronizaciones: 2, pruebas_acceso: 3 };
+    const order: Record<string, number> = { procesos_operativos: 0, configuracion: 1, configuracion_procesos: 2, sincronizaciones: 3, pruebas_acceso: 4 };
     const seen = new Set<string>();
     const safe = modules.filter(module => {
         try {

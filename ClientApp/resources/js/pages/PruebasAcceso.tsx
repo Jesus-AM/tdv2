@@ -1,8 +1,9 @@
 import { Head, router } from '@/lib/navigation';
 import { Box, Button, Chip, Typography } from '@mui/material';
-import { ArrowBack, VisibilityOutlined, ManageAccountsOutlined } from '@mui/icons-material';
+import { VisibilityOutlined, ManageAccountsOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
+import SettingsSection from '@/Components/SettingsSection';
 export default function PruebasAcceso({
     puedeVistaPrueba,
     capacidad,
@@ -13,33 +14,22 @@ export default function PruebasAcceso({
     return (
         <AuthenticatedLayout>
             <Head title="Pruebas de acceso" />
-            <div className="page">
-                <Button startIcon={<ArrowBack />} sx={{ mb: 2 }} onClick={() => router.visit('/configuracion')}>
-                    Configuración
-                </Button>
+            <div className="page settings-page">
                 <PageHeading
+                    breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }]}
                     title="Pruebas de acceso"
                     description="Elige cómo quieres comprobar la experiencia y los permisos en la plataforma."
                 />
-                <Box
-                    sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2,minmax(0,1fr))' }, gap: 3 }}
-                >
-                    <Box className="surface stack" sx={{ alignContent: 'start' }}>
-                        <VisibilityOutlined color="primary" sx={{ fontSize: 30 }} />
-                        <Typography component="h2" variant="h2">
-                            Rol y área
-                        </Typography>
+                <Box className="settings-grid">
+                    <SettingsSection title="Rol y área" icon={<VisibilityOutlined />} className="settings-access"
+                        description="Simula un rol y una adscripción para revisar los formatos y el avance disponibles. No requiere seleccionar a una persona.">
                         <Box>
                             <Chip label="Solo lectura" variant="outlined" />
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                            Simula un rol y una adscripción para revisar los formatos y el avance que tendría
-                            disponibles. No requiere seleccionar a una persona.
-                        </Typography>
                         {!puedeVistaPrueba && (
                             <Typography variant="body2">Necesitas acceso a Procesos operativos en Nexo.</Typography>
                         )}
-                        <Box>
+                        <Box sx={{ mt: 2 }}>
                             <Button
                                 variant="contained"
                                 disabled={!puedeVistaPrueba}
@@ -48,19 +38,15 @@ export default function PruebasAcceso({
                                 Probar rol y área
                             </Button>
                         </Box>
-                    </Box>
-                    <Box className="surface stack" sx={{ alignContent: 'start' }}>
-                        <ManageAccountsOutlined color="primary" sx={{ fontSize: 30 }} />
-                        <Typography component="h2" variant="h2">
-                            Actuar como usuario
-                        </Typography>
+                    </SettingsSection>
+                    <SettingsSection title="Actuar como usuario" icon={<ManageAccountsOutlined />} className="settings-access"
+                        description="Utiliza el acceso real de una persona para comprobar sus funciones, incluida la administración delegada cuando Nexo permita cambios.">
                         <Box>
                             <Chip label="Autorización de Nexo" variant="outlined" />
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                            Utiliza el acceso real de una persona para comprobar sus funciones, incluida la
-                            administración delegada cuando Nexo permita cambios.
-                        </Typography>
+                        {capacidad.escritura && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            Puede habilitar escritura real con los permisos de la persona representada.
+                        </Typography>}
                         {!capacidad.permitido && (
                             <Typography variant="body2">
                                 {capacidad.no_disponible
@@ -68,7 +54,7 @@ export default function PruebasAcceso({
                                     : 'Habilita Actuar como usuario para tu cuenta o rol en Nexo.'}
                             </Typography>
                         )}
-                        <Box>
+                        <Box sx={{ mt: 2 }}>
                             <Button
                                 variant="outlined"
                                 disabled={!capacidad.permitido}
@@ -77,7 +63,7 @@ export default function PruebasAcceso({
                                 Seleccionar usuario
                             </Button>
                         </Box>
-                    </Box>
+                    </SettingsSection>
                 </Box>
             </div>
         </AuthenticatedLayout>

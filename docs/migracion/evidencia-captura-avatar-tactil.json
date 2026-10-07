@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "touchscreenEmulated": true,
+  "checks": [
+    {
+      "name": "primera escritura confirmada, inserción de texto, selección y Tab conservan foco y reserva",
+      "passed": true
+    },
+    {
+      "name": "foto protegida y avatar: caché entre filas, tooltip sin perder cursor ni liberar reserva",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

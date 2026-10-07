@@ -54,6 +54,7 @@ internal sealed class NativeDatabase
             GRANT USAGE ON SCHEMA public TO tdv2_native_app,tdv2_native_nexo;
             GRANT SELECT,INSERT,UPDATE,DELETE ON users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur TO tdv2_native_app;
             GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones TO tdv2_native_app;
+            GRANT SELECT,UPDATE ON configuracion_procesos TO tdv2_native_app;
             GRANT SELECT ON unidades_responsables_poa,colaboraciones_ur TO tdv2_native_app;
             GRANT UPDATE ON unidades_responsables_poa TO tdv2_native_app;
             GRANT INSERT ON unidades_responsables_poa TO tdv2_native_app;
@@ -69,6 +70,7 @@ internal sealed class NativeDatabase
     }
     internal async Task Reset()
     {
+        await Sql("UPDATE configuracion_procesos SET version=1,niveles=ARRAY[2,3],tipos_excluidos=ARRAY['N'],actualizado_en=NULL");
         await Sql("""
             TRUNCATE sincronizacion_configuracion,sincronizacion_ejecuciones,sincronizacion_catalogos,sincronizaciones_institucionales,ilda_informacion_area RESTART IDENTITY;
             INSERT INTO sincronizacion_configuracion(id) VALUES(1);

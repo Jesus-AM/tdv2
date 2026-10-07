@@ -19,17 +19,20 @@ import {
 import { Search, ExpandMore, AccountTreeOutlined, SubdirectoryArrowRight, Clear } from '@mui/icons-material';
 import { buildAreaDirectory, filterAreaTree, expandableAreaIds, displayUnitCode } from '@/lib/area-directory';
 import type { AreaFilter, AreaNode } from '@/lib/area-directory';
+import { defaultParticipation, type Participation } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
 export default function AreaDirectory({
     units,
     forms,
     readOnly,
     ownRoot,
+    participation = defaultParticipation,
 }: {
     units: Unit[];
     forms: FormRow[];
     readOnly: boolean;
     ownRoot: string | null;
+    participation?: Participation;
 }) {
     const [q, setQ] = useState(''),
         [scope, setScope] = useState<'todas' | 'mis'>('todas'),
@@ -40,15 +43,21 @@ export default function AreaDirectory({
     const visibleForms = useMemo(() => scope === 'mis' ? forms.filter((f) => f.propia ?? f.editable) : forms, [scope, forms]);
     const tree = useMemo(() => {
         const directory = units.length ? units : forms;
-        if (scope === 'todas') return buildAreaDirectory(directory, forms);
+        if (scope === 'todas') return buildAreaDirectory(directory, forms, participation);
         const own = new Set(visibleForms.map((f) => f.id_ur));
-        // Mantiene el nivel 2 como encabezado sin ofrecer su formato cuando sólo es contexto.
+        // Conserva todos los ascendientes participantes como contexto, también al habilitar más niveles.
+        const byId = new Map(directory.map(u => [u.id_ur, u]));
         for (const form of visibleForms) {
-            const parent = form.id_ur_principal ?? form.id_ur_pertenece;
-            if (parent) own.add(parent);
+            const seen = new Set([form.id_ur]);
+            let parent = form.id_ur_principal ?? form.id_ur_pertenece;
+            while (parent && !seen.has(parent)) {
+                seen.add(parent); own.add(parent);
+                const ancestor = byId.get(parent);
+                parent = ancestor?.id_ur_principal ?? ancestor?.id_ur_pertenece ?? null;
+            }
         }
-        return buildAreaDirectory(directory.filter((u) => own.has(u.id_ur)), visibleForms);
-    }, [units, forms, visibleForms, scope]);
+        return buildAreaDirectory(directory.filter((u) => own.has(u.id_ur)), visibleForms, participation);
+    }, [units, forms, visibleForms, scope, participation]);
     const roots = useMemo(() => filterAreaTree(tree.roots, q, filter), [tree, q, filter]),
         others = useMemo(() => filterAreaTree(tree.others, q, filter), [tree, q, filter]);
     useEffect(() => {
@@ -121,7 +130,7 @@ export default function AreaDirectory({
         nodes.map((n) => (
             <Box key={n.unit.id_ur}>
                 {formRow(n)}
-                {children(n.children)}
+                {!!n.children.length && <Box sx={{ pl: { xs: 1, sm: 2 }, borderLeft: '1px solid', borderColor: 'divider' }}>{children(n.children)}</Box>}
             </Box>
         ));
     return (

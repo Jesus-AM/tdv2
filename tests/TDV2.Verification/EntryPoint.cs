@@ -78,17 +78,93 @@ internal static class EntryPoint
             }
         });
         Test("Administrador combinado no rebasa rama", () => { var s = access.Scopes(Fixtures.Profile("administrador", "responsable_ur", "colaborador_dependencias")); Check(s["A"].Edit && s["A3"].Edit && !s["B"].Edit && !s["B3"].Edit); });
+        Test("Participación recalcula central sin trasladar delegaciones ni ampliar autoridad", () =>
+        {
+            var units = new UnitDirectory(Fixtures.Units, new(2, [2,4], ["N"]));
+            var local = Fixtures.Profile("colaborador_local");
+            var central = new Grant(900, local.Roles[0].Id, "A4", "central");
+            Check(new FormAccess(units).Scopes(local, grants: [central]).Keys.Single() == "A4");
+            var delegated = new Collaboration(local.User.Email, "0001", "A4", "A3", "local", 901, local.Roles[0].Id, "A");
+            Check(new FormAccess(units).Scopes(local, [delegated], [new(901, local.Roles[0].Id, "A4")]).Count == 0);
+            Check(new FormAccess(units).Scopes(local, [delegated with { Revoked = true }], [new(901, local.Roles[0].Id, "A4")]).Count == 0);
+            var dependent = Fixtures.Profile("colaborador_dependencias");
+            Check(new FormAccess(units).Scopes(dependent, grants: [central]).Keys.Order().SequenceEqual(new[] { "A", "A4" }));
+            var responsible = new FormAccess(units).Scopes(Fixtures.Profile("responsable_ur_supervisor"));
+            Check(responsible["A4"].Edit && !responsible["B"].Edit);
+            var root = new Unit("superior", "1", "Superior", 1, null, 2026);
+            var boundary = new UnitDirectory([root, ..Fixtures.Units.Select(u => u.Id == "A" ? u with { Parent = root.Id } : u)], new(3, [1], []));
+            Check(new FormAccess(boundary).Scopes(local, grants: [central]).Count == 0);
+        });
         Test("Administrador ambiguo conserva lectura sin edición", () => Check(access.Scopes(Fixtures.Profile("administrador") with { User = Fixtures.Profile().User with { Origin = "multiple", UnitId = null } }).Values.All(s => !s.Edit)));
         Test("Administrador sin empleado no edita", () => Check(access.Scopes(Fixtures.Profile("administrador") with { User = Fixtures.Profile().User with { Employee = null } }).Values.All(s => !s.Edit)));
         var collaborator = Fixtures.Profile("colaborador_local");
         var link = new Collaboration(collaborator.User.Email, "0001", "A4", "A3", "local", 50, 1, "A");
         var grant = new Grant(50, 1, "A4");
-        Test("Colaborador requiere vínculo y concesión central", () => { Check(access.Scopes(collaborator, [link], [grant])["A3"].Edit); Check(access.Scopes(collaborator, [link], []).Count == 0); });
+        Test("Colaborador delegado requiere vínculo y concesión de aplicación", () => { Check(access.Scopes(collaborator, [link], [grant])["A3"].Edit); Check(access.Scopes(collaborator, [link], []).Count == 0); });
         Test("Cambio de empleado invalida colaboración", () => Check(access.Scopes(collaborator with { User = collaborator.User with { Employee = "0002" } }, [link], [grant]).Count == 0));
         Test("Cambio de adscripción invalida colaboración", () => Check(access.Scopes(collaborator with { User = collaborator.User with { UnitId = "B3" } }, [link], [grant]).Count == 0));
         Test("Rol revocado invalida colaboración", () => Check(access.Scopes(collaborator with { Roles = [] }, [link], [grant]).Count == 0));
         Test("Revocación local deniega aunque concesión siga vigente", () => Check(access.Scopes(collaborator, [link with { Revoked = true }], [grant]).Count == 0));
-        Test("Concesión ajena o central no amplía alcance", () => { Check(access.Scopes(collaborator, [link], [grant with { Origin = "central" }]).Count == 0); Check(access.Scopes(collaborator, [link with { Scope = "B3" }], [grant]).Count == 0); });
+        Test("Concesión delegada ajena no amplía alcance", () => Check(access.Scopes(collaborator, [link with { Scope = "B3" }], [grant]).Count == 0));
+        Test("Central local sin vínculo usa adscripción vigente de niveles 2, 3 e inferiores", () =>
+        {
+            foreach (var (origin, form) in new[] { ("A", "A"), ("A3", "A3"), ("A4", "A3"), ("B3", "B3") })
+            {
+                var p = collaborator with { User = collaborator.User with { UnitId = origin } };
+                var scopes = access.Scopes(p, grants: [grant with { Origin = "central" }]);
+                Check(scopes.Count == 1 && scopes[form].Edit && !access.CanSubmit(p, directory.Get(form)!));
+            }
+        });
+        Test("Central dependencias sólo habilita su nivel 2 y rama nivel 3", () =>
+        {
+            var p = Fixtures.Profile("colaborador_dependencias");
+            var scopes = access.Scopes(p, grants: [grant with { Origin = "central" }]);
+            Check(scopes.Keys.Order().SequenceEqual(new[] { "A", "A3" }));
+            Check(scopes.Values.All(s => s.Edit && !access.CanSubmit(p, s.Unit)));
+            var nested = new UnitDirectory([.. Fixtures.Units, new("nested", "1001", "Otra principal", 2, "A", 2026),
+                new("nested3", "1002", "Otra dependiente", 3, "nested", 2026)]);
+            Check(new FormAccess(nested).Scopes(p, grants: [grant with { Origin = "central" }]).Keys.Order().SequenceEqual(new[] { "A", "A3" }));
+        });
+        Test("Rol efectivo sin origen central explícito no autoriza fallback", () =>
+        {
+            foreach (var origin in new[] { "aplicacion", "", "CENTRAL", "desconocido" })
+                Check(access.Scopes(collaborator, grants: [grant with { Origin = origin }]).Count == 0);
+            Check(access.Scopes(collaborator).Count == 0);
+            Check(access.Scopes(collaborator, grants: [grant with { Origin = "central", RoleId = 999 }]).Count == 0);
+        });
+        Test("Central exige identidad individual, empleado, adscripción y módulo", () =>
+        {
+            foreach (var user in new[] { collaborator.User with { AccountType = "generica" }, collaborator.User with { Employee = null },
+                collaborator.User with { UnitId = "110" }, collaborator.User with { Origin = "multiple" }, collaborator.User with { UnitId = "absent" } })
+                Check(access.Scopes(collaborator with { User = user }, grants: [grant with { Origin = "central" }]).Count == 0);
+            Check(access.Scopes(collaborator with { Modules = [] }, grants: [grant with { Origin = "central" }]).Count == 0);
+        });
+        Test("Central y delegada son independientes ante retiro local y central", () =>
+        {
+            var central = grant with { Id = 51, Origin = "central" };
+            Check(access.Scopes(collaborator, [link with { Revoked = true }], [grant, central])["A3"].Edit);
+            Check(access.Scopes(collaborator, [link with { Revoked = true }], [grant]).Count == 0);
+            Check(access.Scopes(collaborator, [link], [grant])["A3"].Edit);
+            Check(access.Scopes(collaborator, [link], [central])["A3"].Edit);
+        });
+        Test("Central conserva tipo N auxiliar, tipo 0 elegible y no usa prefijos", () =>
+        {
+            var units = new UnitDirectory([new("root", "099", "Principal", 2, null, 2026, Kind: "0"),
+                new("aux", "6000", "Auxiliar", 3, "root", 2026, Kind: " n "),
+                new("leaf", "01000", "Inferior", 4, "aux", 2026), new("other", "01001", "Ajena", 3, null, 2026)]);
+            var scopes = new FormAccess(units).Scopes(collaborator with { User = collaborator.User with { UnitId = "leaf" } }, grants: [grant with { Origin = "central" }]);
+            Check(scopes.Count == 1 && scopes["root"].Edit);
+            var broken = new UnitDirectory([new("x", "06000", "Sin jerarquía", 4, "missing", 2026)]);
+            Check(new FormAccess(broken).Scopes(collaborator with { User = collaborator.User with { UnitId = "x" } }, grants: [grant with { Origin = "central" }]).Count == 0);
+        });
+        Test("Central combinada no eleva administrador ni envío del supervisor ajeno", () =>
+        {
+            var admin = Fixtures.Profile("colaborador_dependencias", "administrador") with { User = collaborator.User with { Origin = "multiple" } };
+            Check(access.Scopes(admin, grants: [grant with { Origin = "central" }]).Values.All(s => !s.Edit));
+            var supervisor = Fixtures.Profile("colaborador_dependencias", "responsable_ur_supervisor") with { User = collaborator.User with { Employee = "9999" } };
+            var scopes = access.Scopes(supervisor, grants: [grant with { Origin = "central" }]);
+            Check(scopes["A3"].Edit && !scopes["B"].Edit && scopes.Values.All(s => !access.CanSubmit(supervisor, s.Unit)));
+        });
         Test("Módulos desconocidos y rutas manipuladas denegados", () => { Check(!ModuleAccess.Allows(Fixtures.Profile("administrador"), "arbitrario")); Check(!ModuleAccess.Allows(Fixtures.Profile("administrador") with { Modules = [new(1, "procesos_operativos", "x", "/otra")] }, "procesos_operativos")); });
         Test("Configuración exige administrador además de módulo", () => Check(!ModuleAccess.Allows(Fixtures.Profile("responsable_ur"), "configuracion")));
         Test("Módulo hijo exige padre y vínculo exactos", () => { var p = Fixtures.Profile("administrador"); Check(ModuleAccess.Allows(p, "sincronizaciones")); Check(!ModuleAccess.Allows(p with { Modules = p.Modules.Where(m => m.Key != "configuracion").ToArray() }, "sincronizaciones")); Check(!ModuleAccess.Allows(p with { Modules = p.Modules.Select(m => m.Key == "sincronizaciones" ? m with { Parent = 99 } : m).ToArray() }, "sincronizaciones")); });

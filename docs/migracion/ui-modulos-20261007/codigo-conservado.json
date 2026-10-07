@@ -1,0 +1,602 @@
+﻿{
+    "entries":  [
+                    {
+                        "path":  "tdv2\\Web\\RequestModelValidation.cs",
+                        "before":  "989777174A19C2D90AF015DF7C2969F4E215EDA38C196C8A0A30933E858EBC86",
+                        "after":  "989777174A19C2D90AF015DF7C2969F4E215EDA38C196C8A0A30933E858EBC86"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\RequestBoundaryMiddleware.cs",
+                        "before":  "29D038150FBF8C4C76CF7DACFC40C5E85B1AD4B5C530650D695AD22665188DA7",
+                        "after":  "29D038150FBF8C4C76CF7DACFC40C5E85B1AD4B5C530650D695AD22665188DA7"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\RequestAccess.cs",
+                        "before":  "D9262D55B7D872042EB0827EF0000C105D3769B9923316D9692649E36540FA98",
+                        "after":  "D9262D55B7D872042EB0827EF0000C105D3769B9923316D9692649E36540FA98"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\ReactShell.cs",
+                        "before":  "6311AA581467B68AEF47834AEBA1B96FAD5177BD5BF3BE9D3B2E3D19D582B7CC",
+                        "after":  "6311AA581467B68AEF47834AEBA1B96FAD5177BD5BF3BE9D3B2E3D19D582B7CC"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\PageResponse.cs",
+                        "before":  "5C1F098E6E0CAF85B40372E7F5FC11FDAF39039A0D57958D8766B3728DC7D1E5",
+                        "after":  "5C1F098E6E0CAF85B40372E7F5FC11FDAF39039A0D57958D8766B3728DC7D1E5"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\PagePaths.cs",
+                        "before":  "EEA0D1A3347FADE785E9F64FD7C81C051FEC514DBC251DACF31FCEF8F2799522",
+                        "after":  "EEA0D1A3347FADE785E9F64FD7C81C051FEC514DBC251DACF31FCEF8F2799522"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\Inputs.cs",
+                        "before":  "6EF839290518DAEBFEADFE0805FBFB241E9BD54DC09A0D58B3706D122772E131",
+                        "after":  "6EF839290518DAEBFEADFE0805FBFB241E9BD54DC09A0D58B3706D122772E131"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\ExceptionBoundaryMiddleware.cs",
+                        "before":  "3E99630F57E9B3CEF556B06EAF63A11DDE10194CF726E7E5AC2AE42FC52ACCD4",
+                        "after":  "3E99630F57E9B3CEF556B06EAF63A11DDE10194CF726E7E5AC2AE42FC52ACCD4"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\DomainProblemResponse.cs",
+                        "before":  "C97C3B778CDB6E0AB66F2266054C1F576005AEF27C87913AF73B94057E666792",
+                        "after":  "C97C3B778CDB6E0AB66F2266054C1F576005AEF27C87913AF73B94057E666792"
+                    },
+                    {
+                        "path":  "tdv2\\Web\\AccessBoundary.cs",
+                        "before":  "96879A8480FD6A0260D8FB32618E520A9A0DD925584A1ED6E6E7E14BAF52F5CD",
+                        "after":  "96879A8480FD6A0260D8FB32618E520A9A0DD925584A1ED6E6E7E14BAF52F5CD"
+                    },
+                    {
+                        "path":  "tdv2\\Program.cs",
+                        "before":  "4DF958560A2FBFCD5E99AADF5DE243847D11979AB91697F4BD5199392018A2AA",
+                        "after":  "4DF958560A2FBFCD5E99AADF5DE243847D11979AB91697F4BD5199392018A2AA"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\SyncSql.cs",
+                        "before":  "43F14914148DCC75E166D611D995F90ED074A086C686FB4511940782870EBCF3",
+                        "after":  "43F14914148DCC75E166D611D995F90ED074A086C686FB4511940782870EBCF3"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\SynchronizationQueries.cs",
+                        "before":  "4EBC6608B31A38EAA11DB61D9B070D963AC06CB4E4C7ECDEC4059883A8405B3E",
+                        "after":  "4EBC6608B31A38EAA11DB61D9B070D963AC06CB4E4C7ECDEC4059883A8405B3E"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\SyncCoordinator.cs",
+                        "before":  "21DE054CCE4F947DBEBD30C661FBC1C9519C2A5367D77E488CB4A43DA7AB225C",
+                        "after":  "21DE054CCE4F947DBEBD30C661FBC1C9519C2A5367D77E488CB4A43DA7AB225C"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\SyncContracts.cs",
+                        "before":  "9CD494FF7DF5F2C722CA13B4A5200247E945B1501C7D35114DC37589DC649B78",
+                        "after":  "9CD494FF7DF5F2C722CA13B4A5200247E945B1501C7D35114DC37589DC649B78"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\SyncCommands.cs",
+                        "before":  "AADB35268CD432EE62C708B9431BCC8886DC3267CA4E1DF4466B2E0731284EA0",
+                        "after":  "AADB35268CD432EE62C708B9431BCC8886DC3267CA4E1DF4466B2E0731284EA0"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\LocalCatalog.cs",
+                        "before":  "72B5B43245CF814C0C5E858EC43B11C2C095376AF2F535A7A16E677D08274281",
+                        "after":  "72B5B43245CF814C0C5E858EC43B11C2C095376AF2F535A7A16E677D08274281"
+                    },
+                    {
+                        "path":  "tdv2\\Synchronization\\CatalogPublication.cs",
+                        "before":  "6496170DA19C33A6DAC0514E94E71E5800D8202271925909BA38DAE76E7527BA",
+                        "after":  "6496170DA19C33A6DAC0514E94E71E5800D8202271925909BA38DAE76E7527BA"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\SessionTerminationService.cs",
+                        "before":  "EF74FF0FC0667C78E754E78C4297B9A92A370EB44458046B6D4939919E9E4141",
+                        "after":  "EF74FF0FC0667C78E754E78C4297B9A92A370EB44458046B6D4939919E9E4141"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\ProcessConfigurationService.cs",
+                        "before":  "F8EAB9811C519C6CD955C55A2A4E235DDB44497CDC14FE58CBE2DF03D4353976",
+                        "after":  "F8EAB9811C519C6CD955C55A2A4E235DDB44497CDC14FE58CBE2DF03D4353976"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\ParticipantPhotos.cs",
+                        "before":  "1AAD62C3B0C4189FC1C7D320A6F8E94926A462EA79EEAAF24DCB5488663283A7",
+                        "after":  "1AAD62C3B0C4189FC1C7D320A6F8E94926A462EA79EEAAF24DCB5488663283A7"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\PageData.cs",
+                        "before":  "B4D1FAECE87243B652843CC89035404EDC35E534DFA89F09FB922F7028000C38",
+                        "after":  "B4D1FAECE87243B652843CC89035404EDC35E534DFA89F09FB922F7028000C38"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\MicrosoftLoginService.cs",
+                        "before":  "BFB87DC8962452FE3A55BE87D5EF41DBFDFCED5713A8590A4F449176B55EA2B6",
+                        "after":  "BFB87DC8962452FE3A55BE87D5EF41DBFDFCED5713A8590A4F449176B55EA2B6"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\FormService.cs",
+                        "before":  "684019B24CD7D39F293F1416A8167CB6396ED5EB8831932D6EF6878F1D439974",
+                        "after":  "684019B24CD7D39F293F1416A8167CB6396ED5EB8831932D6EF6878F1D439974"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\FormNotifications.cs",
+                        "before":  "D911C0F3ADADB46BF0219C40C919F1E9F2642AADD185C66F1758F1C11BCEA9CE",
+                        "after":  "D911C0F3ADADB46BF0219C40C919F1E9F2642AADD185C66F1758F1C11BCEA9CE"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\FormEditingService.cs",
+                        "before":  "5B646162D64CB60CA733FB16EE3E5019CCA92C7942948B66B73CEB67E7C62FD2",
+                        "after":  "5B646162D64CB60CA733FB16EE3E5019CCA92C7942948B66B73CEB67E7C62FD2"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\CollaboratorService.cs",
+                        "before":  "88384E7D378669605AF76E411713A6DF6A281CA46249649FC2C97234902ADC43",
+                        "after":  "88384E7D378669605AF76E411713A6DF6A281CA46249649FC2C97234902ADC43"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\CollaboratorAccess.cs",
+                        "before":  "CE0FEC2CD44071C7045B18CA04F28C57D4DB5D4CEED34B918060DC3B06EA8365",
+                        "after":  "CE0FEC2CD44071C7045B18CA04F28C57D4DB5D4CEED34B918060DC3B06EA8365"
+                    },
+                    {
+                        "path":  "tdv2\\Services\\AccessToolService.cs",
+                        "before":  "4D6D88FC30FD6A5C151ABED3399CE8B76C188B7AFECB27AB087ED2C09686AA0F",
+                        "after":  "4D6D88FC30FD6A5C151ABED3399CE8B76C188B7AFECB27AB087ED2C09686AA0F"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\Tdv2DbContextModelSnapshot.cs",
+                        "before":  "2FCBA79C047CB97D372350ADAC4EF60A7546BF95016CCC9AD81EC0CAC7C49C47",
+                        "after":  "2FCBA79C047CB97D372350ADAC4EF60A7546BF95016CCC9AD81EC0CAC7C49C47"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261007161549_ParticipantPhotographs.Designer.cs",
+                        "before":  "BCA39AB8A162307E837D5C3C5EF3846CAF45766E752083F13AEA99C80F08608A",
+                        "after":  "BCA39AB8A162307E837D5C3C5EF3846CAF45766E752083F13AEA99C80F08608A"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261007161549_ParticipantPhotographs.cs",
+                        "before":  "90263D50B5BD62583A955D1035783CD528754C1D72C5507D64DA71E6DA77D8BB",
+                        "after":  "90263D50B5BD62583A955D1035783CD528754C1D72C5507D64DA71E6DA77D8BB"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261006233010_ProcessParticipationAndPresence.Designer.cs",
+                        "before":  "637D2BD44E6C3352051103B092F0F5C9777F2438DBA578926FC61608DF203DBB",
+                        "after":  "637D2BD44E6C3352051103B092F0F5C9777F2438DBA578926FC61608DF203DBB"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261006233010_ProcessParticipationAndPresence.cs",
+                        "before":  "FBA3A78320C24F35636F57E7C6784F0889808467999F70A1A053287251FEF3B5",
+                        "after":  "FBA3A78320C24F35636F57E7C6784F0889808467999F70A1A053287251FEF3B5"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261005135417_CollaborativeFormsAndSubmission.Designer.cs",
+                        "before":  "F2ADCA5A1D7950CD70B5DF105137C760EDBE9279B9D6279EF78257B284AFEB19",
+                        "after":  "F2ADCA5A1D7950CD70B5DF105137C760EDBE9279B9D6279EF78257B284AFEB19"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261005135417_CollaborativeFormsAndSubmission.cs",
+                        "before":  "9AD217663693AD83AE1CEA148F78EB506E0713678530B1A3F3D154AB03309E93",
+                        "after":  "9AD217663693AD83AE1CEA148F78EB506E0713678530B1A3F3D154AB03309E93"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261002051340_InitializePausedSynchronization.Designer.cs",
+                        "before":  "2F0F6BA18E31D9D47E51A724F4E6DA6623C7F732CA8FD5174A179DCB382B19E6",
+                        "after":  "2F0F6BA18E31D9D47E51A724F4E6DA6623C7F732CA8FD5174A179DCB382B19E6"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261002051340_InitializePausedSynchronization.cs",
+                        "before":  "0B5BA7474F6564FC517A54249A2F5E736FE3ED1D5D062411F9E46AC85478D71D",
+                        "after":  "0B5BA7474F6564FC517A54249A2F5E736FE3ED1D5D062411F9E46AC85478D71D"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261002051005_InitialTdv2.Designer.cs",
+                        "before":  "B7905C1C40E8882536ED5E0F42E384A73C9C301ED4E7B57AC59F045A04A9EA74",
+                        "after":  "B7905C1C40E8882536ED5E0F42E384A73C9C301ED4E7B57AC59F045A04A9EA74"
+                    },
+                    {
+                        "path":  "tdv2\\Migrations\\20261002051005_InitialTdv2.cs",
+                        "before":  "A65C1B02F7A7B3F9169CF077E8D44D840D357A946709D1AC8E25394C7D6675F5",
+                        "after":  "A65C1B02F7A7B3F9169CF077E8D44D840D357A946709D1AC8E25394C7D6675F5"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Participation.cs",
+                        "before":  "E2651206A885CDDAA91CBDFADC3DF067C4B900E613BA2F7CF39E299194800839",
+                        "after":  "E2651206A885CDDAA91CBDFADC3DF067C4B900E613BA2F7CF39E299194800839"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\FormSchema.cs",
+                        "before":  "51B9C87708895E522D1100EEE821E2EA9BE7D9AD399C34B19AB48ACB88A97ABE",
+                        "after":  "51B9C87708895E522D1100EEE821E2EA9BE7D9AD399C34B19AB48ACB88A97ABE"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\FormReview.cs",
+                        "before":  "20E97A10AEAB89269E01007B102C453FF9D6209FBD1D7A125386ACA46EA56A0C",
+                        "after":  "20E97A10AEAB89269E01007B102C453FF9D6209FBD1D7A125386ACA46EA56A0C"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\FormBlocks.cs",
+                        "before":  "0B7EF8F4C744A8FDE8F8404E05B9748D4B11C712CD818BDCCE3F6131CB0A746D",
+                        "after":  "0B7EF8F4C744A8FDE8F8404E05B9748D4B11C712CD818BDCCE3F6131CB0A746D"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\User.cs",
+                        "before":  "24ADF0826408E7F0D455353AECBFDCD7F92BFB648643D700695DE89984330AA5",
+                        "after":  "24ADF0826408E7F0D455353AECBFDCD7F92BFB648643D700695DE89984330AA5"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\UnitForm.cs",
+                        "before":  "2E9198C0A303963496C7EA6060C9C916E4C54E7A998D6DF23AEDD4C3CFED578D",
+                        "after":  "2E9198C0A303963496C7EA6060C9C916E4C54E7A998D6DF23AEDD4C3CFED578D"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\UnitCollaboration.cs",
+                        "before":  "BEB98B2FF24195A2534E3966C75E4EA886899BA5A07E4E034766804F46C7085E",
+                        "after":  "BEB98B2FF24195A2534E3966C75E4EA886899BA5A07E4E034766804F46C7085E"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\SynchronizationSettings.cs",
+                        "before":  "920ED1CB2EA0B41A10821AD83F2ED1E628F2B27A5EDE5B99F651740B5B08B814",
+                        "after":  "920ED1CB2EA0B41A10821AD83F2ED1E628F2B27A5EDE5B99F651740B5B08B814"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\SynchronizationRun.cs",
+                        "before":  "9D7B64694C846C45EF39FEF2766358FB7E5B61C0F30DB3DE230434A09C4BDD4D",
+                        "after":  "9D7B64694C846C45EF39FEF2766358FB7E5B61C0F30DB3DE230434A09C4BDD4D"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\SessionTicket.cs",
+                        "before":  "47D958B7F128180CF09574F27B5A9DFAE97604DED0B2776B1C9B97F56CB0BABA",
+                        "after":  "47D958B7F128180CF09574F27B5A9DFAE97604DED0B2776B1C9B97F56CB0BABA"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\ResponsibleUnit.cs",
+                        "before":  "548F90D450BA7B63B311333E2289ED9865AAB04D8F06789630F2D97FFF040402",
+                        "after":  "548F90D450BA7B63B311333E2289ED9865AAB04D8F06789630F2D97FFF040402"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\ProcessSettings.cs",
+                        "before":  "70B31AA2F05D79028B6EAB1851774496CF49EE152238489C814E7191370A83BE",
+                        "after":  "70B31AA2F05D79028B6EAB1851774496CF49EE152238489C814E7191370A83BE"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\OAuthAttempt.cs",
+                        "before":  "6BAA86356B24185F60E4C407348ADA7BE0679FF5A1E0E5ACDB48117545943F97",
+                        "after":  "6BAA86356B24185F60E4C407348ADA7BE0679FF5A1E0E5ACDB48117545943F97"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\InstitutionalSynchronization.cs",
+                        "before":  "5A7BEDB0CA5BE3904A11449CB743A84033479BC65B5483DCDD1ABF63CA9F5DA6",
+                        "after":  "5A7BEDB0CA5BE3904A11449CB743A84033479BC65B5483DCDD1ABF63CA9F5DA6"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\IldaAreaInformation.cs",
+                        "before":  "492218FA2F96F1022632B1A34366E488452C07D8A16B4AB45DB8D368F8165178",
+                        "after":  "492218FA2F96F1022632B1A34366E488452C07D8A16B4AB45DB8D368F8165178"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\GraphToken.cs",
+                        "before":  "F3C9987EE49681878A6120FE59F94846E665CB9839E58886DF33D6FE10D7D9DF",
+                        "after":  "F3C9987EE49681878A6120FE59F94846E665CB9839E58886DF33D6FE10D7D9DF"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\FormEditing.cs",
+                        "before":  "08DB3A50A0FD1D8D7F717C8A180657E273C3D55B60621845691E7514F31B3F7A",
+                        "after":  "08DB3A50A0FD1D8D7F717C8A180657E273C3D55B60621845691E7514F31B3F7A"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\CatalogSynchronization.cs",
+                        "before":  "D6AFF6389863E1B3907F8CEF314FD6400D7067728BBEF31042CBBF45EB89B596",
+                        "after":  "D6AFF6389863E1B3907F8CEF314FD6400D7067728BBEF31042CBBF45EB89B596"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\ActivityLog.cs",
+                        "before":  "820611FF7BE33F597723BB9AF5AC96548CB15FA41CB18FD153CE63676BC99AC1",
+                        "after":  "820611FF7BE33F597723BB9AF5AC96548CB15FA41CB18FD153CE63676BC99AC1"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Entities\\AccessContext.cs",
+                        "before":  "FF00ECED6AFC32D9AE215C5E020B79C3337CD62E9B1D8105605901D5BD2540EE",
+                        "after":  "FF00ECED6AFC32D9AE215C5E020B79C3337CD62E9B1D8105605901D5BD2540EE"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\DomainProblem.cs",
+                        "before":  "85118C5EEDF67DDE0399E015B00465498695187FB4C1F385876C48BC6D5E9EFF",
+                        "after":  "85118C5EEDF67DDE0399E015B00465498695187FB4C1F385876C48BC6D5E9EFF"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\AccessSelection.cs",
+                        "before":  "7C198E0033675CD3044FCA7ECE0CB08E652AB2707D4980D221CD1A489BD41954",
+                        "after":  "7C198E0033675CD3044FCA7ECE0CB08E652AB2707D4980D221CD1A489BD41954"
+                    },
+                    {
+                        "path":  "tdv2\\Domain\\Access.cs",
+                        "before":  "A5AE1D381CAADCB103D0FDD4DC55BD07F48BA33714A2BEB7A1DC266653F631C1",
+                        "after":  "A5AE1D381CAADCB103D0FDD4DC55BD07F48BA33714A2BEB7A1DC266653F631C1"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\ProtectedValues.cs",
+                        "before":  "2163ABB619400CC5DB01ECB50987E7D38E601DA8FF969BB12EBEFECAC5644D95",
+                        "after":  "2163ABB619400CC5DB01ECB50987E7D38E601DA8FF969BB12EBEFECAC5644D95"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\PostgresTicketStore.cs",
+                        "before":  "38FC7CC6DC8D7092C48E9CB060CA8F29ED5BB8BE147128E542B9E33B3690D4D2",
+                        "after":  "38FC7CC6DC8D7092C48E9CB060CA8F29ED5BB8BE147128E542B9E33B3690D4D2"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\PostgresOAuthAttempts.cs",
+                        "before":  "8ED8A7B3DF646F9F1355CC1BC65306FA02A4CD31200E51DB366600016F1BACB5",
+                        "after":  "8ED8A7B3DF646F9F1355CC1BC65306FA02A4CD31200E51DB366600016F1BACB5"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\PostgresIdentity.cs",
+                        "before":  "BCFEFB73E20F56F86A0BF702808A326C51030A699B161EE04E1241942CC6F4E8",
+                        "after":  "BCFEFB73E20F56F86A0BF702808A326C51030A699B161EE04E1241942CC6F4E8"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\OperationAudit.cs",
+                        "before":  "1E7DA47B62237C447776897B5EF1B4FCDEA28930BB705669E666AFEA6E7A4BFD",
+                        "after":  "1E7DA47B62237C447776897B5EF1B4FCDEA28930BB705669E666AFEA6E7A4BFD"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\InstitutionalAccessHandler.cs",
+                        "before":  "33BC53068464F11987F4B576FC076A0C2AC4F833F1FBC7ED19864A8609A454E5",
+                        "after":  "33BC53068464F11987F4B576FC076A0C2AC4F833F1FBC7ED19864A8609A454E5"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\GraphTokens.cs",
+                        "before":  "F0237A76243A73A23E4FB740AE48112C52DB776204AFF7791517942E1B0D6075",
+                        "after":  "F0237A76243A73A23E4FB740AE48112C52DB776204AFF7791517942E1B0D6075"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\AuthenticationAudit.cs",
+                        "before":  "03692AF45E128ACA85D708F83807CC91F06E00EB63B95FA9CE183D6FD3E3668D",
+                        "after":  "03692AF45E128ACA85D708F83807CC91F06E00EB63B95FA9CE183D6FD3E3668D"
+                    },
+                    {
+                        "path":  "tdv2\\Security\\AccessState.cs",
+                        "before":  "E5C8B88C2E624228DA818ACFAC5FE384E56E15227C986CCE9D7A7789CFEE86B7",
+                        "after":  "E5C8B88C2E624228DA818ACFAC5FE384E56E15227C986CCE9D7A7789CFEE86B7"
+                    },
+                    {
+                        "path":  "tdv2\\Integrations\\Nexo\\PostgresNexoProfiles.cs",
+                        "before":  "007FD5DAD914544947791DCDBEC4DACF25120C86F15998F76A3401A38E9A8AAE",
+                        "after":  "007FD5DAD914544947791DCDBEC4DACF25120C86F15998F76A3401A38E9A8AAE"
+                    },
+                    {
+                        "path":  "tdv2\\Integrations\\Nexo\\NexoOperations.cs",
+                        "before":  "3A14FAA915C164C7306AE5BB2EEE526F68EB0B85DDB44F9AE1CDACF7E47A54B0",
+                        "after":  "3A14FAA915C164C7306AE5BB2EEE526F68EB0B85DDB44F9AE1CDACF7E47A54B0"
+                    },
+                    {
+                        "path":  "tdv2\\Integrations\\Microsoft\\MicrosoftSettings.cs",
+                        "before":  "F25BED348A492F226D33593C0F5C8F73D1E53C83DE98D88B72D4201EA70407FD",
+                        "after":  "F25BED348A492F226D33593C0F5C8F73D1E53C83DE98D88B72D4201EA70407FD"
+                    },
+                    {
+                        "path":  "tdv2\\Integrations\\Microsoft\\MicrosoftClient.cs",
+                        "before":  "4E0352D7542EDCBCD446E90016407C8164FE5BD50A22C15CD5625E792277D3FD",
+                        "after":  "4E0352D7542EDCBCD446E90016407C8164FE5BD50A22C15CD5625E792277D3FD"
+                    },
+                    {
+                        "path":  "tdv2\\Integrations\\Catalogs\\CatalogSource.cs",
+                        "before":  "D2EA81868D02149308000AFE33FAFC01A93DFE6050F353B839CDC4A11FBA0B7A",
+                        "after":  "D2EA81868D02149308000AFE33FAFC01A93DFE6050F353B839CDC4A11FBA0B7A"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\SessionController.cs",
+                        "before":  "158F4672DAE5A3850624F82FBD984B564F6CC6D0B924E42C05AAF504B1DD4A35",
+                        "after":  "158F4672DAE5A3850624F82FBD984B564F6CC6D0B924E42C05AAF504B1DD4A35"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\ProcessConfigurationController.cs",
+                        "before":  "ED4CB52A04DC98D36F9A22C4231FB9696A6403CB73B72153BEDD864A930C7320",
+                        "after":  "ED4CB52A04DC98D36F9A22C4231FB9696A6403CB73B72153BEDD864A930C7320"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\ParticipantPhotosController.cs",
+                        "before":  "9A4F3BAC7E6155D63EAF3E2227ED1F2A049FA6FFBB78840C5AC8BBC3329F6C98",
+                        "after":  "9A4F3BAC7E6155D63EAF3E2227ED1F2A049FA6FFBB78840C5AC8BBC3329F6C98"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\HomeController.cs",
+                        "before":  "E328A1D41C60BB631F5AA01B4CF92D1DBA7263AA6D1FEFD5509F0072EBC47DD8",
+                        "after":  "E328A1D41C60BB631F5AA01B4CF92D1DBA7263AA6D1FEFD5509F0072EBC47DD8"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\FormsController.cs",
+                        "before":  "5E19A33E1424EAE0674E6064FF99E53D6CBB8D95101D825CFC82A0FD403E2FFC",
+                        "after":  "5E19A33E1424EAE0674E6064FF99E53D6CBB8D95101D825CFC82A0FD403E2FFC"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\FormHub.cs",
+                        "before":  "CBA17BAC0BDC9BB6FD7AB5F4F832AF02004D97DFB1FB0E106416C0EF9F5F9C4B",
+                        "after":  "CBA17BAC0BDC9BB6FD7AB5F4F832AF02004D97DFB1FB0E106416C0EF9F5F9C4B"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\ConfigurationController.cs",
+                        "before":  "EAD114547FC0505B71971F38F0BAF329ACF83EECDF44F5064ADEA44D3B226393",
+                        "after":  "EAD114547FC0505B71971F38F0BAF329ACF83EECDF44F5064ADEA44D3B226393"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\CollaboratorsController.cs",
+                        "before":  "28A423105BE33ADB1632971BCB47404B14EB81CFB98D3C5993703196C8B1BC8C",
+                        "after":  "28A423105BE33ADB1632971BCB47404B14EB81CFB98D3C5993703196C8B1BC8C"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\AuthenticationController.cs",
+                        "before":  "582795FA6B5A0CB4050B2B1DB84A7C11060CA9BC3B2F9EDD517D7B650ABC48B7",
+                        "after":  "582795FA6B5A0CB4050B2B1DB84A7C11060CA9BC3B2F9EDD517D7B650ABC48B7"
+                    },
+                    {
+                        "path":  "tdv2\\Controllers\\AccessToolsController.cs",
+                        "before":  "4012C578CF9043A21487E1166952C879C20E2C4227A32860D2829B2FE1F4F3CE",
+                        "after":  "4012C578CF9043A21487E1166952C879C20E2C4227A32860D2829B2FE1F4F3CE"
+                    },
+                    {
+                        "path":  "tdv2\\Hosting\\ServiceRegistration.cs",
+                        "before":  "42ABFFB9BB29C550FCD75319A46A0F24E69C20C6F651F4ED237BF1A3ABC0EB84",
+                        "after":  "42ABFFB9BB29C550FCD75319A46A0F24E69C20C6F651F4ED237BF1A3ABC0EB84"
+                    },
+                    {
+                        "path":  "tdv2\\Hosting\\ApplicationPipeline.cs",
+                        "before":  "2FE1A6CA31093C63F5DF875C3EFE9C77315C55ECD6638989AB9552649889B030",
+                        "after":  "2FE1A6CA31093C63F5DF875C3EFE9C77315C55ECD6638989AB9552649889B030"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Tdv2DbContextFactory.cs",
+                        "before":  "86D3E5BA57157DC78A0D83173D22E332E0C39DC023FAE49A841DF3691748A2E7",
+                        "after":  "86D3E5BA57157DC78A0D83173D22E332E0C39DC023FAE49A841DF3691748A2E7"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Tdv2DbContext.cs",
+                        "before":  "E2FA8D2ACFF7075032CAE193A724F9D45FDADDF5243B1FC6041B05267F5D33B0",
+                        "after":  "E2FA8D2ACFF7075032CAE193A724F9D45FDADDF5243B1FC6041B05267F5D33B0"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Tdv2DatabaseOptions.cs",
+                        "before":  "DB235F50C2D65208C94E0CF1D67478AC2369451D07165D0A0DBFB9F4344861B6",
+                        "after":  "DB235F50C2D65208C94E0CF1D67478AC2369451D07165D0A0DBFB9F4344861B6"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\PostgresFormStore.cs",
+                        "before":  "669582372B9DBA3F19255FCEB776177967858807A8126F252FFDC87793120882",
+                        "after":  "669582372B9DBA3F19255FCEB776177967858807A8126F252FFDC87793120882"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\PostgresCollaborationStore.cs",
+                        "before":  "78F54AD6CB8186CC763002E923BE01FC2C241EFED66200C505D5B839E2CA459E",
+                        "after":  "78F54AD6CB8186CC763002E923BE01FC2C241EFED66200C505D5B839E2CA459E"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\DatabaseConnections.cs",
+                        "before":  "882A73972E15F1B1CC259F245BE445297D36FB29A645C3BE38F594DA6C918A15",
+                        "after":  "882A73972E15F1B1CC259F245BE445297D36FB29A645C3BE38F594DA6C918A15"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Contracts.cs",
+                        "before":  "A6A2DB49E3DF2DDD8C3C0C76EDB940CEA584F036B45A7B0326F18959298EE2F6",
+                        "after":  "A6A2DB49E3DF2DDD8C3C0C76EDB940CEA584F036B45A7B0326F18959298EE2F6"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\UserConfiguration.cs",
+                        "before":  "B7C9BC9E44BE795E339084343EC8A796B1955DD0E151BF7D884C6F0910DDF39D",
+                        "after":  "B7C9BC9E44BE795E339084343EC8A796B1955DD0E151BF7D884C6F0910DDF39D"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\UnitFormConfiguration.cs",
+                        "before":  "25C8998F5D6AAFF8E779E99D8507F2B56A09E510AE8C8FC3BBEA562F88D3EE4B",
+                        "after":  "25C8998F5D6AAFF8E779E99D8507F2B56A09E510AE8C8FC3BBEA562F88D3EE4B"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\UnitCollaborationConfiguration.cs",
+                        "before":  "B6878F11D0A765D6B4E9454BBE2A8A844B37CB4B6503F779817EE3F356A04EA0",
+                        "after":  "B6878F11D0A765D6B4E9454BBE2A8A844B37CB4B6503F779817EE3F356A04EA0"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\SynchronizationSettingsConfiguration.cs",
+                        "before":  "D2A94717AD8A640AADFF7B859CD6BAF089CCBB1AE086301CF412C82157059587",
+                        "after":  "D2A94717AD8A640AADFF7B859CD6BAF089CCBB1AE086301CF412C82157059587"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\SynchronizationRunConfiguration.cs",
+                        "before":  "10E3C3CEF97C020361E48F365EEA19BE5B17B39CA7892E4A4DB49B4FBCF1A3A4",
+                        "after":  "10E3C3CEF97C020361E48F365EEA19BE5B17B39CA7892E4A4DB49B4FBCF1A3A4"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\SessionTicketConfiguration.cs",
+                        "before":  "D6AD0A9684D27E218C8C17249BDDA028713A9D069B2A10A8584002E7C011BBC2",
+                        "after":  "D6AD0A9684D27E218C8C17249BDDA028713A9D069B2A10A8584002E7C011BBC2"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\ResponsibleUnitConfiguration.cs",
+                        "before":  "C3AE3BA032F56B82CD4012B376BB753AA5B9C8A5037D99C54BF72D3CFADEB7A5",
+                        "after":  "C3AE3BA032F56B82CD4012B376BB753AA5B9C8A5037D99C54BF72D3CFADEB7A5"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\ProcessSettingsConfiguration.cs",
+                        "before":  "DC2937552A9BC1D178A26C13BA28C7018CCD079AF1B4EA08C52E070B2C80038C",
+                        "after":  "DC2937552A9BC1D178A26C13BA28C7018CCD079AF1B4EA08C52E070B2C80038C"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\OAuthAttemptConfiguration.cs",
+                        "before":  "98AF593674B770BB22DEC1673D5D2EA3B1A285365A189BF1397F0DAF9D486E19",
+                        "after":  "98AF593674B770BB22DEC1673D5D2EA3B1A285365A189BF1397F0DAF9D486E19"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\InstitutionalSynchronizationConfiguration.cs",
+                        "before":  "2E8F878AB4A2FD51C9FFE247315FB97E9A8B732871652C9D3F380EE07049C349",
+                        "after":  "2E8F878AB4A2FD51C9FFE247315FB97E9A8B732871652C9D3F380EE07049C349"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\IldaAreaInformationConfiguration.cs",
+                        "before":  "0C3D3ABEC26D2E0B613FC9BA4186FA87D02300FD8EAE8F97EF149F6346A406BC",
+                        "after":  "0C3D3ABEC26D2E0B613FC9BA4186FA87D02300FD8EAE8F97EF149F6346A406BC"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\GraphTokenConfiguration.cs",
+                        "before":  "080E7545867D3B1EB1AD82B4C827408BB3FDA9F36C4E772CCCD383C7F876033B",
+                        "after":  "080E7545867D3B1EB1AD82B4C827408BB3FDA9F36C4E772CCCD383C7F876033B"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\FormEditingConfiguration.cs",
+                        "before":  "79B1C103F867EC4C1696522381BB25ACEB75A58D01120F7A80ABCDC0B7A63387",
+                        "after":  "79B1C103F867EC4C1696522381BB25ACEB75A58D01120F7A80ABCDC0B7A63387"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\CatalogSynchronizationConfiguration.cs",
+                        "before":  "9D4E6D7D1D6A0E59E429A28EC7B73E2C56BBEFBC6049538229D74FFEC4A79C15",
+                        "after":  "9D4E6D7D1D6A0E59E429A28EC7B73E2C56BBEFBC6049538229D74FFEC4A79C15"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\ActivityLogConfiguration.cs",
+                        "before":  "6E03BAA37C293EEBD74892FE787E32E484A2B93C9A179B2C7CC5B06F95277BE9",
+                        "after":  "6E03BAA37C293EEBD74892FE787E32E484A2B93C9A179B2C7CC5B06F95277BE9"
+                    },
+                    {
+                        "path":  "tdv2\\Infrastructure\\Configurations\\AccessContextConfiguration.cs",
+                        "before":  "3468F6562B558BEE192E85A531802C2A83449FA14585AE5AC5D5B05D4B2FB344",
+                        "after":  "3468F6562B558BEE192E85A531802C2A83449FA14585AE5AC5D5B05D4B2FB344"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/pages/FormatoUR.tsx",
+                        "before":  "E59F34B23927F7F9F15E3F8964811D4480AEEA7A9D66DDC4E797345AC4C00372",
+                        "after":  "E59F34B23927F7F9F15E3F8964811D4480AEEA7A9D66DDC4E797345AC4C00372"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/lib/block-editor.ts",
+                        "before":  "52741D3D0062081E6C495DBDCD485B393DDB1ADCF32729ED835D4EF20ED46824",
+                        "after":  "52741D3D0062081E6C495DBDCD485B393DDB1ADCF32729ED835D4EF20ED46824"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/lib/form-blocks.ts",
+                        "before":  "62DC2FB8A1D4F12D419E1DCF2CD0460AFE88E8390D74B2BFE78635594B05F111",
+                        "after":  "62DC2FB8A1D4F12D419E1DCF2CD0460AFE88E8390D74B2BFE78635594B05F111"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/lib/form-deletion.ts",
+                        "before":  "9E06B21EF8ECAA9E13BC1196911E8AA66ABC74B0AB17CFCC8A9617AE0318A08D",
+                        "after":  "9E06B21EF8ECAA9E13BC1196911E8AA66ABC74B0AB17CFCC8A9617AE0318A08D"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/Components/BlockEditingStatus.tsx",
+                        "before":  "A29498A43F6A0454349107853D1C1CEB4BE28D03DF0C5F4F8874576C934DC6C1",
+                        "after":  "A29498A43F6A0454349107853D1C1CEB4BE28D03DF0C5F4F8874576C934DC6C1"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/Components/ParticipantAvatar.tsx",
+                        "before":  "690B032A3C7F4449490C5AB8B84F88EE8B27DFDD09A250FFD78C514079AEBD50",
+                        "after":  "690B032A3C7F4449490C5AB8B84F88EE8B27DFDD09A250FFD78C514079AEBD50"
+                    },
+                    {
+                        "path":  "ClientApp/resources/js/lib/module-navigation.ts",
+                        "before":  "4BA6221F570B7B8C2D0257A40BF492791C5E51047D79EBE92902C3E542A6688D",
+                        "after":  "4BA6221F570B7B8C2D0257A40BF492791C5E51047D79EBE92902C3E542A6688D"
+                    }
+                ],
+    "checkedAt":  "2026-10-07T17:52:20.9191834+00:00",
+    "unchanged":  119,
+    "files":  119
+}

@@ -2,13 +2,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
-async function module(name) {
+function moduleUrl(name) {
     const source = readFileSync(new URL(`../../resources/js/lib/${name}.ts`, import.meta.url), 'utf8');
     const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
-    return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+    const resolved = name === 'form-deletion' ? js.replaceAll("'./form-blocks'", `'${moduleUrl('form-blocks')}'`) : js;
+    return `data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`;
 }
-const { removeRow, removalBlocks } = await module('form-deletion');
-const { moduleGroups, activeModule } = await module('module-navigation');
+const { removeRow, removalBlocks, removalSnapshot } = await import(moduleUrl('form-deletion'));
+const { moduleGroups, activeModule } = await import(moduleUrl('module-navigation'));
+
+test('confirmación por ID detecta versiones, nuevas relaciones y contenido vinculado sin invalidarse por otras filas', () => {
+    const data = { encabezado: {}, identificacion: [{ id: 'p', codigo: 'PO-01' }], sistemas: [{ id: 's', proceso: 'PO-01', sistema: 'Sistema' }],
+        datos: [], acuerdos: [], preguntas: [], medios: {}, medioOtro: '', evaluaciones: { 'PO-01': [{ valor: '3' }] } };
+    const target = { section: 'identificacion', id: 'p' }, versions = { 'sistemas:s': { version: 1 } };
+    const snapshot = removalSnapshot(data, target, versions);
+    data.identificacion.unshift({ id: 'other', codigo: 'PO-02' });
+    assert.equal(removalSnapshot(data, target, versions), snapshot);
+    assert.notEqual(removalSnapshot(data, target, { 'sistemas:s': { version: 2 } }), snapshot);
+    data.sistemas[0].sistema = 'Actualizado';
+    assert.notEqual(removalSnapshot(data, target, versions), snapshot);
+    data.sistemas[0].sistema = 'Sistema'; data.datos.push({ id: 'new-link', proceso: 'PO-01' });
+    assert.notEqual(removalSnapshot(data, target, versions), snapshot);
+});
 test('elimina por ID aunque otra persona inserte una fila; limpia relaciones sólo del proceso elegido', () => {
     const data = { identificacion: [{ id: 'new', codigo: 'PO-03' }, { id: 'keep', codigo: 'PO-01' }, { id: 'target', codigo: 'PO-02' }],
         sistemas: [{ id: 's', proceso: 'PO-02' }], datos: [{ id: 'd', proceso: 'PO-01' }], evaluaciones: { 'PO-02': [1], 'PO-01': [2] } };

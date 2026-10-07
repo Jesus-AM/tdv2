@@ -1,4 +1,4 @@
-# Reservas de edición y SignalR — 2026-10-05
+# Reservas de edición y SignalR — 2026-10-06
 
 ## Implementado
 
@@ -7,6 +7,8 @@
 Cada entrega mantiene la comprobación de ticket, Nexo, contexto, revisión y alcance. Cancelar el stream no guarda, elimina ni libera propuestas: SignalR informa; PostgreSQL conserva la autoridad de escritura.
 
 La reserva se solicita automáticamente al entrar en un campo del registro, también con teclado. No hay botones para iniciar o terminar la edición ni confirmación para reservar. `BlockEditor` exige una reserva confirmada antes de aceptar cambios, incluidas altas y eliminaciones con relaciones. Adquirir entrega versión **y contenido vigente**. Durante la espera los campos son de consulta y aparece «Preparando edición…». Casillas, radios y Select solicitan la reserva desde el propio control; el menú sólo abre después de confirmarla. Una intención pendiente no se aplica si se abandona el registro. Una disputa normal por la reserva se muestra en el registro; no genera un conflicto global. SignalR por sí solo no concede la primera escritura.
+
+**Eliminar no exige entrar antes a un campo.** El icono rojo permite abrir la confirmación al cargar un registro eliminable; abrir, enfocar el icono o cancelar no adquiere reserva. `engine.prepare(keys)` reserva el registro y sus relaciones sólo al confirmar. Se revalidan contenido y versiones por ID; una confirmación antigua se bloquea y pide cancelar/revisar. Titular ajeno u otra pestaña deshabilitan la acción con su nombre/motivo, y liberar la rehabilita por SignalR. El diálogo espera el guardado y después libera; un fallo conserva una recuperación contextual identificada por registro. [Detalle y evidencia](ELIMINACION_DIRECTA.md).
 
 Las filas son independientes; preguntas y criterios conservan sus bloques individuales. `BlockEditingStatus` muestra una sola indicación por registro:
 

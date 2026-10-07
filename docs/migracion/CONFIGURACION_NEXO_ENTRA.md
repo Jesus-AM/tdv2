@@ -2,17 +2,19 @@
 
 ## Aplicación y módulos
 
-Mantener **tdv2**, su ID y conexión/base existentes, en **nivel 2: módulos por rol**. No recrear recursos ni registrar nuevas claves de módulos/colaboradores.
+Mantener **tdv2**, su ID y conexión/base existentes, en **nivel 2: módulos por rol**. No recrear recursos ni duplicar claves. La ampliación autorizada es `configuracion_procesos`; no cambia las claves de colaboradores.
 
 | Rol | Módulos |
 |---|---|
-| `administrador` | `procesos_operativos`, `configuracion`, `sincronizaciones`, `pruebas_acceso` |
+| `administrador` | `procesos_operativos`, `configuracion`, `configuracion_procesos`, `sincronizaciones`, `pruebas_acceso` |
 | `responsable_ur` | `procesos_operativos` |
 | `responsable_ur_supervisor` — Responsable de UR con supervisión | `procesos_operativos` |
 | `colaborador_local` | `procesos_operativos` |
 | `colaborador_dependencias` | `procesos_operativos` |
 
 Rutas existentes: `/inicio`, `/configuracion`, `/configuracion/sincronizaciones`, `/configuracion/pruebas-acceso`. Sincronizaciones y Pruebas de acceso son hijos de Configuración. Conservar los roles de consulta que tengan usuarios.
+
+**Nuevo submódulo:** clave `configuracion_procesos`, nombre **Configuración procesos**, ruta `/configuracion/procesos`, icono `mdi-tune`, padre **ID real de `configuracion`**, rol **administrador**. Publicar la relación y ambos permisos mediante las herramientas existentes de Nexo. TDV2 rechaza padre/ruta incorrectos, falta de cualquiera de los módulos y contextos de representación o vista de prueba. No hay cambios en Entra. [Migración, participación y conservación de alcances](PARTICIPACION_RENDIMIENTO_PRESENCIA.md).
 
 Supervisor funciona solo: responsabilidad por empleado textual/datos institucionales, captura en su UR y dependientes cuando es responsable de nivel 2; nivel 3 captura su formato. Añade consulta institucional, sin edición/envío/delegación ajenos ni Configuración, Sincronizaciones, Pruebas de acceso o representación. Administrador conserva su límite adicional de rama de nivel 2 aunque combine roles.
 
@@ -26,13 +28,37 @@ La fuente confirma que `roles.aplicacion_id` es local a la aplicación y `roles.
 4. El genérico `supervisor` conserva sus asignaciones y significado anterior; no se eleva automáticamente por su nombre. Tras comprobar su función, el operador puede conceder el rol canónico a las mismas personas/UR mediante administración central, verificar el acceso y planear la retirada posterior del anterior con las herramientas de Nexo. Este cambio no elimina roles de consulta ni concesiones previas.
 5. La UI actual de Nexo adjunta roles de catálogo y no ofrece un renombrado independiente seguro. Si es obligatorio conservar exactamente el ID al cambiar clave/catálogo, preparar una transición específica revisando relaciones; no ejecutar un UPDATE global ni retirar primero el rol antiguo.
 
+## Colaboradores: dos vías independientes (2026-10-06)
+
+La fuente vigente de Nexo distingue el origen en **`public.nexo_concesiones.origen`**: `central` se produce en `AccessAssignments::grant` al asignar desde la administración central; `aplicacion` procede de la administración delegada. `nexo_usuario_rol` sólo publica roles efectivos y **no prueba** que sean centrales. TDV2 exige una concesión central explícita cuyo `rol_id` coincida con el rol efectivo de la persona; no interpreta otros valores, ni la ausencia de concesiones, como asignación central.
+
+| Vía | Configurar en Nexo | Alcance en TDV2 |
+|---|---|---|
+| Central, `colaborador_local` | En la administración central de la aplicación TDV2, asignar ese rol a la cuenta individual. Autorizar `procesos_operativos` para el rol y comprobar empleado/adscripción vigentes. | Primer formato participante desde su adscripción hacia sus ascendientes por `ID_UR`/padres, sin sobrepasar su rama de nivel 2. Inicialmente participan niveles 2 y 3. |
+| Central, `colaborador_dependencias` | Igual, con el rol vigente de dependencias. | Formatos participantes de su rama institucional de nivel 2; inicialmente su raíz y dependientes de nivel 3. La raíz estructural no necesita participar para resolver la rama. |
+| Delegada, ambos roles | Mantener roles delegantes/asignables y publicación de funciones descritos abajo; conceder desde Colaboradores en TDV2. | Vínculo local no revocado + concesión `aplicacion` coincidente. Conserva límites de encargado nivel 2/3 y validación de empleado, adscripción, alcance y otorgante. |
+
+La concesión central no necesita otra alta en Colaboradores de TDV2. No se crean vínculos al entrar. `id_ur_acceso` conserva la UR del otorgamiento; para esta vía no sustituye la **adscripción personal vigente** de `nexo_usuarios.ID_UR`. Un traslado recalcula el alcance en la siguiente solicitud, si Nexo mantiene el acceso efectivo; una suspensión institucional lo bloquea. La clave visible `CVE_UR` (con o sin ceros) no interviene en la autorización. La participación vigente decide niveles/tipos, inicialmente 2/3 y exclusión N, permitiendo tipo 0. Los nodos excluidos se conservan para resolver jerarquías; habilitar otro nivel no concede roles ni facultades sobre superiores.
+
+Retirar la concesión central retira únicamente su aportación. Una delegada revocada localmente sigue bloqueada aun si el retiro en Nexo está pendiente; no se transforma en central por conservar el rol efectivo. Si hay una concesión central independiente, conserva sólo su propio alcance. Las asignaciones históricas que aparezcan únicamente en `nexo_usuario_rol`, sin procedencia explícita, **no obtienen acceso directo**: el operador debe revisar y regularizar el otorgamiento desde la administración central, sin inventar origen ni crear enlaces locales ficticios.
+
+Estos roles solos no habilitan envío definitivo, administración de colaboradores, Configuración ni representación. Se conserva la composición con responsabilidades autorizadas; administrador mantiene su límite de rama aunque combine roles. Actuar como usuario usa concesiones y adscripción del representado; la vista de prueba continúa en consulta.
+
+### Publicación necesaria
+
+La fuente local revisada ya expone `concesion_id`, `rol_id`, `id_ur_acceso`, `origen` y `email` en `PostgresPublication.php` → `nexo_concesiones`, filtrando cuenta/aplicación/rol vigentes, suspensión y revocación. **No se necesita un contrato nuevo ni cambios de código en Nexo.** TDV2 usa también `nexo_usuarios`, `nexo_usuario_rol`, `nexo_modulos` y `nexo_modulo_rol`; no consulta tablas privadas.
+
+El operador debe verificar que la conexión existente publique esas vistas y tenga permiso de lectura. Si su publicación está desactualizada, aplicar la publicación existente desde Nexo, sin recrear recursos. El ajuste mínimo para una publicación antigua que omita el origen es actualizar la vista de concesiones al contrato vigente; no añadir un origen supuesto a todos los roles. TDV2 deniega si no puede leer/comprobar las concesiones. No se inspeccionó ni actualizó la publicación institucional durante este trabajo.
+
+Pruebas, límites y comandos: [COLABORADORES_CENTRALES.md](COLABORADORES_CENTRALES.md).
+
 ## Administración delegada
 
 En configuración de delegación de TDV2:
 
 - **Delegantes:** `responsable_ur`, `responsable_ur_supervisor`, `administrador`; conservar temporalmente `responsable_ur_institucional` mientras tenga asignaciones.
 - **Asignables:** `colaborador_local` y **`colaborador_dependencias`**, clave vigente comprobada en fuente. No crear variantes ni un colaborador global.
-- Nivel 2: ambos tipos dentro de su rama. Nivel 3: sólo local, personas de su UR o descendientes, exclusivamente para su mismo formato. No se generan formatos de niveles inferiores.
+- Nivel 2: ambos tipos dentro de su rama. Nivel 3: sólo local, personas de su UR o descendientes, exclusivamente para su mismo formato. La delegación sigue limitada a formatos 2/3 que participen; habilitar otros niveles no amplía estas concesiones ni sus roles delegantes. Excluir su formato conserva el vínculo sin trasladarlo.
 - Se exige encargado institucional coincidente, cuenta individual, acceso efectivo/publicación vigentes y rama válida. Los roles de responsable, supervisor y administrador no son asignables mediante este flujo.
 
 La fuente de `AdministracionDelegada.php` y `DelegacionPostgres.php` restringe roles delegantes/asignables **sólo para TDV2**. Las funciones `conceder_acceso.sql`/`retirar_acceso.sql` conservan las comprobaciones por nivel; representación hereda estas validaciones. Otras aplicaciones mantienen sus reglas.

@@ -352,9 +352,16 @@ internal static partial class NativeTests
         });
 
         RegisterAccessCases(database, Test);
+        RegisterCentralCollaborationCases(database, Test);
+        RegisterPerformanceCases(database, Test);
+        RegisterPhotoCases(database, Test);
+        RegisterParticipationCases(database, Test);
         RegisterSyncCases(database, Test);
         RegisterEditingCases(database, Test);
-        foreach (var (name, run) in args.Contains("--browser-only") ? [] : args.Contains("--editing-only") ? cases.Where(c=>c.Item1.StartsWith("Edición/")).ToList() : args.Contains("--sync-only") ? cases.Where(c=>c.Item1.StartsWith("Sync/")).ToList() : cases)
+        if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
+            cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
+        // El alcance de colaboradores centrales forma parte de la autorización de captura.
+        foreach (var (name, run) in args.Contains("--browser-only") ? [] : args.Contains("--editing-only") ? cases.Where(c=>c.Item1.StartsWith("Edición/") || c.Item1.StartsWith("Central/")).ToList() : args.Contains("--sync-only") ? cases.Where(c=>c.Item1.StartsWith("Sync/")).ToList() : cases)
         {
             var watch = Stopwatch.StartNew();
             try
@@ -394,8 +401,14 @@ internal static partial class NativeTests
     private static async Task Browser(NativeDatabase database)
     {
         var selectedFlow = Environment.GetEnvironmentVariable("TDV2_TEST_BROWSER_FLOW") ?? "all";
-        Check(new[] { "all", "formats", "access", "scope", "sync" }.Contains(selectedFlow), "Unknown browser flow.");
+        if (selectedFlow == "visual-studio") { await VerifyDevelopmentStartup(database); return; }
+        Check(new[] { "all", "formats", "access", "scope", "sync", "performance", "capture-matrix", "participants", "presentation" }.Contains(selectedFlow), "Unknown browser flow.");
         await database.Reset();
+        if (selectedFlow == "presentation")
+        {
+            await SetupSync(database);
+            await database.Sql("INSERT INTO fixture_modules VALUES(53,47,'configuracion_procesos','Configuración procesos','/configuracion/procesos','mdi-tune',13,50); INSERT INTO fixture_module_roles VALUES(34,53)");
+        }
         using var certificate = NativeApplication.Certificate();
         await using var app = new NativeApplication(database) { Browser = true };
         app.UseKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
@@ -410,6 +423,15 @@ internal static partial class NativeTests
         start.Environment["TDV2_BROWSER_ARTIFACTS"] = database.Artifacts;
         // Browser runner needs no database credentials.
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
+        if (selectedFlow is "performance" or "capture-matrix" or "participants" or "presentation")
+        {
+            start.ArgumentList.Clear(); start.ArgumentList.Add(selectedFlow switch {
+                "presentation" => "tests/browser/presentation-flow.mjs", "participants" => "tests/browser/participants-browser.mjs", "performance" => "tests/browser/performance-flow.mjs", _ => "tests/browser/capture-matrix.mjs" });
+            using var measured = Process.Start(start)!;
+            var output = measured.StandardOutput.ReadToEndAsync(); var errors = measured.StandardError.ReadToEndAsync();
+            await measured.WaitForExitAsync(); Console.Write(await output); Console.Write(await errors);
+            Check(measured.ExitCode == 0, "Browser verification failed: " + selectedFlow); return;
+        }
         if (selectedFlow is "all" or "formats")
         {
         using var process = Process.Start(start)!;

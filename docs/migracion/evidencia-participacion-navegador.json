@@ -1,0 +1,20 @@
+{
+  "phase": "after",
+  "synthetic": true,
+  "rows": 800,
+  "checks": [
+    "800 filas, reserva automática, primera escritura y guardado confirmado.",
+    "Otra pestaña bloqueada con avatar; liberación automática, eliminación directa, móvil y movimiento reducido.",
+    "Configuración adaptable, vista previa, Cancelar sin escritura y confirmación que retira acceso al formato excluido."
+  ],
+  "errors": [],
+  "mountMs": 2227.9467999999997,
+  "contextControls": 0,
+  "mountedPanels": 1,
+  "inputToFrame": {
+    "samples": 31,
+    "averageMs": 28.03548385250953,
+    "p95Ms": 45.39999997615814
+  },
+  "passed": true
+}

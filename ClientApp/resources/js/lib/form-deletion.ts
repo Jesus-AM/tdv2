@@ -1,4 +1,5 @@
 import type { FormContent } from '../types/tdv2';
+import { splitBlocks } from './form-blocks';
 export type RowSection = 'identificacion' | 'sistemas' | 'datos' | 'acuerdos';
 export type RowTarget = { section: RowSection; id: string };
 export function targetRow(content: FormContent, target: RowTarget) {
@@ -21,6 +22,11 @@ export function removalBlocks(content: FormContent, target: RowTarget): string[]
             for (const linked of content[table]) if (linked.proceso === row.codigo) keys.push(`${table}:${linked.id}`);
     }
     return keys;
+}
+/** La confirmación incluye versiones y relaciones por ID; cambios en otras filas no la invalidan. */
+export function removalSnapshot(content: FormContent, target: RowTarget, blocks: Record<string, { version: number }>): string {
+    const values = splitBlocks(content);
+    return JSON.stringify(removalBlocks(content, target).sort().map(key => ({ key, version: blocks[key]?.version ?? 0, value: values[key] ?? null })));
 }
 /** Resuelve el ID sobre el contenido vigente: nunca elimina la fila que ocupa una posición antigua. */
 export function removeRow(content: FormContent, target: RowTarget) {

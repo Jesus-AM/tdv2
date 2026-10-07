@@ -29,7 +29,6 @@ import {
     ManageAccountsOutlined,
     ArrowBack,
 } from '@mui/icons-material';
-import { errorResponse } from '@/lib/http';
 import ModuleNavigation from '@/Components/ModuleNavigation';
 
 function AccessNotice({ children, writing }: { children: ReactNode; writing: boolean }) {
@@ -64,14 +63,27 @@ function AccessNotice({ children, writing }: { children: ReactNode; writing: boo
 export default function AuthenticatedLayout({ children }: { children: ReactNode }) {
     const { props, url } = usePage();
     const { auth, routes, representacion: rep, simulacion: preview } = props;
-    const mobile = useMediaQuery('(max-width:900px)');
+    const narrow = useMediaQuery('(max-width:1050px)');
+    const bar = useRef<HTMLElement | null>(null);
+    const [barSize, setBarSize] = useState({ height: 69, width: window.innerWidth });
+    const mobile = narrow || barSize.width <= 1050;
+    useEffect(() => {
+        if (!bar.current) return;
+        // Se reserva la altura real, también cuando cambian el zoom, el texto o el menú móvil.
+        const observer = new ResizeObserver(([entry]) => {
+            const height = entry.borderBoxSize[0]?.blockSize ?? entry.contentRect.height + 1;
+            const width = entry.contentRect.width;
+            setBarSize(previous => previous.height === height && previous.width === width ? previous : { height, width });
+        });
+        observer.observe(bar.current);
+        return () => observer.disconnect();
+    }, []);
     const [open, setOpen] = useState(false),
-        [photo, setPhoto] = useState<string | null>(null),
+        [photo, setPhoto] = useState<{ owner: string; value: string | null } | null>(null),
         [account, setAccount] = useState<HTMLElement | null>(null),
         [busy, setBusy] = useState(false);
     const last = useRef(Date.now());
     useEffect(() => {
-        let active = true;
         const activity = () => {
             last.current = Date.now();
         };
@@ -82,22 +94,30 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
         events.forEach((e) => window.addEventListener(e, activity, { passive: true }));
         document.addEventListener('visibilitychange', check);
         const timer = setInterval(check, 10000);
-        axios
-            .get<{ photo: string | null }>('/user/photo')
-            .then(({ data }) => {
-                if (active) setPhoto(data.photo);
-            })
-            .catch((e) => {
-                const r = errorResponse(e);
-                if (r?.data.redirect && [401, 403, 503].includes(r.status)) window.location.assign(r.data.redirect);
-            });
         return () => {
-            active = false;
             clearInterval(timer);
             events.forEach((e) => window.removeEventListener(e, activity));
             document.removeEventListener('visibilitychange', check);
         };
     }, [props.session.lifetime_ms, routes.inicio]);
+    const photoOwner = `${rep?.email || auth.user?.email}:${rep?.expira_en || ''}:${preview?.expiresAt || ''}`;
+    const visibleName = rep?.nombre || auth.user?.name;
+    useEffect(() => {
+        let active = true;
+        let timer: ReturnType<typeof setTimeout>;
+        const load = async () => {
+            let delay = 120000;
+            try {
+                const { data } = await axios.get<{ photo: string | null; renuevaEn: string }>('/user/photo');
+                if (active) setPhoto({ owner: photoOwner, value: data.photo });
+                delay = Math.max(30000, Math.min(900000, Date.parse(data.renuevaEn) - Date.now() || 120000));
+            } catch { if (active) setPhoto({ owner: photoOwner, value: null }); }
+            // Una miniatura opcional no redirige ni interrumpe una propuesta pendiente.
+            if (active) timer = setTimeout(() => void load(), delay);
+        };
+        void load();
+        return () => { active = false; clearTimeout(timer); };
+    }, [photoOwner]);
     const exit = () => {
         if (busy) return;
         setBusy(true);
@@ -127,7 +147,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 {navigation}
             </Drawer>
             <AppBar
-
+                ref={bar}
                 position="fixed"
                 color="inherit"
                 elevation={0}
@@ -139,7 +159,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                     borderColor: 'divider',
                 }}
             >
-                <Toolbar sx={{ minHeight: '68px!important', gap: 1.5, px: { xs: 1.5, md: 3 } }}>
+                <Toolbar className="app-toolbar">
                     {mobile && <IconButton aria-label="Abrir navegación" aria-controls="application-navigation"
                         aria-expanded={open} onClick={() => setOpen(true)}><MenuIcon /></IconButton>}
                     <Box component="a" href={routes.inicio} onClick={event => { event.preventDefault(); visit(routes.inicio); }}
@@ -151,15 +171,18 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                     <Button
                         color="inherit"
                         aria-label="Abrir menú de usuario"
+                        aria-haspopup="menu"
+                        aria-expanded={!!account}
+                        aria-controls={account ? 'account-menu' : undefined}
                         onClick={(e) => setAccount(e.currentTarget)}
                         sx={{ minWidth: 40, p: 0.5, gap: 1 }}
                     >
                         <Avatar
-                            src={photo || undefined}
+                            src={photo?.owner === photoOwner ? photo.value || undefined : undefined}
                             sx={{ width: 32, height: 32, fontSize: 12, bgcolor: '#e6eefb', color: 'primary.dark' }}
                         >
-                            {auth.user?.name
-                                .split(/\s+/)
+                            {visibleName
+                                ?.split(/\s+/)
                                 .slice(0, 2)
                                 .map((n) => n[0])
                                 .join('')}
@@ -168,15 +191,17 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                             sx={{ display: { xs: 'none', lg: 'block' }, maxWidth: 165, fontSize: 13, fontWeight: 500 }}
                             noWrap
                         >
-                            {auth.user?.name}
+                            {visibleName}
                         </Typography>
                         <ExpandMore fontSize="small" sx={{ display: { xs: 'none', sm: 'block' } }} />
                     </Button>
                     <Menu
+                        id="account-menu"
+                        disableScrollLock
                         anchorEl={account}
                         open={!!account}
                         onClose={() => setAccount(null)}
-                        slotProps={{ paper: { sx: { width: 285, maxWidth: 'calc(100vw - 24px)' } } }}
+                        slotProps={{ paper: { sx: { width: 285, maxWidth: 'calc(100vw - 24px)', mt: 1, boxShadow: '0 6px 24px #20314d14' } } }}
                     >
                         <Box sx={{ px: 2, py: 1 }}>
                             <div className="eyebrow">Tu cuenta</div>
@@ -219,7 +244,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 className="app-content"
                 sx={{
 
-                    pt: '68px',
+                    pt: `${barSize.height}px`,
                     minHeight: '100dvh',
                     display: 'flex',
                     flexDirection: 'column',

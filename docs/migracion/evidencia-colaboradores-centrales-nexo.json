@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Nexo real: nivel 3 busca misma UR y descendientes, excluye rama ajena",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: alta local idempotente, misma UR y subordinada; auditor\u00EDa y retiro",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: rechaza global, dependencias nivel 3, rol no delegable y rama ajena",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: nivel 2 conserva dependencias; nivel 3 no retira esa concesi\u00F3n",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: nuevo rol solo conserva responsabilidad y tipo 0 no delega",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: representaci\u00F3n comprueba sesi\u00F3n y aplica el nivel efectivo",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: publicaci\u00F3n distingue central/aplicacion y retira concesiones revocadas o suspendidas",
+    "passed": true
+  },
+  {
+    "name": "Nexo real: otra aplicaci\u00F3n conserva roles y UR antes permitidos",
+    "passed": true
+  }
+]

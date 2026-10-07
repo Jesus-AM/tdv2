@@ -16,15 +16,17 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
     {
         var context = await access.Resolve(http);
         var rows = new List<Dictionary<string, object?>>();
+        var records = await store.GetMany(context.Scopes.Keys.ToArray(), http.RequestAborted);
+        var inventories = await catalogs.Inventories(context.Scopes.Values.Where(s => records.GetValueOrDefault(s.Unit.Id)?.SubmittedAt is null).Select(s => s.Unit).ToArray(), http.RequestAborted);
         foreach (var scope in context.Scopes.Values.OrderBy(s => s.Unit.Code, StringComparer.OrdinalIgnoreCase))
         {
-            var record = await store.Get(scope.Unit.Id, http.RequestAborted);
+            var record = records.GetValueOrDefault(scope.Unit.Id);
             var progress = record?.Progress ?? 0;
             if (record?.SubmittedAt is null)
             {
                 // Recalcular sólo la proyección de consulta; un GET no modifica borradores ni instantáneas enviadas.
                 var draft = record?.Content.DeepClone().AsObject() ?? schema.Blank(scope.Unit);
-                LocalCatalog.Merge(draft, await catalogs.Inventory(scope.Unit, http.RequestAborted));
+                LocalCatalog.Merge(draft, inventories[scope.Unit.Id]);
                 progress = FormSchema.Progress(draft);
             }
             rows.Add(new()
@@ -50,13 +52,15 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         return new PageData("Inicio", new()
         {
             ["formatos"] = rows,
+            ["participacion"] = new { levels = context.Directory.Participation.Levels, excludedTypes = context.Directory.Participation.ExcludedTypes },
+            ["sinFormatosMotivo"] = rows.Count == 0 ? new FormAccess(context.Directory).NoScopeReason(context.Profile) : null,
             ["consultaInstitucional"] = context.Profile.InstitutionalRead,
             ["administrador"] = admin,
             ["directorio"] = context.Profile.InstitutionalRead ? rows : [],
             ["urAdministracion"] = admin ? context.Directory.AdministratorRoot(context.Profile.User)?.Public() : null,
             ["puedeColaboradores"] = admin || context.Profile.Responsible && (access.Selection is { Kind: "preview" } preview
                 ? context.Directory.Get(preview.UnitId) is { } selected && UnitDirectory.IsForm(selected)
-                : context.Directory.Responsibilities(context.Profile.User).Any()),
+                : context.Directory.Responsibilities(context.Profile.User).Any(UnitDirectory.IsForm)),
             ["sincronizadoEn"] = await catalogs.LastSii(http.RequestAborted)
         }, context.Profile);
     }

@@ -11,6 +11,9 @@ public sealed class FormBlock
     public Guid? TabId { get; set; }
     public long ContextRevision { get; set; }
     public string? Holder { get; set; }
+    public string? Participant { get; set; }
+    public long? ParticipantUserId { get; set; }
+    public int Color { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
 }
 

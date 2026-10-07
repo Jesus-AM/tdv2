@@ -21,6 +21,16 @@ const a = unit('a', 2, null, 'Tecnologías'),
     b = unit('b', 3, 'a', 'Sistemas'),
     c = unit('c', 4, 'b', 'Aplicaciones'),
     d = unit('d', 2, null, 'Finanzas');
+test('participación configurable conserva ancestros excluidos y muestra niveles nuevos sin confundir tipo 0', () => {
+    const root = { ...unit('root', 2, null), tipo_ur: ' N ' };
+    const middle = { ...unit('middle', 3, 'root'), tipo_ur: '0' };
+    const leaf = { ...unit('leaf', 4, 'middle'), tipo_ur: '' };
+    const directory = buildAreaDirectory([root, middle, leaf], [], { levels: [2, 4], excludedTypes: [] });
+    assert.equal(directory.roots[0].unit.id_ur, 'root'); assert.equal(directory.roots[0].children[0].unit.id_ur, 'leaf');
+    assert.equal(buildAreaDirectory([root, middle, leaf], [], { levels: [4], excludedTypes: ['N'] }).roots[0].unit.id_ur, 'leaf');
+    const zero = buildAreaDirectory([unit('zero', 0, null), unit('unknown', null, null), unit('empty', '', null)], [], { levels: [0], excludedTypes: [] });
+    assert.deepEqual(zero.roots.map(n => n.unit.id_ur), ['zero']);
+});
 const form = (u, p, edit) => ({
     ...u,
     porcentaje: p,

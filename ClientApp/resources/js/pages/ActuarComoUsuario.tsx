@@ -14,7 +14,7 @@ import {
     FormControlLabel,
     Chip,
 } from '@mui/material';
-import { Search, ArrowBack, ManageAccountsOutlined } from '@mui/icons-material';
+import { Search, ManageAccountsOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import { errorText } from '@/lib/http';
@@ -92,15 +92,9 @@ export default function ActuarComoUsuario({
     return (
         <AuthenticatedLayout>
             <Head title="Actuar como usuario" />
-            <div className="page" style={{ maxWidth: 1100 }}>
-                <Button
-                    startIcon={<ArrowBack />}
-                    sx={{ mb: 2 }}
-                    onClick={() => router.visit('/configuracion/pruebas-acceso')}
-                >
-                    Pruebas de acceso
-                </Button>
+            <div className="page settings-page">
                 <PageHeading
+                    breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }, { label: 'Pruebas de acceso', href: '/configuracion/pruebas-acceso' }]}
                     title="Actuar como usuario"
                     description="Revisa la plataforma con el acceso autorizado de una persona. Tu cuenta queda identificada en las acciones."
                 />
@@ -115,16 +109,16 @@ export default function ActuarComoUsuario({
                             : 'Nexo no autorizó esta función para tus roles.'}
                     </Alert>
                 ) : (
-                    <div className="stack">
-                        {error && <Alert severity="error">{error}</Alert>}
+                    <div className="stack" style={{ maxWidth: 1060 }}>
                         <Box className="surface">
+                            <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Selecciona una persona</Typography>
                             <Box
+                                className="settings-search"
                                 component="form"
                                 onSubmit={(e) => {
                                     e.preventDefault();
                                     void search();
                                 }}
-                                sx={{ display: 'flex', gap: 2, alignItems: 'center' }}
                             >
                                 <TextField
                                     label="Nombre o correo institucional"
@@ -143,6 +137,7 @@ export default function ActuarComoUsuario({
                                     variant="contained"
                                     startIcon={<Search />}
                                     disabled={busy || query.trim().length < 2}
+                                    loading={busy}
                                 >
                                     Buscar
                                 </Button>
@@ -159,7 +154,7 @@ export default function ActuarComoUsuario({
                                         key={p.usuario_id}
                                         disabled={busy}
                                         selected={selected?.usuario_id === p.usuario_id}
-                                        sx={{ borderRadius: 2, mb: 1 }}
+                                        sx={{ borderRadius: 2, mb: 1, overflowWrap: 'anywhere' }}
                                         onClick={() => setSelected(p)}
                                     >
                                         <ListItemText
@@ -194,7 +189,7 @@ export default function ActuarComoUsuario({
                         </Box>
                         {selected && (
                             <Box className="surface">
-                                <Typography variant="h2" sx={{ mb: 2 }}>
+                                <Typography component="h2" variant="h2" sx={{ mb: 2 }}>
                                     Representar a {selected.nombre}
                                 </Typography>
                                 <TextField
@@ -244,6 +239,7 @@ export default function ActuarComoUsuario({
                                 <Chip label={write ? 'Con escritura' : 'Solo lectura'} sx={{ ml: 2 }} />
                             </Box>
                         )}
+                        {error && <Alert severity="error">{error}</Alert>}
                     </div>
                 )}
             </div>

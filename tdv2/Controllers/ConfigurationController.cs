@@ -17,6 +17,7 @@ public sealed class ConfigurationController(RequestAccess access, Synchronizatio
         {
             ["secciones"] = new
             {
+                configuracion_procesos = ModuleAccess.Allows(profile, "configuracion_procesos"),
                 sincronizaciones = ModuleAccess.Allows(profile, "sincronizaciones"),
                 pruebas_acceso = ModuleAccess.Allows(profile, "pruebas_acceso")
             }

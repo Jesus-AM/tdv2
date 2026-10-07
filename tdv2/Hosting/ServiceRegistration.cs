@@ -50,6 +50,9 @@ public static class ServiceRegistration
         builder.Services.AddScoped<PostgresIdentity>();
         builder.Services.AddScoped<ISessionIdentity>(services => services.GetRequiredService<PostgresIdentity>());
         builder.Services.AddScoped<GraphTokens>();
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<MicrosoftPhotoCache>();
+        builder.Services.AddScoped<ParticipantPhotos>();
         builder.Services.AddScoped<AuthenticationAudit>();
         builder.Services.AddScoped<AccessState>();
         builder.Services.AddScoped<OperationAudit>();
@@ -108,6 +111,7 @@ public static class ServiceRegistration
         builder.Services.AddScoped<RequestAccess>();
         builder.Services.AddSingleton(new FormSchema(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "procesos_operativos.json"))));
         builder.Services.AddScoped<FormService>();
+        builder.Services.AddScoped<ProcessConfigurationService>();
         builder.Services.AddScoped<MicrosoftLoginService>();
         builder.Services.AddScoped<SessionTerminationService>();
         builder.Services.AddScoped<PostgresCollaborationStore>();

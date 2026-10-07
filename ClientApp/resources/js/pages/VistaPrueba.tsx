@@ -1,6 +1,6 @@
-import { Head, router, useForm } from '@/lib/navigation';
+import { Head, useForm } from '@/lib/navigation';
 import { Autocomplete, Box, Button, MenuItem, TextField, Typography } from '@mui/material';
-import { ArrowBack, VisibilityOutlined } from '@mui/icons-material';
+import { VisibilityOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import type { Unit } from '@/types/tdv2';
@@ -24,19 +24,13 @@ export default function VistaPrueba({
     return (
         <AuthenticatedLayout>
             <Head title="Vista por rol y área" />
-            <div className="page" style={{ maxWidth: 1150 }}>
-                <Button
-                    startIcon={<ArrowBack />}
-                    sx={{ mb: 2 }}
-                    onClick={() => router.visit('/configuracion/pruebas-acceso')}
-                >
-                    Pruebas de acceso
-                </Button>
+            <div className="page settings-page">
                 <PageHeading
+                    breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }, { label: 'Pruebas de acceso', href: '/configuracion/pruebas-acceso' }]}
                     title="Vista por rol y área"
                     description="Explora los formatos y el alcance de una combinación de rol y área."
                 />
-                <div className="split">
+                <div className="split" style={{ maxWidth: 1100, alignItems: 'start' }}>
                     <Box
                         component="form"
                         className="surface stack"
@@ -45,6 +39,7 @@ export default function VistaPrueba({
                             form.post('/vista-prueba');
                         }}
                     >
+                        <Typography component="h2" variant="h2">Selecciona el escenario</Typography>
                         <TextField
                             select
                             label="Rol"
@@ -72,6 +67,8 @@ export default function VistaPrueba({
                                 <TextField
                                     {...params}
                                     label="Área de pertenencia o responsabilidad"
+                                    placeholder="Selecciona un área"
+                                    slotProps={{ ...params.slotProps, inputLabel: { ...params.slotProps.inputLabel, shrink: true } }}
                                     error={!!form.errors.ur}
                                     helperText={form.errors.ur}
                                 />
@@ -92,7 +89,7 @@ export default function VistaPrueba({
                         </Button>
                     </Box>
                     <Box sx={{ p: 2 }}>
-                        <Typography variant="h2" sx={{ mb: 2 }}>
+                        <Typography component="h2" variant="h2" sx={{ mb: 2 }}>
                             Una prueba de solo lectura
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

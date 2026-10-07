@@ -131,6 +131,28 @@ internal static partial class NativeTests
             var responses = await Task.WhenAll(requests);
             Check(responses.Count(r => r.IsSuccessStatusCode) == 1 && responses.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 2);
         });
+        Test("Edición/lectura durante adquisición queda anterior a la confirmación y no invalida su reserva", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
+            await database.Sql("""
+                CREATE FUNCTION fixture_pause_reserve() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN PERFORM pg_advisory_xact_lock(606,6); PERFORM pg_sleep(1.5); RETURN NEW; END $$;
+                CREATE TRIGGER pause_reserve BEFORE INSERT ON formato_bloques FOR EACH ROW EXECUTE FUNCTION fixture_pause_reserve();
+                """);
+            try
+            {
+                var acquisition = client.PostAsJsonAsync("/formatos/A/reservas", Edit(tab, new BlockRequest("contexto", 0)));
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (Convert.ToInt64(await database.Scalar("SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND classid=606 AND objid=6 AND granted")) == 0)
+                { Check(DateTime.UtcNow < deadline); await Task.Delay(10); }
+                var during = await Live(client, tab);
+                Check(during["bloques"]!.AsArray().All(b => b!["reserva"] is null));
+                var response = await acquisition; Check(response.IsSuccessStatusCode); var confirmed = await Json(response);
+                Check(DateTimeOffset.Parse(confirmed["servidorEn"]!.ToString()) > DateTimeOffset.Parse(during["servidorEn"]!.ToString()));
+                Check(confirmed["bloques"]![0]!["reserva"]!["propia"]!.GetValue<bool>());
+            }
+            finally { await database.Sql("DROP TRIGGER pause_reserve ON formato_bloques; DROP FUNCTION fixture_pause_reserve()"); }
+        });
         Test("Edición/bloques distintos guardan concurrentemente sin sobrescribir JSON", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); using var other = app.Client(); await Login(app, other); await Csrf(other);

@@ -84,7 +84,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
             throw new DomainProblem(403, "No tienes acceso a este módulo de Transformación Digital.");
         return Effective;
     }
-    public async Task<UnitDirectory> Units(HttpContext http) => Directory ??= new(await store.Units(http.RequestAborted));
+    public async Task<UnitDirectory> Units(HttpContext http) => Directory ??= new(await store.Units(http.RequestAborted), await store.Participation(http.RequestAborted));
     public async Task<AccessContext> Resolve(HttpContext http)
     {
         var profile = await Profile(http, "procesos_operativos");
@@ -94,7 +94,10 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
         if (Selection is { Kind: "preview" } scenario)
             return scopes = new(profile, directory, rules.Scenario(profile, directory.Get(scenario.UnitId)!), true);
         var links = profile.Has("administrador") ? [] : await store.Collaborations(profile.User.Email, http.RequestAborted);
-        var grants = links.Count == 0 ? [] : await nexo.Grants(profile.User.Email, http.RequestAborted);
+        // Una asignación central no necesita filas locales. Consultar siempre sus concesiones vigentes,
+        // también al representar a alguien; no usar las del actor ni conservarlas en la sesión.
+        var grants = (links.Count == 0 && !profile.Collaborator) || profile.Has("administrador")
+            ? [] : await nexo.Grants(profile.User.Email, http.RequestAborted);
         return scopes = new(profile, directory, rules.Scopes(profile, links, grants), ReadOnly);
     }
     public static AccessSelection ParseRepresentation(JsonObject data, string actor, string email, bool requireToken = false)

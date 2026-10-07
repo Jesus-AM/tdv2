@@ -17,4 +17,8 @@ public sealed class FormNotifications
         foreach (var subscription in subscriptions.Values)
             if (subscription.Unit == unit) subscription.Channel.Writer.TryWrite(true);
     }
+    public void ParticipationChanged()
+    {
+        foreach (var subscription in subscriptions.Values) subscription.Channel.Writer.TryWrite(true);
+    }
 }

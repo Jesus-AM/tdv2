@@ -1,0 +1,758 @@
+{
+    "date":  "2026-10-07",
+    "synthetic":  true,
+    "source":  "Código local vigente; snapshot previo, sin restaurar GitHub",
+    "browserBefore":  {
+                          "synthetic":  true,
+                          "phase":  "before",
+                          "instrumented":  true,
+                          "cases":  [
+                                        {
+                                            "records":  20,
+                                            "mountMs":  2137.159199999999,
+                                            "panels":  1,
+                                            "keystrokes":  58,
+                                            "inputToFrame":  {
+                                                                 "averageMs":  12.170689669148675,
+                                                                 "p95Ms":  18,
+                                                                 "samples":  58
+                                                             },
+                                            "renders":  {
+                                                            "editor":  61,
+                                                            "rows":  {
+                                                                         "identificacion:synthetic-0":  61,
+                                                                         "identificacion:synthetic-1":  1,
+                                                                         "identificacion:synthetic-2":  1,
+                                                                         "identificacion:synthetic-3":  1,
+                                                                         "identificacion:synthetic-4":  1,
+                                                                         "identificacion:synthetic-5":  1,
+                                                                         "identificacion:synthetic-6":  1,
+                                                                         "identificacion:synthetic-7":  1,
+                                                                         "identificacion:synthetic-8":  1,
+                                                                         "identificacion:synthetic-9":  1,
+                                                                         "identificacion:synthetic-10":  1,
+                                                                         "identificacion:synthetic-11":  1,
+                                                                         "identificacion:synthetic-12":  1,
+                                                                         "identificacion:synthetic-13":  1,
+                                                                         "identificacion:synthetic-14":  1,
+                                                                         "identificacion:synthetic-15":  1,
+                                                                         "identificacion:synthetic-16":  1,
+                                                                         "identificacion:synthetic-17":  1,
+                                                                         "identificacion:synthetic-18":  1,
+                                                                         "identificacion:synthetic-19":  1
+                                                                     }
+                                                        },
+                                            "typingRequests":  [
+                                                                   {
+                                                                       "method":  "POST",
+                                                                       "path":  "/formatos/A/reservas/actividad"
+                                                                   }
+                                                               ],
+                                            "requests":  [
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/form-events/negotiate"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A/estado"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/user/photo"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas/actividad"
+                                                             },
+                                                             {
+                                                                 "method":  "PATCH",
+                                                                 "path":  "/formatos/A/bloques"
+                                                             }
+                                                         ],
+                                            "efCommands":  84
+                                        },
+                                        {
+                                            "records":  100,
+                                            "mountMs":  1343.7826999999997,
+                                            "panels":  1,
+                                            "keystrokes":  58,
+                                            "inputToFrame":  {
+                                                                 "averageMs":  12.460344822242343,
+                                                                 "p95Ms":  16.399999976158142,
+                                                                 "samples":  58
+                                                             },
+                                            "renders":  {
+                                                            "editor":  60,
+                                                            "rows":  {
+                                                                         "identificacion:synthetic-0":  60,
+                                                                         "identificacion:synthetic-1":  1,
+                                                                         "identificacion:synthetic-2":  1,
+                                                                         "identificacion:synthetic-3":  1,
+                                                                         "identificacion:synthetic-4":  1,
+                                                                         "identificacion:synthetic-5":  1,
+                                                                         "identificacion:synthetic-6":  1,
+                                                                         "identificacion:synthetic-7":  1,
+                                                                         "identificacion:synthetic-8":  1,
+                                                                         "identificacion:synthetic-9":  1,
+                                                                         "identificacion:synthetic-10":  1,
+                                                                         "identificacion:synthetic-11":  1,
+                                                                         "identificacion:synthetic-12":  1,
+                                                                         "identificacion:synthetic-13":  1,
+                                                                         "identificacion:synthetic-14":  1,
+                                                                         "identificacion:synthetic-15":  1,
+                                                                         "identificacion:synthetic-16":  1,
+                                                                         "identificacion:synthetic-17":  1,
+                                                                         "identificacion:synthetic-18":  1,
+                                                                         "identificacion:synthetic-19":  1,
+                                                                         "identificacion:synthetic-20":  1,
+                                                                         "identificacion:synthetic-21":  1,
+                                                                         "identificacion:synthetic-22":  1,
+                                                                         "identificacion:synthetic-23":  1,
+                                                                         "identificacion:synthetic-24":  1,
+                                                                         "identificacion:synthetic-25":  1,
+                                                                         "identificacion:synthetic-26":  1,
+                                                                         "identificacion:synthetic-27":  1,
+                                                                         "identificacion:synthetic-28":  1,
+                                                                         "identificacion:synthetic-29":  1,
+                                                                         "identificacion:synthetic-30":  1,
+                                                                         "identificacion:synthetic-31":  1,
+                                                                         "identificacion:synthetic-32":  1,
+                                                                         "identificacion:synthetic-33":  1,
+                                                                         "identificacion:synthetic-34":  1,
+                                                                         "identificacion:synthetic-35":  1,
+                                                                         "identificacion:synthetic-36":  1,
+                                                                         "identificacion:synthetic-37":  1,
+                                                                         "identificacion:synthetic-38":  1,
+                                                                         "identificacion:synthetic-39":  1,
+                                                                         "identificacion:synthetic-40":  1,
+                                                                         "identificacion:synthetic-41":  1,
+                                                                         "identificacion:synthetic-42":  1,
+                                                                         "identificacion:synthetic-43":  1,
+                                                                         "identificacion:synthetic-44":  1,
+                                                                         "identificacion:synthetic-45":  1,
+                                                                         "identificacion:synthetic-46":  1,
+                                                                         "identificacion:synthetic-47":  1,
+                                                                         "identificacion:synthetic-48":  1,
+                                                                         "identificacion:synthetic-49":  1,
+                                                                         "identificacion:synthetic-50":  1,
+                                                                         "identificacion:synthetic-51":  1,
+                                                                         "identificacion:synthetic-52":  1,
+                                                                         "identificacion:synthetic-53":  1,
+                                                                         "identificacion:synthetic-54":  1,
+                                                                         "identificacion:synthetic-55":  1,
+                                                                         "identificacion:synthetic-56":  1,
+                                                                         "identificacion:synthetic-57":  1,
+                                                                         "identificacion:synthetic-58":  1,
+                                                                         "identificacion:synthetic-59":  1,
+                                                                         "identificacion:synthetic-60":  1,
+                                                                         "identificacion:synthetic-61":  1,
+                                                                         "identificacion:synthetic-62":  1,
+                                                                         "identificacion:synthetic-63":  1,
+                                                                         "identificacion:synthetic-64":  1,
+                                                                         "identificacion:synthetic-65":  1,
+                                                                         "identificacion:synthetic-66":  1,
+                                                                         "identificacion:synthetic-67":  1,
+                                                                         "identificacion:synthetic-68":  1,
+                                                                         "identificacion:synthetic-69":  1,
+                                                                         "identificacion:synthetic-70":  1,
+                                                                         "identificacion:synthetic-71":  1,
+                                                                         "identificacion:synthetic-72":  1,
+                                                                         "identificacion:synthetic-73":  1,
+                                                                         "identificacion:synthetic-74":  1,
+                                                                         "identificacion:synthetic-75":  1,
+                                                                         "identificacion:synthetic-76":  1,
+                                                                         "identificacion:synthetic-77":  1,
+                                                                         "identificacion:synthetic-78":  1,
+                                                                         "identificacion:synthetic-79":  1,
+                                                                         "identificacion:synthetic-80":  1,
+                                                                         "identificacion:synthetic-81":  1,
+                                                                         "identificacion:synthetic-82":  1,
+                                                                         "identificacion:synthetic-83":  1,
+                                                                         "identificacion:synthetic-84":  1,
+                                                                         "identificacion:synthetic-85":  1,
+                                                                         "identificacion:synthetic-86":  1,
+                                                                         "identificacion:synthetic-87":  1,
+                                                                         "identificacion:synthetic-88":  1,
+                                                                         "identificacion:synthetic-89":  1,
+                                                                         "identificacion:synthetic-90":  1,
+                                                                         "identificacion:synthetic-91":  1,
+                                                                         "identificacion:synthetic-92":  1,
+                                                                         "identificacion:synthetic-93":  1,
+                                                                         "identificacion:synthetic-94":  1,
+                                                                         "identificacion:synthetic-95":  1,
+                                                                         "identificacion:synthetic-96":  1,
+                                                                         "identificacion:synthetic-97":  1,
+                                                                         "identificacion:synthetic-98":  1,
+                                                                         "identificacion:synthetic-99":  1
+                                                                     }
+                                                        },
+                                            "typingRequests":  [
+                                                                   {
+                                                                       "method":  "POST",
+                                                                       "path":  "/formatos/A/reservas/actividad"
+                                                                   }
+                                                               ],
+                                            "requests":  [
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/form-events/negotiate"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A/estado"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/user/photo"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas/actividad"
+                                                             },
+                                                             {
+                                                                 "method":  "PATCH",
+                                                                 "path":  "/formatos/A/bloques"
+                                                             }
+                                                         ],
+                                            "efCommands":  92
+                                        },
+                                        {
+                                            "records":  200,
+                                            "mountMs":  1340.2008999999998,
+                                            "panels":  1,
+                                            "keystrokes":  58,
+                                            "inputToFrame":  {
+                                                                 "averageMs":  21.187931027905694,
+                                                                 "p95Ms":  27.40000009536743,
+                                                                 "samples":  58
+                                                             },
+                                            "renders":  {
+                                                            "editor":  60,
+                                                            "rows":  {
+                                                                         "identificacion:synthetic-0":  60,
+                                                                         "identificacion:synthetic-1":  1,
+                                                                         "identificacion:synthetic-2":  1,
+                                                                         "identificacion:synthetic-3":  1,
+                                                                         "identificacion:synthetic-4":  1,
+                                                                         "identificacion:synthetic-5":  1,
+                                                                         "identificacion:synthetic-6":  1,
+                                                                         "identificacion:synthetic-7":  1,
+                                                                         "identificacion:synthetic-8":  1,
+                                                                         "identificacion:synthetic-9":  1,
+                                                                         "identificacion:synthetic-10":  1,
+                                                                         "identificacion:synthetic-11":  1,
+                                                                         "identificacion:synthetic-12":  1,
+                                                                         "identificacion:synthetic-13":  1,
+                                                                         "identificacion:synthetic-14":  1,
+                                                                         "identificacion:synthetic-15":  1,
+                                                                         "identificacion:synthetic-16":  1,
+                                                                         "identificacion:synthetic-17":  1,
+                                                                         "identificacion:synthetic-18":  1,
+                                                                         "identificacion:synthetic-19":  1,
+                                                                         "identificacion:synthetic-20":  1,
+                                                                         "identificacion:synthetic-21":  1,
+                                                                         "identificacion:synthetic-22":  1,
+                                                                         "identificacion:synthetic-23":  1,
+                                                                         "identificacion:synthetic-24":  1,
+                                                                         "identificacion:synthetic-25":  1,
+                                                                         "identificacion:synthetic-26":  1,
+                                                                         "identificacion:synthetic-27":  1,
+                                                                         "identificacion:synthetic-28":  1,
+                                                                         "identificacion:synthetic-29":  1,
+                                                                         "identificacion:synthetic-30":  1,
+                                                                         "identificacion:synthetic-31":  1,
+                                                                         "identificacion:synthetic-32":  1,
+                                                                         "identificacion:synthetic-33":  1,
+                                                                         "identificacion:synthetic-34":  1,
+                                                                         "identificacion:synthetic-35":  1,
+                                                                         "identificacion:synthetic-36":  1,
+                                                                         "identificacion:synthetic-37":  1,
+                                                                         "identificacion:synthetic-38":  1,
+                                                                         "identificacion:synthetic-39":  1,
+                                                                         "identificacion:synthetic-40":  1,
+                                                                         "identificacion:synthetic-41":  1,
+                                                                         "identificacion:synthetic-42":  1,
+                                                                         "identificacion:synthetic-43":  1,
+                                                                         "identificacion:synthetic-44":  1,
+                                                                         "identificacion:synthetic-45":  1,
+                                                                         "identificacion:synthetic-46":  1,
+                                                                         "identificacion:synthetic-47":  1,
+                                                                         "identificacion:synthetic-48":  1,
+                                                                         "identificacion:synthetic-49":  1,
+                                                                         "identificacion:synthetic-50":  1,
+                                                                         "identificacion:synthetic-51":  1,
+                                                                         "identificacion:synthetic-52":  1,
+                                                                         "identificacion:synthetic-53":  1,
+                                                                         "identificacion:synthetic-54":  1,
+                                                                         "identificacion:synthetic-55":  1,
+                                                                         "identificacion:synthetic-56":  1,
+                                                                         "identificacion:synthetic-57":  1,
+                                                                         "identificacion:synthetic-58":  1,
+                                                                         "identificacion:synthetic-59":  1,
+                                                                         "identificacion:synthetic-60":  1,
+                                                                         "identificacion:synthetic-61":  1,
+                                                                         "identificacion:synthetic-62":  1,
+                                                                         "identificacion:synthetic-63":  1,
+                                                                         "identificacion:synthetic-64":  1,
+                                                                         "identificacion:synthetic-65":  1,
+                                                                         "identificacion:synthetic-66":  1,
+                                                                         "identificacion:synthetic-67":  1,
+                                                                         "identificacion:synthetic-68":  1,
+                                                                         "identificacion:synthetic-69":  1,
+                                                                         "identificacion:synthetic-70":  1,
+                                                                         "identificacion:synthetic-71":  1,
+                                                                         "identificacion:synthetic-72":  1,
+                                                                         "identificacion:synthetic-73":  1,
+                                                                         "identificacion:synthetic-74":  1,
+                                                                         "identificacion:synthetic-75":  1,
+                                                                         "identificacion:synthetic-76":  1,
+                                                                         "identificacion:synthetic-77":  1,
+                                                                         "identificacion:synthetic-78":  1,
+                                                                         "identificacion:synthetic-79":  1,
+                                                                         "identificacion:synthetic-80":  1,
+                                                                         "identificacion:synthetic-81":  1,
+                                                                         "identificacion:synthetic-82":  1,
+                                                                         "identificacion:synthetic-83":  1,
+                                                                         "identificacion:synthetic-84":  1,
+                                                                         "identificacion:synthetic-85":  1,
+                                                                         "identificacion:synthetic-86":  1,
+                                                                         "identificacion:synthetic-87":  1,
+                                                                         "identificacion:synthetic-88":  1,
+                                                                         "identificacion:synthetic-89":  1,
+                                                                         "identificacion:synthetic-90":  1,
+                                                                         "identificacion:synthetic-91":  1,
+                                                                         "identificacion:synthetic-92":  1,
+                                                                         "identificacion:synthetic-93":  1,
+                                                                         "identificacion:synthetic-94":  1,
+                                                                         "identificacion:synthetic-95":  1,
+                                                                         "identificacion:synthetic-96":  1,
+                                                                         "identificacion:synthetic-97":  1,
+                                                                         "identificacion:synthetic-98":  1,
+                                                                         "identificacion:synthetic-99":  1,
+                                                                         "identificacion:synthetic-100":  1,
+                                                                         "identificacion:synthetic-101":  1,
+                                                                         "identificacion:synthetic-102":  1,
+                                                                         "identificacion:synthetic-103":  1,
+                                                                         "identificacion:synthetic-104":  1,
+                                                                         "identificacion:synthetic-105":  1,
+                                                                         "identificacion:synthetic-106":  1,
+                                                                         "identificacion:synthetic-107":  1,
+                                                                         "identificacion:synthetic-108":  1,
+                                                                         "identificacion:synthetic-109":  1,
+                                                                         "identificacion:synthetic-110":  1,
+                                                                         "identificacion:synthetic-111":  1,
+                                                                         "identificacion:synthetic-112":  1,
+                                                                         "identificacion:synthetic-113":  1,
+                                                                         "identificacion:synthetic-114":  1,
+                                                                         "identificacion:synthetic-115":  1,
+                                                                         "identificacion:synthetic-116":  1,
+                                                                         "identificacion:synthetic-117":  1,
+                                                                         "identificacion:synthetic-118":  1,
+                                                                         "identificacion:synthetic-119":  1,
+                                                                         "identificacion:synthetic-120":  1,
+                                                                         "identificacion:synthetic-121":  1,
+                                                                         "identificacion:synthetic-122":  1,
+                                                                         "identificacion:synthetic-123":  1,
+                                                                         "identificacion:synthetic-124":  1,
+                                                                         "identificacion:synthetic-125":  1,
+                                                                         "identificacion:synthetic-126":  1,
+                                                                         "identificacion:synthetic-127":  1,
+                                                                         "identificacion:synthetic-128":  1,
+                                                                         "identificacion:synthetic-129":  1,
+                                                                         "identificacion:synthetic-130":  1,
+                                                                         "identificacion:synthetic-131":  1,
+                                                                         "identificacion:synthetic-132":  1,
+                                                                         "identificacion:synthetic-133":  1,
+                                                                         "identificacion:synthetic-134":  1,
+                                                                         "identificacion:synthetic-135":  1,
+                                                                         "identificacion:synthetic-136":  1,
+                                                                         "identificacion:synthetic-137":  1,
+                                                                         "identificacion:synthetic-138":  1,
+                                                                         "identificacion:synthetic-139":  1,
+                                                                         "identificacion:synthetic-140":  1,
+                                                                         "identificacion:synthetic-141":  1,
+                                                                         "identificacion:synthetic-142":  1,
+                                                                         "identificacion:synthetic-143":  1,
+                                                                         "identificacion:synthetic-144":  1,
+                                                                         "identificacion:synthetic-145":  1,
+                                                                         "identificacion:synthetic-146":  1,
+                                                                         "identificacion:synthetic-147":  1,
+                                                                         "identificacion:synthetic-148":  1,
+                                                                         "identificacion:synthetic-149":  1,
+                                                                         "identificacion:synthetic-150":  1,
+                                                                         "identificacion:synthetic-151":  1,
+                                                                         "identificacion:synthetic-152":  1,
+                                                                         "identificacion:synthetic-153":  1,
+                                                                         "identificacion:synthetic-154":  1,
+                                                                         "identificacion:synthetic-155":  1,
+                                                                         "identificacion:synthetic-156":  1,
+                                                                         "identificacion:synthetic-157":  1,
+                                                                         "identificacion:synthetic-158":  1,
+                                                                         "identificacion:synthetic-159":  1,
+                                                                         "identificacion:synthetic-160":  1,
+                                                                         "identificacion:synthetic-161":  1,
+                                                                         "identificacion:synthetic-162":  1,
+                                                                         "identificacion:synthetic-163":  1,
+                                                                         "identificacion:synthetic-164":  1,
+                                                                         "identificacion:synthetic-165":  1,
+                                                                         "identificacion:synthetic-166":  1,
+                                                                         "identificacion:synthetic-167":  1,
+                                                                         "identificacion:synthetic-168":  1,
+                                                                         "identificacion:synthetic-169":  1,
+                                                                         "identificacion:synthetic-170":  1,
+                                                                         "identificacion:synthetic-171":  1,
+                                                                         "identificacion:synthetic-172":  1,
+                                                                         "identificacion:synthetic-173":  1,
+                                                                         "identificacion:synthetic-174":  1,
+                                                                         "identificacion:synthetic-175":  1,
+                                                                         "identificacion:synthetic-176":  1,
+                                                                         "identificacion:synthetic-177":  1,
+                                                                         "identificacion:synthetic-178":  1,
+                                                                         "identificacion:synthetic-179":  1,
+                                                                         "identificacion:synthetic-180":  1,
+                                                                         "identificacion:synthetic-181":  1,
+                                                                         "identificacion:synthetic-182":  1,
+                                                                         "identificacion:synthetic-183":  1,
+                                                                         "identificacion:synthetic-184":  1,
+                                                                         "identificacion:synthetic-185":  1,
+                                                                         "identificacion:synthetic-186":  1,
+                                                                         "identificacion:synthetic-187":  1,
+                                                                         "identificacion:synthetic-188":  1,
+                                                                         "identificacion:synthetic-189":  1,
+                                                                         "identificacion:synthetic-190":  1,
+                                                                         "identificacion:synthetic-191":  1,
+                                                                         "identificacion:synthetic-192":  1,
+                                                                         "identificacion:synthetic-193":  1,
+                                                                         "identificacion:synthetic-194":  1,
+                                                                         "identificacion:synthetic-195":  1,
+                                                                         "identificacion:synthetic-196":  1,
+                                                                         "identificacion:synthetic-197":  1,
+                                                                         "identificacion:synthetic-198":  1,
+                                                                         "identificacion:synthetic-199":  1
+                                                                     }
+                                                        },
+                                            "typingRequests":  [
+                                                                   {
+                                                                       "method":  "POST",
+                                                                       "path":  "/formatos/A/reservas/actividad"
+                                                                   }
+                                                               ],
+                                            "requests":  [
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/form-events/negotiate"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/formatos/A/estado"
+                                                             },
+                                                             {
+                                                                 "method":  "GET",
+                                                                 "path":  "/user/photo"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas"
+                                                             },
+                                                             {
+                                                                 "method":  "POST",
+                                                                 "path":  "/formatos/A/reservas/actividad"
+                                                             },
+                                                             {
+                                                                 "method":  "PATCH",
+                                                                 "path":  "/formatos/A/bloques"
+                                                             }
+                                                         ],
+                                            "efCommands":  92
+                                        }
+                                    ],
+                          "errors":  [
+
+                                     ],
+                          "passed":  true
+                      },
+    "browserAfter":  {
+                         "synthetic":  true,
+                         "phase":  "after",
+                         "instrumented":  true,
+                         "cases":  [
+                                       {
+                                           "records":  20,
+                                           "mountMs":  1903.1072999999997,
+                                           "panels":  1,
+                                           "keystrokes":  58,
+                                           "inputToFrame":  {
+                                                                "averageMs":  14.658620692532638,
+                                                                "p95Ms":  22.200000047683716,
+                                                                "samples":  58
+                                                            },
+                                           "renders":  {
+                                                           "editor":  59,
+                                                           "rows":  {
+                                                                        "identificacion:synthetic-0":  59
+                                                                    }
+                                                       },
+                                           "typingRequests":  [
+                                                                  {
+                                                                      "method":  "POST",
+                                                                      "path":  "/formatos/A/reservas/actividad"
+                                                                  }
+                                                              ],
+                                           "requests":  [
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/form-events/negotiate"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/estado"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/user/photo"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/participantes/316990B4A4B19242291A033E4519E8F6C77C95835BA96DBBBC58970CB9E0DD11/foto"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas/actividad"
+                                                            },
+                                                            {
+                                                                "method":  "PATCH",
+                                                                "path":  "/formatos/A/bloques"
+                                                            }
+                                                        ],
+                                           "efCommands":  95
+                                       },
+                                       {
+                                           "records":  100,
+                                           "mountMs":  1270.6756000000005,
+                                           "panels":  1,
+                                           "keystrokes":  58,
+                                           "inputToFrame":  {
+                                                                "averageMs":  14.686206891618927,
+                                                                "p95Ms":  19.700000047683716,
+                                                                "samples":  58
+                                                            },
+                                           "renders":  {
+                                                           "editor":  59,
+                                                           "rows":  {
+                                                                        "identificacion:synthetic-0":  59
+                                                                    }
+                                                       },
+                                           "typingRequests":  [
+                                                                  {
+                                                                      "method":  "POST",
+                                                                      "path":  "/formatos/A/reservas/actividad"
+                                                                  }
+                                                              ],
+                                           "requests":  [
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/form-events/negotiate"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/estado"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/user/photo"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/participantes/316990B4A4B19242291A033E4519E8F6C77C95835BA96DBBBC58970CB9E0DD11/foto"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas/actividad"
+                                                            },
+                                                            {
+                                                                "method":  "PATCH",
+                                                                "path":  "/formatos/A/bloques"
+                                                            }
+                                                        ],
+                                           "efCommands":  95
+                                       },
+                                       {
+                                           "records":  200,
+                                           "mountMs":  1295.6795999999995,
+                                           "panels":  1,
+                                           "keystrokes":  58,
+                                           "inputToFrame":  {
+                                                                "averageMs":  20.182758625211388,
+                                                                "p95Ms":  27.40000009536743,
+                                                                "samples":  58
+                                                            },
+                                           "renders":  {
+                                                           "editor":  58,
+                                                           "rows":  {
+                                                                        "identificacion:synthetic-0":  58
+                                                                    }
+                                                       },
+                                           "typingRequests":  [
+                                                                  {
+                                                                      "method":  "POST",
+                                                                      "path":  "/formatos/A/reservas/actividad"
+                                                                  }
+                                                              ],
+                                           "requests":  [
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/form-events/negotiate"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/estado"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/user/photo"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas"
+                                                            },
+                                                            {
+                                                                "method":  "GET",
+                                                                "path":  "/formatos/A/participantes/316990B4A4B19242291A033E4519E8F6C77C95835BA96DBBBC58970CB9E0DD11/foto"
+                                                            },
+                                                            {
+                                                                "method":  "POST",
+                                                                "path":  "/formatos/A/reservas/actividad"
+                                                            },
+                                                            {
+                                                                "method":  "PATCH",
+                                                                "path":  "/formatos/A/bloques"
+                                                            }
+                                                        ],
+                                           "efCommands":  104
+                                       }
+                                   ],
+                         "errors":  [
+
+                                    ],
+                         "passed":  true
+                     },
+    "engineBefore":  {
+                         "synthetic":  true,
+                         "scope":  "CPU del motor; sin React, HTTP ni PostgreSQL",
+                         "cases":  [
+                                       {
+                                           "records":  20,
+                                           "samples":  900,
+                                           "averageMs":  0.015505888888888408,
+                                           "p95Ms":  0.021299999999996544
+                                       },
+                                       {
+                                           "records":  100,
+                                           "samples":  900,
+                                           "averageMs":  0.01667366666666592,
+                                           "p95Ms":  0.017299999999977445
+                                       },
+                                       {
+                                           "records":  200,
+                                           "samples":  900,
+                                           "averageMs":  0.022855777777776892,
+                                           "p95Ms":  0.03930000000002565
+                                       }
+                                   ]
+                     },
+    "engineAfter":  {
+                        "synthetic":  true,
+                        "scope":  "CPU del motor; sin React, HTTP ni PostgreSQL",
+                        "cases":  [
+                                      {
+                                          "records":  20,
+                                          "samples":  900,
+                                          "averageMs":  0.011540222222222066,
+                                          "p95Ms":  0.015600000000006276
+                                      },
+                                      {
+                                          "records":  100,
+                                          "samples":  900,
+                                          "averageMs":  0.00787088888888939,
+                                          "p95Ms":  0.010600000000010823
+                                      },
+                                      {
+                                          "records":  200,
+                                          "samples":  900,
+                                          "averageMs":  0.007736000000000256,
+                                          "p95Ms":  0.009799999999984266
+                                      }
+                                  ]
+                    },
+    "limitations":  [
+                        "58 eventos por tamaño, una corrida por fase; latencia a siguiente frame, no un estudio estadístico.",
+                        "Los comandos EF excluyen Npgsql manual y consultas publicadas de Nexo. Incluyen lectura, presencia y guardado.",
+                        "El endpoint protegido de fotografía agrega una solicitud por participante, sin peticiones por tecla.",
+                        "Motor CPU sin React/HTTP/PostgreSQL: 100 cambios de calentamiento y 900 medidos por tamaño."
+                    ]
+}

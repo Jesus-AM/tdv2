@@ -21,7 +21,7 @@
 - Ante fallas de Nexo, denegar acceso; nunca sustituirlo con permisos locales, claims antiguos ni parámetros del navegador.
 - La cuenta Microsoft real y la identidad efectiva de representación son distintas. Auditar ambas; jamás enviar al navegador el token de representación.
 - Administrador: consulta institucional; edición únicamente en una rama válida de nivel 2, incluso al combinar roles. Responsabilidad usa `num_empleado` textual, conservando ceros iniciales.
-- Colaboraciones exigen vínculo local y concesión central vigente coincidente. Las vistas por rol/área son de solo lectura y no conceden permisos.
+- Actualización expresa 2026-10-06: colaboradores admiten dos vías. Una concesión Nexo de origen `central` explícito y rol efectivo coincidente calcula alcance desde la adscripción vigente; no crea vínculos locales. La vía delegada (`aplicacion`) sigue exigiendo vínculo local no revocado y coincidencia de concesión, empleado, adscripción y otorgante; nunca inferir acceso central de un rol efectivo. Las vistas por rol/área son de solo lectura y no conceden permisos.
 - Validar contexto de edición, CSRF, versión y alcance en el servidor. Persistir avance calculado por servidor. No sobrescribir formatos durante sincronizaciones.
 - ILDA conserva todas las filas y columnas, incluidos nulos y vacíos; el límite de 200 filas corresponde al formulario, no a la réplica.
 - Sincronizaciones: fuentes remotas de sólo lectura; páginas/formularios consultan exclusivamente catálogos locales. Publicaciones por fuente, metadatos, resultado y auditoría deben compartir transacción.

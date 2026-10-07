@@ -156,6 +156,10 @@ namespace Tdv2.Migrations
                         .HasColumnType("character varying(512)")
                         .HasColumnName("bloque");
 
+                    b.Property<int>("Color")
+                        .HasColumnType("integer")
+                        .HasColumnName("color");
+
                     b.Property<long>("ContextRevision")
                         .HasColumnType("bigint")
                         .HasColumnName("revision_contexto");
@@ -173,6 +177,15 @@ namespace Tdv2.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("reserva_id");
 
+                    b.Property<string>("Participant")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("participante");
+
+                    b.Property<long?>("ParticipantUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("usuario_participante_id");
+
                     b.Property<string>("SessionHash")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
@@ -187,6 +200,8 @@ namespace Tdv2.Migrations
                         .HasColumnName("version");
 
                     b.HasKey("UnitId", "Key");
+
+                    b.HasIndex("ParticipantUserId");
 
                     b.HasIndex("UnitId", "ExpiresAt");
 
@@ -418,6 +433,48 @@ namespace Tdv2.Migrations
                         .HasDatabaseName("tdv2_oauth_attempts_expiry");
 
                     b.ToTable("tdv2_oauth_attempts", "public");
+                });
+
+            modelBuilder.Entity("Tdv2.Domain.Entities.ProcessSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.PrimitiveCollection<string[]>("ExcludedTypes")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("tipos_excluidos");
+
+                    b.PrimitiveCollection<int[]>("Levels")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("niveles");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("actualizado_en");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("configuracion_procesos", "public", t =>
+                        {
+                            t.HasCheckConstraint("configuracion_procesos_unica_ck", "id = 1 AND version > 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ExcludedTypes = new[] { "N" },
+                            Levels = new[] { 2, 3 },
+                            Version = 1
+                        });
                 });
 
             modelBuilder.Entity("Tdv2.Domain.Entities.ResponsibleUnit", b =>
@@ -921,6 +978,11 @@ namespace Tdv2.Migrations
 
             modelBuilder.Entity("Tdv2.Domain.Entities.FormBlock", b =>
                 {
+                    b.HasOne("Tdv2.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("ParticipantUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Tdv2.Domain.Entities.UnitForm", null)
                         .WithMany()
                         .HasForeignKey("UnitId")

@@ -12,6 +12,14 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
 {
     private DateTime? catalogReadAt;
     private bool unitsRead;
+    private int? participationVersion;
+
+    public async Task<Participation> Participation(CancellationToken cancellation)
+    {
+        var settings = await db.ProcessSettings.AsNoTracking().SingleAsync(cancellation);
+        participationVersion = settings.Version;
+        return new(settings.Version, settings.Levels, settings.ExcludedTypes);
+    }
 
     public async Task<IReadOnlyList<Unit>> Units(CancellationToken cancellation)
     {
@@ -22,7 +30,7 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
             .ToListAsync(cancellation);
         if (rows.Count > 0) { catalogReadAt = rows[0].CatalogDate; unitsRead = true; }
         return rows.Select(r => new Unit(r.Unit.Id, r.Unit.Code, r.Unit.Description, r.Unit.Level ?? 0,
-            r.Unit.ParentId, r.Unit.Year, r.Unit.EmployeeNumber, r.Unit.Present, r.Unit.Status ?? "", r.Unit.Kind)).ToArray();
+            r.Unit.ParentId, r.Unit.Year, r.Unit.EmployeeNumber, r.Unit.Present, r.Unit.Status ?? "", r.Unit.Kind, r.Unit.Level.HasValue)).ToArray();
     }
 
     public async Task<IReadOnlyList<Collaboration>> Collaborations(string email, CancellationToken cancellation) =>
@@ -40,9 +48,17 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
         form.Version, form.Progress, new DateTimeOffset(DateTime.SpecifyKind(form.UpdatedAt!.Value, DateTimeKind.Utc)), form.UpdatedBy,
         form.SubmittedAt, form.SubmissionSnapshot, form.Year, form.SubmittedEffective);
 
+    public async Task<IReadOnlyDictionary<string, StoredForm>> GetMany(string[] units, CancellationToken cancellation) =>
+        (await db.UnitForms.AsNoTracking().Where(f => units.Contains(f.UnitId)).ToListAsync(cancellation)).ToDictionary(f => f.UnitId, Stored);
+
     public async Task LockUnit(string unit, NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken cancellation)
     {
         await state.Guard(connection, transaction, cancellation);
+        // El bloqueo compartido dura sólo la transacción de escritura. Configurar toma el exclusivo:
+        // una autorización calculada antes del cambio nunca confirma una escritura después de él.
+        await using var participation = new NpgsqlCommand("SELECT version FROM configuracion_procesos WHERE id=1 FOR SHARE", connection, transaction);
+        if (Convert.ToInt32(await participation.ExecuteScalarAsync(cancellation)) != participationVersion)
+            throw new DomainProblem(409, "La participación de áreas cambió. Conserva tu propuesta y actualiza el estado.");
         await using var command = new NpgsqlCommand("SELECT id_ur FROM unidades_responsables_poa WHERE id_ur=$1 AND presente AND lower(trim(estatus_ur))='activo' FOR UPDATE", connection, transaction);
         command.Parameters.AddWithValue(unit);
         if (await command.ExecuteScalarAsync(cancellation) is null) throw new DomainProblem(403, "La UR ya no está activa.");

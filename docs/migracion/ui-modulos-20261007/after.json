@@ -1,0 +1,370 @@
+{
+  "phase": "after",
+  "synthetic": true,
+  "browser": "154.0.4258.37",
+  "completed": true,
+  "screenshots": [
+    {
+      "name": "after-inicio-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 93
+    },
+    {
+      "name": "after-configuracion-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 93
+    },
+    {
+      "name": "after-sincronizaciones-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-pruebas-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-procesos-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-rol-area-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 161.59375
+    },
+    {
+      "name": "after-representacion-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 161.59375
+    },
+    {
+      "name": "after-inicio-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 93
+    },
+    {
+      "name": "after-configuracion-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 93
+    },
+    {
+      "name": "after-sincronizaciones-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-pruebas-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-procesos-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-rol-area-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-representacion-768",
+      "width": 768,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-inicio-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 97
+    },
+    {
+      "name": "after-configuracion-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 97
+    },
+    {
+      "name": "after-sincronizaciones-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-pruebas-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-procesos-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-rol-area-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-representacion-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-inicio-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 97
+    },
+    {
+      "name": "after-configuracion-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 97
+    },
+    {
+      "name": "after-sincronizaciones-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-pruebas-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-procesos-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-rol-area-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-representacion-1920",
+      "width": 1920,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-inicio-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 194
+    },
+    {
+      "name": "after-configuracion-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 194
+    },
+    {
+      "name": "after-sincronizaciones-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 282
+    },
+    {
+      "name": "after-pruebas-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 282
+    },
+    {
+      "name": "after-procesos-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 282
+    },
+    {
+      "name": "after-rol-area-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 282
+    },
+    {
+      "name": "after-representacion-zoom200",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 138,
+      "titleTop": 282
+    },
+    {
+      "name": "after-account-menu-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-process-confirmation-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-sync-loading-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-sync-error-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-sync-error-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-representation-warning-1366",
+      "width": 1366,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 141
+    },
+    {
+      "name": "after-long-text-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 137
+    },
+    {
+      "name": "after-area-selected-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 161.59375
+    },
+    {
+      "name": "after-permissions-360",
+      "width": 360,
+      "overflow": false,
+      "h1Count": 1,
+      "barBottom": 69,
+      "titleTop": 93
+    }
+  ],
+  "checks": [
+    "Navegación, selección, teclado, ruta al padre y menú de cuenta sin desplazamiento",
+    "Select, cambios pendientes, vista previa y Cancelar conservan configuración",
+    "Carga sin salto, error real conserva borrador y guardado de programación aislada",
+    "Representación conserva búsqueda y advertencia de escritura real",
+    "Móvil, menú jerárquico, movimiento reducido y textos largos",
+    "Sin permiso de submódulo: menú y acceso directo respetan Nexo sintético",
+    "7 pantallas × 4 anchos + ampliación CSS 200%, sin errores JS"
+  ],
+  "errors": []
+}

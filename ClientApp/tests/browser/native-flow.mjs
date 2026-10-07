@@ -3,6 +3,9 @@ import { chromium, expect } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { watchStream, streamState, cancelStream } from './watch-stream.mjs';
+import { verifyDirectDeletion } from './deletion-flow.mjs';
+import { verifyCentralCollaboration } from './central-collaboration-flow.mjs';
+import { verifyParticipants } from './participant-flow.mjs';
 
 const origin = process.env.TDV2_BROWSER_ORIGIN;
 const fixtureKey = process.env.TDV2_BROWSER_KEY;
@@ -70,13 +73,6 @@ async function header(target = page) {
 }
 async function activate(input) {
     await input.focus(); await expect(input).toHaveJSProperty('readOnly', false);
-}
-async function activateRow(button) {
-    const row = button.locator('xpath=ancestor::tr');
-    const input = row.locator('input:not([type="hidden"]), textarea').first();
-    await input.focus();
-    await expect(row).toHaveAttribute('data-edit-state', 'owned');
-    await expect(input).toBeFocused();
 }
 async function savedAfter(work, status = 200, target = page) {
     const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
@@ -175,7 +171,10 @@ try {
         await expect(otherInput).toHaveValue('Ganadora React');
         await expect(other.getByRole('button', { name: 'Retirar proceso 1' })).toBeDisabled();
         const occupied = otherInput.locator('xpath=ancestor::tr');
-        await expect(occupied).toHaveCSS('background-color', 'rgb(255, 248, 232)');
+        await expect(occupied).toHaveCSS('outline-width', '2px');
+        await expect(occupied.locator('.MuiAvatar-root')).toBeVisible();
+        await expect(occupied.locator('.MuiAvatar-root')).toHaveCSS('width', '26px');
+        assert.match(await occupied.evaluate(el => getComputedStyle(el).getPropertyValue('--participant-color')), /^#[0-9a-f]{6}$/i);
         await other.setViewportSize({ width: 390, height: 844 }); await other.emulateMedia({ reducedMotion: 'reduce' });
         await expect(occupied).toHaveCSS('transition-duration', '0s');
         await other.screenshot({ path: path.join(artifacts, 'reserva-otra-pestana-movil.png'), fullPage: true });
@@ -358,7 +357,8 @@ try {
             await page.getByRole('tab', { name: tab, exact: true }).click();
             const before = (await stored()).contenido;
             const button = page.getByRole('button', { name: label, exact: true });
-            await activateRow(button);
+            await expect(button.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'idle');
+            const reservations = editingRequests.filter(r => r.path.endsWith('/reservas')).length;
             await expect(button).toBeEnabled();
             await expect(button).toHaveCSS('color', 'rgb(211, 47, 47)');
             await button.click();
@@ -368,8 +368,11 @@ try {
             if (tab === 'Identificación general') await expect(dialog.getByText(/su evaluación/)).toBeVisible();
             await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
             assert.deepEqual((await stored()).contenido, before);
+            assert.equal(editingRequests.filter(r => r.path.endsWith('/reservas')).length, reservations);
         }
     });
+    await verifyParticipants({ check, page, context, origin, finish, artifacts });
+    await verifyDirectDeletion({ check, page, context, browser, origin, control, stored, finish, savedAfter, isolateMicrosoft, errors, artifacts });
     await check('criterios individuales mantienen reservas independientes y guardan sin sobrescribirse', async () => {
         await finish(); await page.getByRole('tab', { name: 'Evaluación', exact: true }).click();
         const first = page.locator('[data-edit-block="evaluaciones:PO-01:0"]');
@@ -392,10 +395,8 @@ try {
             await savedAfter(() => page.getByLabel('Trámite / servicio ' + number, { exact: true }).fill(label));
             await finish();
         }
-        await activateRow(page.getByRole('button', { name: 'Retirar proceso 2', exact: true }));
         await page.getByRole('button', { name: 'Retirar proceso 2', exact: true }).click();
         const other = await context.newPage(); await other.goto(origin + '/formatos/A'); await header(other);
-        await activateRow(other.getByRole('button', { name: 'Retirar proceso 1', exact: true }));
         await other.getByRole('button', { name: 'Retirar proceso 1', exact: true }).click();
         await savedAfter(() => other.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click(), 200, other);
         await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveValue('Proceso elegido');
@@ -406,7 +407,6 @@ try {
         await other.close(); await finish();
         for (const [tab, section] of [['Sistemas y herramientas', 'sistemas'], ['Datos', 'datos'], ['Acuerdos', 'acuerdos']]) {
             await page.getByRole('tab', { name: tab, exact: true }).click();
-            await activateRow(page.getByRole('button', { name: 'Retirar fila 1 de ' + section, exact: true }));
             await page.getByRole('button', { name: 'Retirar fila 1 de ' + section, exact: true }).click();
             await savedAfter(() => page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click());
             assert.equal((await stored()).contenido[section].length, 0);
@@ -471,6 +471,7 @@ try {
         assert.deepEqual(content.encabezado, { fecha: '', area: '', responsable: '' });
         await page.screenshot({ path: path.join(artifacts, 'formato-enviado.png'), fullPage: true });
     });
+    await verifyCentralCollaboration({ page, context, origin, control, check });
     await check('logout desde React revoca sesión y redirige a Microsoft', async () => {
         const observer = await context.newPage(); await observer.goto(origin + '/formatos/A');
         const stream = await watchStream(observer);

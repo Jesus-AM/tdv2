@@ -86,7 +86,9 @@ public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogge
         {
             await ApplicationId(cancellation);
             await using var connection = await connections.Open("Nexo", cancellation);
-            await using var command = new NpgsqlCommand("SELECT concesion_id::bigint,rol_id::bigint,id_ur_acceso,origen FROM public.nexo_concesiones WHERE email = $1", connection);
+            // La publicación distingue central/aplicacion. No inferir origen a partir de usuario_rol.
+            // Las concesiones históricas de entrada sin rol no habilitan un alcance de colaboración.
+            await using var command = new NpgsqlCommand("SELECT concesion_id::bigint,rol_id::bigint,id_ur_acceso,origen FROM public.nexo_concesiones WHERE email = $1 AND rol_id IS NOT NULL", connection);
             command.Parameters.AddWithValue(Email(email));
             await using var reader = await command.ExecuteReaderAsync(cancellation);
             var result = new List<Grant>();

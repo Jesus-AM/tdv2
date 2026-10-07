@@ -1,14 +1,14 @@
 namespace Tdv2.Domain;
 
 public sealed record Unit(string Id, string Code, string? Description, int Level, string? Parent,
-    int Year, string? Employee = null, bool Present = true, string Status = "Activo", string? Kind = null)
+    int Year, string? Employee = null, bool Present = true, string Status = "Activo", string? Kind = null, bool LevelKnown = true)
 {
     public object Public() => new
     {
         id_ur = Id,
         cve_ur = Code,
         desc_ur = Description ?? Code,
-        nivel_ur = Level,
+        nivel_ur = LevelKnown ? (int?)Level : null,
         tipo_ur = Kind,
         id_ur_pertenece = Parent,
         ejercicio = Year
@@ -25,6 +25,7 @@ public sealed record Profile(Person User, IReadOnlyList<Role> Roles, IReadOnlyLi
     // El rol genérico «supervisor» no se eleva: puede pertenecer a otro catálogo compartido.
     public bool SupervisingResponsible => Has("responsable_ur_supervisor") || Has("responsable_ur_institucional");
     public bool Responsible => Has("responsable_ur") || SupervisingResponsible;
+    public bool Collaborator => Has("colaborador_local") || Has("colaborador_dependencias");
     public bool InstitutionalRead => Has("administrador") || Has("consulta_institucional") || SupervisingResponsible;
 }
 public sealed record Collaboration(string Email, string Employee, string Origin, string Scope,
@@ -33,14 +34,16 @@ public sealed record Grant(long Id, long RoleId, string OriginUnit, string Origi
 public sealed record Scope(Unit Unit, bool Edit, bool Own = false);
 
 /// <summary>Resuelve jerarquía y responsabilidades sólo entre UR presentes y activas.</summary>
-public sealed class UnitDirectory(IEnumerable<Unit> units)
+public sealed class UnitDirectory(IEnumerable<Unit> units, Participation? participation = null)
 {
+    public Participation Participation { get; } = participation ?? Participation.Default;
+    public bool Participates(Unit unit) => Participation.Includes(unit);
     public IReadOnlyDictionary<string, Unit> Units { get; } = units
         .Where(u => u.Present && u.Status.Trim().Equals("activo", StringComparison.OrdinalIgnoreCase))
         .ToDictionary(u => u.Id, StringComparer.Ordinal);
     public Unit? Get(string? id) => id is not null && Units.TryGetValue(id, out var unit) ? unit : null;
-    // Sólo el tipo N se excluye; 0 sigue siendo válido. No alterar el dato de origen ni retirar nodos de la jerarquía.
-    // TIPO_UR es independiente de NIVEL_UR y de los ceros iniciales de CVE_UR.
+    // Contrato histórico de delegación de Nexo y anclas institucionales: no se generaliza al configurar.
+    // Para ofrecer/autorizar formatos se usa Participates, con la política vigente, no estos predicados estáticos.
     public static bool IsEligible(Unit unit) => !string.Equals(unit.Kind?.Trim(), "N", StringComparison.OrdinalIgnoreCase);
     public static bool IsForm(Unit unit) => IsEligible(unit) && unit.Level is 2 or 3;
     private IEnumerable<Unit> Ancestors(string? id)
@@ -49,15 +52,17 @@ public sealed class UnitDirectory(IEnumerable<Unit> units)
         while (Get(id) is { } unit && seen.Add(unit.Id)) { yield return unit; id = unit.Parent; }
     }
     public bool Within(string id, string root) => Ancestors(id).Any(u => u.Id == root);
-    public Unit? FormUnit(string? id) => Ancestors(id).FirstOrDefault(IsForm);
-    public Unit? LevelTwo(string? id) => Ancestors(id).FirstOrDefault(u => u.Level == 2 && IsEligible(u));
-    public string? DirectoryParent(Unit unit) => unit.Level == 2 ? null : LevelTwo(unit.Parent)?.Id;
+    // Excluir una adscripción nunca habilita el formato de un superior sobre su rama de nivel 2.
+    public Unit? FormUnit(string? id) => Ancestors(id).TakeWhile(u => u.Level >= Math.Min(2, Get(id)?.Level ?? 2)).FirstOrDefault(Participates);
+    public Unit? LevelTwo(string? id) => Ancestors(id).FirstOrDefault(u => u.Level == 2);
+    public string? DirectoryParent(Unit unit) => unit.Level == Participation.Levels.DefaultIfEmpty(2).Min() ? null : Ancestors(unit.Parent).FirstOrDefault(Participates)?.Id;
     public Unit? LocalCollaborationUnit(string? origin, string grantor)
     {
         var root = Get(grantor);
         if (root is null || !IsForm(root) || origin is null || !Within(origin, grantor)) return null;
         // El encargado nivel 3 recibe ayuda exclusivamente en su propio formato.
-        var owner = root.Level == 3 ? root : FormUnit(origin);
+        // La delegación conserva su contrato de niveles 2/3; configurar no la generaliza ni reasigna vínculos.
+        var owner = root.Level == 3 ? root : Ancestors(origin).FirstOrDefault(IsForm);
         return owner is not null && Within(owner.Id, grantor) ? owner : null;
     }
     // El empleado es una clave textual institucional: convertirlo a número perdería ceros y ampliaría accesos.
@@ -67,7 +72,7 @@ public sealed class UnitDirectory(IEnumerable<Unit> units)
         && user.Origin is "asignacion_manual" or "responsable_ur" or "adscripcion" ? Get(user.UnitId) : null;
     public Unit? AdministratorRoot(Person user) => LevelTwo(Affiliation(user)?.Id);
     public IEnumerable<Unit> Responsibilities(Person user) => Employee(user) is { } employee
-        ? Units.Values.Where(u => IsForm(u) && u.Employee == employee) : [];
+        ? Units.Values.Where(u => (IsForm(u) || Participates(u)) && u.Employee == employee) : [];
 }
 
 public static class ModuleAccess
@@ -76,6 +81,7 @@ public static class ModuleAccess
     {
         ["procesos_operativos"] = ("/inicio", null, false),
         ["configuracion"] = ("/configuracion", null, true),
+        ["configuracion_procesos"] = ("/configuracion/procesos", "configuracion", true),
         ["sincronizaciones"] = ("/configuracion/sincronizaciones", "configuracion", true),
         ["pruebas_acceso"] = ("/configuracion/pruebas-acceso", "configuracion", true)
     };
@@ -111,25 +117,55 @@ public sealed class FormAccess(UnitDirectory directory)
         var valid = new List<(string Kind, Unit Unit)>();
         if (!profile.Has("administrador"))
         {
-            // Ni el vínculo local ni la concesión central bastan por separado. Deben coincidir
+            var currentGrants = (grants ?? []).ToArray();
+            // Sólo origen central explícito prueba una asignación administrativa. Los roles efectivos
+            // también incluyen delegaciones: Has por sí solo nunca habilita esta vía.
+            if (ModuleAccess.Allows(profile, "procesos_operativos") && directory.Affiliation(profile.User) is { } affiliation)
+                foreach (var role in profile.Roles.Where(r => currentGrants.Any(g => g.Id > 0 && g.RoleId == r.Id && g.Origin == "central")))
+                {
+                    // id_ur_acceso describe el otorgamiento histórico. El alcance central se recalcula
+                    // con ID_UR vigente y sus padres institucionales, nunca con CVE_UR ni prefijos.
+                    if (role.Key == "colaborador_local" && directory.FormUnit(affiliation.Id) is { } local)
+                        valid.Add(("local", local));
+                    if (role.Key == "colaborador_dependencias" && directory.LevelTwo(affiliation.Id) is { } root)
+                    {
+                        if (directory.Participates(root)) valid.Add(("local", root));
+                        // Sólo participantes de esta rama institucional; otro nivel 2 anidado
+                        // no amplía el permiso. La delegación conserva su contrato independiente.
+                        valid.AddRange(directory.Units.Values.Where(u => directory.Participates(u)
+                            && directory.LevelTwo(u.Id)?.Id == root.Id).Select(u => ("local", u)));
+                    }
+                }
+            // Para la vía delegada, ni el vínculo local ni la concesión bastan por separado. Deben coincidir
             // empleado, adscripción, rol, alcance y otorgante para resistir revocaciones y traslados.
             foreach (var link in collaborations ?? [])
             {
                 var roleKey = link.Kind switch { "local" => "colaborador_local", "dependencias" => "colaborador_dependencias", _ => "" };
                 var role = profile.Roles.FirstOrDefault(r => r.Key == roleKey);
-                var grant = (grants ?? []).FirstOrDefault(g => g.Id == link.GrantId);
+                var grant = currentGrants.FirstOrDefault(g => g.Id == link.GrantId);
                 if (link.Revoked || link.Email != profile.User.Email || role is null || grant is null
                     || role.Id != link.RoleId || grant.RoleId != link.RoleId || grant.Origin != "aplicacion"
                     || grant.OriginUnit != link.Origin || directory.Affiliation(profile.User)?.Id != link.Origin
                     || UnitDirectory.Employee(profile.User) != link.Employee
                     || !directory.Within(link.Origin, link.Grantor) || !directory.Within(link.Scope, link.Grantor)
-                    || directory.Get(link.Scope) is not { } unit || !UnitDirectory.IsForm(unit)) continue;
+                    || directory.Get(link.Scope) is not { } unit || !UnitDirectory.IsForm(unit) || !directory.Participates(unit)) continue;
                 if (link.Kind == "local" && directory.LocalCollaborationUnit(link.Origin, link.Grantor)?.Id == link.Scope
                     || link.Kind == "dependencias" && unit.Level == 2 && link.Grantor == link.Scope)
                     valid.Add((link.Kind, unit));
             }
         }
         return Compose(profile, directory.Responsibilities(profile.User), valid);
+    }
+    public string NoScopeReason(Profile profile)
+    {
+        if (!profile.Collaborator) return "No tienes formatos asignados. Consulta tu acceso con el responsable del área.";
+        if (UnitDirectory.Employee(profile.User) is null)
+            return "No se pudo validar tu cuenta individual y número de empleado. Solicita su revisión en Nexo.";
+        if (directory.Affiliation(profile.User) is not { } affiliation)
+            return "No se pudo determinar tu adscripción vigente. Solicita la revisión de tu UR en Nexo y del catálogo institucional.";
+        if (directory.FormUnit(affiliation.Id) is null || !profile.Has("colaborador_local") && directory.LevelTwo(affiliation.Id) is null)
+            return "Tu adscripción no permite resolver un área elegible con formato. Solicita la revisión de la jerarquía institucional.";
+        return "No se confirmó una asignación central o una colaboración delegada vigente para tus formatos. Consulta al administrador de Nexo o al responsable del área.";
     }
     public IReadOnlyDictionary<string, Scope> Scenario(Profile profile, Unit origin)
     {
@@ -146,21 +182,21 @@ public sealed class FormAccess(UnitDirectory directory)
         if (profile.Has("administrador"))
         {
             var root = directory.AdministratorRoot(profile.User);
-            foreach (var unit in directory.Units.Values.Where(UnitDirectory.IsForm))
+            foreach (var unit in directory.Units.Values.Where(directory.Participates))
                 Add(unit, root is not null && directory.Within(unit.Id, root.Id), root is not null && directory.Within(unit.Id, root.Id));
             return result; // La rama del administrador limita la edición incluso al combinar otros roles.
         }
         if (profile.Responsible)
             foreach (var root in responsibilities)
             {
-                Add(root, true);
+                if (directory.Participates(root)) Add(root, true);
                 if (root.Level == 2)
-                    foreach (var unit in directory.Units.Values.Where(u => UnitDirectory.IsForm(u) && directory.Within(u.Id, root.Id))) Add(unit, true);
+                    foreach (var unit in directory.Units.Values.Where(u => directory.Participates(u) && directory.Within(u.Id, root.Id))) Add(unit, true);
             }
         foreach (var link in links)
-            if (link.Kind == "local") Add(link.Unit, true);
-            else foreach (var unit in directory.Units.Values.Where(u => UnitDirectory.IsForm(u) && directory.Within(u.Id, link.Unit.Id))) Add(unit, true);
-        if (profile.InstitutionalRead) foreach (var unit in directory.Units.Values.Where(UnitDirectory.IsForm)) Add(unit, false, false);
+            if (link.Kind == "local") { if (directory.Participates(link.Unit)) Add(link.Unit, true); }
+            else foreach (var unit in directory.Units.Values.Where(u => UnitDirectory.IsForm(u) && directory.Participates(u) && directory.Within(u.Id, link.Unit.Id))) Add(unit, true);
+        if (profile.InstitutionalRead) foreach (var unit in directory.Units.Values.Where(directory.Participates)) Add(unit, false, false);
         return result;
     }
 }

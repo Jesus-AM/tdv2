@@ -14,11 +14,19 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Tdv2.Infrastructure;
 using Tdv2.Security;
 using Tdv2.Synchronization;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 namespace Tdv2.NativeVerification;
+
+internal sealed class SyntheticClock : TimeProvider
+{
+    internal TimeSpan Offset;
+    public override DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow + Offset;
+}
 
 internal sealed class FakeMicrosoft : HttpMessageHandler
 {
@@ -27,8 +35,12 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
     internal string Email = "persona@uacj.mx";
     internal string Id = ObjectId;
     internal string Mail = "persona@uacj.mx";
-    internal bool TokenFailure, PhotoFailure, RotateRefresh = true;
-    internal int Exchanges, Refreshes;
+    internal bool TokenFailure, PhotoFailure, PhotoAvailable, RotateRefresh = true;
+    internal int Exchanges, Refreshes, PhotoRequests, MeRequests;
+    internal string? MeObjectIdOverride;
+    private sealed record Account(string Id, string Email, string Mail);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Account> accounts = new();
+    internal const string Pixel = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6r0sAAAAASUVORK5CYII=";
     internal string? ExpectedChallenge;
     internal string LastVerifier = "";
     internal string? LoginHint = "opaque-synthetic-real-account";
@@ -56,8 +68,14 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
             else if (form["grant_type"] == "refresh_token") { Refreshes++; }
             else throw new InvalidOperationException("Unexpected grant type.");
             if (TokenFailure) return Json(new { error = "synthetic_provider_error_secret" }, HttpStatusCode.BadRequest);
-            var payload = new Dictionary<string, object> { ["token_type"] = "Bearer", ["access_token"] = "synthetic-access-" + Refreshes, ["expires_in"] = 3600 };
-            if (form["grant_type"] == "authorization_code" || RotateRefresh) payload["refresh_token"] = "synthetic-refresh-" + Refreshes;
+            var account = form["grant_type"] == "refresh_token" && accounts.TryGetValue(form["refresh_token"].ToString(), out var previous)
+                ? previous : new Account(Id, Email, Mail);
+            var suffix = account.Id == ObjectId ? "" : "-" + account.Id;
+            var accessToken = "synthetic-access-" + Refreshes + suffix;
+            var refreshToken = "synthetic-refresh-" + Refreshes + suffix;
+            accounts[accessToken] = account; accounts[refreshToken] = account;
+            var payload = new Dictionary<string, object> { ["token_type"] = "Bearer", ["access_token"] = accessToken, ["expires_in"] = 3600 };
+            if (form["grant_type"] == "authorization_code" || RotateRefresh) payload["refresh_token"] = refreshToken;
             if (form["grant_type"] == "authorization_code")
             {
                 var claims = new Dictionary<string, object> { ["oid"] = Id, ["tid"] = Tenant, ["nonce"] = InvalidNonce ? "invalid" : ProtectedValues.Hash("oidc:" + LastVerifier) };
@@ -72,8 +90,14 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
         if (request.RequestUri.Host == "graph.microsoft.com")
         {
             if (request.Headers.Authorization?.Scheme != "Bearer") throw new InvalidOperationException("Graph must authenticate the request.");
-            if (request.RequestUri.AbsolutePath == "/v1.0/me") return Json(new { id = Id, mail = Mail, userPrincipalName = Email, displayName = "Untrusted Graph display name" });
-            if (request.RequestUri.AbsolutePath == "/v1.0/me/photos/48x48/$value") return new HttpResponseMessage(PhotoFailure ? HttpStatusCode.Unauthorized : HttpStatusCode.NotFound);
+            var account = accounts.GetValueOrDefault(request.Headers.Authorization.Parameter!) ?? new Account(Id, Email, Mail);
+            if (request.RequestUri.AbsolutePath == "/v1.0/me") { Interlocked.Increment(ref MeRequests); return Json(new { id = MeObjectIdOverride ?? account.Id, mail = account.Mail, userPrincipalName = account.Email, displayName = "Untrusted Graph display name" }); }
+            if (request.RequestUri.AbsolutePath == "/v1.0/me/photos/48x48/$value") {
+                Interlocked.Increment(ref PhotoRequests);
+                if (PhotoFailure || !PhotoAvailable) return new HttpResponseMessage(PhotoFailure ? HttpStatusCode.Unauthorized : HttpStatusCode.NotFound);
+                var photo = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Convert.FromBase64String(Pixel)) };
+                photo.Content.Headers.ContentType = new("image/png"); return photo;
+            }
         }
         throw new InvalidOperationException("Unexpected outbound request; real services are forbidden in this suite.");
     }
@@ -84,27 +108,39 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
 {
     internal FakeMicrosoft Microsoft { get; } = new();
     internal SyntheticSources Sources { get; } = new();
+    internal ReadCounter Reads { get; } = new();
+    internal SyntheticClock Clock { get; } = new();
     internal string ControlToken { get; } = ProtectedValues.Random();
     internal string PublicOrigin = "https://localhost";
-    internal bool Browser;
+    internal bool Browser, Vite;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(new SyntheticDiagnostics()); });
-        builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        builder.ConfigureAppConfiguration((host, configuration) => {
+            // El builder se crea en Testing y nunca carga User Secrets. Sólo esta prueba habilita
+            // el proxy de desarrollo después de sustituir la configuración por fuentes sintéticas.
+            if (Vite) host.HostingEnvironment.EnvironmentName = "Development";
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:Tdv2"] = database.AppConnection, ["ConnectionStrings:Nexo"] = database.NexoConnection,
             ["Microsoft:TenantId"] = FakeMicrosoft.Tenant, ["Microsoft:ClientId"] = "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
             ["Microsoft:ClientSecret"] = "synthetic-only", ["Microsoft:PublicOrigin"] = PublicOrigin,
-            ["Synchronization:IldaEnabled"] = "true"
-        }));
+            ["Synchronization:IldaEnabled"] = "true", ["ReactDevelopment:UseVite"] = Vite.ToString()
+        }); });
         builder.ConfigureTestServices(services =>
         {
+            services.AddSingleton(Reads);
+            services.AddSingleton<TimeProvider>(Clock);
+            services.AddDbContext<Tdv2DbContext>(options => options.AddInterceptors(Reads));
             // Production auth, Nexo queries, cookie sessions and stores stay registered. Only Microsoft's HTTPS peer is simulated.
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
             services.AddSingleton<ISourceConnections>(Sources);
             services.AddHttpClient<MicrosoftClient>().ConfigurePrimaryHttpMessageHandler(() => Microsoft);
-            if (Browser) services.AddSingleton<IStartupFilter>(new BrowserControls(database, ControlToken, Sources));
+            if (Browser) {
+                Microsoft.PhotoAvailable = true;
+                services.AddSingleton<IStartupFilter>(new BrowserControls(database, ControlToken, Sources));
+            }
         });
     }
     internal HttpClient Client() => CreateClient(new() { BaseAddress = new Uri(PublicOrigin), AllowAutoRedirect = false, HandleCookies = true });
@@ -148,6 +184,24 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
             if (http.Request.Headers["X-Fixture-Key"] != token) { http.Response.StatusCode = 403; return; }
             switch (action.Value)
             {
+                case "/performance-seed":
+                    var count = int.TryParse(http.Request.Query["rows"], out var requested) ? requested : 200;
+                    if (count is < 1 or > 200) { http.Response.StatusCode = 400; return; }
+                    var large = http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>().Blank(new("A", "100", "Área sintética A", 2, null, 2026));
+                    foreach (var section in new[] { "identificacion", "sistemas", "datos", "acuerdos" })
+                    {
+                        var template = large[section]![0]!.DeepClone(); var rows = large[section]!.AsArray(); rows.Clear();
+                        var sectionCount = http.Request.Query["single"] == "true" && section != "identificacion" ? 0 : count;
+                        for (var i = 0; i < sectionCount; i++) { var row = template.DeepClone(); row["id"] = "synthetic-" + i; rows.Add(row); }
+                    }
+                    await database.Sql("DELETE FROM formato_bloques WHERE id_ur='A'; DELETE FROM formato_operaciones WHERE id_ur='A'; DELETE FROM formato_posiciones WHERE id_ur='A'; DELETE FROM formatos_ur WHERE id_ur='A'");
+                    await database.Sql("INSERT INTO formatos_ur(id_ur,contenido,version,porcentaje,actualizado_por,created_at,updated_at,ejercicio) VALUES('A',$1::json,0,0,'persona@uacj.mx',now(),now(),2026)", large.ToJsonString());
+                    break;
+                case "/capture-metrics":
+                    var reads = http.RequestServices.GetRequiredService<ReadCounter>();
+                    if (HttpMethods.IsPost(http.Request.Method)) reads.Count = 0;
+                    await http.Response.WriteAsJsonAsync(new { efCommands = reads.Count }); return;
+                case "/configuration-admin": await NativeTests.ConfigurationAdmin(database); break;
                 case "/scope-level3":
                     await database.Sql("""
                         UPDATE fixture_roles SET rol_clave='responsable_ur_supervisor',rol_nombre='Responsable de UR con supervisión' WHERE email='persona@uacj.mx';
@@ -190,6 +244,11 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                     var payload=System.Text.Json.Nodes.JsonNode.Parse(syncReport!.ToString()!)!.AsObject(); payload["remoteCommands"]=sources.Queries.Count;
                     await http.Response.WriteAsJsonAsync(payload); return;
                 case "/module-off": await database.Sql("DELETE FROM fixture_module_roles"); break;
+                case "/central-collaborator": await NativeTests.CentralCollaborator(database); break;
+                case "/central-remove": await database.Sql("DELETE FROM fixture_grants WHERE origen='central'"); break;
+                case "/central-no-employee": await database.Sql("UPDATE fixture_users SET num_empleado=NULL WHERE email='persona@uacj.mx'"); break;
+                case "/central-restore-responsible":
+                    await database.Sql("UPDATE fixture_roles SET rol_id=30,rol_clave='responsable_ur',rol_nombre='Responsable'; UPDATE fixture_users SET num_empleado='0001' WHERE email='persona@uacj.mx'; DELETE FROM fixture_grants WHERE origen='central'"); break;
                 case "/module-on": await database.Sql("INSERT INTO fixture_module_roles VALUES(30,9)"); break;
                 case "/user-off": await database.Sql("DELETE FROM fixture_users"); break;
                 case "/user-on": await database.Sql("INSERT INTO fixture_users VALUES(10,20,'persona@uacj.mx','Persona sintética','individual','0001','A4','adscripcion')"); break;

@@ -14,7 +14,8 @@ public static class AccessBoundary
         var access = http.RequestServices.GetRequiredService<RequestAccess>();
         if (path.StartsWithSegments("/configuracion") || path.StartsWithSegments("/actuar-como-usuario") || path.StartsWithSegments("/vista-prueba"))
             await access.EnsureOwn(http);
-        if (path.StartsWithSegments("/configuracion/sincronizaciones")) await access.Profile(http, "sincronizaciones");
+        if (path.StartsWithSegments("/configuracion/procesos")) await access.Profile(http, "configuracion_procesos");
+        else if (path.StartsWithSegments("/configuracion/sincronizaciones")) await access.Profile(http, "sincronizaciones");
         else if (path.StartsWithSegments("/configuracion/pruebas-acceso") || path.StartsWithSegments("/actuar-como-usuario") || path.StartsWithSegments("/vista-prueba"))
         {
             await access.Profile(http, "pruebas_acceso");

@@ -17,9 +17,11 @@ export function displayUnitCode(code: string): string {
     return /^\d+$/.test(value) ? value.replace(/^0+(?=\d)/, '') : value;
 }
 
-export function eligibleArea(unit: Unit): boolean {
-    // Tipo N no se ofrece como área; tipo 0 sí puede tener formato. Se conserva el valor original.
-    return unit.tipo_ur?.trim().toUpperCase() !== 'N';
+export type Participation = { levels: number[]; excludedTypes: string[] };
+export const defaultParticipation: Participation = { levels: [2, 3], excludedTypes: ['N'] };
+export function eligibleArea(unit: Unit, policy: Participation = defaultParticipation): boolean {
+    // La política del servidor compara tipos normalizados; la clave institucional conserva su valor.
+    return !policy.excludedTypes.includes((unit.tipo_ur || '').trim().toUpperCase());
 }
 
 export function normalizeAreaText(value: string): string {
@@ -52,26 +54,26 @@ export function matchesForm(form: FormRow | null, filter: AreaFilter): boolean {
 }
 
 // La jerarquía usa identificadores originales; los nodos auxiliares no son áreas elegibles.
-export function buildAreaDirectory(units: Unit[], forms: FormRow[]): { roots: AreaNode[]; others: AreaNode[] } {
-    // Only these levels have their own format in the administrator directory.
+export function buildAreaDirectory(units: Unit[], forms: FormRow[], policy: Participation = defaultParticipation): { roots: AreaNode[]; others: AreaNode[] } {
+    // Sólo los niveles configurados tienen formato; un nivel nulo no se convierte en nivel cero.
     const ordered = units
-        .filter((unit) => eligibleArea(unit) && [2, 3].includes(Number(unit.nivel_ur)))
+        .filter((unit) => unit.nivel_ur != null && String(unit.nivel_ur).trim() !== '' && eligibleArea(unit, policy) && policy.levels.includes(Number(unit.nivel_ur)))
         .sort((a, b) => a.cve_ur.localeCompare(b.cve_ur, 'es', { numeric: true }) || a.id_ur.localeCompare(b.id_ur));
     const byId = new Map(units.map((unit) => [unit.id_ur, unit]));
+    const rootLevel = Math.min(...ordered.map(u => Number(u.nivel_ur)));
+    const participating = new Set(ordered.map(u => u.id_ur));
     function parentOf(unit: Unit): string | null {
-        if (Number(unit.nivel_ur) === 2) return null;
+        if (Number(unit.nivel_ur) === rootLevel) return null;
         const principal = byId.get(unit.id_ur_principal || '');
-        if (principal && principal.id_ur !== unit.id_ur && eligibleArea(principal) && Number(principal.nivel_ur) === 2) return principal.id_ur;
+        if (principal && principal.id_ur !== unit.id_ur && participating.has(principal.id_ur)) return principal.id_ur;
         const seen = new Set([unit.id_ur]);
         let parent = byId.get(unit.id_ur_pertenece || '');
-        let fallback: string | null = null;
         while (parent && !seen.has(parent.id_ur)) {
-            if (eligibleArea(parent) && Number(parent.nivel_ur) === 2) return parent.id_ur;
-            if (!fallback && eligibleArea(parent) && Number(parent.nivel_ur) === 3) fallback = parent.id_ur;
+            if (participating.has(parent.id_ur)) return parent.id_ur;
             seen.add(parent.id_ur);
             parent = byId.get(parent.id_ur_pertenece || '');
         }
-        return fallback;
+        return null;
     }
     const byForm = new Map(forms.map((form) => [form.id_ur, form]));
     const parents = new Map(
@@ -119,9 +121,9 @@ export function buildAreaDirectory(units: Unit[], forms: FormRow[]): { roots: Ar
             forms: [...(form ? [form] : []), ...branches.flatMap((child) => child.forms)],
         };
     }
-    const roots = ordered.filter((unit) => Number(unit.nivel_ur) === 2).map((unit) => build(unit));
+    const roots = ordered.filter((unit) => Number(unit.nivel_ur) === rootLevel && !parents.get(unit.id_ur)).map((unit) => build(unit));
     const others = ordered
-        .filter((unit) => Number(unit.nivel_ur) !== 2 && !parents.get(unit.id_ur))
+        .filter((unit) => Number(unit.nivel_ur) !== rootLevel && !parents.get(unit.id_ur))
         .map((unit) => build(unit));
 
     return { roots, others };

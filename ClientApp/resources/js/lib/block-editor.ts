@@ -1,8 +1,8 @@
 import type { FormContent, SaveResponse } from '../types/tdv2';
 import { normalizeContent } from './form-editor';
-import { applyBlocks, changedBlocks, sameBlock, splitBlocks } from './form-blocks';
+import { applyBlocks, blockValue, changedBlocks, sameBlock, splitBlocks } from './form-blocks';
 import type { SubmissionReview } from '../Components/FormSubmissionReview';
-export type Lease = { id: string | null; propia: boolean; titular: string; venceEn: string; otraPestana?: boolean };
+export type Lease = { id: string | null; propia: boolean; titular: string; venceEn: string; otraPestana?: boolean; color?: number; foto?: string | null };
 export type Block = { key: string; version: number; reserva: Lease | null; value?: unknown };
 export type LiveForm = SaveResponse & { contenido: FormContent; bloques: Block[]; editable: boolean; puedeEnviar: boolean; enviadoEn: string | null; enviadoPor: string | null; revisionEnvio: SubmissionReview | null; seccion: string; servidorEn: string };
 export type Mutation = { tabId: string; operationId: string; blocks: { key: string; version: number; leaseId?: string | null; value?: unknown }[]; section: string; release: boolean };
@@ -49,23 +49,37 @@ export class BlockEditor {
     private lastActivity = new Map<string, number>();
     private focusEpoch = new Map<string, number>();
     private focused = new Set<string>();
+    private dirtyBase?: FormContent;
+    private dirtyContent?: FormContent;
+    private dirtyBlocks: string[] = [];
+    private publishedBlocks: Record<string, Block> = {};
     constructor(content: FormContent, version: number, progress: number, editable: boolean,
         private transport: EditingTransport, private notify: (state: EditorState) => void) {
         this.base = normalizeContent(content);
-        this.state = { content: structuredClone(this.base), version, progress, dirty: false, saving: false, locked: !editable,
+        this.state = { content: this.base, version, progress, dirty: false, saving: false, locked: !editable,
             error: '', updatedBy: null, updatedAt: null, conflict: false, blocks: {}, initialized: false, submitted: null,
             canSubmit: false, section: 'contexto', conflicts: [], review: null, submittedBy: null, preparing: [], issues: {} };
     }
-    private emit() {
-        this.state.dirty = changedBlocks(this.base, this.state.content).length > 0;
+    private dirtyKeys() {
+        if (this.dirtyBase !== this.base || this.dirtyContent !== this.state.content) {
+            this.dirtyBlocks = changedBlocks(this.base, this.state.content);
+            this.dirtyBase = this.base; this.dirtyContent = this.state.content;
+        }
+        return this.dirtyBlocks;
+    }
+    private emit(leasesChanged = true) {
+        this.state.dirty = this.dirtyKeys().length > 0;
         this.state.conflict = this.state.conflicts.length > 0;
-        clearTimeout(this.expiration);
-        const remaining = Object.values(this.state.blocks).map(b => Date.parse(b.reserva?.venceEn || '') - Date.now() - this.serverOffset).filter(n => n > 0);
-        if (!this.disposed && remaining.length) this.expiration = setTimeout(() => {
-            for (const key of changedBlocks(this.base, this.state.content)) if (!this.owned(key)) this.lost(key);
-            this.emit();
-        }, Math.min(...remaining) + 10);
-        if (!this.disposed) this.notify({ ...this.state, blocks: { ...this.state.blocks } });
+        if (leasesChanged) {
+            clearTimeout(this.expiration);
+            const remaining = Object.values(this.state.blocks).map(b => Date.parse(b.reserva?.venceEn || '') - Date.now() - this.serverOffset).filter(n => n > 0);
+            if (!this.disposed && remaining.length) this.expiration = setTimeout(() => {
+                for (const key of this.dirtyKeys()) if (!this.owned(key)) this.lost(key);
+                this.emit();
+            }, Math.min(...remaining) + 10);
+            this.publishedBlocks = { ...this.state.blocks };
+        }
+        if (!this.disposed) this.notify({ ...this.state, blocks: this.publishedBlocks });
     }
     private request(keys: string[], release = false): Mutation {
         return { tabId: this.tabId, operationId: crypto.randomUUID(), section: this.state.section, release,
@@ -110,15 +124,21 @@ export class BlockEditor {
         const first = !this.state.initialized;
         this.latest = data;
         if (this.state.saving) return;
-        const dirty = changedBlocks(this.base, this.state.content), proposed = splitBlocks(this.state.content), before = splitBlocks(this.base);
+        const previousContent = this.state.content;
+        const signature = () => JSON.stringify({ ...this.state, content: undefined, blocks: this.state.blocks });
+        const previousState = signature();
+        const dirty = this.dirtyKeys();
         // La copia compartida debe conservar sus versiones: la propuesta local puede retener otras.
-        const remote = normalizeContent(data.contenido), blocks = Object.fromEntries(data.bloques.map(block => [block.key, structuredClone(block)]));
+        const incoming = normalizeContent(data.contenido);
+        const updates = Object.fromEntries(changedBlocks(this.base, incoming).filter(key => !dirty.includes(key))
+            .map(key => [key, blockValue(incoming, key) ?? null]));
+        const blocks = Object.fromEntries(data.bloques.map(block => [block.key, sameBlock(this.state.blocks[block.key], block) ? this.state.blocks[block.key] : structuredClone(block)]));
         for (const key of dirty) {
             if ((blocks[key]?.version ?? 0) !== (this.state.blocks[key]?.version ?? 0)) this.lost(key);
             if (blocks[key]) blocks[key].version = this.state.blocks[key]?.version ?? 0;
         }
-        this.base = applyBlocks(remote, Object.fromEntries(dirty.map(key => [key, before[key] ?? null])));
-        this.state.content = applyBlocks(remote, Object.fromEntries(dirty.map(key => [key, proposed[key] ?? null])));
+        this.base = applyBlocks(this.base, updates);
+        this.state.content = applyBlocks(this.state.content, updates);
         this.state.blocks = blocks; this.state.version = data.version; this.state.progress = data.porcentaje;
         this.state.updatedAt = data.actualizadoEn; this.state.updatedBy = data.actualizadoPor;
         this.state.locked = !data.editable; this.state.canSubmit = data.puedeEnviar; this.state.submitted = data.enviadoEn;
@@ -130,7 +150,8 @@ export class BlockEditor {
         if (!this.state.initialized && !this.sectionChosen) this.state.section = data.seccion || 'contexto';
         this.state.initialized = true;
         for (const key of Object.keys(this.state.issues)) if (!dirty.includes(key)) delete this.state.issues[key];
-        this.emit();
+        // El latido sí revalida acceso y caducidad; un estado equivalente no repinta los controles.
+        if (previousContent !== this.state.content || previousState !== signature()) this.emit();
         // Un campo puede recibir foco mientras llega la lectura inicial. Retomar esa intención,
         // sin habilitarlo antes de que el servidor confirme el acceso y la reserva.
         if (first) for (const key of this.focused) void this.focus(key);
@@ -139,7 +160,7 @@ export class BlockEditor {
         if (!this.disposed) {
             this.connectionEpoch++;
             this.connectionIssue = true;
-            for (const key of changedBlocks(this.base, this.state.content))
+            for (const key of this.dirtyKeys())
                 this.state.issues[key] ||= 'Se perdió la conexión. Tu propuesta permanece en este registro.';
             this.state.error = 'Reconectando la captura… Los cambios sin confirmar se conservan.'; this.emit();
         }
@@ -162,7 +183,7 @@ export class BlockEditor {
         const needed = keys.filter(key => !this.owned(key));
         if (!needed.length) return;
         // Nunca volver a reservar silenciosamente una propuesta cuyo titular o versión se perdió.
-        if (needed.some(key => changedBlocks(this.base, this.state.content).includes(key))) throw new Error('Revisa la propuesta pendiente.');
+        if (needed.some(key => this.dirtyKeys().includes(key))) throw new Error('Revisa la propuesta pendiente.');
         this.state.preparing = [...new Set([...this.state.preparing, ...needed])]; this.emit();
         this.acquiring = (async () => {
             const result = await this.transport.reserve(this.request(needed));
@@ -199,14 +220,17 @@ export class BlockEditor {
         }
     }
     /** Altas y cambios con relaciones reservan todos sus bloques antes de modificar la propuesta. */
-    async edit(edit: (content: FormContent) => void) {
+    async edit(edit: (content: FormContent) => void, stillValid: () => boolean = () => true) {
+        if (!stillValid()) return false;
         const next = structuredClone(this.state.content); edit(next);
         const keys = changedBlocks(this.state.content, next);
         if (!await this.prepare(keys)) return false;
+        // Una confirmación destructiva no autoriza contenido que llegó mientras se esperaba la reserva.
+        if (!stillValid()) return false;
         const current = structuredClone(this.state.content); edit(current);
         const actual = changedBlocks(this.state.content, current);
         if (actual.some(key => !keys.includes(key))) return false;
-        const pendingKeys = changedBlocks(this.base, this.state.content);
+        const pendingKeys = this.dirtyKeys();
         const group = [...new Set([...actual, ...actual.flatMap(key => this.groups.get(key) || []).filter(key => pendingKeys.includes(key))])];
         for (const key of group) this.groups.set(key, group);
         return this.change(edit);
@@ -228,7 +252,28 @@ export class BlockEditor {
         const next = structuredClone(this.state.content); edit(next);
         const keys = changedBlocks(this.state.content, next);
         if (keys.some(key => !this.canEdit(key))) return false;
-        this.state.content = next; this.emit();
+        return this.commitChange(applyBlocks(this.state.content, Object.fromEntries(keys.map(key => [key, blockValue(next, key) ?? null]))), keys);
+    }
+    /** La escritura de un campo copia sólo su bloque; las operaciones con relaciones usan edit. */
+    changeBlock<T extends object>(key: string, edit: (value: T) => void) {
+        if (!this.canEdit(key)) return false;
+        const value = structuredClone(blockValue(this.state.content, key)) as T;
+        if (!value) return false;
+        edit(value);
+        const next = applyBlocks(this.state.content, { [key]: value });
+        if (next === this.state.content) return true;
+        return this.commitChange(next, [key]);
+    }
+    private commitChange(next: FormContent, keys: string[]) {
+        const dirty = new Set(this.dirtyKeys());
+        for (const key of keys) {
+            if (sameBlock(blockValue(this.base, key), blockValue(next, key))) dirty.delete(key);
+            else dirty.add(key);
+        }
+        // Por tecla sólo se compara el bloque cambiado. Volver al valor original también limpia su pendiente.
+        this.state.content = next;
+        this.dirtyBase = this.base; this.dirtyContent = next; this.dirtyBlocks = [...dirty];
+        this.emit(false);
         // Sólo una interacción que cambia respuestas renueva la reserva. No hay latido de pestaña abierta.
         for (const key of keys) {
             const lease = this.state.blocks[key]?.reserva;
@@ -262,8 +307,8 @@ export class BlockEditor {
         if (this.state.locked) return;
         // La respuesta de adquisición puede llegar después de salir del campo: esperar antes de liberar.
         if (this.acquiring) await this.acquiring.catch(() => {});
-        if (changedBlocks(this.base, this.state.content).includes(key) && !await this.flush()) return;
-        if (this.focusEpoch.get(key) !== epoch || changedBlocks(this.base, this.state.content).includes(key)) return;
+        if (this.dirtyKeys().includes(key) && !await this.flush()) return;
+        if (this.focusEpoch.get(key) !== epoch || this.dirtyKeys().includes(key)) return;
         const block = this.state.blocks[key];
         if (block?.reserva?.propia) {
             try {
@@ -288,10 +333,11 @@ export class BlockEditor {
         })();
         try { return await this.running; } finally { this.running = undefined; }
     }
-    async releaseClean() {
+    async releaseClean(selected?: string[]) {
         if (this.acquiring) await this.acquiring.catch(() => {});
-        const dirty = changedBlocks(this.base, this.state.content);
-        const keys = Object.values(this.state.blocks).filter(b => b.reserva?.propia && !dirty.includes(b.key)).map(b => b.key);
+        const dirty = this.dirtyKeys();
+        const keys = Object.values(this.state.blocks).filter(b => b.reserva?.propia && !dirty.includes(b.key)
+            && (!selected || selected.includes(b.key))).map(b => b.key);
         if (!keys.length) return;
         try {
             await this.releaseKeys(keys);
@@ -313,7 +359,7 @@ export class BlockEditor {
     }
     private async save(release: boolean): Promise<boolean> {
         const section = this.state.section;
-        const keys = changedBlocks(this.base, this.state.content).filter(key => !this.state.conflicts.includes(key) && !this.state.issues[key]);
+        const keys = this.dirtyKeys().filter(key => !this.state.conflicts.includes(key) && !this.state.issues[key]);
         if (!keys.length && !this.pending) return !this.state.dirty;
         this.state.saving = true; this.emit();
         try {
@@ -359,10 +405,10 @@ export class BlockEditor {
         }
     }
     /** Recuperación explícita: el usuario ya comparó su propuesta con el contenido compartido. */
-    async recover(comparedVersion: number, selected = changedBlocks(this.base, this.state.content)) {
+    async recover(comparedVersion: number, selected = this.dirtyKeys()) {
         // Resolver primero un resultado incierto usando el mismo identificador, nunca otro guardado equivalente.
         if (this.pending) { if (!await this.flush()) throw new Error('No se pudo confirmar el guardado. Conserva la propuesta y vuelve a intentarlo.'); return; }
-        const proposal = splitBlocks(this.state.content), keys = changedBlocks(this.base, this.state.content).filter(key => selected.includes(key));
+        const proposal = splitBlocks(this.state.content), keys = this.dirtyKeys().filter(key => selected.includes(key));
         const latest = await this.transport.read();
         if (latest.version !== comparedVersion) throw new Error('La versión compartida volvió a cambiar. Compara de nuevo.');
         if (!latest.editable) { this.receive(latest); return; }

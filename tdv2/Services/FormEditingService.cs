@@ -17,13 +17,13 @@ namespace Tdv2.Services;
 public sealed record BlockRequest(string Key, [property: JsonRequired] int Version, Guid? LeaseId = null, JsonNode? Value = null);
 public sealed record EditRequest(Guid TabId, Guid OperationId, BlockRequest[] Blocks, string Section = "contexto", bool Release = false);
 public sealed record SubmitRequest(Guid TabId, Guid OperationId, [property: JsonRequired] int Version);
-public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn, bool otraPestana);
+public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn, bool otraPestana, int color, string? foto);
 public sealed record BlockView(string key, int version, LeaseView? reserva);
 
 /// <summary>PostgreSQL arbitra reservas, escrituras parciales y envío; la red sólo transporta propuestas.</summary>
 public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store, RequestAccess access,
     AccessState state, FormSchema schema, ILocalCatalog catalogs, OperationAudit audit, IHttpContextAccessor accessor,
-    FormNotifications notifications)
+    FormNotifications notifications, ParticipantPhotos photos)
 {
     private HttpContext Http => accessor.HttpContext!;
     private CancellationToken Ct => Http.RequestAborted;
@@ -104,7 +104,9 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
     private BlockView Public(FormBlock block, Guid tab, DateTimeOffset now) => new(block.Key, block.Version,
         block.ExpiresAt > now && block.LeaseId is not null ? new(Owner(block, tab, block.LeaseId) ? block.LeaseId : null,
             Owner(block, tab, block.LeaseId), block.Holder, block.ExpiresAt,
-            block.SessionHash == state.SessionHash && block.ContextRevision == Revision && block.TabId != tab) : null);
+            block.SessionHash == state.SessionHash && block.ContextRevision == Revision && block.TabId != tab, block.Color,
+            block.ParticipantUserId is not null && block.Participant is not null
+                ? $"/formatos/{Uri.EscapeDataString(block.UnitId)}/participantes/{block.Participant}/foto" : null) : null);
     public async Task<object> Reserve(string ur, EditRequest input, bool renew = false)
     {
         Validate(input); var (context, scope) = await Authorize(ur, true);
@@ -117,6 +119,15 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var all = await db.FormBlocks.Where(b => b.UnitId == ur).ToDictionaryAsync(b => b.Key, Ct);
         var now = await Now(connection, pg);
         var result = new List<FormBlock>();
+        // La UR ya está bloqueada: todos los observadores reciben la misma asignación de color.
+        // La identidad efectiva comparte color entre pestañas, pero nunca comparte el testigo de escritura.
+        var participant = ParticipantIdentity.Key(context.Profile.User.Email);
+        var participantUser = await photos.VerifiedUser(context.Profile.User.Email, Ct);
+        var ownColors = all.Values.Where(b => b.Participant == participant).OrderByDescending(b => b.ExpiresAt > now).ThenBy(b => b.Key).ToArray();
+        var occupiedColors = all.Values.Where(b => b.ExpiresAt > now && b.LeaseId != null && b.Participant != participant).Select(b => b.Color).ToHashSet();
+        var preferred = ownColors.FirstOrDefault()?.Color ?? Convert.ToInt32(participant[..4], 16) % 8;
+        var color = ownColors.Any(b => b.ExpiresAt > now && b.LeaseId != null) || !occupiedColors.Contains(preferred)
+            ? preferred : Enumerable.Range(0, 8).FirstOrDefault(c => !occupiedColors.Contains(c), preferred);
         foreach (var request in input.Blocks)
         {
             if (!all.TryGetValue(request.Key, out var block))
@@ -131,14 +142,23 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
             if (!active) block.LeaseId = Guid.NewGuid(); // Testigo nuevo: el titular vencido nunca recupera autoridad con el anterior.
             block.SessionHash = state.SessionHash; block.TabId = input.TabId; block.ContextRevision = Revision;
             block.Holder = context.Profile.User.Name; block.ExpiresAt = now.AddSeconds(45); result.Add(block);
+            block.Participant = participant; block.Color = color; block.ParticipantUserId = participantUser;
         }
         await db.SaveChangesAsync(Ct); await tx.CommitAsync(Ct);
+        // Una lectura simultánea puede empezar durante el commit y aún ver la reserva anterior.
+        // Fechar la confirmación después del commit evita que ese mensaje tardío invalide la adquisición.
+        // El vencimiento sigue siendo el original: confirmar no prolonga la reserva.
+        // EF puede cerrar la conexión al confirmar la transacción; abrir/cerrar balancea su contador.
+        DateTimeOffset confirmedAt;
+        await db.Database.OpenConnectionAsync(Ct);
+        try { confirmedAt = await Now(connection, null); }
+        finally { await db.Database.CloseConnectionAsync(); }
         notifications.Changed(ur);
         // La reserva y sus respuestas/versiones se confirman bajo el mismo bloqueo de UR.
         // El navegador habilita el bloque sólo después de recibir este contenido vigente.
         var values = FormBlocks.Split(JsonNode.Parse(form.Content)!.AsObject());
         return new { bloques = result.Select(b => new { key = b.Key, version = b.Version,
-            reserva = Public(b, input.TabId, now).reserva, value = values.GetValueOrDefault(b.Key) }), servidorEn = now };
+            reserva = Public(b, input.TabId, confirmedAt).reserva, value = values.GetValueOrDefault(b.Key) }), servidorEn = confirmedAt };
     }
     private async Task<JsonNode?> Receipt(string ur, Guid operation, Guid tab, string fingerprint)
     {

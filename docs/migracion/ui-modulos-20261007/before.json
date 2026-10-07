@@ -1,0 +1,236 @@
+﻿{
+    "phase":  "before",
+    "synthetic":  true,
+    "screenshots":  [
+                        {
+                            "name":  "before-inicio-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  88
+                        },
+                        {
+                            "name":  "before-configuracion-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  88
+                        },
+                        {
+                            "name":  "before-sincronizaciones-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  126.75
+                        },
+                        {
+                            "name":  "before-pruebas-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  140
+                        },
+                        {
+                            "name":  "before-procesos-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  88
+                        },
+                        {
+                            "name":  "before-rol-area-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  140
+                        },
+                        {
+                            "name":  "before-representacion-360",
+                            "width":  360,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  140
+                        },
+                        {
+                            "name":  "before-inicio-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  90
+                        },
+                        {
+                            "name":  "before-configuracion-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  90
+                        },
+                        {
+                            "name":  "before-sincronizaciones-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  128.75
+                        },
+                        {
+                            "name":  "before-pruebas-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  142
+                        },
+                        {
+                            "name":  "before-procesos-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  90
+                        },
+                        {
+                            "name":  "before-rol-area-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  142
+                        },
+                        {
+                            "name":  "before-representacion-768",
+                            "width":  768,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  142
+                        },
+                        {
+                            "name":  "before-inicio-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-configuracion-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-sincronizaciones-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  134.75
+                        },
+                        {
+                            "name":  "before-pruebas-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        },
+                        {
+                            "name":  "before-procesos-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-rol-area-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        },
+                        {
+                            "name":  "before-representacion-1366",
+                            "width":  1366,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        },
+                        {
+                            "name":  "before-inicio-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-configuracion-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-sincronizaciones-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  134.75
+                        },
+                        {
+                            "name":  "before-pruebas-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        },
+                        {
+                            "name":  "before-procesos-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  96
+                        },
+                        {
+                            "name":  "before-rol-area-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        },
+                        {
+                            "name":  "before-representacion-1920",
+                            "width":  1920,
+                            "overflow":  false,
+                            "h1Count":  1,
+                            "barBottom":  69,
+                            "titleTop":  148
+                        }
+                    ],
+    "checks":  [
+                   "28 capturas válidas: 7 pantallas x 4 anchos. Las 7 capturas prematuras de zoom no se usan como evidencia."
+               ],
+    "errors":  [
+
+               ]
+}

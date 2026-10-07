@@ -33,6 +33,49 @@ test('normaliza nulos y evaluaciones heredadas sin perder respuestas', () => {
     assert.deepEqual(normalizeContent(c).evaluaciones, {}); assert.equal(normalizeContent(c).encabezado.responsable, null);
 });
 
+test('editar un bloque conserva referencias ajenas y volver al valor original retira el pendiente', async () => {
+    const { editor, writes } = create(); await editor.focus('medios');
+    const original = editor.state.content, questions = original.preguntas, processes = original.identificacion;
+    assert.equal(editor.changeBlock('medios', value => { value.medioOtro = 'Propuesta'; }), true);
+    assert.equal(editor.state.dirty, true); assert.equal(editor.state.content.preguntas, questions);
+    assert.equal(editor.state.content.identificacion, processes); assert.equal(original.medioOtro, '');
+    editor.changeBlock('medios', value => { value.medioOtro = ''; });
+    assert.equal(editor.state.dirty, false); assert.equal(await editor.flush(), true); assert.equal(writes.length, 0); editor.dispose();
+});
+
+test('estado remoto equivalente conserva las referencias del contenido y la reserva no concede escritura', () => {
+    const { editor } = create(); const previous = editor.state.content;
+    editor.receive(live()); assert.equal(editor.state.content, previous);
+    assert.equal(editor.changeBlock('medios', value => { value.medioOtro = 'Sin reserva'; }), false);
+    assert.equal(editor.state.dirty, false); editor.dispose();
+});
+
+test('latidos equivalentes no notifican React; una revocación o cambio de reserva sí', () => {
+    let renders = 0;
+    const editor = new BlockEditor(content(), 0, 0, true, {}, () => renders++);
+    editor.receive(live()); const first = renders;
+    editor.receive(live()); editor.receive(live());
+    assert.equal(renders, first);
+    editor.receive(live({ bloques: [{ key: 'medios', version: 0, reserva: { ...lease(), propia: false } }] }));
+    assert.equal(renders, first + 1); assert.equal(editor.busy('medios'), true);
+    editor.receive(live({ editable: false })); assert.equal(editor.state.locked, true); assert.equal(renders, first + 2);
+    editor.dispose();
+});
+
+test('revalida la confirmación destructiva después de esperar la reserva sin modificar otra versión', async () => {
+    let grant;
+    const { editor, writes } = create({ reserve: body => new Promise(resolve => {
+        grant = () => resolve({ bloques: body.blocks.map(block => ({ ...block, version: 1,
+            value: { medios: {}, medioOtro: 'Versión posterior' }, reserva: lease() })), servidorEn: new Date().toISOString() });
+    }) });
+    const confirmed = editor.state.content.medioOtro;
+    const actual = editor.edit(data => { data.medioOtro = 'Cambio confirmado'; }, () => editor.state.content.medioOtro === confirmed);
+    grant(); assert.equal(await actual, false);
+    assert.equal(editor.state.content.medioOtro, 'Versión posterior');
+    assert.equal(editor.state.dirty, false); assert.equal(writes.length, 0);
+    editor.dispose();
+});
+
 test('una intención de selección pendiente no escribe si el usuario ya salió del registro', async () => {
     let grant;
     const { editor } = create({ reserve: body => new Promise(resolve => {

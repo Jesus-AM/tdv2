@@ -24,6 +24,7 @@ import {
 import { Refresh, SaveOutlined, StorageOutlined, SyncOutlined, ScheduleOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
+import SettingsSection from '@/Components/SettingsSection';
 import { errorResponse, errorText } from '@/lib/http';
 type Settings = {
     version: number;
@@ -153,38 +154,21 @@ export default function Sincronizaciones({
         }
     }
     const active = historial.find((r) => r.id === estado.ejecucion_activa);
+    const dirty = JSON.stringify(draft) !== JSON.stringify(configuracion);
     return (
         <AuthenticatedLayout>
             <Head title="Sincronizaciones" />
-            <div className="page">
+            <div className="page settings-page">
                 <PageHeading
-                    back={{ label: 'Configuración', href: '/configuracion' }}
+                    breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }]}
                     title="Sincronizaciones"
                     description="Mantén actualizadas las áreas y el inventario que utilizan los formatos."
                     actions={
-                        <Button variant="outlined" startIcon={<Refresh />} disabled={refreshing} onClick={() => refresh(true)}>
-                            {refreshing ? 'Actualizando…' : 'Actualizar estado'}
+                        <Button variant="text" startIcon={<Refresh />} loading={refreshing} loadingPosition="start" onClick={() => refresh(true)}>
+                            Actualizar estado
                         </Button>
                     }
                 />
-                {refreshing && <LinearProgress aria-label="Actualizando estado" sx={{ mb: 2 }} />}
-                {(error || statusError) && (
-                    <Alert severity="error" sx={{ mb: 3 }} onClose={() => { setError(''); setStatusError(''); }}>
-                        {error || statusError}
-                        {conflict && (
-                            <Button
-                                sx={{ ml: 1 }}
-                                onClick={() => {
-                                    router.reload({ only: ['configuracion', 'estado'] });
-                                    setError('');
-                                    setConflict(false);
-                                }}
-                            >
-                                Cargar programación vigente
-                            </Button>
-                        )}
-                    </Alert>
-                )}
                 {(configuracion.activa || estado.ejecucion_activa) && !estado.procesador_reciente && (
                     <Alert severity="warning" sx={{ mb: 3 }}>
                         El procesador no registra actividad reciente. Las solicitudes quedarán pendientes hasta que el
@@ -210,29 +194,18 @@ export default function Sincronizaciones({
                     </Box>
                 )}
                 <Box
+                    className="settings-grid"
                     sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', md: 'repeat(2,minmax(0,1fr))' },
-                        gap: 3,
-                        mb: 3,
+                        mb: 2,
                     }}
                 >
                     {(['sii', 'ilda'] as const).map((source) => (
-                        <Box className="surface" key={source}>
-                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mb: 1 }}>
-                                <StorageOutlined color="primary" />
-                                <Typography component="h2" variant="h2">
-                                    {source === 'sii'
-                                        ? 'SII · Unidades responsables'
-                                        : 'ILDA · Información de las áreas'}
-                                </Typography>
-                            </Box>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                {source === 'sii'
+                        <SettingsSection key={source} icon={<StorageOutlined />}
+                            title={source === 'sii' ? 'SII · Unidades responsables' : 'ILDA · Información de las áreas'}
+                            description={source === 'sii'
                                     ? 'Catálogo completo de UR del ejercicio más reciente, con jerarquías y encargados.'
-                                    : 'Inventario completo de ILDA. Los formatos consultan los registros por clave de UR.'}
-                            </Typography>
-                            <Typography sx={{ fontSize: 30, fontWeight: 600 }}>
+                                    : 'Inventario completo de ILDA. Los formatos consultan los registros por clave de UR.'}>
+                            <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
                                 {catalogos[source].registros.toLocaleString('es-MX')}{' '}
                                 <Typography component="span" variant="body2" color="text.secondary">
                                     {source === 'sii' ? 'unidades' : 'registros'}
@@ -256,10 +229,16 @@ export default function Sincronizaciones({
                                     La conexión de ILDA está deshabilitada en el servidor.
                                 </Typography>
                             )}
-                        </Box>
+                        </SettingsSection>
                     ))}
                 </Box>
-                <Box className="surface" sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+                    <Button startIcon={<SyncOutlined />}
+                        disabled={busy || !!estado.ejecucion_activa || !estado.ilda_habilitada}
+                        onClick={() => void execute('ambas')}>Sincronizar SII e ILDA ahora</Button>
+                </Box>
+                <SettingsSection title="Programación automática" icon={<ScheduleOutlined />}
+                    description="SII se incluye en todas las ejecuciones automáticas. Puedes incorporar ILDA cuando también necesites mantener actualizado su inventario.">
                     <Box
                         component="form"
                         onSubmit={(e) => {
@@ -277,12 +256,6 @@ export default function Sincronizaciones({
                                 mb: 2,
                             }}
                         >
-                            <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                                <ScheduleOutlined color="primary" />
-                                <Typography component="h2" variant="h2">
-                                    Programación automática
-                                </Typography>
-                            </Box>
                             <FormControlLabel
                                 control={
                                     <Switch
@@ -294,10 +267,6 @@ export default function Sincronizaciones({
                                 label="Activar sincronización automática"
                             />
                         </Box>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                            SII se incluye en todas las ejecuciones automáticas. Puedes incorporar ILDA cuando también
-                            necesites mantener actualizado su inventario.
-                        </Typography>
                         <Box
                             sx={{
                                 display: 'grid',
@@ -351,18 +320,12 @@ export default function Sincronizaciones({
                             label="Incluir ILDA en la sincronización automática"
                         />
                         <Box
-                            sx={{
-                                display: 'flex',
-                                gap: 2,
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                flexWrap: 'wrap',
-                                mt: 1,
-                            }}
+                            className="settings-section-actions"
                         >
                             <Button type="submit" variant="contained" startIcon={<SaveOutlined />} disabled={busy}>
                                 Guardar programación
                             </Button>
+                            <Typography variant="body2" color="text.secondary" role="status">{dirty ? 'Cambios pendientes' : ''}</Typography>
                             <Typography variant="body2" color="text.secondary">
                                 {configuracion.activa
                                     ? `Próxima ejecución: ${date(estado.proxima_en)}`
@@ -370,7 +333,7 @@ export default function Sincronizaciones({
                             </Typography>
                         </Box>
                     </Box>
-                </Box>
+                </SettingsSection>
                 <Box
                     sx={{
                         display: 'flex',
@@ -379,6 +342,7 @@ export default function Sincronizaciones({
                         alignItems: 'center',
                         flexWrap: 'wrap',
                         mb: 2,
+                        mt: 3,
                     }}
                 >
                     <Box>
@@ -389,15 +353,9 @@ export default function Sincronizaciones({
                             Últimas 50 ejecuciones · Horarios de {configuracion.zona_horaria}
                         </Typography>
                     </Box>
-                    <Button
-                        startIcon={<SyncOutlined />}
-                        disabled={busy || !!estado.ejecucion_activa || !estado.ilda_habilitada}
-                        onClick={() => void execute('ambas')}
-                    >
-                        Sincronizar SII e ILDA ahora
-                    </Button>
                 </Box>
-                <TableContainer className="surface" sx={{ p: '0!important' }}>
+                {!historial.length ? <Box className="empty" role="status">Todavía no hay ejecuciones registradas.</Box> :
+                <TableContainer className="surface" sx={{ p: '0!important' }} tabIndex={0} role="region" aria-label="Historial de ejecuciones: tabla desplazable">
                     <Table size="small" aria-label="Historial de sincronizaciones" sx={{ minWidth: 700 }}>
                         <TableHead>
                             <TableRow>
@@ -464,20 +422,24 @@ export default function Sincronizaciones({
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {!historial.length && (
-                                <TableRow>
-                                    <TableCell colSpan={5} sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
-                                        Todavía no hay ejecuciones registradas.
-                                    </TableCell>
-                                </TableRow>
-                            )}
                         </TableBody>
                     </Table>
-                </TableContainer>
+                </TableContainer>}
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
                     Última actividad del procesador: {date(estado.procesador_visto_en)}
                 </Typography>
-                <Snackbar open={!!message} autoHideDuration={5000} message={message} onClose={() => setMessage('')} />
+                {/* El mismo aviso comunica fallos sin desplazar campos ni perder el borrador. Un error no caduca solo. */}
+                <Snackbar open={!!(message || error || statusError)} autoHideDuration={error || statusError ? null : 5000}
+                    message={error || statusError ? undefined : message}
+                    onClose={(_, reason) => { if (reason !== 'clickaway') { setMessage(''); setError(''); setStatusError(''); } }}>
+                    {error || statusError ? <Alert severity="error" variant="outlined" sx={{ bgcolor: 'background.paper', maxWidth: 560 }}
+                        onClose={() => { setError(''); setStatusError(''); setMessage(''); }}>
+                        {error || statusError}
+                        {conflict && <Button sx={{ display: 'flex', mt: 1 }} onClick={() => {
+                            router.reload({ only: ['configuracion', 'estado'] }); setError(''); setConflict(false);
+                        }}>Cargar programación vigente</Button>}
+                    </Alert> : undefined}
+                </Snackbar>
             </div>
         </AuthenticatedLayout>
     );

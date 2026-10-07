@@ -15,7 +15,7 @@ namespace Tdv2.Controllers;
 
 public sealed class AuthenticationController(IOptions<MicrosoftSettings> settings, PostgresOAuthAttempts attempts,
     MicrosoftClient microsoft, MicrosoftLoginService login, SessionTerminationService termination,
-    AuthenticationAudit audit, AccessState state, RequestAccess access, ProtectedValues crypto, ILogger<AuthenticationController> logger) : ControllerBase
+    AuthenticationAudit audit, AccessState state, ProtectedValues crypto, ILogger<AuthenticationController> logger, ParticipantPhotos photos) : ControllerBase
 {
     private const string BrowserCookie = "__Host-tdv2.oauth";
     private const string HintCookie = "__Host-tdv2.microsoft-hint";
@@ -133,8 +133,7 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     [EnableRateLimiting("photo")]
     public async Task<IResult> Photo()
     {
-        await access.Profile(HttpContext);
-        var photo = await login.Photo(long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!), HttpContext.RequestAborted);
-        return Results.Json(new { photo });
+        Response.Headers.CacheControl = "private, no-store";
+        return Results.Json(await photos.Account(HttpContext));
     }
 }
