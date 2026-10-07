@@ -31,7 +31,8 @@ export interface ProcessRow {
     fuente: string;
     area: string;
     tramite: string;
-    usuario: string;
+    // Los textos se conservan sólo para consultar instantáneas históricas; la captura nueva usa una colección.
+    usuario: string[] | string;
     resultado: string;
     responsable: string;
     validacion: string;

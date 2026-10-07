@@ -29,6 +29,7 @@ internal static partial class NativeTests
             foreach (var key in content[section]![0]!.AsObject().Select(p => p.Key).ToArray())
                 if (key != "id") content[section]![0]![key] = "Respuesta sintética";
         content["identificacion"]![0]!["codigo"] = "PO-01"; content["identificacion"]![0]!["prioridad"] = "5"; content["identificacion"]![0]!["validacion"] = "V";
+        content["identificacion"]![0]!["usuario"] = new JsonArray("Docentes");
         content["sistemas"]![0]!["proceso"] = "PO-01"; content["sistemas"]![0]!["estado"] = "Funciona";
         content["datos"]![0]!["proceso"] = "PO-01"; content["datos"]![0]!["origen"] = "Se origina en este proceso";
         content["acuerdos"]![0]!["fecha"] = "2026-10-10";
@@ -38,6 +39,46 @@ internal static partial class NativeTests
     }
     private static void RegisterEditingCases(NativeDatabase database, Action<string, Func<NativeApplication, HttpClient, Task>> Test)
     {
+        Test("Edición/usuarios múltiples: colección vacía pendiente, validación estricta, guardado y recarga sin limpieza", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client);
+            var tab = Guid.NewGuid(); var row = (await Live(client, tab))["contenido"]!["identificacion"]![0]!.DeepClone();
+            Check(row["usuario"] is JsonArray { Count: 0 });
+            var block = await Lease(client, tab, "identificacion:inicial");
+            foreach (var invalid in new JsonNode?[] { JsonValue.Create("Docentes"), null, new JsonArray("Docentes", "Docentes"), new JsonArray("Ajeno"), new JsonArray(1), new JsonObject() })
+            {
+                row["usuario"] = invalid;
+                Check((await Patch(client, Edit(tab, block with { Value = row }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            }
+            row["usuario"] = new JsonArray("Comunidad universitaria", "Docentes", "Otro");
+            Check((await Patch(client, Edit(tab, block with { Value = row }))).IsSuccessStatusCode);
+            var live = await Live(client, tab);
+            Check(JsonNode.DeepEquals(row["usuario"], live["contenido"]!["identificacion"]![0]!["usuario"]));
+            row["resultado"] = "Cambio posterior independiente";
+            Check((await Patch(client, Edit(tab, block with { Version = 1, Value = row }))).IsSuccessStatusCode);
+            Check(JsonNode.DeepEquals(row["usuario"], (await Live(client, tab))["contenido"]!["identificacion"]![0]!["usuario"]));
+            row["usuario"] = new JsonArray();
+            Check((await Patch(client, Edit(tab, block with { Version = 2, Value = row }))).IsSuccessStatusCode);
+            var complete = Complete(app); var progress = FormSchema.Progress(complete);
+            complete["identificacion"]![0]!["usuario"] = new JsonArray();
+            Check(progress == 100 && FormSchema.Progress(complete) < 100);
+            Check(FormReview.Inspect(complete).pendientes.Any(p => p.campo == "usuario" && p.bloque == "identificacion:inicial"));
+        });
+        Test("Edición/usuarios: envío rechaza colección vacía y acepta opciones confirmadas sin alterar prioridad", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client);
+            var content = Complete(app); content["identificacion"]![0]!["usuario"] = new JsonArray();
+            Check((await Save(client, 0, content)).IsSuccessStatusCode);
+            var tab = Guid.NewGuid(); var live = await Live(client, tab);
+            Check(!live["revisionEnvio"]!["listo"]!.GetValue<bool>() && live["revisionEnvio"]!["pendientes"]!.AsArray().Count == 1);
+            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            content["identificacion"]![0]!["usuario"] = new JsonArray("Estudiantes", "Otro");
+            Check((await Save(client, 1, content)).IsSuccessStatusCode);
+            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 2))).IsSuccessStatusCode);
+            live = await Live(client, tab);
+            Check(!live["editable"]!.GetValue<bool>() && live["contenido"]!["identificacion"]![0]!["prioridad"]!.ToString() == "5");
+            Check(JsonNode.DeepEquals(content["identificacion"]![0]!["usuario"], live["contenido"]!["identificacion"]![0]!["usuario"]));
+        });
         Test("Edición/revisión omite sesión, recalcula borradores sin escribir y conserva historia al enviar", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); var complete = Complete(app);

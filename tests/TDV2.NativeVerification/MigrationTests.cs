@@ -65,10 +65,10 @@ internal static class MigrationTests
             await using var db = Context(cs);
             Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
             Check(db.Model.GetEntityTypes().Count() == 18 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 7, "18 entidades y siete relaciones locales; sin esquemas institucionales");
-            Check(db.Database.GetMigrations().Count() == 5, "cinco migraciones estándar descubiertas por EF");
+            Check(db.Database.GetMigrations().Count() == 6, "seis migraciones estándar descubiertas por EF");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
             await db.Database.MigrateAsync();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 5 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 6 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 19, "18 tablas y único historial __EFMigrationsHistory");
             Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
             Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
@@ -114,12 +114,12 @@ internal static class MigrationTests
                     && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
                 await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 5, "reanudación aplica sólo la pendiente");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 6, "reanudación aplica sólo la pendiente");
                 await partialDb.GetService<IMigrator>().MigrateAsync("0");
                 Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
                     "Down revierte únicamente las tablas EF en la base desechable");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 5, "Up después de Down recrea esquema y configuración pausada");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 6, "Up después de Down recrea esquema y configuración pausada");
             }
             var upgrade = await Fresh("upgrade");
             await using (var previous = Context(upgrade))
@@ -146,11 +146,12 @@ internal static class MigrationTests
                     "actualización conserva JSON, prioridad antigua, versión e historia tipo 0; completa ejercicio sin enviar");
                 await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
                 Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
-                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 5
+                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 6
                     && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
                     "Down rechaza retirar protección de formatos enviados y conserva contenido e historial");
             }
             var concurrent = await Fresh("concurrent");
+            await UsersServedMigrationTests.Run(await Fresh("users_served"), database.Workspace, Sql, Check);
             var photographUpgrade = await Fresh("photos");
             await using (var existing = Context(photographUpgrade))
             {
@@ -202,7 +203,7 @@ internal static class MigrationTests
             await using (var scriptConnection = new NpgsqlConnection(scriptTarget))
             {
                 await scriptConnection.OpenAsync();
-                await File.WriteAllTextAsync(Path.Combine(database.Workspace, "docs/migracion/evidencia-captura-fotografias-esquema.json"),
+                await File.WriteAllTextAsync(Path.Combine(database.Artifacts, "ef-schema.json"),
                     JsonSerializer.Serialize(new { utc = DateTimeOffset.UtcNow, synthetic = true,
                         schemaSha256 = await DatabaseInspection.Fingerprint(scriptConnection) }, new JsonSerializerOptions { WriteIndented = true }));
             }
@@ -228,7 +229,6 @@ internal static class MigrationTests
                 legacyDifference = "Unicidades nullable pasan de restricciones UNIQUE a índices UNIQUE; se añade el índice de FK en configuración." };
             var json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(Path.Combine(database.Artifacts, "ef-migrations.json"), json);
-            await File.WriteAllTextAsync(Path.Combine(database.Workspace, "docs/migracion/evidencia-captura-fotografias-migraciones.json"), json);
             return 0;
         }
         catch (Exception error)

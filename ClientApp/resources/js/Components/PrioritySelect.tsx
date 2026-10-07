@@ -12,8 +12,12 @@ export default function PrioritySelect({ value, label, readOnly, onChange, open,
     return <Box sx={{ minWidth: 240 }}>
         <Select fullWidth displayEmpty value={value || ''} readOnly={readOnly} open={open} onOpen={onOpen} onClose={onClose}
             inputProps={{ 'aria-label': label, 'data-field': 'prioridad' }}
+            renderValue={selected => {
+                if (!selected) return <Box component="span" sx={{ color: 'text.secondary' }}>Selecciona una prioridad</Box>;
+                const option = priorities.find(([number]) => number === selected);
+                return option ? <Box component="span" sx={{ color: option[2], fontWeight: 500 }}>{option[0]}: {option[1]}</Box> : `Valor histórico: ${selected}`;
+            }}
             onChange={event => onChange(event.target.value)}>
-            <MenuItem value="">Selecciona una prioridad</MenuItem>
             {historical && <MenuItem value={value} disabled>Valor histórico: {value}</MenuItem>}
             {priorities.map(([number, text, color]) => <MenuItem key={number} value={number}>
                 <Box component="span" sx={{ color, fontWeight: 500 }}>{number}: {text}</Box>

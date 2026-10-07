@@ -155,7 +155,7 @@ try {
             await expect(input).toHaveJSProperty('readOnly', true); await input.press('X'); assert.equal(await input.inputValue(), value);
             grant(); await expect(input).toHaveJSProperty('readOnly', false);
             const releases = editingRequests.filter(r => r.path.endsWith('/liberar')).length;
-            await page.getByLabel('Usuario que atiende 1', { exact: true }).focus();
+            await page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true }).focus();
             await expect(input.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'owned');
             await page.waitForTimeout(150);
             assert.equal(editingRequests.filter(r => r.path.endsWith('/liberar')).length, releases);
@@ -338,7 +338,7 @@ try {
         await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
         await page.getByRole('button', { name: /Identificación general · Recuperación React:/ }).click();
         await expect(page.getByRole('tab', { name: 'Identificación general', exact: true })).toHaveAttribute('aria-selected', 'true');
-        await expect(page.getByLabel('Usuario que atiende 1', { exact: true })).toBeFocused();
+        await expect(page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true })).toBeFocused();
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Recuperación React');
         await finish(); // El enlace enfocó y reservó el campo; la petición de prueba usa otra pestaña.
         // Aislar requisitos de llenado de las reservas de las pestañas cerradas en los casos anteriores.

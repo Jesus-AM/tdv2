@@ -14,7 +14,7 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
             if (rows.Count == 0) pending.Add(new(section, section, "", $"{title}: agrega al menos un registro."));
             foreach (var row in rows)
             {
-                var missing = fields.Where(f => string.IsNullOrWhiteSpace(row?[f.Key]?.ToString())).ToList();
+                var missing = fields.Where(f => f.Key == "usuario" ? !FormSchema.HasUsers(row?[f.Key]) : string.IsNullOrWhiteSpace(row?[f.Key]?.ToString())).ToList();
                 if (section == "identificacion" && row?["prioridad"]?.ToString() is not ("1" or "2" or "3" or "4" or "5")
                     && missing.All(f => f.Key != "prioridad")) missing.Add(("prioridad", "prioridad vigente de 1 a 5"));
                 if (missing.Count == 0) continue;
@@ -24,7 +24,7 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
                     $"{title} · {label}: completa {string.Join(", ", missing.Select(f => f.Label))}."));
             }
         }
-        Rows("identificacion", "Identificación general", ("tramite", "trámite / servicio"), ("usuario", "usuario"),
+        Rows("identificacion", "Identificación general", ("tramite", "trámite / servicio"), ("usuario", "usuarios que atiende"),
             ("resultado", "resultado"), ("responsable", "responsable"), ("validacion", "validación"), ("prioridad", "prioridad"), ("codigo", "código mediante validación"));
         Rows("sistemas", "Sistemas", ("sistema", "sistema"), ("uso", "uso"), ("estado", "estado"));
         Rows("datos", "Datos", ("dato", "dato"), ("fuente", "fuente"), ("origen", "origen"));

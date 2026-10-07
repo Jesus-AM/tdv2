@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { ParticipantPhotos } from '@/Components/ParticipantAvatar';
+import UsersServedSelect from '@/Components/UsersServedSelect';
 import { participantColor } from '@/lib/participant-colors';
 import { Head, router, usePage } from '@/lib/navigation';
 import axios from 'axios';
@@ -476,7 +477,7 @@ function Editor(props: Props) {
     }
     const processFields: Field[] = [
         { key: 'tramite', label: 'Trámite / servicio', wide: true },
-        { key: 'usuario', label: 'Usuario que atiende' },
+        { key: 'usuario', label: 'Usuarios que atiende' },
         { key: 'resultado', label: 'Resultado o documento' },
         { key: 'responsable', label: 'Responsable' },
         { key: 'validacion', label: 'Validación', options: validation },
@@ -498,7 +499,7 @@ function Editor(props: Props) {
                 <Box component="ol" sx={{ pl: 3, m: 0, color: 'text.secondary', fontSize: 14, lineHeight: 2 }}>
                     {[
                         'Revisa el inventario del área y confirma la vigencia de cada registro.',
-                        'Ajusta los nombres y completa usuario, resultado y responsable.',
+                        'Ajusta los nombres y completa usuarios, resultado y responsable.',
                         'Asigna validación y prioridad a cada proceso.',
                         'Relaciona sus sistemas y datos, completa la evaluación y registra acuerdos.',
                     ].map((t) => (
@@ -560,7 +561,15 @@ function Editor(props: Props) {
                                     </TableCell>
                                     {processFields.map((f) => (
                                         <TableCell key={f.key}>
-                                            {field(r[f.key as keyof ProcessRow], f, `${f.label} ${i + 1}`, (value) => {
+                                            {f.key === 'usuario' ? <UsersServedSelect value={r.usuario} label={`${f.label} ${i + 1}`}
+                                                {...selectEvents(`identificacion:${r.id}`, 'usuario')}
+                                                onChange={values => {
+                                                    // Compartir la reserva de la fila; el portal no concede permiso de escritura.
+                                                    if (engine.canEdit(`identificacion:${r.id}`)) {
+                                                        setNotice('');
+                                                        engine.changeBlock<ProcessRow>(`identificacion:${r.id}`, row => { row.usuario = values; });
+                                                    }
+                                                }} /> : field(r[f.key as Exclude<keyof ProcessRow, 'usuario'>], f, `${f.label} ${i + 1}`, (value) => {
                                                 setNotice('');
                                                 processEdit(r.id, f.key, value);
                                             }, `identificacion:${r.id}`)}

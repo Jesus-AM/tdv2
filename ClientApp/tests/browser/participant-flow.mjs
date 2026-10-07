@@ -16,7 +16,7 @@ export async function verifyParticipants({ page, context, origin, check, finish,
             assert.equal(await input.evaluate(el => el.selectionStart), 3);
             // Input.insertText ejercita la inserción múltiple sin leer ni sustituir el portapapeles del operador.
             await page.keyboard.insertText(' área '); await expect(input).toHaveValue('ABx área CD');
-            const next = page.getByLabel('Usuario que atiende 1', { exact: true });
+            const next = page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true });
             await page.keyboard.press('Tab'); await expect(next).toBeFocused();
             await expect(input.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'owned');
             assert.equal(requests.length, 0);

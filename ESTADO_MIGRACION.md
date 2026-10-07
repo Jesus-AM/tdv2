@@ -2,6 +2,30 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-07**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## Usuarios que atiende y Prioridad — actualización 2026-10-07
+
+### Implementado
+
+«Usuarios que atiende» sustituye el texto libre por selección múltiple MUI con cinco opciones, casillas y menú que permanece abierto al marcar/desmarcar. Colección JSON bajo la clave existente `usuario`, sin duplicados ni valores predeterminados. Nuevos registros manuales y de ILDA comienzan vacíos. Validación, avance y revisión de envío comparten la regla: una lista vacía es pendiente. El texto histórico de los enviados permanece en consulta.
+
+Prioridad muestra «Selecciona una prioridad» sólo como indicativo del campo vacío, fuera de las opciones del menú; conserva colores, selección única y valores existentes. Ambos controles reutilizan las reservas automáticas y autoguardado del registro, sin cambios en el motor colaborativo, permisos, avatares ni eliminación directa.
+
+Migración de datos **`20261007195019_StructuredUsersServed`**, sin cambio de esquema: limpieza explícita, única y transaccional del campo anterior en borradores del ejercicio editable, preservando otras respuestas, registros, prioridades y listas nuevas. Actualiza avance/versiones, invalida reservas anteriores sólo de los bloques modificados y audita. Los enviados, sus instantáneas y los borradores históricos bloqueados por cambio de ejercicio no se modifican. No existe limpieza al abrir ni guardar. [Detalle y comando de actualización](docs/migracion/USUARIOS_ATENDIDOS.md).
+
+### Probado
+
+Compilación de `tdv2.slnx` en Release: cero errores y advertencias; **62/62** pruebas de dominio/transporte. **146/146** casos HTTP/PostgreSQL: [evidencia](docs/migracion/usuarios-atendidos-20261007/postgresql.json), corrida `native-postgres-20261007-204401-b254e2a9`. Se verificaron listas inválidas/duplicadas, persistencia sin limpieza posterior, envío rechazado con lista vacía y aceptado con opciones guardadas, prioridades intactas, permisos, reservas, revocación, ILDA y enviados. Clúster desechable detenido al terminar.
+
+TypeScript y Vite correctos; **64/64** pruebas frontend. **41/41** comprobaciones EF/PostgreSQL aislado, incluida limpieza limitada, conservación exacta de enviado/instantánea y borrador de otro ejercicio, prioridades 4/17, rollback si falla la auditoría y repetición del comando/script sin borrar nuevas selecciones. [Evidencia EF](docs/migracion/usuarios-atendidos-20261007/ef.json), corrida final `native-postgres-20261007-205841-e6131401`. El primer intento detectó que `Down` retiraba parcialmente el historial antes de rechazar un enviado; se corrigió. La corrida anterior de 40 casos se amplió con la protección del ejercicio histórico; no se suman ejecuciones repetidas. SQL final generado sin conexión en `.artifacts/usuarios-atendidos.sql`.
+
+**6/6** escenarios específicos en Edge con ASP.NET/PostgreSQL reales y Microsoft/Nexo sintéticos: reserva confirmada antes de abrir, selección múltiple y deselección sin cerrar, autoguardado/recarga, dos sesiones independientes con bloqueo y liberación en vivo, teclado/Tab/Escape, foco, scroll, indicativo de Prioridad ausente de las cinco opciones y móvil táctil emulado de **360 px** con movimiento reducido. Sin errores JavaScript. [Evidencia](docs/migracion/usuarios-atendidos-20261007/navegador.json), corrida `native-postgres-20261007-202927-9c2c554e`; [captura escritorio](docs/migracion/usuarios-atendidos-20261007/usuarios-desktop.png) y [móvil](docs/migracion/usuarios-atendidos-20261007/usuarios-mobile.png), inspeccionadas. El verificador espera la revalidación inicial antes de actuar; los intentos que pulsaban durante la carga no se cuentan como aprobados.
+
+Regresión completa del formato sobre el bundle final: **32/32** escenarios en Edge, sin errores JavaScript. Incluye enlaces de pendientes al nuevo selector, reservas de dos sesiones/pestañas, eliminación directa en cuatro tablas, Cancelar sin escrituras, conflictos de versión, recuperación, foco/Select, avatares/fotos, tres ciclos SignalR de 15 segundos, envío, revocación central y cierre de sesión. [Evidencia](docs/migracion/usuarios-atendidos-20261007/regresion-formato.json), `native-postgres-20261007-205248-59628bfd`.
+
+### Pendiente
+
+Aplicar la migración explícitamente por el operador al destino revisado, con la aplicación detenida; pruebas con dispositivos físicos y lector de pantalla. **No se aplicó a bases institucionales** ni se modificaron Nexo, Herd o credenciales. Sin push/despliegue. Se conservan los pendientes institucionales y las reglas de participación actuales.
+
 ## Presentación de módulos y Configuración — actualización 2026-10-07
 
 ### Implementado

@@ -78,6 +78,8 @@ F5 y el arranque web **no migran, sincronizan ni administran PostgreSQL**. El pr
 
 ## Migraciones EF Core
 
+Usuarios que atiende utiliza selección múltiple y requiere la migración de datos `20261007195019_StructuredUsersServed`: limpia sólo el campo anterior de los borradores y conserva enviados y prioridades. [Comando de actualización, alcance y pruebas](docs/migracion/USUARIOS_ATENDIDOS.md). Aplicación institucional pendiente; F5 no ejecuta la limpieza.
+
 EF es el único mecanismo vigente; historial `public."__EFMigrationsHistory"`. No usar el antiguo `--migrate` ni aplicar SQL 001–004. Esos archivos se conservan exclusivamente como fixtures en `tests/TDV2.NativeVerification/LegacySchema`.
 
 ```powershell

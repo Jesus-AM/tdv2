@@ -10,6 +10,16 @@ public sealed class FormSchema
     private readonly JsonObject definition;
     public FormSchema(string json) => definition = JsonNode.Parse(json)!.AsObject();
     public JsonObject Definition() => (JsonObject)definition.DeepClone();
+    public static readonly string[] UserChoices = ["Comunidad universitaria", "Docentes", "Estudiantes", "Personal administrativo", "Otro"];
+    public static bool HasUsers(JsonNode? node) => node is JsonArray { Count: > 0 } users
+        && users.All(v => v is JsonValue value && value.TryGetValue<string>(out var text) && UserChoices.Contains(text, StringComparer.Ordinal))
+        && users.Select(v => v!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count() == users.Count;
+    private static JsonArray Users(JsonNode? node)
+    {
+        if (node is not JsonArray users || users.Count > UserChoices.Length || users.Count > 0 && !HasUsers(users))
+            throw Invalid("Selecciona usuarios que atiende válidos, sin opciones repetidas.");
+        return users.DeepClone().AsArray();
+    }
     private static readonly Dictionary<string, string[]> Fields = new()
     {
         ["identificacion"] = ["id", "codigo", "prioridad", "fuente", "area", "tramite", "usuario", "resultado", "responsable", "validacion"],
@@ -37,6 +47,7 @@ public sealed class FormSchema
         foreach (var (section, fields) in Fields)
         {
             var row = new JsonObject(fields.Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
+            if (section == "identificacion") row["usuario"] = new JsonArray();
             result[section] = new JsonArray(row);
         }
         return result;
@@ -79,7 +90,8 @@ public sealed class FormSchema
             foreach (var item in rows)
             {
                 var row = Object(item, fields); var clean = new JsonObject();
-                foreach (var field in fields) clean[field] = Text(row, field, field == "id" ? 64 : 4000);
+                foreach (var field in fields) clean[field] = section == "identificacion" && field == "usuario"
+                    ? Users(row[field]) : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000));
                 var id = Text(row, "id", 64);
                 if (string.IsNullOrWhiteSpace(id) || !ids.Add(id)) throw Invalid("Las filas necesitan identificadores únicos.");
                 normalized.Add(clean);
@@ -142,7 +154,7 @@ public sealed class FormSchema
         static double Score(IEnumerable<JsonNode?> nodes, string[] fields, int weight)
         {
             var rows = nodes.ToArray();
-            return (double)weight * rows.Sum(r => fields.Count(k => Filled(r?[k]))) / (Math.Max(1, rows.Length) * fields.Length);
+            return (double)weight * rows.Sum(r => fields.Count(k => k == "usuario" ? HasUsers(r?[k]) : Filled(r?[k]))) / (Math.Max(1, rows.Length) * fields.Length);
         }
         var value = Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion", "prioridad"], 25)
             + Score(data["sistemas"]!.AsArray(), ["sistema", "uso", "estado"], 15)

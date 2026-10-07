@@ -48,7 +48,7 @@ public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger)
                 {
                     var text = record.Information?.Trim() ?? "";
                     if (!Regex.IsMatch(record.Id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
-                    rows.Add(new() { ["id"] = "ilda:" + record.Id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = "", ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
+                    rows.Add(new() { ["id"] = "ilda:" + record.Id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = new JsonArray(), ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
                 }
                 result[unit.Id] = new("disponible", rows, source.Length > 200 ? "ILDA tiene más de 200 registros para esta área. Se muestran los primeros 200; solicita revisar el inventario."
                     : invalid ? "Algunos registros de ILDA no tienen un trámite válido o exceden el tamaño permitido. Solicita revisar el inventario." : null);
@@ -83,7 +83,7 @@ public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger)
             {
                 var id = record.Id; var text = record.Information?.Trim() ?? "";
                 if (!Regex.IsMatch(id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
-                rows.Add(new() { ["id"] = "ilda:" + id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = "", ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
+                rows.Add(new() { ["id"] = "ilda:" + id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = new JsonArray(), ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
             }
             return new("disponible", rows, records.Count > 200 ? "ILDA tiene más de 200 registros para esta área. Se muestran los primeros 200; solicita revisar el inventario."
                 : invalid ? "Algunos registros de ILDA no tienen un trámite válido o exceden el tamaño permitido. Solicita revisar el inventario." : null);
@@ -98,7 +98,7 @@ public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger)
     {
         var rows = content["identificacion"]!.AsArray();
         if (inventory.Rows.Count > 0 && rows.Count == 1 && rows[0]?["id"]?.ToString() == "inicial"
-            && new[] { "codigo", "prioridad", "area", "tramite", "usuario", "resultado", "responsable", "validacion" }.All(k => string.IsNullOrWhiteSpace(rows[0]?[k]?.ToString()))) rows.Clear();
+            && new[] { "codigo", "prioridad", "area", "tramite", "usuario", "resultado", "responsable", "validacion" }.All(k => k == "usuario" && rows[0]?[k] is JsonArray { Count: 0 } || string.IsNullOrWhiteSpace(rows[0]?[k]?.ToString()))) rows.Clear();
         var ids = rows.Select(r => r!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal); var added = 0; var pending = 0;
         foreach (var row in inventory.Rows)
         {
