@@ -2,7 +2,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Tdv2.Domain;
 using Tdv2.Domain.Entities;
@@ -18,33 +17,9 @@ public static class ParticipantIdentity
     // Misma identidad efectiva que las reservas existentes; el nombre nunca decide el color o la fotografía.
     public static string Key(string email) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(email.Trim().ToLowerInvariant()))));
 }
-public sealed record ParticipantPhoto(string? Photo, DateTimeOffset RenuevaEn);
-
-/// <summary>Cachea sólo miniaturas, nunca permisos. Una petición verifica acceso antes de entrar aquí.</summary>
-public sealed class MicrosoftPhotoCache(TimeProvider clock) : IDisposable
-{
-    private readonly MemoryCache cache = new(new MemoryCacheOptions { SizeLimit = 32 * 1024 * 1024 });
-    private readonly SemaphoreSlim[] gates = Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
-    public async Task<ParticipantPhoto> Get(string identity, Func<CancellationToken, Task<string?>> load, CancellationToken ct)
-    {
-        var gate = gates[Math.Abs(identity.GetHashCode() % gates.Length)];
-        await gate.WaitAsync(ct);
-        try
-        {
-            if (cache.TryGetValue<ParticipantPhoto>(identity, out var saved) && saved!.RenuevaEn > clock.GetUtcNow()) return saved;
-            var photo = await load(ct);
-            var ttl = photo is null ? TimeSpan.FromMinutes(2) : TimeSpan.FromMinutes(15);
-            var result = new ParticipantPhoto(photo, clock.GetUtcNow() + ttl);
-            cache.Set(identity, result, new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl, Size = (photo?.Length ?? 0) * 2L + 512 });
-            return result;
-        }
-        finally { gate.Release(); }
-    }
-    public void Dispose() { cache.Dispose(); foreach (var gate in gates) gate.Dispose(); }
-}
 
 public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, MicrosoftPhotoCache cache,
-    GraphTokens tokens, MicrosoftClient microsoft, IOptions<MicrosoftSettings> settings, ILogger<ParticipantPhotos> logger)
+    GraphTokens tokens, MicrosoftClient microsoft, IOptions<MicrosoftSettings> settings, ILogger<ParticipantPhotos> logger, AccessState state)
 {
     public async Task<long?> VerifiedUser(string email, CancellationToken ct) =>
         await db.Users.AsNoTracking().Where(u => u.Email == email && u.MicrosoftTenantId == Guid.Parse(settings.Value.TenantId)
@@ -53,10 +28,18 @@ public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, Mi
     public async Task<ParticipantPhoto> Account(HttpContext http)
     {
         var profile = await access.Profile(http);
+        var context = PhotoContext.Key(http, state, profile.User.Email);
+        if (http.Request.Headers["X-TDV2-Photo-Context"] is { Count: > 0 } sent && sent.ToString() != context)
+            throw new DomainProblem(409, "El usuario activo cambió. Recarga para consultar su fotografía.");
         // En representación se busca al objetivo: jamás reutilizar el identificador Microsoft del actor.
-        if (access.Selection?.Kind == "preview") return new(null, DateTimeOffset.UtcNow.AddMinutes(2));
+        if (access.Selection?.Kind == "preview") {
+            await state.CheckRead(http.RequestAborted);
+            return new(null, DateTimeOffset.UtcNow.AddMinutes(2), Contexto: context);
+        }
         var id = await VerifiedUser(profile.User.Email, http.RequestAborted);
-        return id is null ? new(null, DateTimeOffset.UtcNow.AddMinutes(2)) : await Load(id.Value, http.RequestAborted);
+        var result = id is null ? new ParticipantPhoto(null, DateTimeOffset.UtcNow.AddMinutes(2)) : await Load(id.Value, http.RequestAborted);
+        await state.CheckRead(http.RequestAborted);
+        return result with { Contexto = context };
     }
     public async Task<ParticipantPhoto> ForForm(HttpContext http, string unit, string participant)
     {
@@ -70,6 +53,7 @@ public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, Mi
         var result = await Load(id.Value, http.RequestAborted);
         // Una descarga lenta no amplía la ventana de la reserva ni entrega un participante ya retirado.
         if (await ActiveUser(unit, participant, http.RequestAborted) != id) throw Missing();
+        await state.CheckRead(http.RequestAborted);
         return result;
     }
     private Task<long?> ActiveUser(string unit, string participant, CancellationToken ct) => db.FormBlocks.AsNoTracking()
@@ -80,32 +64,46 @@ public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, Mi
     {
         var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id, ct);
         if (user?.MicrosoftId is null || user.MicrosoftTenantId != Guid.Parse(settings.Value.TenantId)) return new(null, DateTimeOffset.UtcNow.AddMinutes(2));
-        return await cache.Get($"{user.Id}:{user.MicrosoftTenantId}:{user.MicrosoftId}", token => Fetch(user, token), ct);
+        return await cache.Get($"{user.Id}:{user.MicrosoftTenantId}:{user.MicrosoftId}:{user.Email}", token => Fetch(user, token), ct);
     }
-    private async Task<string?> Fetch(User user, CancellationToken ct)
+    private async Task<MicrosoftPhotoResult> Fetch(User user, CancellationToken ct)
     {
+        // HttpClient con ResponseHeadersRead no limita la lectura del cuerpo. Acotar toda
+        // la renovación evita retener indefinidamente la exclusión por identidad si Graph se cuelga.
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(30));
+        var operation = timeout.Token;
         try
         {
-            var token = await tokens.Ensure(user.Id, ct);
-            if (token is null) return null;
-            async Task<(bool Unauthorized, string? Photo)> Verified(string credential)
+            var token = await tokens.Ensure(user.Id, operation);
+            if (token is null) return Report(new(MicrosoftPhotoStatus.Unavailable, Cause: "tokens_missing"));
+            async Task<MicrosoftPhotoResult> Verified(string credential)
             {
-                // Conservar la renovación ante 401 del mecanismo previo. La miniatura no se
-                // entrega hasta acreditar /me; una foto ausente no requiere otra consulta Graph.
-                var photo = await microsoft.Photo(credential, ct);
-                if (photo.Unauthorized || photo.Photo is null) return photo;
-                var person = await microsoft.Me(credential, ct);
-                if (person.ObjectId != user.MicrosoftId!.Value.ToString() || person.Email != user.Email) return (false, null);
-                return photo;
+                try
+                {
+                    var photo = await microsoft.Photo(credential, operation);
+                    if (photo.Status is not (MicrosoftPhotoStatus.Found or MicrosoftPhotoStatus.Missing)) return photo;
+                    // Acreditar también la ausencia: un token de otra identidad no puede invalidar esta foto.
+                    var person = await microsoft.PhotoIdentity(credential, operation);
+                    if (person.ObjectId != user.MicrosoftId!.Value.ToString() || person.Email != user.Email)
+                        return new(MicrosoftPhotoStatus.Unavailable, Cause: "identity_mismatch");
+                    return photo;
+                }
+                catch (MicrosoftPhotoFailure failure) { return failure.Result; }
             }
             var result = await Verified(token);
-            if (result.Unauthorized && await tokens.Ensure(user.Id, ct, token) is { } renewed) result = await Verified(renewed);
-            return result.Photo;
+            if (result.Status == MicrosoftPhotoStatus.Unauthorized && await tokens.Ensure(user.Id, operation, token) is { } renewed) result = await Verified(renewed);
+            return Report(result);
         }
-        catch (Exception error) when (error is not OperationCanceledException)
-        {
-            logger.LogInformation("Miniatura Microsoft no disponible. Tipo: {Type}", error.GetType().Name);
-            return null;
-        }
+        catch (MicrosoftPhotoFailure failure) { return Report(failure.Result); }
+        catch (HttpRequestException) { return Report(new(MicrosoftPhotoStatus.Temporary, Cause: "network")); }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return Report(new(MicrosoftPhotoStatus.Temporary, Cause: "timeout")); }
+        catch (JsonException) { return Report(new(MicrosoftPhotoStatus.Unavailable, Cause: "invalid_response")); }
+        catch (DomainProblem) { return Report(new(MicrosoftPhotoStatus.Unavailable, Cause: "invalid_response")); }
+    }
+    private MicrosoftPhotoResult Report(MicrosoftPhotoResult result)
+    {
+        if (result.Cause is not null) logger.LogWarning("Miniatura Microsoft no disponible. Causa: {Cause}", result.Cause);
+        return result;
     }
 }

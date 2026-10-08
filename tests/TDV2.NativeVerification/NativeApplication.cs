@@ -37,6 +37,11 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
     internal string Mail = "persona@uacj.mx";
     internal bool TokenFailure, PhotoFailure, PhotoAvailable, RotateRefresh = true;
     internal int Exchanges, Refreshes, PhotoRequests, MeRequests;
+    internal HttpStatusCode? PhotoStatus, RefreshStatus;
+    internal string? PhotoError;
+    internal int RetrySeconds;
+    internal string PhotoPixel = Pixel;
+    internal TaskCompletionSource? PhotoEntered, PhotoContinue;
     internal string? MeObjectIdOverride;
     private sealed record Account(string Id, string Email, string Mail);
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Account> accounts = new();
@@ -68,6 +73,7 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
             else if (form["grant_type"] == "refresh_token") { Refreshes++; }
             else throw new InvalidOperationException("Unexpected grant type.");
             if (TokenFailure) return Json(new { error = "synthetic_provider_error_secret" }, HttpStatusCode.BadRequest);
+            if (RefreshStatus is { } refreshStatus && form["grant_type"] == "refresh_token") return Json(new { error = "synthetic_failure" }, refreshStatus);
             var account = form["grant_type"] == "refresh_token" && accounts.TryGetValue(form["refresh_token"].ToString(), out var previous)
                 ? previous : new Account(Id, Email, Mail);
             var suffix = account.Id == ObjectId ? "" : "-" + account.Id;
@@ -94,8 +100,16 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
             if (request.RequestUri.AbsolutePath == "/v1.0/me") { Interlocked.Increment(ref MeRequests); return Json(new { id = MeObjectIdOverride ?? account.Id, mail = account.Mail, userPrincipalName = account.Email, displayName = "Untrusted Graph display name" }); }
             if (request.RequestUri.AbsolutePath == "/v1.0/me/photos/48x48/$value") {
                 Interlocked.Increment(ref PhotoRequests);
+                if (PhotoEntered is { } entered) { entered.TrySetResult(); await PhotoContinue!.Task.WaitAsync(cancellationToken); }
+                if (PhotoError == "network") throw new HttpRequestException("SYNTHETIC_NETWORK_SECRET");
+                if (PhotoError == "timeout") throw new TaskCanceledException("SYNTHETIC_TIMEOUT_SECRET");
+                if (PhotoStatus is { } photoStatus) {
+                    var response = new HttpResponseMessage(photoStatus);
+                    if (RetrySeconds > 0) response.Headers.RetryAfter = new(TimeSpan.FromSeconds(RetrySeconds));
+                    return response;
+                }
                 if (PhotoFailure || !PhotoAvailable) return new HttpResponseMessage(PhotoFailure ? HttpStatusCode.Unauthorized : HttpStatusCode.NotFound);
-                var photo = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Convert.FromBase64String(Pixel)) };
+                var photo = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Convert.FromBase64String(PhotoPixel)) };
                 photo.Content.Headers.ContentType = new("image/png"); return photo;
             }
         }
@@ -110,13 +124,14 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     internal SyntheticSources Sources { get; } = new();
     internal ReadCounter Reads { get; } = new();
     internal SyntheticClock Clock { get; } = new();
+    internal SyntheticDiagnostics Diagnostics { get; } = new();
     internal string ControlToken { get; } = ProtectedValues.Random();
     internal string PublicOrigin = "https://localhost";
     internal bool Browser, Vite;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(new SyntheticDiagnostics()); });
+        builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(Diagnostics); });
         builder.ConfigureAppConfiguration((host, configuration) => {
             // El builder se crea en Testing y nunca carga User Secrets. Sólo esta prueba habilita
             // el proxy de desarrollo después de sustituir la configuración por fuentes sintéticas.
@@ -139,7 +154,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
             services.AddHttpClient<MicrosoftClient>().ConfigurePrimaryHttpMessageHandler(() => Microsoft);
             if (Browser) {
                 Microsoft.PhotoAvailable = true;
-                services.AddSingleton<IStartupFilter>(new BrowserControls(database, ControlToken, Sources));
+                services.AddSingleton<IStartupFilter>(new BrowserControls(database, ControlToken, Sources, Microsoft, Clock));
             }
         });
     }
@@ -167,7 +182,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
 }
 
 // Available ONLY in this test executable, on its loopback HTTPS Kestrel host. Never in the application assembly.
-internal sealed class BrowserControls(NativeDatabase database, string token, SyntheticSources sources) : IStartupFilter
+internal sealed class BrowserControls(NativeDatabase database, string token, SyntheticSources sources, FakeMicrosoft microsoft, SyntheticClock clock) : IStartupFilter
 {
     private Task<System.Text.Json.Nodes.JsonObject?>? worker;
     public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
@@ -184,6 +199,16 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
             if (http.Request.Headers["X-Fixture-Key"] != token) { http.Response.StatusCode = 403; return; }
             switch (action.Value)
             {
+                case "/photo-state":
+                    await http.Response.WriteAsJsonAsync(new { requests = microsoft.PhotoRequests, identities = microsoft.MeRequests }); return;
+                case "/photo-control":
+                    if (int.TryParse(http.Request.Query["minutes"], out var minutes) && minutes is >= 0 and <= 120) clock.Offset = TimeSpan.FromMinutes(minutes);
+                    microsoft.PhotoStatus = http.Request.Query["mode"].ToString() switch { "temporary" => HttpStatusCode.ServiceUnavailable, "missing" => HttpStatusCode.NotFound, _ => null };
+                    if (http.Request.Query["changed"] == "true") microsoft.PhotoPixel = Convert.ToBase64String(Convert.FromBase64String(microsoft.PhotoPixel).Concat(new byte[] { 0 }).ToArray());
+                    if (http.Request.Query["target"] == "true") { microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"; microsoft.Email = microsoft.Mail = "encargada@uacj.mx"; }
+                    break;
+                case "/photo-hold": microsoft.PhotoEntered = new(TaskCreationOptions.RunContinuationsAsynchronously); microsoft.PhotoContinue = new(TaskCreationOptions.RunContinuationsAsynchronously); break;
+                case "/photo-release": microsoft.PhotoContinue?.TrySetResult(); microsoft.PhotoEntered = null; break;
                 case "/performance-seed":
                     var count = int.TryParse(http.Request.Query["rows"], out var requested) ? requested : 200;
                     if (count is < 1 or > 200) { http.Response.StatusCode = 400; return; }

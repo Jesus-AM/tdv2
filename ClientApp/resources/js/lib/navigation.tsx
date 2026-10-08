@@ -52,14 +52,16 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
     const ticket = ++sequence;
     try {
         const url = localPath(path);
-        if (url === '/' || url === '/connect' || url === '/session/microsoft-logout') { window.location.assign(url); return; }
+        // También /connect?account=other requiere navegación completa; OAuth no es una página JSON.
+        const pathname = new URL(url, window.location.origin).pathname;
+        if (pathname === '/' || pathname === '/connect' || pathname === '/session/microsoft-logout') { window.location.assign(url); return; }
         const { data } = await axios.get<Page>(url, { headers: { 'X-TDV2-Page': '1', Accept: 'application/json' } });
         if (ticket !== sequence) return;
         if (!data.component || !data.props) throw new Error('Respuesta de página no válida.');
         // Reload uses the same page instance so form drafts and sync settings survive polling.
         const page = options.only && current?.component === data.component
             ? { ...data, props: { ...current.props, ...Object.fromEntries(Object.entries(data.props).filter(([key]) =>
-                options.only!.includes(key) || ['auth', 'simulacion', 'representacion', 'contextoEdicion', 'csrfToken', 'session', 'routes'].includes(key))) } }
+                options.only!.includes(key) || ['auth', 'simulacion', 'representacion', 'contextoEdicion', 'photoContext', 'csrfToken', 'session', 'routes'].includes(key))) } }
             : data;
         window.history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', url);
         setPage(page);
@@ -79,6 +81,8 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
 }
 async function mutate(method: 'post' | 'delete', path: string, data: unknown, options: Options) {
     if (!before()) { options.onFinish?.(); return; }
+    if (['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba'].includes(localPath(path)))
+        events.dispatchEvent(new Event('identity-changing'));
     try {
         if (!csrf) csrf = (await axios.get<{ token: string }>('/session/csrf')).data.token;
         const response = await axios.request({ method, url: localPath(path), data, headers: { Accept: 'application/json' } });
@@ -99,10 +103,10 @@ export const router = {
     delete: (path: string, options: Options = {}) => { void mutate('delete', path, undefined, options); },
     // History contains URLs only, never cached page data, tokens or personal information.
     clearHistory: () => { window.history.replaceState(null, '', window.location.href); },
-    on: (_name: 'before', callback: (event: Before) => void) => {
+    on: (name: 'before' | 'identity-changing', callback: (event: Before) => void) => {
         const handler = callback as EventListener;
-        events.addEventListener('before', handler);
-        return () => events.removeEventListener('before', handler);
+        events.addEventListener(name, handler);
+        return () => events.removeEventListener(name, handler);
     },
 };
 export function startNavigation(onPage: (page: Page) => void) {

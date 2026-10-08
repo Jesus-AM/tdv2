@@ -1,9 +1,10 @@
 using Tdv2.Integrations.Microsoft;
 using Npgsql;
 using Tdv2.Infrastructure;
+using System.Security.Cryptography;
 namespace Tdv2.Security;
 
-public sealed class GraphTokens(DatabaseConnections connections, ProtectedValues crypto, MicrosoftClient microsoft)
+public sealed class GraphTokens(DatabaseConnections connections, ProtectedValues crypto, MicrosoftClient microsoft, ILogger<GraphTokens> logger)
 {
     public async Task<string?> Ensure(long user, CancellationToken cancellation, string? rejected = null)
     {
@@ -15,8 +16,17 @@ public sealed class GraphTokens(DatabaseConnections connections, ProtectedValues
             command.Parameters.AddWithValue(user);
             await using var reader = await command.ExecuteReaderAsync(cancellation);
             if (!await reader.ReadAsync(cancellation)) return null;
-            access = crypto.Unprotect("graph-access", reader.GetString(0));
-            refresh = crypto.Unprotect("graph-refresh", reader.GetString(1));
+            try
+            {
+                access = crypto.Unprotect("graph-access", reader.GetString(0));
+                refresh = crypto.Unprotect("graph-refresh", reader.GetString(1));
+            }
+            catch (CryptographicException)
+            {
+                // Compartir PostgreSQL no comparte el anillo de llaves. DPAPI de Windows no es portable a Ubuntu.
+                logger.LogWarning("No se pueden descifrar los tokens Graph. Causa: {Cause}. Revisar el anillo local de Data Protection y el entorno que emitió los tokens.", "token_protection");
+                throw new MicrosoftPhotoFailure(new(MicrosoftPhotoStatus.Unavailable, Cause: "token_protection"));
+            }
             expires = long.Parse(reader.GetString(2), System.Globalization.CultureInfo.InvariantCulture);
         }
         if (expires > DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 60 && (rejected is null || access != rejected)) return access;

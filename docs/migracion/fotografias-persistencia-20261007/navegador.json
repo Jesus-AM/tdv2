@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "browser": "154.0.4258.37",
+  "completed": true,
+  "checks": [
+    "Navegación SPA entre módulo y submódulos conserva imagen sin nuevas peticiones",
+    "Recarga completa usa caché privado autorizado sin nueva descarga Graph",
+    "Renovación lenta conserva la foto hasta confirmar su reemplazo",
+    "Indisponibilidad Graph conserva última imagen; ausencia confirmada muestra iniciales",
+    "Representación limpia foto del actor antes de completar la petición; objetivo sin foto usa iniciales",
+    "Identidad representada verificada recupera su propia miniatura",
+    "Volver al actor y menú móvil conservan identidad y fotografía correctas",
+    "Usar otra cuenta retira foto inmediatamente y avisa a otras pestañas; cuenta nueva nunca hereda imagen",
+    "Cerrar sesión limpia imagen antes de responder y revoca acceso al endpoint"
+  ],
+  "errors": []
+}

@@ -402,8 +402,9 @@ internal static partial class NativeTests
     {
         var selectedFlow = Environment.GetEnvironmentVariable("TDV2_TEST_BROWSER_FLOW") ?? "all";
         if (selectedFlow == "visual-studio") { await VerifyDevelopmentStartup(database); return; }
-        Check(new[] { "all", "formats", "access", "scope", "sync", "performance", "capture-matrix", "participants", "presentation", "users-served" }.Contains(selectedFlow), "Unknown browser flow.");
+        Check(new[] { "all", "formats", "access", "scope", "sync", "performance", "capture-matrix", "participants", "presentation", "users-served", "photos" }.Contains(selectedFlow), "Unknown browser flow.");
         await database.Reset();
+        if (selectedFlow == "photos") await SetupSync(database);
         if (selectedFlow == "presentation")
         {
             await SetupSync(database);
@@ -423,9 +424,10 @@ internal static partial class NativeTests
         start.Environment["TDV2_BROWSER_ARTIFACTS"] = database.Artifacts;
         // Browser runner needs no database credentials.
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
-        if (selectedFlow is "performance" or "capture-matrix" or "participants" or "presentation" or "users-served")
+        if (selectedFlow is "performance" or "capture-matrix" or "participants" or "presentation" or "users-served" or "photos")
         {
             start.ArgumentList.Clear(); start.ArgumentList.Add(selectedFlow switch {
+                "photos" => "tests/browser/photos-flow.mjs",
                 "users-served" => "tests/browser/users-served-flow.mjs", "presentation" => "tests/browser/presentation-flow.mjs", "participants" => "tests/browser/participants-browser.mjs", "performance" => "tests/browser/performance-flow.mjs", _ => "tests/browser/capture-matrix.mjs" });
             using var measured = Process.Start(start)!;
             var output = measured.StandardOutput.ReadToEndAsync(); var errors = measured.StandardError.ReadToEndAsync();

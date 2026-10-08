@@ -11,6 +11,21 @@ public sealed class AccessState(DatabaseConnections connections, ProtectedValues
     public const string Claim = "tdv2.session_hash";
     public string? SessionHash => accessor.HttpContext?.User.FindFirstValue(Claim);
     public AccessSnapshot? Loaded { get; private set; }
+    public async Task CheckRead(CancellationToken ct)
+    {
+        // Una descarga Graph lenta no puede devolver la foto del contexto previo a logout/representación.
+        if (SessionHash is null || Loaded is null) throw new DomainProblem(401, "Inicia sesión nuevamente para continuar.");
+        await using var connection = await connections.Open("Tdv2", ct);
+        await using var command = new NpgsqlCommand("""
+            SELECT coalesce(c.revision,0) FROM tdv2_sessions s
+            LEFT JOIN tdv2_access_contexts c ON c.session_hash=s.id_hash
+            WHERE s.id_hash=$1 AND s.expires_at>clock_timestamp()
+            """, connection);
+        command.Parameters.AddWithValue(SessionHash);
+        var revision = await command.ExecuteScalarAsync(ct);
+        if (revision is null) throw new DomainProblem(401, "La sesión ya no está vigente.");
+        if (Convert.ToInt64(revision) != Loaded.Revision) throw new DomainProblem(409, "El usuario activo cambió. Recarga para continuar.");
+    }
     public async Task<AccessSnapshot> Load(CancellationToken ct)
     {
         if (Loaded is not null) return Loaded;

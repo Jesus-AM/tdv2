@@ -2,6 +2,32 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-07**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## Persistencia de fotografías — actualización 2026-10-07
+
+### Implementado
+
+La cabecera utiliza `AccountPhotoProvider` sobre las páginas: conserva su miniatura durante navegación SPA y renovación en segundo plano. Al recargar recupera la caché privada del servidor tras autorizar la petición. Caché de 32 MiB por proceso, renovación a los 15 minutos y conservación ante fallos temporales por **un máximo de una hora desde la última verificación correcta**, sin prolongarla por reintentos. Espera progresiva de 30 segundos a 15 minutos; ausencia confirmada y errores permanentes retiran la imagen y usan iniciales.
+
+Contexto opaco ligado a sesión, cuenta Microsoft e identidad efectiva; cancelación de respuestas antiguas y limpieza inmediata al cambiar cuenta/representación o cerrar sesión, también en otras pestañas mediante una notificación efímera. El endpoint comprueba nuevamente sesión/revisión tras una descarga lenta. Un 401/403/409 de TDV2 no conserva la foto como si Microsoft estuviera temporalmente caído. Se mantienen fotos verificadas del objetivo, participantes autorizados con reserva vigente y renovación serializada de tokens. Sin imágenes/tokens en almacenamiento web ni caché de permisos.
+
+Se corrigió además el transporte de «Usar otra cuenta»: `/connect?account=other` requiere navegación completa, no consulta JSON. Sin cambios de hints ni reglas OAuth. Avatares, colores, nombres, reservas, autoguardado, eliminación y configuración de participación conservados. **No requiere nueva migración**; no modifica las migraciones ni pendientes anteriores.
+
+Se identificó en el código el conflicto posible entre Windows/Ubuntu con la misma base y anillos Data Protection incompatibles. Un fallo de descifrado registra `token_protection` sin tokens ni excepción original y retira la foto al renovar. Probado con cifrado sintético de otro proveedor, sin inspeccionar ni compartir llaves reales. [Política, diagnóstico y comandos](docs/migracion/PERSISTENCIA_FOTOGRAFIAS.md).
+
+### Probado
+
+Compilación Release de la solución: cero errores y advertencias. TypeScript y Vite correctos; **71/71** pruebas frontend y **62/62** de dominio/transporte. Regresión HTTP/PostgreSQL: **152/152**, corrida `native-postgres-20261007-230704-85dcb3ca`, [evidencia](docs/migracion/fotografias-persistencia-20261007/postgresql.json). Incluye permisos, revocación, token refresh, cifrado incompatible, solicitudes simultáneas, colaboración y enviados. Clúster desechable detenido al terminar.
+
+Tras el refuerzo final de revisión de contexto y límite/cancelación de la descarga: **15/15** casos específicos HTTP/PostgreSQL de fotos/tokens, más **9/9** escenarios en Edge. Corrida final `native-postgres-20261007-231448-59f7ff6f`: [backend](docs/migracion/fotografias-persistencia-20261007/fotografias.json) y [navegador](docs/migracion/fotografias-persistencia-20261007/navegador.json). El runner cuenta el recorrido Edge como un caso adicional (16/16), no como nueve casos HTTP.
+
+Edge verificó navegación sin nuevas peticiones, recarga sin nueva descarga Graph, renovación lenta, error temporal, ausencia confirmada, representación, identidad objetivo verificada, teclado/móvil de 360 px, otra pestaña, cambio de cuenta y logout; sin errores JavaScript. Los primeros intentos detectaron una espera incorrecta del reloj sintético y el problema real de navegación OAuth con parámetros; se corrigieron, no se cuentan como aprobados.
+
+Regresión del formato en Edge sobre el código final: **32/32**, sin errores JavaScript, `native-postgres-20261007-231643-6b8a7779`. [Evidencia](docs/migracion/fotografias-persistencia-20261007/regresion-formato.json): dos sesiones/pestañas, fotos/colores/tooltip sin perder foco, reservas automáticas, autoguardado, Select, eliminación directa, propuestas ante desconexión, tres ciclos SignalR de 15 segundos, envío definitivo y revocación. Todos los clústeres aislados quedaron detenidos.
+
+### Pendiente
+
+Aceptación con Microsoft real y comprobación de la topología institucional de cifrado Windows/Ubuntu. No se conectó a bases institucionales ni se modificaron Nexo, Herd, credenciales o llaves. Sin push ni despliegue. Las pruebas usan miniaturas sintéticas; no acreditan disponibilidad de fotos reales ni accesibilidad con dispositivos físicos.
+
 ## Usuarios que atiende y Prioridad — actualización 2026-10-07
 
 ### Implementado

@@ -1,0 +1,91 @@
+{
+  "utc": "2026-10-07T23:16:12.6287723+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 16,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Graph: refresco concurrente una vez, rotaci\u00F3n cifrada y foto fallida sin logout",
+      "passed": true,
+      "milliseconds": 4118
+    },
+    {
+      "name": "Graph: sin rotaci\u00F3n conserva refresh anterior; error no cambia token",
+      "passed": true,
+      "milliseconds": 1875
+    },
+    {
+      "name": "Foto/persistencia entre p\u00E1ginas y recarga; actualizaci\u00F3n tras quince minutos",
+      "passed": true,
+      "milliseconds": 3188
+    },
+    {
+      "name": "Foto/429, red, timeout y 503 conservan imagen con espera progresiva y l\u00EDmite absoluto",
+      "passed": true,
+      "milliseconds": 3296
+    },
+    {
+      "name": "Foto/ausencia confirmada retira imagen anterior y no se confunde con indisponibilidad",
+      "passed": true,
+      "milliseconds": 2404
+    },
+    {
+      "name": "Foto/renovaci\u00F3n de token temporal conserva imagen; cifrado de otro entorno la retira sin alterar tokens",
+      "passed": true,
+      "milliseconds": 2171
+    },
+    {
+      "name": "Foto/respuesta lenta revalida revocaci\u00F3n local y contexto de representaci\u00F3n",
+      "passed": true,
+      "milliseconds": 3357
+    },
+    {
+      "name": "Foto/logout durante renovaci\u00F3n y cabecera de contexto anterior no entregan imagen",
+      "passed": true,
+      "milliseconds": 2418
+    },
+    {
+      "name": "Foto/volver de representaci\u00F3n cambia revisi\u00F3n incluso con la misma cuenta Microsoft",
+      "passed": true,
+      "milliseconds": 3260
+    },
+    {
+      "name": "Foto/desconectar la petici\u00F3n libera la renovaci\u00F3n sin borrar la imagen v\u00E1lida",
+      "passed": true,
+      "milliseconds": 1802
+    },
+    {
+      "name": "Foto/Graph debe acreditar la identidad de la miniatura y conserva renovaci\u00F3n ante 401",
+      "passed": true,
+      "milliseconds": 1707
+    },
+    {
+      "name": "Foto/reserva verificada, cach\u00E9 compartida, renovaci\u00F3n y rechazo tras liberar",
+      "passed": true,
+      "milliseconds": 3764
+    },
+    {
+      "name": "Foto/no es directorio: UR ajena, participante ausente, sesi\u00F3n revocada y acceso suspendido",
+      "passed": true,
+      "milliseconds": 2626
+    },
+    {
+      "name": "Foto/iniciales ante Graph ausente, identidad no coincidente y vencimiento de reserva",
+      "passed": true,
+      "milliseconds": 2323
+    },
+    {
+      "name": "Foto/representaci\u00F3n usa objetivo verificado o iniciales; nunca la foto del administrador",
+      "passed": true,
+      "milliseconds": 5180
+    },
+    {
+      "name": "React \u2192 ASP.NET \u2192 PostgreSQL / Edge",
+      "passed": true
+    }
+  ]
+}

@@ -4,6 +4,8 @@ Backend ASP.NET con controladores, EF Core 10/Npgsql y PostgreSQL; frontend Reac
 
 La adaptación técnica no acredita todavía el acceso institucional real ni el despliegue Ubuntu. Implementado, probado y pendiente se registran por separado en [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
+Fotografías: estado compartido entre páginas y caché privada, renovación a los 15 minutos y conservación ante fallos temporales durante un máximo de una hora desde la última verificación correcta. Limpieza al cambiar identidad y diagnóstico de cifrado entre entornos; **sin nueva migración**. [Política, comprobaciones y límites](docs/migracion/PERSISTENCIA_FOTOGRAFIAS.md).
+
 Entrega 2026-10-07: escritura por bloque sin renderizados de filas ajenas, presencia con tooltip accesible y miniaturas Microsoft protegidas y cacheadas. Conserva reservas automáticas, autoguardado, eliminación directa y las reglas de participación vigentes; nuevas reglas de participación quedan pendientes. Requiere la migración **`20261007161549_ParticipantPhotographs`**, probada sólo en PostgreSQL aislado. [Instalación, mediciones 20/100/200, fotografías y comprobación desde Visual Studio](docs/migracion/CAPTURA_FOTOGRAFIAS_RENDIMIENTO.md).
 
 La [configuración de participación, optimización del editor y presencia colaborativa](docs/migracion/PARTICIPACION_RENDIMIENTO_PRESENCIA.md) incluye la nueva migración y el registro del submódulo `configuracion_procesos` en Nexo. Su instalación es explícita; F5 no modifica el esquema.

@@ -1,7 +1,7 @@
 import { router, usePage } from '@/lib/navigation';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import axios from 'axios';
+import { useAccountPhoto } from '@/Components/AccountPhoto';
 import {
     AppBar,
     Toolbar,
@@ -79,7 +79,6 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
         return () => observer.disconnect();
     }, []);
     const [open, setOpen] = useState(false),
-        [photo, setPhoto] = useState<{ owner: string; value: string | null } | null>(null),
         [account, setAccount] = useState<HTMLElement | null>(null),
         [busy, setBusy] = useState(false);
     const last = useRef(Date.now());
@@ -100,24 +99,8 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
             document.removeEventListener('visibilitychange', check);
         };
     }, [props.session.lifetime_ms, routes.inicio]);
-    const photoOwner = `${rep?.email || auth.user?.email}:${rep?.expira_en || ''}:${preview?.expiresAt || ''}`;
+    const photo = useAccountPhoto();
     const visibleName = rep?.nombre || auth.user?.name;
-    useEffect(() => {
-        let active = true;
-        let timer: ReturnType<typeof setTimeout>;
-        const load = async () => {
-            let delay = 120000;
-            try {
-                const { data } = await axios.get<{ photo: string | null; renuevaEn: string }>('/user/photo');
-                if (active) setPhoto({ owner: photoOwner, value: data.photo });
-                delay = Math.max(30000, Math.min(900000, Date.parse(data.renuevaEn) - Date.now() || 120000));
-            } catch { if (active) setPhoto({ owner: photoOwner, value: null }); }
-            // Una miniatura opcional no redirige ni interrumpe una propuesta pendiente.
-            if (active) timer = setTimeout(() => void load(), delay);
-        };
-        void load();
-        return () => { active = false; clearTimeout(timer); };
-    }, [photoOwner]);
     const exit = () => {
         if (busy) return;
         setBusy(true);
@@ -178,7 +161,8 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                         sx={{ minWidth: 40, p: 0.5, gap: 1 }}
                     >
                         <Avatar
-                            src={photo?.owner === photoOwner ? photo.value || undefined : undefined}
+                            key={props.photoContext || 'initials'}
+                            src={photo || undefined}
                             sx={{ width: 32, height: 32, fontSize: 12, bgcolor: '#e6eefb', color: 'primary.dark' }}
                         >
                             {visibleName

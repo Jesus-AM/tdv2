@@ -5,6 +5,7 @@ import { theme } from '@/theme';
 import type { ComponentType } from 'react';
 import { PageContext, startNavigation } from '@/lib/navigation';
 import type { Page, SharedProps } from '@/types/page';
+import { AccountPhotoProvider } from '@/Components/AccountPhoto';
 import '../css/app.css';
 
 const sources = import.meta.glob<{ default: ComponentType<SharedProps> }>('./pages/*.tsx');
@@ -16,7 +17,9 @@ function App() {
     const Component = pages[`./pages/${page.component}.tsx`];
     if (!Component) return <Alert severity="error">Vista no disponible.</Alert>;
     return <PageContext.Provider value={page}>
-        <Suspense fallback={<LinearProgress />}><Component {...page.props} /></Suspense>
+        <AccountPhotoProvider context={page.props.photoContext}>
+            <Suspense fallback={<LinearProgress />}><Component {...page.props} /></Suspense>
+        </AccountPhotoProvider>
     </PageContext.Provider>;
 }
 function ThemedApp() {

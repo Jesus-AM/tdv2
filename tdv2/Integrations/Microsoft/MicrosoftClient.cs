@@ -45,7 +45,11 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
         var started = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         using var request = new HttpRequestMessage(HttpMethod.Post, settings.Authority + "token") { Content = new FormUrlEncodedContent(data) };
         using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
-        if (!response.IsSuccessStatusCode) throw Failure();
+        if (!response.IsSuccessStatusCode)
+        {
+            if (previousRefresh is not null) throw new MicrosoftPhotoFailure(MicrosoftPhotoResult.Http(response, false));
+            throw Failure();
+        }
         using var json = JsonDocument.Parse(await ReadLimited(response, 131072, cancellation));
         var root = json.RootElement;
         var access = String(root, "access_token"); var refresh = String(root, "refresh_token") ?? previousRefresh;
@@ -73,12 +77,18 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
         var hint = result.ClaimsIdentity.FindFirst("login_hint")?.Value;
         return hint is { Length: > 0 and <= 8192 } ? hint : null;
     }
-    public async Task<MicrosoftPerson> Me(string token, CancellationToken cancellation)
+    public Task<MicrosoftPerson> Me(string token, CancellationToken cancellation) => ReadPerson(token, cancellation, false);
+    public Task<MicrosoftPerson> PhotoIdentity(string token, CancellationToken cancellation) => ReadPerson(token, cancellation, true);
+    private async Task<MicrosoftPerson> ReadPerson(string token, CancellationToken cancellation, bool photograph)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me?$select=id,mail,userPrincipalName,displayName");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
-        if (!response.IsSuccessStatusCode) throw Failure();
+        if (!response.IsSuccessStatusCode)
+        {
+            if (photograph) throw new MicrosoftPhotoFailure(MicrosoftPhotoResult.Http(response, false));
+            throw Failure();
+        }
         using var document = JsonDocument.Parse(await ReadLimited(response, 65536, cancellation));
         var id = String(document.RootElement, "id");
         if (!Guid.TryParse(id, out var objectId)) throw Failure();
@@ -86,16 +96,17 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
         if (string.IsNullOrWhiteSpace(mail)) mail = String(document.RootElement, "userPrincipalName");
         return new(objectId.ToString(), PostgresNexoProfiles.Email(mail ?? ""));
     }
-    public async Task<(bool Unauthorized, string? Photo)> Photo(string token, CancellationToken cancellation)
+    public async Task<MicrosoftPhotoResult> Photo(string token, CancellationToken cancellation)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me/photos/48x48/$value");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
-        if (response.StatusCode == HttpStatusCode.Unauthorized) return (true, null);
+        if (!response.IsSuccessStatusCode) return MicrosoftPhotoResult.Http(response);
         var type = response.Content.Headers.ContentType?.MediaType?.ToLowerInvariant();
-        if (!response.IsSuccessStatusCode || type is not ("image/png" or "image/jpeg")) return (false, null);
+        if (type is not ("image/png" or "image/jpeg")) return new(MicrosoftPhotoStatus.Unavailable, Cause: "invalid_photo_type");
         var bytes = await ReadLimited(response, 1_048_576, cancellation);
-        return (false, bytes.Length == 0 ? null : $"data:{type};base64,{Convert.ToBase64String(bytes)}");
+        return bytes.Length == 0 ? new(MicrosoftPhotoStatus.Unavailable, Cause: "empty_photo_response")
+            : new(MicrosoftPhotoStatus.Found, $"data:{type};base64,{Convert.ToBase64String(bytes)}");
     }
     private static string? String(JsonElement json, string name) => json.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
     private static async Task<byte[]> ReadLimited(HttpResponseMessage response, int limit, CancellationToken cancellation)

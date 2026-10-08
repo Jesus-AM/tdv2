@@ -31,6 +31,7 @@ public static class PageResponse
         props["simulacion"] = selection?.Preview(access.Directory);
         props["representacion"] = selection?.Representation();
         props["contextoEdicion"] = state.Loaded?.Key ?? "own";
+        props["photoContext"] = PhotoContext.Key(http, state, profile?.User.Email);
         props["session"] = new { lifetime_ms = 7_200_000 };
         props["routes"] = new { inicio = "/inicio", logout = "/logout", home = "/", connect = "/connect" };
         props["csrfToken"] = token.RequestToken;

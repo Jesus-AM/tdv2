@@ -54,11 +54,12 @@ test('navegación usa JSON ASP.NET y no guarda props en historial', async () => 
 });
 test('recarga parcial conserva borrador y actualiza identidad/contexto', async () => {
     answer = config => ({ component: 'Inicio', url: config.url, props: { ...props(), contextoEdicion: 'effective-2',
-        estado: { revision: 2 }, configuracion: { draft: 'servidor' } } });
+        photoContext: 'photo-context-two', estado: { revision: 2 }, configuracion: { draft: 'servidor' } } });
     await nextPage(() => router.reload({ only: ['estado'] }));
     assert.equal(published.props.configuracion.draft, 'preservar');
     assert.equal(published.props.estado.revision, 2);
     assert.equal(published.props.contextoEdicion, 'effective-2');
+    assert.equal(published.props.photoContext, 'photo-context-two');
 });
 test('mutación manda CSRF y contexto del documento', async () => {
     answer = config => config.method === 'post' ? { redirect: '/inicio' } : { component: 'Inicio', url: '/inicio', props: props() };
@@ -69,12 +70,32 @@ test('mutación manda CSRF y contexto del documento', async () => {
     assert.equal(mutation.headers.get('X-TDV2-Context'), 'effective-2');
 });
 test('protección de borrador cancela navegación y mutación antes de HTTP', async () => {
+    let invalidated = false;
+    const off = router.on('identity-changing', () => { invalidated = true; });
     const remove = router.on('before', event => event.preventDefault());
     calls = [];
     router.visit('/otra');
     await new Promise(resolve => router.post('/vista-prueba', {}, { onFinish: resolve }));
     assert.equal(calls.length, 0);
-    remove();
+    assert.equal(invalidated, false);
+    remove(); off();
+});
+test('cambios de identidad aceptados notifican antes de HTTP; navegar no invalida fotografías', async () => {
+    answer = config => config.method === 'post' ? { redirect: '/inicio' } : { component: 'Inicio', url: config.url, props: props() };
+    let notifications = 0;
+    const off = router.on('identity-changing', () => { notifications++; assert.equal(calls.length, 0); });
+    calls = []; await nextPage(() => router.visit('/inicio')); assert.equal(notifications, 0);
+    for (const path of ['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba']) {
+        calls = []; await new Promise(resolve => router.post(path, {}, { onFinish: resolve }));
+    }
+    assert.equal(notifications, 4); off();
+});
+test('Usar otra cuenta realiza navegación completa a OAuth conservando query, sin consulta de página JSON', async () => {
+    calls = [];
+    answer = () => ({ redirect: '/connect?account=other' });
+    await new Promise(resolve => router.post('/session/use-another-account', {}, { onFinish: resolve }));
+    assert.equal(address.pathname + address.search, '/connect?account=other');
+    assert.equal(calls.length, 1); assert.equal(calls[0].method, 'post');
 });
 test('respuestas tardías no reemplazan la página vigente', async () => {
     let release;

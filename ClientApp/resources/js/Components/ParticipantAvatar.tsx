@@ -5,7 +5,7 @@ import { ParticipantPhotoStore } from '@/lib/participant-photos';
 
 const Photos = createContext<ParticipantPhotoStore | null>(null);
 export function ParticipantPhotos({ children }: { children: ReactNode }) {
-    const [store] = useState(() => new ParticipantPhotoStore(async url => (await axios.get(url)).data));
+    const [store] = useState(() => new ParticipantPhotoStore(async (url, signal) => (await axios.get(url, { signal })).data));
     useEffect(() => () => store.dispose(), [store]);
     return <Photos.Provider value={store}>{children}</Photos.Provider>;
 }
