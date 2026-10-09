@@ -2,6 +2,14 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-09**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## 2026-10-09 — Icono de ayuda en la instrucción de Identificación
+
+**Implementado:** `IdentificationInstructions.tsx` sustituye únicamente el carácter ⓘ por `HelpOutlineOutlined` de MUI, el mismo componente utilizado en `FieldHelp.tsx`: 19 px, `text.primary` y alineación vertical al centro del texto. Referencia visual sin interacción, con nombre accesible «Ayuda». Conserva el párrafo y «procedimientos institucionales» en negritas.
+
+**Probado:** TypeScript (`npm.cmd --prefix ClientApp run types:check`) y Vite (`npm.cmd --prefix ClientApp run build`) correctos. Edge a 1440/390/320 px con transporte sintético, sin bases: SVG idéntico al botón real, tamaño y color iguales, negritas de peso 700, icono dentro del párrafo y sin desbordamiento ni errores JavaScript. Capturas revisadas y métricas en `.artifacts/instruccion-ayuda-20261009/`.
+
+**Pendiente/límite:** móvil emulado, sin validación en dispositivo físico. Sin cambios de lógica, permisos, datos o credenciales; sin push ni despliegue.
+
 ## 2026-10-09 — Acceso público y validación Vigente/Ajustar
 
 **Implementado:** el botón principal del portal muestra «Registrar un procedimiento institucional», con texto adaptable al ancho y flecha alineada. Conserva exactamente el destino condicional `/connect` o `/inicio` y la autenticación. Identificación general ofrece sólo `V · Vigente` y `A · Ajustar`; «Selecciona una opción» es indicativo, sin entrada seleccionable. Se mantienen las instrucciones de eliminar registros ajenos al área.

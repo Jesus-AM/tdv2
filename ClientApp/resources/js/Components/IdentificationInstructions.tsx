@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import { HelpOutlineOutlined } from '@mui/icons-material';
 
 export default function IdentificationInstructions() {
     return <Box sx={{ typography: 'body2', mb: 2, color: 'text.primary' }}>
@@ -9,6 +10,6 @@ export default function IdentificationInstructions() {
             <li><strong>¿Necesita cambios?</strong> Edita el registro con los ajustes necesarios y márcalo como <strong>Ajustar</strong>.</li>
             <li><strong>¿No es de tu área o ya no aplica?</strong> No lo valides; bórralo con el botón rojo <strong>«Eliminar»</strong> de la fila.</li>
         </Box>
-        <Typography sx={{ fontSize: 'inherit' }}>Al final, agrega los <strong>procedimientos institucionales</strong> que falten. Si tienes dudas, toca el botón <strong>ⓘ</strong> junto a cada campo.</Typography>
+        <Typography sx={{ fontSize: 'inherit' }}>Al final, agrega los <strong>procedimientos institucionales</strong> que falten. Si tienes dudas, toca el botón <HelpOutlineOutlined titleAccess="Ayuda" sx={{ fontSize: 19, color: 'text.primary', verticalAlign: 'middle' }} /> junto a cada campo.</Typography>
     </Box>;
 }
