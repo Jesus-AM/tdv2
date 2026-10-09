@@ -5,7 +5,7 @@ import path from 'node:path';
 // Sólo se invoca dentro del host sintético: cookies, SignalR y PostgreSQL reales; ninguna identidad institucional.
 export async function verifyDirectDeletion({ check, page, context, browser, origin, control, stored, finish, savedAfter, isolateMicrosoft, errors, artifacts }) {
     const dialog = target => target.getByRole('dialog', { name: 'Eliminar registro' });
-    const remove = target => target.getByRole('button', { name: 'Retirar proceso 1', exact: true });
+    const remove = target => target.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0);
     const confirm = target => dialog(target).getByRole('button', { name: 'Eliminar', exact: true });
     const header = async target => {
         await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
@@ -16,16 +16,16 @@ export async function verifyDirectDeletion({ check, page, context, browser, orig
 
     await check('eliminación directa en cuatro tablas sin enfocar campos: reserva al confirmar, espera guardado y libera', async () => {
         for (const [tab, section, label] of [
-            ['Identificación general', 'identificacion', 'Retirar proceso 1'],
-            ['Sistemas y herramientas', 'sistemas', 'Retirar fila 1 de sistemas'],
-            ['Datos', 'datos', 'Retirar fila 1 de datos'], ['Acuerdos', 'acuerdos', 'Retirar fila 1 de acuerdos'],
+            ['Identificación general', 'identificacion', 'Eliminar registro'],
+            ['Sistemas y herramientas', 'sistemas', 'Eliminar registro'],
+            ['Datos', 'datos', 'Eliminar registro'], ['Acuerdos', 'acuerdos', 'Eliminar registro'],
         ]) {
             await reset(); await page.getByRole('tab', { name: tab, exact: true }).click();
             const before = await stored(), requests = [];
             const capture = request => { if (mutations(request)) requests.push({ method: request.method(), body: request.postDataJSON() }); };
             page.on('request', capture);
             try {
-                const button = page.getByRole('button', { name: label, exact: true }), row = button.locator('xpath=ancestor::tr');
+                const button = page.getByRole('button', { name: label, exact: true }).first(), row = button.locator('xpath=ancestor::tr');
                 await expect(row).toHaveAttribute('data-edit-state', 'idle'); await expect(button).toBeEnabled();
                 await expect(button).toHaveCSS('color', 'rgb(211, 47, 47)');
                 await button.focus(); await page.keyboard.press('Enter');
@@ -157,11 +157,11 @@ export async function verifyDirectDeletion({ check, page, context, browser, orig
         try {
             await remove(page).click(); await savedAfter(() => confirm(page).click(), 503);
             await expect(dialog(page)).toHaveCount(0);
-            await expect(page.getByRole('button', { name: 'Resolver eliminación', exact: true })).toBeVisible();
+            await expect(page.getByText(/No se confirmó la eliminación/)).toBeVisible();
+            await expect(page.getByRole('button', { name: /Resolver/ })).toHaveCount(0);
             assert.equal((await stored()).contenido.identificacion.length, 1);
         } finally { await control('recover-save'); }
-        await page.getByRole('button', { name: 'Resolver eliminación', exact: true }).click();
-        await page.getByRole('dialog').getByRole('button', { name: 'Confirmar propuesta' }).click();
+        await expect.poll(async () => (await stored()).contenido.identificacion.length, { timeout: 15000 }).toBe(0);
         await expect(page.getByRole('dialog')).toHaveCount(0); assert.equal((await stored()).contenido.identificacion.length, 0);
         await expect(page.getByRole('button', { name: 'Resolver eliminación', exact: true })).toHaveCount(0);
     });

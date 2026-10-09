@@ -27,6 +27,7 @@ import {
     Radio,
     RadioGroup,
     Dialog, DialogTitle, DialogContent, DialogActions,
+    Switch,
 } from '@mui/material';
 import {
     Add,
@@ -39,20 +40,26 @@ import {
 } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
-import FormProposalComparison from '@/Components/FormProposalComparison';
 import BlockEditingStatus from '@/Components/BlockEditingStatus';
 import { changedBlocks, splitBlocks } from '@/lib/form-blocks';
 import PrioritySelect from '@/Components/PrioritySelect';
+import ProcedureFieldHelp from '@/Components/ProcedureFieldHelp';
+import SystemField, { type ModuleCatalog } from '@/Components/SystemField';
+import IdentificationInstructions from '@/Components/IdentificationInstructions';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
 import FormSubmissionReview from '@/Components/FormSubmissionReview';
+import RowEditingActions from '@/Components/RowEditingActions';
+import RowEditingPresence from '@/Components/RowEditingPresence';
+import { isScrollbarPointer, RecordEditingContext } from '@/lib/record-editing-context';
 import type { FormPending } from '@/Components/FormSubmissionReview';
 import { removalBlocks, removalSnapshot, removeRow, rowLabel, targetRow } from '@/lib/form-deletion';
 import type { RowTarget } from '@/lib/form-deletion';
 import { displayUnitCode } from '@/lib/area-directory';
+import { PendingFieldInput } from '@/lib/pending-field-input';
 import { BlockEditor } from '@/lib/block-editor';
 import type { EditorState, LiveForm } from '@/lib/block-editor';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import type { FormContent, Unit, ProcessRow } from '@/types/tdv2';
+import type { FormContent, Unit, ProcessRow, SystemRow } from '@/types/tdv2';
 type Definition = {
     criterios: string[];
     medios: string[];
@@ -69,6 +76,8 @@ type Props = {
     permisoEdicion: boolean;
     version: number;
     porcentaje: number;
+    porcentajeEtapa: number;
+    seccionesPosteriores: boolean;
     actualizadoEn: string | null;
     actualizadoPor: string | null;
     guardarUrl: string;
@@ -113,21 +122,34 @@ export default function FormatoUR(props: Props) {
 }
 function Editor(props: Props) {
     const { props: shared } = usePage();
+    const [modules, setModules] = useState<ModuleCatalog>({ estado: 'cargando', modulos: [] });
+    useEffect(() => {
+        const abort = new AbortController();
+        setModules({ estado: 'cargando', modulos: [] });
+        void axios.get(`${props.guardarUrl}/modulos-sii`, { signal: abort.signal, timeout: 15000 }).then(({ data }) => {
+            const rows = data.modulos as { id: string; descripcion: string }[];
+            const counts = new Map<string, number>();
+            for (const row of rows) counts.set(row.descripcion, (counts.get(row.descripcion) || 0) + 1);
+            setModules({ estado: data.estado, modulos: rows.map(row => ({ ...row,
+                label: counts.get(row.descripcion)! > 1 ? `${row.descripcion} · ID ${row.id}` : row.descripcion,
+            })).sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id, 'es', { numeric: true })) });
+        }).catch(() => { if (!abort.signal.aborted) setModules({ estado: 'error', modulos: [] }); });
+        return () => abort.abort();
+    }, [props.guardarUrl, shared.contextoEdicion]);
     const [active, setActive] = useState('contexto'),
+        [showLater, setShowLater] = useState(false),
         [evalCode, setEvalCode] = useState(''),
         [notice, setNotice] = useState(''),
         [confirmSend, setConfirmSend] = useState<number | null>(null),
         [removal, setRemoval] = useState<(RowTarget & { snapshot: string; label: string }) | null>(null),
         [sending, setSending] = useState(false),
-        [finishing, setFinishing] = useState(false),
-        [compare, setCompare] = useState<{ live: LiveForm; keys: string[] } | null>(null);
+        [finishing, setFinishing] = useState(false);
     const modalBlocks = useRef<string[]>([]);
-    const presenceFocus = useRef<string | null>(null);
+    const editingContext = useRef<RecordEditingContext | null>(null);
     const removing = useRef(false);
     const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
     const [failedRemovals, setFailedRemovals] = useState<Record<string, string>>({});
     const [openSelect, setOpenSelect] = useState<{ key: string; field: string } | null>(null);
-    const [resolving, setResolving] = useState(false), [resolutionError, setResolutionError] = useState('');
     const redraw = useRef<(s: EditorState) => void>(() => {});
     const [engine] = useState<BlockEditor>(
         () => {
@@ -137,22 +159,26 @@ function Editor(props: Props) {
                 props.porcentaje,
                 props.editable,
                 {
-                    read: async () => (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: editor.tabId } })).data,
-                    reserve: async body => (await axios.post(`${props.guardarUrl}/reservas`, body)).data,
-                    renew: async body => (await axios.post(`${props.guardarUrl}/reservas/actividad`, body)).data,
-                    save: async body => (await axios.patch(`${props.guardarUrl}/bloques`, body)).data,
-                    release: async body => (await axios.post(`${props.guardarUrl}/reservas/liberar`, body)).data,
-                    submit: async body => (await axios.post(`${props.guardarUrl}/enviar`, body)).data,
+                    read: async () => (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: editor.tabId }, timeout: 15000 })).data,
+                    reserve: async body => (await axios.post(`${props.guardarUrl}/reservas`, body, { timeout: 15000 })).data,
+                    renew: async body => (await axios.post(`${props.guardarUrl}/reservas/actividad`, body, { timeout: 15000 })).data,
+                    save: async body => (await axios.patch(`${props.guardarUrl}/bloques`, body, { timeout: 15000 })).data,
+                    release: async body => (await axios.post(`${props.guardarUrl}/reservas/liberar`, body, { timeout: 15000 })).data,
+                    submit: async body => (await axios.post(`${props.guardarUrl}/enviar`, body, { timeout: 15000 })).data,
                 },
                 (s) => redraw.current(s),
             );
             return editor;
         },
     );
+    const [firstInput] = useState(() => new PendingFieldInput(engine));
     const [state, setState] = useState({ ...engine.state });
     redraw.current = setState;
     const c = state.content,
         locked = state.locked || !state.initialized;
+    const administrator = state.laterSections ?? props.seccionesPosteriores;
+    const visibleTabs = administrator && showLater ? tabs : tabs.slice(0, 3);
+    const showingLater = administrator && showLater;
     const initializedSection = useRef(false);
     useEffect(() => {
         // Perder la reserva cierra el menú; una adquisición posterior no debe reabrir una intención antigua.
@@ -161,9 +187,20 @@ function Editor(props: Props) {
     useEffect(() => {
         if (state.initialized && !initializedSection.current) {
             initializedSection.current = true;
-            setActive(tabs.some(([key]) => key === state.section) ? state.section : 'contexto');
+            const allowed = visibleTabs.some(([key]) => key === state.section) ? state.section : 'contexto';
+            setActive(allowed); engine.setSection(allowed);
         }
-    }, [state.initialized, state.section]);
+    }, [state.initialized, state.section, engine, showingLater]);
+    useEffect(() => {
+        if (!visibleTabs.some(([key]) => key === active)) { setActive('contexto'); engine.setSection('contexto'); }
+    }, [showingLater, active, engine]);
+    useEffect(() => {
+        const context = new RecordEditingContext(document, (key, stillOutside) => {
+            void firstInput.finish(key).then(() => { if (stillOutside()) return engine.endBlock(key); });
+        }, () => modalBlocks.current);
+        editingContext.current = context;
+        return () => { editingContext.current = null; context.dispose(); };
+    }, [engine, firstInput]);
     useEffect(() => {
         let disposed = false;
         const connection = new HubConnectionBuilder().withUrl('/form-events', {
@@ -180,51 +217,38 @@ function Editor(props: Props) {
         void connection.start().then(() => { if (!disposed) watch(); }).catch(() => engine.connectionLost());
         return () => { disposed = true; window.removeEventListener('offline', offline); window.removeEventListener('online', online); void connection.stop(); };
     }, [engine, props.unidad.id_ur, shared.contextoEdicion, shared.csrfToken]);
-    async function resolveBlock(key: string) {
-        modalBlocks.current = engine.proposalKeys(key); setResolutionError('');
-        try {
-            const live = (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data;
-            setCompare({ live, keys: modalBlocks.current });
-        } catch { setNotice('No se pudo consultar la respuesta guardada. Tu propuesta se conserva en este registro.'); modalBlocks.current = []; }
-    }
-    async function refreshComparison() {
-        try {
-            const live = (await axios.get(`${props.guardarUrl}/estado`, { params: { tab: engine.tabId } })).data;
-            setCompare(previous => previous && { ...previous, live });
-        } catch { /* Conservar la comparación y la propuesta si sigue desconectado. */ }
-    }
     function blockNotice(key: string) {
-        return <BlockEditingStatus engine={engine} state={state} blockKey={key} onResolve={() => void resolveBlock(key)} />;
+        return <BlockEditingStatus engine={engine} state={state} blockKey={key} />;
     }
     function blockEvents(key: string) {
         // Las acciones de la fila no son campos: enfocar Eliminar o volver de Cancelar no toma una reserva.
         const isField = (target: EventTarget) => target instanceof Element && !!target.closest('input, textarea, label, [role="combobox"]');
         return { 'data-edit-block': key, 'data-edit-state': engine.busy(key) ? 'occupied' : engine.canEdit(key) ? 'owned' : 'idle',
             style: { '--participant-color': participantColor(state.blocks[key]?.reserva?.color) } as React.CSSProperties,
-            onFocusCapture: (event: React.FocusEvent<HTMLElement>) => { if (isField(event.target)) void engine.focus(key); },
+            onFocusCapture: (event: React.FocusEvent<HTMLElement>) => {
+                if (!editingContext.current?.scrolling && isField(event.target)) void engine.focus(key);
+            },
             onPointerDownCapture: (event: React.PointerEvent<HTMLElement>) => {
                 // Un campo que conservó el foco tras vencer o liberarse una reserva también puede retomarse.
                 // Consultar el código o seleccionar texto fuera de los campos no inicia una reserva.
-                if (!engine.canEdit(key) && isField(event.target)) void engine.focus(key);
+                // El inicio de un gesto táctil o arrastre de scrollbar tampoco pide otra reserva.
+                if (event.pointerType !== 'touch' && !isScrollbarPointer(event) && !engine.canEdit(key) && isField(event.target)) void engine.focus(key);
+            },
+            onClickCapture: (event: React.MouseEvent<HTMLElement>) => {
+                // Un toque completado permite retomar un campo que ya tenía foco y cuya reserva venció.
+                if (event.nativeEvent instanceof PointerEvent && event.nativeEvent.pointerType === 'touch'
+                    && !engine.canEdit(key) && isField(event.target)) void engine.focus(key);
             },
             onKeyDownCapture: (event: React.KeyboardEvent<HTMLElement>) => {
-                if (!engine.canEdit(key) && isField(event.target) && !['Tab', 'Escape'].includes(event.key)) void engine.focus(key);
+                // El buscador filtra opciones; su texto nunca es una respuesta ni un ID de módulo.
+                if (!engine.canEdit(key) && !(event.target instanceof Element && event.target.closest('[data-catalog-search]'))) firstInput.key(key, event);
             },
-            onBlurCapture: () => {
-                // Select y Dialog usan portales: comprobar el foco final, no el blur intermedio hacia body.
-                setTimeout(() => {
-                    const target = document.activeElement;
-                    if (modalBlocks.current.includes(key) || target?.closest('[role="listbox"]') || document.querySelector('[role="listbox"]')) return;
-                    // El avatar es consulta, incluso con Tab. Retomar el bloque original al salir
-                    // evita liberar por el tooltip o dejar una reserva viva tras visitar otro avatar.
-                    if (target?.closest('[data-participant-avatar]')) { presenceFocus.current ||= key; return; }
-                    const previous = presenceFocus.current; presenceFocus.current = null;
-                    for (const candidate of new Set([key, ...(previous ? [previous] : [])]))
-                        if (target?.closest('[data-edit-block]')?.getAttribute('data-edit-block') !== candidate) void engine.endBlock(candidate);
-                }, 0);
-            } };
+            onPasteCapture: (event: React.ClipboardEvent<HTMLElement>) => {
+                if (!(event.target instanceof Element && event.target.closest('[data-catalog-search]'))) firstInput.paste(key, event);
+            },
+        };
     }
-    function choiceDisabled(key: string) { return locked || engine.busy(key) || !!state.issues[key]; }
+    function choiceDisabled(key: string) { return locked || engine.busy(key) || state.conflicts.includes(key); }
     async function changeChoice<T extends object>(key: string, edit: (data: T) => void) {
         // Las casillas y radios reciben foco sin habilitar escrituras: confirmar primero y usar el contenido vigente.
         if (engine.canEdit(key) || await engine.focus(key)) engine.changeBlock(key, edit);
@@ -237,6 +261,9 @@ function Editor(props: Props) {
     const coded = c.identificacion.filter((r) => r.codigo);
     const selectedCode = coded.some((r) => r.codigo === evalCode) ? evalCode : coded[0]?.codigo || '';
     const processOptions = coded.map((r) => ({ value: r.codigo, label: `${r.codigo} · ${r.tramite}` }));
+    // El servidor confirma existencia, campos obligatorios y validación dentro de la escritura.
+    const procedureOptions = state.procedures
+        .map(r => ({ value: r.codigo, label: `${r.codigo} · ${r.tramite}` }));
     useEffect(() => {
         const before = (e: BeforeUnloadEvent) => {
             if (engine.state.dirty || engine.state.saving) {
@@ -264,7 +291,7 @@ function Editor(props: Props) {
             `${key}:${state.blocks[key]?.version}:${JSON.stringify(state.blocks[key]?.reserva)}:${engine.busy(key)}:${state.issues[key] || ''}`).join('|');
     }
     function download() {
-        const blob = new Blob([JSON.stringify({ ur: props.unidad, version: state.version, contenido: c }, null, 2)], {
+        const blob = new Blob([JSON.stringify({ ur: props.unidad, version: state.version, contenido: c, textoSinConfirmar: state.unaccepted }, null, 2)], {
             type: 'application/json',
         });
         const url = URL.createObjectURL(blob),
@@ -275,26 +302,8 @@ function Editor(props: Props) {
         URL.revokeObjectURL(url);
     }
     function processEdit(rowId: string, key: string, value: string) {
-        if (!engine.canEdit(`identificacion:${rowId}`)) return;
-        const current = engine.state.content.identificacion.find(row => row.id === rowId);
-        if (key !== 'validacion' && !(current?.codigo && !engine.state.content.evaluaciones[current.codigo])) {
-            engine.changeBlock<Record<string, string>>(`identificacion:${rowId}`, row => { row[key] = value; }); return;
-        }
-        void engine.edit((d) => {
-            const row = d.identificacion.find(item => item.id === rowId);
-            if (!row) return;
-            Object.assign(row, { [key]: value });
-            if (key === 'validacion' && value && !row.codigo) {
-                const max = Math.max(0, ...d.identificacion.map((r) => Number(r.codigo.match(/^PO-(\d+)$/)?.[1] || 0)));
-                row.codigo = `PO-${String(max + 1).padStart(2, '0')}`;
-            }
-            if (row.codigo && !d.evaluaciones[row.codigo])
-                d.evaluaciones[row.codigo] = props.definicion.criterios.map((criterio) => ({
-                    criterio,
-                    valor: '',
-                    obs: '',
-                }));
-        });
+        // El servidor asigna el código y los criterios en el mismo commit; no ofrecer referencias provisionales.
+        engine.changeBlock<Record<string, string>>(`identificacion:${rowId}`, row => { row[key] = value; });
     }
     function removalReason(target: RowTarget) {
         const current = engine.state;
@@ -303,7 +312,6 @@ function Editor(props: Props) {
         if (current.locked) return 'Tu acceso actual es de solo consulta.';
         const row = targetRow(current.content, target);
         if (!row) return 'Otra sesión ya retiró este registro.';
-        if (row.id.startsWith('ilda:')) return 'Los registros de ILDA se conservan. Selecciona N en Validación si no corresponde.';
         const keys = removalBlocks(current.content, target), occupied = keys.find(key => engine.busy(key));
         if (occupied) {
             const lease = current.blocks[occupied]?.reserva;
@@ -312,13 +320,15 @@ function Editor(props: Props) {
                 : `${lease?.titular || 'Otra persona'} está editando ${subject}.`;
         }
         // Poder confirmar la intención no concede escritura: prepare/canEdit se comprueban al ejecutar.
-        if (keys.some(key => current.issues[key])) return 'Resuelve los cambios pendientes de este registro antes de eliminarlo.';
+        if (keys.some(key => current.conflicts.includes(key))) return 'Hay cambios sin guardar en este registro. La conexión o su contenido cambió.';
         return '';
     }
-    function removeButton(target: RowTarget, label: string) {
-        const reason = removalReason(target);
-        return <Tooltip title={reason || 'Eliminar registro'}><span tabIndex={reason ? 0 : undefined}>
-            <IconButton aria-label={label} color="error" disabled={!!reason}
+    function removeButton(target: RowTarget) {
+        const reason = removingRow || sending || state.saving || state.preparing.includes(`${target.section}:${target.id}`)
+            ? 'Espera a que termine la operación en curso.' : removalReason(target);
+        return <Tooltip title={reason || 'Eliminar registro'} describeChild><span tabIndex={reason ? 0 : undefined}
+            role={reason ? 'group' : undefined} aria-label={reason ? `Eliminar registro. ${reason}` : undefined}>
+            <IconButton aria-label="Eliminar registro" color="error" disabled={!!reason} sx={{ width: 44, height: 44 }}
                 onClick={() => {
                     if (removalReason(target)) return;
                     const current = engine.state;
@@ -337,8 +347,13 @@ function Editor(props: Props) {
         removing.current = true; setRemovingRow(true); setRemovalError('');
         try {
             // La reserva es atómica e incluye evaluación y vínculos. Abrir/Cancelar no la adquiere.
-            if (!await engine.prepare(keys)) {
-                setRemovalError('No se pudo confirmar la reserva del registro y sus relaciones. Revisa su estado e inténtalo de nuevo.');
+            if (changedBlocks(engine.proposalBase(), engine.state.content).some(key => keys.includes(key))) {
+                if (!await engine.flush(false, keys)) { setRemovalError('Espera a confirmar los cambios del registro antes de eliminar.'); return; }
+                // Un código o relación confirmados durante el guardado requieren una nueva confirmación visible.
+                if (!unchanged()) { setRemovalError('Se guardaron cambios del registro. Cierra y revisa su versión vigente antes de eliminar.'); return; }
+            }
+            if (!await engine.prepareRemoval(keys, target)) {
+                setRemovalError(removalReason(target) || 'El registro cambió mientras confirmabas. Revisa su contenido antes de eliminar.');
                 return;
             }
             if (!await engine.edit(data => removeRow(data, target), () => !removalReason(target) && unchanged())) {
@@ -346,19 +361,21 @@ function Editor(props: Props) {
                 return;
             }
             // La fila puede desaparecer de la propuesta, pero sólo el servidor confirma la eliminación.
-            // Ante un fallo se conserva una vía contextual de recuperación aunque ya no haya fila visible.
-            let saved = await engine.flush(true);
+            // Si falla, conservar la intención y su recibo; sólo se reintenta cuando sigue siendo seguro.
+            let saved = await engine.flush(true, keys);
             // Confirmar un recibo pendiente anterior no basta: esperar también los bloques de esta eliminación.
             while (saved && changedBlocks(engine.proposalBase(), engine.state.content).some(key => keys.includes(key)))
-                saved = await engine.flush(true);
+                saved = await engine.flush(true, keys);
             if (!saved) setFailedRemovals(previous => ({ ...previous, [keys[0]]: target.label }));
             modalBlocks.current = []; setRemoval(null);
         } finally {
             await engine.releaseClean(keys); // Nunca libera bloques con propuestas sin confirmar.
+            engine.finishRemoval(keys);
             removing.current = false; setRemovingRow(false);
         }
     }
     function navigatePending(pending: FormPending) {
+        if (!visibleTabs.some(([key]) => key === pending.seccion)) return;
         void engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
         if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -389,9 +406,11 @@ function Editor(props: Props) {
                     select={!!def.options}
                     multiline={!def.options && !def.type}
                     minRows={!def.options && !def.type ? 2 : undefined}
-                    maxRows={!def.options && !def.type ? 6 : undefined}
+                    maxRows={!def.options && !def.type ? (blockKey?.startsWith('identificacion:') || blockKey?.startsWith('sistemas:') ? 4 : 6) : undefined}
                     type={def.type || 'text'}
                     value={value || ''}
+                    error={!!blockKey && !!state.validation[blockKey]?.[def.key]}
+                    helperText={blockKey ? state.validation[blockKey]?.[def.key] : undefined}
                     onChange={(e) => onChange(e.target.value)}
                     slotProps={{
                         input: { readOnly },
@@ -413,6 +432,7 @@ function Editor(props: Props) {
                                 {o.label}
                             </MenuItem>
                         )),
+                        ...(value && !def.options.some(o => o.value === value) ? [<MenuItem key="historical" value={value} disabled>{value} · Vínculo histórico</MenuItem>] : []),
                     ]}
                 </TextField>
             </>
@@ -422,22 +442,32 @@ function Editor(props: Props) {
         const rows = c[section];
         return (
             <>
-                <div className="capture-scroll">
-                    <Table size="small" aria-label={tabs.find((t) => t[0] === section)?.[1]}>
+                <div className={section === 'sistemas' ? 'capture-scroll capture-row-scroll' : 'capture-scroll'} data-edit-scroll>
+                    <Table size="small" className={section === 'sistemas' ? 'systems-table' : undefined} aria-label={tabs.find((t) => t[0] === section)?.[1]}>
                         <TableHead>
                             <TableRow>
+                                {section === 'sistemas' && <TableCell className="row-editing-cell">Edición</TableCell>}
                                 {fields.map((f) => (
-                                    <TableCell key={f.key}>{f.label}</TableCell>
+                                    <TableCell key={f.key}>{f.label}{section === 'sistemas' && <ProcedureFieldHelp field={f.key} />}</TableCell>
                                 ))}
                                 <TableCell>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {rows.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect.field : null, c.identificacion]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect.field : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
+                                    {section === 'sistemas' && <RowEditingPresence engine={engine} state={state} blockKey={`${section}:${r.id}`} />}
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
-                                            {field(
+                                            {section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
+                                                ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules}
+                                                    errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
+                                                    events={name => selectEvents(`sistemas:${r.id}`, name)}
+                                                    change={(name, value) => engine.changeBlock<Record<string, string>>(`sistemas:${r.id}`, row => {
+                                                        row[name] = value;
+                                                        if (name === 'moduloSiiId') row.moduloSiiDescripcion = modules.modulos.find(m => m.id === value)?.descripcion || '';
+                                                    })} />
+                                                : field(
                                                 String((r as unknown as Record<string, string>)[f.key] || ''),
                                                 f,
                                                 `${f.label} ${i + 1}`,
@@ -445,11 +475,18 @@ function Editor(props: Props) {
                                                     engine.changeBlock<Record<string, string>>(`${section}:${r.id}`, row => { row[f.key] = value; }),
                                                 `${section}:${r.id}`,
                                             )}
+                                            {section === 'sistemas' && f.key === 'proceso' && (r as SystemRow).proceso
+                                                && !state.procedures.some(p => p.codigo === (r as SystemRow).proceso) && <Box sx={{ mt: .5 }}>
+                                                    <Typography variant="caption">El procedimiento relacionado está pendiente de completar o validar.</Typography>
+                                                    <Button size="small" onClick={() => navigatePending({ seccion: 'identificacion', bloque: 'identificacion:' + (c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)?.id || ''), campo: 'tramite', mensaje: '' })}>Revisar Identificación general</Button>
+                                                </Box>}
                                         </TableCell>
                                     ))}
-                                    <TableCell>
-                                        {blockNotice(`${section}:${r.id}`)}
-                                        {removeButton({ section, id: r.id }, `Retirar fila ${i + 1} de ${section}`)}
+                                    <TableCell className={section === 'sistemas' ? 'row-actions-cell' : undefined}>
+                                        {section === 'sistemas' ? removeButton({ section, id: r.id }) :
+                                        <RowEditingActions engine={engine} state={state} blockKey={`${section}:${r.id}`}>
+                                            {removeButton({ section, id: r.id })}
+                                        </RowEditingActions>}
                                     </TableCell>
                                 </TableRow>} />
                             ))}
@@ -476,17 +513,17 @@ function Editor(props: Props) {
         );
     }
     const processFields: Field[] = [
-        { key: 'tramite', label: 'Trámite / servicio', wide: true },
-        { key: 'usuario', label: 'Usuarios que atiende' },
-        { key: 'resultado', label: 'Resultado o documento' },
-        { key: 'responsable', label: 'Responsable' },
+        { key: 'tramite', label: 'Trámite o servicio', wide: true },
+        { key: 'usuario', label: '¿A quién atiende?' },
+        { key: 'resultado', label: '¿Qué entrega?', wide: true },
+        { key: 'responsable', label: 'Área responsable' },
         { key: 'validacion', label: 'Validación', options: validation },
         { key: 'prioridad', label: 'Prioridad' },
     ];
     const sections: Record<string, () => React.ReactNode> = {
         contexto: () => (
             <div className="stack">
-                <Typography variant="h2">Objetivo de la sesión</Typography>
+                <Typography variant="h2">Primera etapa</Typography>
                 <Typography variant="body2">
                     Validar el inventario preliminar e identificar quién realiza cada trámite, servicio o actividad, a
                     quién atiende, qué resultado genera y qué observaciones deben considerarse.
@@ -499,13 +536,14 @@ function Editor(props: Props) {
                 <Box component="ol" sx={{ pl: 3, m: 0, color: 'text.secondary', fontSize: 14, lineHeight: 2 }}>
                     {[
                         'Revisa el inventario del área y confirma la vigencia de cada registro.',
-                        'Ajusta los nombres y completa usuarios, resultado y responsable.',
-                        'Asigna validación y prioridad a cada proceso.',
-                        'Relaciona sus sistemas y datos, completa la evaluación y registra acuerdos.',
+                        'Completa Trámite o servicio, ¿A quién atiende?, ¿Qué entrega? y Área responsable.',
+                        'Asigna validación y prioridad a cada procedimiento.',
+                        'Relaciona los procedimientos validados con sus sistemas y herramientas e indica los medios utilizados.',
                     ].map((t) => (
                         <li key={t}>{t}</li>
                     ))}
                 </Box>
+                <Typography variant="body2" color="text.secondary">Los cambios se guardan como borrador. Completar esta etapa no envía ni bloquea el formato completo.</Typography>
             </div>
         ),
         identificacion: () => (
@@ -516,10 +554,7 @@ function Editor(props: Props) {
                     </Typography>
                     <Chip label={`${c.identificacion.length} registros`} variant="outlined" />
                 </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Revisa un trámite o servicio por fila. La validación asigna su código para relacionarlo con
-                    sistemas, datos y evaluación.
-                </Typography>
+                <IdentificationInstructions />
                 {props.ilda?.aviso && (
                     <Alert severity="warning" sx={{ mb: 2 }}>
                         {props.ilda.aviso}
@@ -531,37 +566,38 @@ function Editor(props: Props) {
                         {props.editable ? ' Se guardarán al guardar el formato o completar una respuesta.' : ''}
                     </Typography>
                 )}
-                <div className="capture-scroll">
-                    <Table size="small" aria-label="Identificación general">
+                <div className="capture-scroll capture-row-scroll" data-edit-scroll>
+                    <Table size="small" className="identification-table" aria-label="Identificación general">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Código / Fuente</TableCell>
+                                <TableCell className="row-editing-cell">Edición</TableCell>
+                                <TableCell>Código<ProcedureFieldHelp field="codigo" /></TableCell>
                                 {processFields.map((f) => (
-                                    <TableCell key={f.key}>{f.label}</TableCell>
+                                    <TableCell key={f.key}>{f.label}<ProcedureFieldHelp field={f.key} /></TableCell>
                                 ))}
                                 <TableCell>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {c.identificacion.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.preparing.includes(`identificacion:${r.id}`), state.issues[`identificacion:${r.id}`], engine.canEdit(`identificacion:${r.id}`), collaborationStamp(r.id), openSelect?.key === `identificacion:${r.id}` ? openSelect.field : null, c.sistemas, c.datos, c.evaluaciones]} render={() => <TableRow {...blockEvents(`identificacion:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`identificacion:${r.id}`), state.issues[`identificacion:${r.id}`], engine.canEdit(`identificacion:${r.id}`), collaborationStamp(r.id), openSelect?.key === `identificacion:${r.id}` ? openSelect.field : null, c.sistemas, c.datos, c.evaluaciones]} render={() => <TableRow {...blockEvents(`identificacion:${r.id}`)}>
+                                    <RowEditingPresence engine={engine} state={state} blockKey={`identificacion:${r.id}`} />
                                     <TableCell>
                                         <Typography
                                             variant="body2"
-                                            sx={{ fontWeight: 600, mb: 1, whiteSpace: 'nowrap' }}
+                                            sx={{ fontWeight: 400, mb: 1 }}
                                         >
                                             {r.codigo || 'Por validar'}
                                         </Typography>
                                         <Chip
-                                            label={r.fuente || 'Nuevo'}
+                                            label={r.fuente || (r.id.startsWith('ilda:') ? 'ILDA' : 'Nuevo')}
                                             color={r.fuente === 'ILDA' ? 'primary' : 'default'}
                                             variant="outlined"
                                         />
-                                        {blockNotice(`identificacion:${r.id}`)}
                                     </TableCell>
                                     {processFields.map((f) => (
                                         <TableCell key={f.key}>
-                                            {f.key === 'usuario' ? <UsersServedSelect value={r.usuario} label={`${f.label} ${i + 1}`}
+                                            {f.key === 'usuario' ? <><UsersServedSelect value={r.usuario} label={`${f.label} ${i + 1}`}
                                                 {...selectEvents(`identificacion:${r.id}`, 'usuario')}
                                                 onChange={values => {
                                                     // Compartir la reserva de la fila; el portal no concede permiso de escritura.
@@ -569,14 +605,16 @@ function Editor(props: Props) {
                                                         setNotice('');
                                                         engine.changeBlock<ProcessRow>(`identificacion:${r.id}`, row => { row.usuario = values; });
                                                     }
-                                                }} /> : field(r[f.key as Exclude<keyof ProcessRow, 'usuario'>], f, `${f.label} ${i + 1}`, (value) => {
+                                                }} />
+                                                {locked && r.usuarioOtro && <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>Otro: {r.usuarioOtro}</Typography>}
+                                            </> : field(r[f.key as Exclude<keyof ProcessRow, 'usuario'>] || '', f, `${f.label} ${i + 1}`, (value) => {
                                                 setNotice('');
                                                 processEdit(r.id, f.key, value);
                                             }, `identificacion:${r.id}`)}
                                         </TableCell>
                                     ))}
-                                    <TableCell>
-                                        {removeButton({ section: 'identificacion', id: r.id }, `Retirar proceso ${i + 1}`)}
+                                    <TableCell className="row-actions-cell">
+                                        {removeButton({ section: 'identificacion', id: r.id })}
                                     </TableCell>
                                 </TableRow>} />
                             ))}
@@ -594,9 +632,6 @@ function Editor(props: Props) {
                     >
                         Agregar trámite o servicio
                     </Button>
-                    <Typography variant="caption" color="text.secondary">
-                        V: vigente · A: ajustar · D: duplicado o relacionado · N: no corresponde
-                    </Typography>
                 </Box>
             </>
         ),
@@ -605,24 +640,23 @@ function Editor(props: Props) {
                 <Typography variant="h2" sx={{ mb: 1 }}>
                     Sistemas y herramientas
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Relaciona cada herramienta con un proceso validado.
+                <Typography variant="body2" sx={{ fontWeight: 700, mb: 1 }}>¿Qué sistemas, programas o herramientas utiliza tu área?</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    Para cada procedimiento institucional registrado en el paso 2, indica qué sistemas, programas o herramientas utiliza tu área para realizarlo y cómo funcionan.
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Registra una herramienta por fila. Puedes agregar varias filas para el mismo procedimiento, cada una con su propio uso y funcionamiento.
+                </Typography>
+                {procedureOptions.length === 0 && <Typography variant="body2" sx={{ mb: 2 }}>Completa y valida los procedimientos en Identificación general para seleccionarlos aquí</Typography>}
                 {table('sistemas', [
-                    { key: 'proceso', label: 'Proceso', options: processOptions, wide: true },
+                    { key: 'proceso', label: 'Procedimiento', options: procedureOptions, wide: true },
                     { key: 'sistema', label: 'Sistema o herramienta' },
-                    { key: 'uso', label: 'Uso' },
-                    {
-                        key: 'estado',
-                        label: 'Estado',
-                        options: ['Funciona', 'Parcial', 'No funciona', 'No se usa'].map((v) => ({
-                            value: v,
-                            label: v,
-                        })),
-                    },
-                    { key: 'fallas', label: 'Fallas u observaciones' },
+                    { key: 'uso', label: '¿Para qué se usa?' },
+                    { key: 'estado', label: '¿Cómo funciona?' },
+                    { key: 'fallas', label: 'Fallas o comentarios' },
                 ])}
-                <Typography variant="h3" sx={{ mt: 3, mb: 1 }}>
+                <Box component="section" aria-labelledby="media-title" sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Typography id="media-title" variant="h3" sx={{ mb: 1 }}>
                     Medios utilizados
                 </Typography>
                 <Box component="fieldset" {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
@@ -651,10 +685,15 @@ function Editor(props: Props) {
                             d.medioOtro = e.target.value;
                         })
                     }
-                    slotProps={{ input: { readOnly: !engine.canEdit('medios') } }}
+                    slotProps={{ input: { readOnly: !engine.canEdit('medios') }, htmlInput: { 'data-field': 'medioOtro' } }}
                     sx={{ mt: 1, minWidth: 250 }}
                 />
                 </Box>
+                </Box>
+                <FormSubmissionReview review={state.stageReview} canSubmit={state.canSubmit}
+                    settled={state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict}
+                    submitting={sending} submitted={!!(state.submitted || props.enviadoEn)}
+                    onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />
             </>
         ),
         datos: () => (
@@ -758,7 +797,7 @@ function Editor(props: Props) {
                                             value={c.evaluaciones[code]?.[i]?.obs || ''}
                                             multiline
                                             maxRows={4}
-                                            slotProps={{ input: { readOnly: !engine.canEdit(`evaluaciones:${code}:${i}`) } }}
+                                            slotProps={{ input: { readOnly: !engine.canEdit(`evaluaciones:${code}:${i}`) }, htmlInput: { 'data-field': 'obs' } }}
                                             onChange={(e) =>
                                                 engine.changeBlock<FormContent['evaluaciones'][string][number]>(`evaluaciones:${code}:${i}`, (d) => {
                                                     d.obs = e.target.value;
@@ -815,7 +854,7 @@ function Editor(props: Props) {
                                 minRows={q.tipo === 'abierta' ? 2 : undefined}
                                 label={`Respuesta ${i + 1}`}
                                 value={q.respuesta}
-                                slotProps={{ input: { readOnly: !engine.canEdit(`preguntas:${i}`) }, select: selectEvents(`preguntas:${i}`, 'respuesta') }}
+                                slotProps={{ input: { readOnly: !engine.canEdit(`preguntas:${i}`) }, select: selectEvents(`preguntas:${i}`, 'respuesta'), htmlInput: { 'data-field': 'respuesta' } }}
                                 onChange={(e) =>
                                     engine.changeBlock<FormContent['preguntas'][number]>(`preguntas:${i}`, (d) => {
                                         d.respuesta = e.target.value;
@@ -848,16 +887,13 @@ function Editor(props: Props) {
                     { key: 'responsable', label: 'Responsable' },
                     { key: 'fecha', label: 'Fecha compromiso', type: 'date' },
                 ])}
-                <FormSubmissionReview review={state.review} canSubmit={state.canSubmit}
-                    settled={state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict}
-                    submitting={sending} submitted={!!(state.submitted || props.enviadoEn)}
-                    onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />
+
             </>
         ),
     };
     return (
         <>
-            <Head title={`Procesos operativos · ${displayUnitCode(props.unidad.cve_ur)}`} />
+            <Head title={`Procedimientos Institucionales · ${displayUnitCode(props.unidad.cve_ur)}`} />
             <div className="page">
                 <Button
 
@@ -865,22 +901,22 @@ function Editor(props: Props) {
                     sx={{ mb: 2 }}
                     onClick={() => router.visit('/inicio')}
                 >
-                    Procesos operativos
+                    Procedimientos Institucionales
                 </Button>
                 <PageHeading
-                    title="Identificación de procesos operativos"
+                    title="Procedimientos Institucionales"
                     description={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
                     actions={
                         <Box sx={{ minWidth: 135 }}>
                             <Typography variant="caption" color="text.secondary">
-                                Avance guardado
+                                {state.submitted || props.enviadoEn ? 'Avance guardado' : 'Avance de la primera etapa'}
                             </Typography>
                             <Typography variant="h2" color="primary" sx={{ my: 0.5 }}>
-                                {state.progress}%
+                                {state.submitted || props.enviadoEn ? state.progress : state.initialized ? state.stageProgress : props.porcentajeEtapa}%
                             </Typography>
                             <LinearProgress
                                 variant="determinate"
-                                value={state.progress}
+                                value={state.submitted || props.enviadoEn ? state.progress : state.initialized ? state.stageProgress : props.porcentajeEtapa}
                                 sx={{ height: 5, borderRadius: '12px' }}
                             />
                         </Box>
@@ -903,6 +939,9 @@ function Editor(props: Props) {
                         {notice}
                     </Alert>
                 )}
+                {administrator && <FormControlLabel sx={{ mb: 1 }}
+                    control={<Switch size="small" checked={showLater} onChange={(_, value) => { void engine.flush(true); setShowLater(value); }} />}
+                    label={<Typography variant="body2">Mostrar secciones posteriores</Typography>} />}
                 <Box
                     sx={{
                         bgcolor: '#fff',
@@ -921,13 +960,13 @@ function Editor(props: Props) {
                         allowScrollButtonsMobile
                         sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 1 }}
                     >
-                        {tabs.map(([key, label]) => (
+                        {visibleTabs.map(([key, label]) => (
                             <Tab id={`tab-${key}`} aria-controls={`panel-${key}`} value={key} key={key} label={label}
                                 // Pulsar Contexto durante la carga también es una elección, aunque ya aparezca seleccionado.
                                 onClick={() => engine.setSection(key)} />
                         ))}
                     </Tabs>
-                    {tabs.filter(([key]) => key === active).map(([key]) => (
+                    {visibleTabs.filter(([key]) => key === active).map(([key]) => (
                             <Box
                                 key={key}
                                 id={`panel-${key}`}
@@ -986,9 +1025,9 @@ function Editor(props: Props) {
                         </Button>
                     </div>
                 </div>
+                {state.dirty && Object.keys(state.issues).length > 0 && <Button size="small" onClick={download} startIcon={<DownloadOutlined />}>Descargar cambios sin guardar</Button>}
                 {Object.entries(failedRemovals).filter(([key]) => state.issues[key]).map(([key, label]) => <Box key={key} role="status" sx={{ mt: 2 }}>
                     <Typography variant="body2" color="error.main">No se confirmó la eliminación de «{label}». Tu propuesta se conserva.</Typography>
-                    <Button onClick={() => void resolveBlock(key)}>Resolver eliminación</Button>
                 </Box>)}
                 <RemoveRowDialog open={!!removal} label={removal?.label || ''}
                     process={removal?.section === 'identificacion'} reason={!removingRow && removal ? removalReason(removal) : ''}
@@ -1003,7 +1042,7 @@ function Editor(props: Props) {
                     <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
                     <DialogContent>
                         <Typography sx={{ fontWeight: 600, mb: 2 }}>{displayUnitCode(props.unidad.cve_ur)} · {props.unidad.desc_ur}</Typography>
-                        <Typography>Se enviarán las respuestas guardadas de esta UR y ejercicio. Después de enviar, este formato quedará bloqueado para edición.</Typography>
+                        <Typography>Esta entrega comprende Contexto, Identificación general y Sistemas y herramientas, incluidos los Medios utilizados. Se conservarán las respuestas guardadas de esta UR y ejercicio. Después de enviar, este formato quedará bloqueado para edición.</Typography>
                         {state.error && <Alert severity="error" sx={{ mt: 2 }}>{state.error}</Alert>}
                     </DialogContent>
                     <DialogActions><Button autoFocus disabled={sending} onClick={() => setConfirmSend(null)}>Cancelar</Button>
@@ -1011,39 +1050,7 @@ function Editor(props: Props) {
                             setSending(true); try { if (await engine.submit(confirmSend!)) setConfirmSend(null); } finally { setSending(false); }
                         }}>{sending ? 'Enviando…' : 'Confirmar envío'}</Button></DialogActions>
                 </Dialog>
-                <Dialog open={!!compare} onClose={() => { if (!resolving) { modalBlocks.current = []; setCompare(null); } }} fullWidth maxWidth="md" aria-labelledby="recover-title">
-                    <DialogTitle id="recover-title">Resolver cambios pendientes</DialogTitle>
-                    <DialogContent>
-                        <Typography sx={{ mb: 2 }}>Revisa tu propuesta y la respuesta guardada antes de confirmar. Sólo se aplicarán los cambios de este registro y sus relaciones.</Typography>
-                        {compare && <FormProposalComparison proposal={c} shared={compare.live.contenido} keys={compare.keys} />}
-                        {resolutionError && <Typography role="status" color="error.main" sx={{ mt: 2 }}>{resolutionError}</Typography>}
-                        <Button size="small" onClick={download} startIcon={<DownloadOutlined />} sx={{ mt: 2 }}>Descargar mi propuesta</Button>
-                    </DialogContent>
-                    <DialogActions><Button autoFocus disabled={resolving} onClick={() => { modalBlocks.current = []; setCompare(null); }}>Cancelar</Button>
-                        <Button disabled={resolving} onClick={async () => {
-                            setResolving(true);
-                            try {
-                                await engine.discard(compare!.live.version, compare!.keys);
-                                modalBlocks.current = []; setCompare(null);
-                            } catch (error) {
-                                setResolutionError(error instanceof Error ? error.message : 'No se pudo confirmar la respuesta guardada.');
-                                await refreshComparison();
-                            }
-                            finally { setResolving(false); }
-                        }}>Conservar respuesta guardada</Button>
-                        <Button variant="contained" disabled={resolving || !compare?.live.editable} onClick={async () => {
-                            setResolving(true);
-                            try {
-                                await engine.recover(compare!.live.version, compare!.keys);
-                                if (!await engine.flush(true)) throw new Error('No se pudo confirmar el guardado. Tu propuesta se conserva.');
-                                modalBlocks.current = []; setCompare(null);
-                            } catch (error) {
-                                setResolutionError(error instanceof Error ? error.message : 'No se pudo confirmar la propuesta.');
-                                await refreshComparison();
-                            } finally { setResolving(false); }
-                        }}>{resolving ? 'Confirmando…' : 'Confirmar propuesta'}</Button>
-                    </DialogActions>
-                </Dialog>
+
             </div>
         </>
     );

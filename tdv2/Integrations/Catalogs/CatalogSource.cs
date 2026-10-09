@@ -14,9 +14,9 @@ public sealed class SourceConnections(IConfiguration configuration) : ISourceCon
 {
     public DbConnection Create(string source)
     {
-        var value = configuration.GetConnectionString(source == "sii" ? "Sii" : "Ilda");
+        var value = configuration.GetConnectionString(source is "sii" or "sii_modulos" ? "Sii" : "Ilda");
         if (string.IsNullOrWhiteSpace(value)) throw new SyncProblem("La conexión de origen no está configurada en el servidor.");
-        if (source == "sii")
+        if (source is "sii" or "sii_modulos")
         {
             var sql = new SqlConnectionStringBuilder(value) { ApplicationIntent = ApplicationIntent.ReadOnly, PersistSecurityInfo = false };
             return new SqlConnection(sql.ConnectionString);
@@ -39,26 +39,29 @@ public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncO
 {
     public const string SiiSelect = "SELECT [ID_UR],[EJERCICIO],[CVE_UR],[DESC_UR],[NUM_EMPLEADO],[ENCARGADO],[ID_UR_PERTENECE],[TIPO_UR],[NIVEL_UR],[ESTATUS_UR] FROM [poa].[UNIDADES_RESPONSABLES_POA]";
     public const string SiiLatest = " WHERE [EJERCICIO]=(SELECT MAX([EJERCICIO]) FROM [poa].[UNIDADES_RESPONSABLES_POA])";
+    public const string SiiModulesSelect = "SELECT [ID_MODULO],[DESC_MODULO] FROM [sii].[MODULOS_SII]";
+    public static readonly string[] SiiModuleColumns = ["id_modulo", "desc_modulo"];
     public const string IldaSelect = "SELECT * FROM `ilda_db`.`informacion_area` ORDER BY `id` LIMIT @limit";
     public static readonly string[] SiiColumns = ["id_ur", "ejercicio", "cve_ur", "desc_ur", "num_empleado", "encargado", "id_ur_pertenece", "tipo_ur", "nivel_ur", "estatus_ur"];
     public async Task<IReadOnlyList<JsonObject>> Read(string source, CancellationToken ct)
     {
         var settings = options.Value; settings.Validate();
-        if (source is not ("sii" or "ilda")) throw new SyncProblem("Fuente no válida.");
+        if (source is not ("sii" or "sii_modulos" or "ilda")) throw new SyncProblem("Fuente no válida.");
         if (source == "ilda" && !settings.IldaEnabled) throw new SyncProblem("Configura y habilita la conexión ILDA en el servidor.");
         await using var connection = connections.Create(source); await connection.OpenAsync(ct);
-        if (source == "sii")
+        if (source is "sii" or "sii_modulos")
         {
             await using var isolation = connection.CreateCommand(); isolation.CommandText = "SET TRANSACTION ISOLATION LEVEL READ COMMITTED";
             isolation.CommandTimeout = settings.CommandTimeoutSeconds; await isolation.ExecuteNonQueryAsync(ct);
         }
         await using var command = connection.CreateCommand(); command.CommandTimeout = settings.CommandTimeoutSeconds;
-        command.CommandText = source == "sii" ? SiiSelect + (settings.SiiLatestExercise ? SiiLatest : "") : IldaSelect;
+        command.CommandText = source == "sii" ? SiiSelect + (settings.SiiLatestExercise ? SiiLatest : "")
+            : source == "sii_modulos" ? SiiModulesSelect : IldaSelect;
         if (source == "ilda") { var limit = command.CreateParameter(); limit.ParameterName = "@limit"; limit.Value = settings.MaxRows + 1; command.Parameters.Add(limit); }
         await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, ct);
         var names = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
         if (names.Distinct(StringComparer.Ordinal).Count() != names.Length
-            || (source == "sii" ? SiiColumns.Select(n => n.ToUpperInvariant()) : ["id", "ur2", "informacion_generada"]).Any(n => !names.Contains(n, StringComparer.Ordinal)))
+            || (source == "sii" ? SiiColumns.Select(n => n.ToUpperInvariant()) : source == "sii_modulos" ? SiiModuleColumns.Select(n => n.ToUpperInvariant()) : ["id", "ur2", "informacion_generada"]).Any(n => !names.Contains(n, StringComparer.Ordinal)))
             throw new SyncProblem("El origen no contiene las columnas requeridas o contiene columnas duplicadas.");
         var rows = new List<JsonObject>(); long bytes = 0;
         while (await reader.ReadAsync(ct))
@@ -67,11 +70,12 @@ public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncO
             var row = new JsonObject();
             for (var i = 0; i < names.Length; i++)
             {
-                var key = source == "sii" ? names[i].ToLowerInvariant() : names[i];
+                var key = source != "ilda" ? names[i].ToLowerInvariant() : names[i];
                 if (source == "sii" && !SiiColumns.Contains(key)) continue;
+                if (source == "sii_modulos" && !SiiModuleColumns.Contains(key)) continue;
                 var value = reader.IsDBNull(i) ? null : Value(reader, i);
-                row[key] = source == "sii" && key is not ("ejercicio" or "nivel_ur") && value is not null
-                    ? JsonValue.Create(value is JsonValue scalar && scalar.TryGetValue<bool>(out var boolean) ? (boolean ? "1" : "0") : Scalar(value)) : value;
+                row[key] = source != "ilda" && key is not ("ejercicio" or "nivel_ur") && value is not null
+                    ? JsonValue.Create(source == "sii" && value is JsonValue scalar && scalar.TryGetValue<bool>(out var boolean) ? (boolean ? "1" : "0") : Scalar(value)) : value;
             }
             if (source == "ilda" && (bytes += Encoding.UTF8.GetByteCount(row.ToJsonString())) > settings.IldaMaxBytes)
                 throw new SyncProblem("ILDA excede el tamaño de descarga permitido. Se conservó la copia anterior.");

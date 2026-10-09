@@ -1,0 +1,232 @@
+{
+  "utc": "2026-10-09T14:24:27.0944556+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 44,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Sync/reglas: horario Ju\u00E1rez, cambio estacional y zona inv\u00E1lida",
+      "passed": true,
+      "milliseconds": 2418
+    },
+    {
+      "name": "Sync/conector simulado: SELECT fijos, READ COMMITTED y valores SII \u00EDntegros",
+      "passed": true,
+      "milliseconds": 2322
+    },
+    {
+      "name": "Sync/conector simulado: ILDA completa conserva columnas, nulos, espacios y binarios reversibles",
+      "passed": true,
+      "milliseconds": 2727
+    },
+    {
+      "name": "Sync/conector simulado: lectura interrumpida o incompleta jam\u00E1s publica una fracci\u00F3n",
+      "passed": true,
+      "milliseconds": 2978
+    },
+    {
+      "name": "Sync/conector simulado: l\u00EDmites de filas y bytes rechazan sin truncar cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 3131
+    },
+    {
+      "name": "Sync/SII: cambios y bajas l\u00F3gicas preservan formato, relaci\u00F3n y respuestas",
+      "passed": true,
+      "milliseconds": 5024
+    },
+    {
+      "name": "Sync/SII: publicaci\u00F3n concurrente exige revalidar alcance antes de guardar",
+      "passed": true,
+      "milliseconds": 3739
+    },
+    {
+      "name": "Sync/SII: responsable por empleado Nexo se revalida tras publicar",
+      "passed": true,
+      "milliseconds": 4282
+    },
+    {
+      "name": "Sync/SII: vac\u00EDo, duplicado, ciclo, ejercicio mixto y reducci\u00F3n conservan copia",
+      "passed": true,
+      "milliseconds": 4261
+    },
+    {
+      "name": "Sync/ILDA: duplicados, ID inv\u00E1lido y reducci\u00F3n conservan r\u00E9plica previa",
+      "passed": true,
+      "milliseconds": 3305
+    },
+    {
+      "name": "Sync/ILDA: r\u00E9plica supera 200 filas y formulario usa igualdad exacta de clave",
+      "passed": true,
+      "milliseconds": 2949
+    },
+    {
+      "name": "Sync/ILDA: abrir formato s\u00F3lo consulta copia local sin tocar fuentes",
+      "passed": true,
+      "milliseconds": 3310
+    },
+    {
+      "name": "Sync/ILDA: cambios y desaparici\u00F3n de origen no sustituyen respuestas guardadas",
+      "passed": true,
+      "milliseconds": 4620
+    },
+    {
+      "name": "Sync/comprobaci\u00F3n: lee y valida sin publicaciones, cola ni auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 2367
+    },
+    {
+      "name": "Sync/HTTP: administrador real, m\u00F3dulos padre/ruta y CSRF obligatorios",
+      "passed": true,
+      "milliseconds": 3274
+    },
+    {
+      "name": "Sync/HTTP: representaci\u00F3n y vista bloquean GET y endpoints directos",
+      "passed": true,
+      "milliseconds": 4626
+    },
+    {
+      "name": "Sync/programaci\u00F3n: versi\u00F3n concurrente, validaciones y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 3663
+    },
+    {
+      "name": "Sync/cola: 202 persistente, sin descarga HTTP y exclusi\u00F3n de solicitudes",
+      "passed": true,
+      "milliseconds": 3208
+    },
+    {
+      "name": "Sync/autom\u00E1tica: incluye SII, ILDA opcional, intervalos vencidos no se acumulan",
+      "passed": true,
+      "milliseconds": 2873
+    },
+    {
+      "name": "Sync/ILDA deshabilitada: valida manual/activa y conserva SII y copia local",
+      "passed": true,
+      "milliseconds": 3396
+    },
+    {
+      "name": "Sync/parcial: conserva \u00E9xito por fuente y nunca publica secretos del error",
+      "passed": true,
+      "milliseconds": 3016
+    },
+    {
+      "name": "Sync/rollback: error SQL revierte toda publicaci\u00F3n y admite reintento",
+      "passed": true,
+      "milliseconds": 2963
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al publicar revierte cat\u00E1logo, metadatos y resultado",
+      "passed": true,
+      "milliseconds": 2820
+    },
+    {
+      "name": "Sync/auditor\u00EDa: fallo al configurar o encolar revierte versi\u00F3n y cola",
+      "passed": true,
+      "milliseconds": 3002
+    },
+    {
+      "name": "Sync/comandos: comprobar no escribe y procesar devuelve fallo parcial",
+      "passed": true,
+      "milliseconds": 2690
+    },
+    {
+      "name": "Sync/exclusi\u00F3n: dos trabajadores y reserva persistente permiten una descarga",
+      "passed": true,
+      "milliseconds": 2645
+    },
+    {
+      "name": "Sync/procesador: latido reciente no renueva ni recupera una reserva vencida",
+      "passed": true,
+      "milliseconds": 2523
+    },
+    {
+      "name": "Sync/reserva: trabajador obsoleto no publica ni libera una ejecuci\u00F3n nueva",
+      "passed": true,
+      "milliseconds": 2913
+    },
+    {
+      "name": "Sync/reserva: caducidad durante transacci\u00F3n revierte publicaci\u00F3n antes del commit",
+      "passed": true,
+      "milliseconds": 3870
+    },
+    {
+      "name": "Sync/interrupci\u00F3n: proceso terminado conserva parcial y otro proceso recupera reserva",
+      "passed": true,
+      "milliseconds": 7904
+    },
+    {
+      "name": "Sync/web: manual con horarios pausados, HTTP breve y lectura del avance sin CLI",
+      "passed": true,
+      "milliseconds": 3728
+    },
+    {
+      "name": "Sync/web: horarios vencidos no se activan; SII funciona con ILDA deshabilitada",
+      "passed": true,
+      "milliseconds": 5995
+    },
+    {
+      "name": "Sync/web: doble solicitud y dos administradores distintos crean un solo trabajo",
+      "passed": true,
+      "milliseconds": 3866
+    },
+    {
+      "name": "Sync/web: proceso CLI externo y web simult\u00E1neos conservan exclusi\u00F3n",
+      "passed": true,
+      "milliseconds": 5947
+    },
+    {
+      "name": "Sync/web: fallos independientes UR, m\u00F3dulos e ILDA; resultados reales y reintento",
+      "passed": true,
+      "milliseconds": 5674
+    },
+    {
+      "name": "Sync/web: no puede reclamar; diagn\u00F3stico visible, sin duplicados y recuperaci\u00F3n de la misma solicitud",
+      "passed": true,
+      "milliseconds": 5396
+    },
+    {
+      "name": "Sync/web: reinicio recupera una solicitud persistida sin se\u00F1al en memoria",
+      "passed": true,
+      "milliseconds": 4786
+    },
+    {
+      "name": "Sync/web: terminar proceso web conserva parcial; reinicio respeta caducidad y recupera",
+      "passed": true,
+      "milliseconds": 12440
+    },
+    {
+      "name": "Sync/web: autorizaci\u00F3n, CSRF, representaci\u00F3n y revocaci\u00F3n se comprueban en HTTP",
+      "passed": true,
+      "milliseconds": 4327
+    },
+    {
+      "name": "Sync/m\u00F3dulos: esquema ausente informa al administrador y falla sin consultar la fuente de m\u00F3dulos",
+      "passed": true,
+      "milliseconds": 3666
+    },
+    {
+      "name": "Sync/m\u00F3dulos: inicial/repetida con 1501, descripciones duplicadas y IDs estables",
+      "passed": true,
+      "milliseconds": 3236
+    },
+    {
+      "name": "Sync/m\u00F3dulos: fallo parcial, IDs y lectura incompleta conservan \u00FAltima copia sin secretos",
+      "passed": true,
+      "milliseconds": 4577
+    },
+    {
+      "name": "Sync/m\u00F3dulos: publicaci\u00F3n/metadatos/resultado/auditor\u00EDa revierten juntos",
+      "passed": true,
+      "milliseconds": 3182
+    },
+    {
+      "name": "Sync/m\u00F3dulos: manual y autom\u00E1tica incluyen m\u00F3dulos con ILDA activada/desactivada",
+      "passed": true,
+      "milliseconds": 4406
+    }
+  ]
+}

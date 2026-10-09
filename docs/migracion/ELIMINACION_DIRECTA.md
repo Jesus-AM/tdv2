@@ -1,4 +1,8 @@
-# Eliminación directa de registros — 2026-10-06
+# Eliminación directa de registros — actualizado 2026-10-08
+
+Actualización posterior: [renovaciones durante/después del retiro, respuestas controladas y evidencia](IDENTIFICACION_TABLA.md). Se conserva eliminación directa; no se emite actividad por borrar y un recibo acredita las filas ya eliminadas.
+
+Presentación vigente 2026-10-09: Acciones es una columna compacta independiente, alineada al inicio de los campos. El botón tiene nombre accesible y tooltip «Eliminar registro», icono rojo y área de 44 × 44 px. Su motivo de deshabilitación se consulta también con teclado. La presencia se trasladó a la primera columna Edición; no cambia la altura o posición del botón. [Pruebas de tablas y desplazamiento](DESPLAZAMIENTO_TABLAS.md).
 
 ## Implementado
 
@@ -8,7 +12,7 @@ El icono y la acción del diálogo mantienen MUI y color rojo. Enfocar el icono 
 
 Al confirmar, `engine.prepare(keys)` adquiere todas las reservas necesarias. La confirmación conserva ID, contenido y versiones del registro, su evaluación y sistemas/datos vinculados. Una modificación de esos bloques o una relación nueva exige cancelar, revisar la versión vigente y volver a confirmar. Reordenar o eliminar otra fila no cambia el ID elegido. `engine.edit` vuelve a validar después de esperar la reserva, y `canEdit` sigue siendo obligatorio para cambiar/guardar.
 
-El diálogo permanece ocupado hasta que el servidor confirma el guardado; se evitan doble clic y cierre durante la operación. Confirmar un recibo anterior no se confunde con guardar la eliminación actual. Se liberan reservas limpias; una propuesta sin confirmar conserva su recuperación, identificada por nombre de registro, aunque la fila haya desaparecido de la propuesta local. Recuperar o conservar la respuesta guardada sigue requiriendo decisión explícita.
+El diálogo permanece ocupado hasta que el servidor confirma el guardado; se evitan doble clic y cierre durante la operación. Confirmar un recibo anterior no se confunde con guardar la eliminación actual. Se liberan reservas limpias; una propuesta sin confirmar conserva su recuperación, identificada por nombre de registro, aunque la fila haya desaparecido de la propuesta local. Se reintenta internamente sólo mientras el recibo, las versiones y las reservas lo permitan; no hay comparación ni resolución manual. Si el contenido se volvió incompatible, se conserva sin aplicarlo.
 
 La verificación encontró además una carrera de orden: una lectura iniciada durante la adquisición podía llegar después y parecer posterior a la reserva. El servidor fecha la confirmación con el reloj PostgreSQL **después del commit**, balanceando la apertura/cierre de conexión de EF. El vencimiento original no se prolonga. No se cambian permisos, auditoría, testigos de reserva, versiones, bloqueo de enviados ni el temporizador de SignalR.
 
@@ -34,11 +38,11 @@ El recorrido `ClientApp/tests/browser/deletion-flow.mjs` se integra en la suite 
 - Contenido o relaciones actualizados mientras el diálogo está abierto; confirmación bloqueada hasta revisar.
 - Cambio recibido mientras `prepare` espera; no aplica la eliminación antigua y libera las reservas adquiridas.
 - Dos sesiones con cookies independientes confirman a la vez: una adquisición 200, una 409, un solo PATCH y un solo incremento de versión.
-- Fallo SQL 503 conserva la propuesta; recuperación explícita y reintento del guardado.
+- Fallo SQL 503 conserva la intención y reintenta con el mismo recibo, sin Resolver eliminación.
 
 Las pruebas frontend cubren además el ID estable, versiones y relaciones nuevas. La prueba PostgreSQL pausa una adquisición mientras otra petición consulta; comprueba que esa lectura sea anterior a la confirmación.
 
-Resultado final: **57/57 frontend**, **23/23 backend PostgreSQL** y **27/27 comprobaciones de navegador**, sin errores JavaScript. TypeScript, Vite y solución Release correctos; .NET sin advertencias ni errores. Evidencia: [PostgreSQL](evidencia-eliminacion-directa-postgresql.json), [React/Edge](evidencia-eliminacion-directa-react.json) y [captura del rechazo de una eliminación por reserva ajena](eliminacion-reserva-ajena.png), revisada visualmente. Las fuentes externas están bloqueadas en la prueba aislada; no se modificó la configuración tipográfica de producción. El detalle de la corrida final y los intentos previos corregidos está en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md).
+Resultado histórico de 2026-10-06 (sustituido en recuperación por [la entrega actual](EDICION_AUTOMATICA.md)): **57/57 frontend**, **23/23 backend PostgreSQL** y **27/27 comprobaciones de navegador**, sin errores JavaScript. TypeScript, Vite y solución Release correctos; .NET sin advertencias ni errores. Evidencia: [PostgreSQL](evidencia-eliminacion-directa-postgresql.json), [React/Edge](evidencia-eliminacion-directa-react.json) y [captura del rechazo de una eliminación por reserva ajena](eliminacion-reserva-ajena.png), revisada visualmente. Las fuentes externas están bloqueadas en la prueba aislada; no se modificó la configuración tipográfica de producción. El detalle de la corrida final y los intentos previos corregidos está en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md).
 
 Comandos desde la raíz (Node/npm y .NET 10 en PATH):
 

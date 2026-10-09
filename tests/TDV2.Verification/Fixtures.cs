@@ -92,6 +92,7 @@ internal sealed class Application : WebApplicationFactory<global::Program>
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Tdv2"] = "" }));
         builder.ConfigureTestServices(services =>
         {
+            services.Remove(services.Single(d => d.ImplementationType == typeof(Tdv2.Synchronization.ManualSyncWorker)));
             services.RemoveAll<IFormStore>(); services.AddSingleton<IFormStore>(Store);
             services.AddSingleton<Tdv2.Synchronization.ILocalCatalog,EmptyLocalCatalog>();
             services.RemoveAll<INexoProfiles>(); services.AddSingleton<INexoProfiles>(Nexo);

@@ -272,7 +272,8 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                         px: 3,
                         py: 2,
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center',
+                        textAlign: 'center',
                         gap: 2,
                         color: 'text.secondary',
                         fontSize: 11,
@@ -280,8 +281,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                         borderColor: 'divider',
                     }}
                 >
-                    <span>UACJ · Transformación Digital</span>
-                    <span>Subdirección de Inteligencia de Datos</span>
+                    <span>Universidad Autónoma de Ciudad Juárez</span>
                 </Box>
             </Box>
         </>

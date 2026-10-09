@@ -72,7 +72,7 @@ export async function verifyParticipants({ page, context, origin, check, finish,
                 await expect(other.getByRole('tooltip')).toHaveText('Persona sintética');
                 await page.getByRole('tab', { name: 'Contexto', exact: true }).click();
                 await expect(other.locator('[data-edit-state=occupied]')).toHaveCount(0);
-                await expect(other.getByRole('button', { name: 'Retirar proceso 1', exact: true })).toBeEnabled();
+                await expect(other.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeEnabled();
                 await expect(other.locator('[data-participant-avatar]')).toHaveCount(0);
             } finally { await other.close(); }
         } finally { page.off('request', capture); }

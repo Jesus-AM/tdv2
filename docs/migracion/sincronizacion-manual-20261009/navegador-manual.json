@@ -1,0 +1,34 @@
+{
+  "realAspNet": true,
+  "realPostgreSql": true,
+  "realHostedWorker": true,
+  "externalSources": "synthetic ADO.NET",
+  "delayedOrLostHttp": "only the ACK/network-failure scenarios",
+  "checks": [
+    {
+      "name": "inicio desde el web con horarios pausados; ACK real demorado y doble clic",
+      "passed": true
+    },
+    {
+      "name": "recarga, navegación y cierre de página conservan el trabajo y muestran su estado real",
+      "passed": true
+    },
+    {
+      "name": "fallo de módulos muestra Parcial, conserva resultados independientes y permite reintentar",
+      "passed": true
+    },
+    {
+      "name": "fallo al reclamar explica el motivo y el mismo trabajo se recupera sin duplicarse",
+      "passed": true
+    },
+    {
+      "name": "ACK y lectura perdidos conservan la solicitud y bloquean otro envío hasta confirmar",
+      "passed": true
+    },
+    {
+      "name": "móvil conserva progreso, botones bloqueados y resultado sin desbordamiento",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

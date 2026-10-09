@@ -2,15 +2,23 @@
 
 ## Aplicación y módulos
 
+### Renombrado del módulo existente — primera etapa 2026-10-08
+
+1. **Primero** instalar TDV2 compatible con `procedimientos_institucionales` y `procesos_operativos`. Ambos se autorizan desde el acceso efectivo publicado por Nexo para TDV2, ruta `/inicio`; no hay permisos inferidos del nombre. Si se reciben ambas claves, se presenta una sola entrada.
+2. **Después** editar el módulo actual: nombre **Procedimientos Institucionales**, clave **`procedimientos_institucionales`**, ruta **`/inicio`**. Conservar **ID**, jerarquía y todas sus relaciones/asignaciones por rol. No crear otro módulo, aplicación, conexión o base. La aplicación permanece `tdv2`, nivel 2. `configuracion_procesos` no cambia.
+3. Publicar mediante el flujo actual de Nexo. Comprobar con las herramientas existentes la fila de `nexo_modulos` (mismo ID, ruta y jerarquía), las relaciones en `nexo_modulo_rol` y el acceso efectivo de responsables, supervisor, colaboradores y administrador. Verificar inicio/listado/formato y ausencia de módulos ajenos; retirar un permiso debe seguir retirando su acceso. El alias se mantiene durante esta transición.
+
+No se ejecutaron estos pasos sobre Nexo real. La matriz siguiente usa la clave nueva; antes del paso 2 es válida la clave anterior en las mismas asignaciones. La primera etapa restringe captura, no modifica roles, delegación, representación ni participación de áreas. [Detalles y migración local de TDV2](PRIMERA_ETAPA.md).
+
 Mantener **tdv2**, su ID y conexión/base existentes, en **nivel 2: módulos por rol**. No recrear recursos ni duplicar claves. La ampliación autorizada es `configuracion_procesos`; no cambia las claves de colaboradores.
 
 | Rol | Módulos |
 |---|---|
-| `administrador` | `procesos_operativos`, `configuracion`, `configuracion_procesos`, `sincronizaciones`, `pruebas_acceso` |
-| `responsable_ur` | `procesos_operativos` |
-| `responsable_ur_supervisor` — Responsable de UR con supervisión | `procesos_operativos` |
-| `colaborador_local` | `procesos_operativos` |
-| `colaborador_dependencias` | `procesos_operativos` |
+| `administrador` | `procedimientos_institucionales`, `configuracion`, `configuracion_procesos`, `sincronizaciones`, `pruebas_acceso` |
+| `responsable_ur` | `procedimientos_institucionales` |
+| `responsable_ur_supervisor` — Responsable de UR con supervisión | `procedimientos_institucionales` |
+| `colaborador_local` | `procedimientos_institucionales` |
+| `colaborador_dependencias` | `procedimientos_institucionales` |
 
 Rutas existentes: `/inicio`, `/configuracion`, `/configuracion/sincronizaciones`, `/configuracion/pruebas-acceso`. Sincronizaciones y Pruebas de acceso son hijos de Configuración. Conservar los roles de consulta que tengan usuarios.
 
@@ -34,7 +42,7 @@ La fuente vigente de Nexo distingue el origen en **`public.nexo_concesiones.orig
 
 | Vía | Configurar en Nexo | Alcance en TDV2 |
 |---|---|---|
-| Central, `colaborador_local` | En la administración central de la aplicación TDV2, asignar ese rol a la cuenta individual. Autorizar `procesos_operativos` para el rol y comprobar empleado/adscripción vigentes. | Primer formato participante desde su adscripción hacia sus ascendientes por `ID_UR`/padres, sin sobrepasar su rama de nivel 2. Inicialmente participan niveles 2 y 3. |
+| Central, `colaborador_local` | En la administración central de la aplicación TDV2, asignar ese rol a la cuenta individual. Autorizar `procedimientos_institucionales` (o su alias durante la transición) para el rol y comprobar empleado/adscripción vigentes. | Primer formato participante desde su adscripción hacia sus ascendientes por `ID_UR`/padres, sin sobrepasar su rama de nivel 2. Inicialmente participan niveles 2 y 3. |
 | Central, `colaborador_dependencias` | Igual, con el rol vigente de dependencias. | Formatos participantes de su rama institucional de nivel 2; inicialmente su raíz y dependientes de nivel 3. La raíz estructural no necesita participar para resolver la rama. |
 | Delegada, ambos roles | Mantener roles delegantes/asignables y publicación de funciones descritos abajo; conceder desde Colaboradores en TDV2. | Vínculo local no revocado + concesión `aplicacion` coincidente. Conserva límites de encargado nivel 2/3 y validación de empleado, adscripción, alcance y otorgante. |
 

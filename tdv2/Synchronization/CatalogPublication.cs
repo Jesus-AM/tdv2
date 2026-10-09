@@ -59,6 +59,22 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
             }
             return new(source, rows, new() { ["ejercicio"] = year, ["unidades"] = rows.Count, ["comprobacion"] = false });
         }
+        if (source == "sii_modulos")
+        {
+            if (input.Count == 0) throw new SyncProblem("El catálogo de módulos está vacío o incompleto. Se conservó la copia anterior.");
+            var modules = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var item in input)
+            {
+                if (CatalogSource.SiiModuleColumns.Any(c => !item.ContainsKey(c))) throw new SyncProblem("El catálogo de módulos está incompleto.");
+                var id = Text(item, "id_modulo", 40, true)!;
+                var description = Text(item, "desc_modulo", 4000, true)!;
+                if (!Regex.IsMatch(id, @"\A[0-9]{1,40}\z") || id.All(c => c == '0')) throw new SyncProblem("El catálogo de módulos contiene un ID inválido.");
+                if (modules.TryGetValue(id, out var existing) && existing != description) throw new SyncProblem("El catálogo de módulos contiene IDs duplicados incompatibles.");
+                modules[id] = description;
+            }
+            rows.AddRange(modules.Select(m => new JsonObject { ["id_modulo"] = m.Key, ["desc_modulo"] = m.Value }));
+            return new(source, rows, new() { ["registros"] = rows.Count, ["comprobacion"] = false });
+        }
         if (source != "ilda") throw new SyncProblem("Fuente no válida.");
         foreach (var data in input)
         {
@@ -75,9 +91,11 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
     }
     public async Task CheckReduction(SyncSql db, CatalogSnapshot snapshot, CancellationToken ct)
     {
-        var table = snapshot.Source == "sii" ? "unidades_responsables_poa" : "ilda_informacion_area";
+        if (snapshot.Source == "sii_modulos") await SiiCatalogSchema.Require(db, ct);
+        var table = snapshot.Source == "sii" ? "unidades_responsables_poa" : snapshot.Source == "sii_modulos" ? "public.sii_modulos" : "ilda_informacion_area";
         var before = Convert.ToInt64(await db.Scalar("SELECT count(*) FROM " + table + " WHERE presente=true", ct));
-        if (snapshot.Rows.Count * 5L < before * 4L) throw new SyncProblem("La descarga reduce demasiado los registros de " + snapshot.Source.ToUpperInvariant() + ". Se conservó la copia anterior.");
+        var publicName = snapshot.Source == "sii_modulos" ? "módulos de SIIv2" : snapshot.Source.ToUpperInvariant();
+        if (snapshot.Rows.Count * 5L < before * 4L) throw new SyncProblem("La descarga reduce demasiado los registros de " + publicName + ". Se conservó la copia anterior.");
     }
     /// <summary>Publica únicamente catálogos locales; no sobrescribe formatos ni respuestas.</summary>
     /// <remarks>El coordinador incluye resultado, metadatos y auditoría en esta misma transacción por fuente.</remarks>
@@ -86,8 +104,8 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
         // Serializa la publicación con la confirmación de participación, sin bloquear lecturas o capturas entre sí.
         await db.Scalar("SELECT version FROM configuracion_procesos WHERE id=1 FOR SHARE", ct);
         await CheckReduction(db, snapshot, ct);
-        var sii = snapshot.Source == "sii"; var table = sii ? "unidades_responsables_poa" : "ilda_informacion_area";
-        var fields = sii ? CatalogSource.SiiColumns : new[] { "id_origen", "ur2", "informacion_generada", "datos" };
+        var sii = snapshot.Source == "sii"; var table = sii ? "unidades_responsables_poa" : snapshot.Source == "sii_modulos" ? "public.sii_modulos" : "ilda_informacion_area";
+        var fields = sii ? CatalogSource.SiiColumns : snapshot.Source == "sii_modulos" ? CatalogSource.SiiModuleColumns : new[] { "id_origen", "ur2", "informacion_generada", "datos" };
         await db.Execute("UPDATE " + table + " SET presente=false", ct);
         var sql = "INSERT INTO " + table + "(" + string.Join(',', fields) + ",presente,sincronizado_en) VALUES(" + string.Join(',', Enumerable.Range(1, fields.Length).Select(i => "$" + i)) + ",true,timezone('UTC',clock_timestamp())) ON CONFLICT(" + fields[0] + ") DO UPDATE SET "
             + string.Join(',', fields.Skip(1).Select(f => f + "=EXCLUDED." + f)) + ",presente=true,sincronizado_en=EXCLUDED.sincronizado_en";

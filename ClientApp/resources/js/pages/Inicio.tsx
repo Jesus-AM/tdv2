@@ -35,12 +35,12 @@ export default function Inicio({
         : 0;
     return (
         <AuthenticatedLayout>
-            <Head title="Procesos operativos" />
+            <Head title="Procedimientos Institucionales" />
             <div className="page">
                 <PageHeading
                     className="operational-heading"
-                    title="Procesos operativos"
-                    description="Consulta las áreas y da seguimiento al llenado de sus formatos"
+                    title="Procedimientos Institucionales"
+                    description={administrador ? undefined : 'Consulta las áreas y da seguimiento al llenado de sus formatos'}
                     actions={
                         <>
                             {puedeColaboradores && (
@@ -92,11 +92,9 @@ export default function Inicio({
                         </Box>
                     ))}
                 </Box>
-                {administrador && (
+                {administrador && !urAdministracion && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {urAdministracion
-                            ? `Puedes consultar todas las áreas y llenar los formatos de ${urAdministracion.desc_ur} y sus áreas dependientes.`
-                            : 'Puedes consultar los formatos de todas las áreas. Para habilitar el llenado necesitas una adscripción vigente en Nexo.'}
+                        Puedes consultar los formatos de todas las áreas. Para habilitar el llenado necesitas una adscripción vigente en Nexo.
                     </Typography>
                 )}
                 {consultaInstitucional || administrador ? (

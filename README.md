@@ -4,6 +4,18 @@ Backend ASP.NET con controladores, EF Core 10/Npgsql y PostgreSQL; frontend Reac
 
 La adaptación técnica no acredita todavía el acceso institucional real ni el despliegue Ubuntu. Implementado, probado y pendiente se registran por separado en [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
+Sincronización manual desde la aplicación (2026-10-09): los botones de Configuración → Sincronizaciones guardan la solicitud y despiertan un servicio hospedado de ASP.NET. El mismo coordinador atiende la cola persistente sin una terminal CLI adicional, incluso con los horarios pausados. La pantalla confirma inicio, avance y resultados por catálogo. Los procesadores externos siguen siendo compatibles y los horarios conservan su operación explícita. [Funcionamiento, recuperación, pruebas y operación Windows/Ubuntu](docs/migracion/SINCRONIZACIONES.md).
+
+Sistemas y herramientas (2026-10-09): selección única por fila, varias herramientas por procedimiento, detalles estructurados de Otra/Otro y módulos SIIv2 desde réplica local. SII manual/automática sincroniza **UR y módulos** con la misma conexión, resultados separados e ILDA independiente. Requiere **`20261009080533_SiiModulesCatalog`**, preparada sin aplicación institucional. [Formulario, SELECT necesario, comando EF, operación y límites de pruebas](docs/migracion/SISTEMAS_HERRAMIENTAS.md).
+
+Primera etapa vigente: **Contexto, Identificación general y Sistemas y herramientas, incluidos Medios utilizados**. Avance, pendientes y envío se calculan en el servidor sólo para esa entrega, incluso si un administrador muestra secciones posteriores. Se conservan sus datos, permisos intrínsecos de envío y bloqueo definitivo. Los procedimientos relacionables deben estar confirmados, completos, válidos y V/A; los vínculos anteriores que queden incompletos se conservan como pendientes. [Alcance vigente](docs/migracion/PRIMERA_ETAPA.md).
+
+Foco y presencia (2026-10-09, revisión vigente): tablas compactas, un único indicador de campo MUI y presencia en la primera columna **Edición**, fija durante el desplazamiento horizontal, con fotografía, nombre accesible y estado textual. Eliminar queda arriba, con área de 44 × 44 px. Los textos muestran de dos a cuatro líneas y permiten recorrer el contenido completo. Desplazar no abandona la edición; una salida real guarda y libera tras confirmación. [Reproducción y pruebas de desplazamiento](docs/migracion/DESPLAZAMIENTO_TABLAS.md).
+
+Medios es una sección independiente con reserva propia. El diagnóstico de `42P01` comprueba `public.sii_modulos` y el historial local: no atribuye el fallo a SQL Server ni presenta ausencia de esquema como catálogo vacío. **Sin nueva migración en estos ajustes de interacción**; sigue siendo necesaria `20261009080533_SiiModulesCatalog`. [Reglas de edición](docs/migracion/EDICION_AUTOMATICA.md) y [diagnóstico/comandos EF](docs/migracion/SISTEMAS_HERRAMIENTAS.md).
+
+Identificación conserva la tabla con los tamaños compactos originales del tema, encabezados en negritas, selección múltiple con siete categorías definitivas y eliminación directa sin renovar filas retiradas. Requiere **`20261009052502_CurrentRecipients`**, que limpia una vez sólo Otro/Externo y su detalle en borradores vigentes, conservando el resto y los enviados/históricos. Recuperar la densidad visual no añade ni revierte migraciones. [Migración, causa comprobada, capturas y pruebas](docs/migracion/IDENTIFICACION_TABLA.md).
+
 Fotografías: estado compartido entre páginas y caché privada, renovación a los 15 minutos y conservación ante fallos temporales durante un máximo de una hora desde la última verificación correcta. Limpieza al cambiar identidad y diagnóstico de cifrado entre entornos; **sin nueva migración**. [Política, comprobaciones y límites](docs/migracion/PERSISTENCIA_FOTOGRAFIAS.md).
 
 Entrega 2026-10-07: escritura por bloque sin renderizados de filas ajenas, presencia con tooltip accesible y miniaturas Microsoft protegidas y cacheadas. Conserva reservas automáticas, autoguardado, eliminación directa y las reglas de participación vigentes; nuevas reglas de participación quedan pendientes. Requiere la migración **`20261007161549_ParticipantPhotographs`**, probada sólo en PostgreSQL aislado. [Instalación, mediciones 20/100/200, fotografías y comprobación desde Visual Studio](docs/migracion/CAPTURA_FOTOGRAFIAS_RENDIMIENTO.md).
@@ -14,9 +26,11 @@ Código: [Jesus-AM/tdv2](https://github.com/Jesus-AM/tdv2), rama `main`. [Archiv
 
 Actualización 2026-10-05: `responsable_ur_supervisor`, colaboradores locales para nivel 3, reservas por bloque, autoguardado parcial, SignalR y envío definitivo. Aplicar explícitamente **CollaborativeFormsAndSubmission** antes de usar esta versión. Véanse [captura y migración](docs/migracion/COLABORACION_ENVIO.md) y [configuración de Nexo/Entra](docs/migracion/CONFIGURACION_NEXO_ENTRA.md). Los cambios de fuente de Nexo no publican funciones automáticamente.
 
-Ajustes de captura posteriores: Contexto sin Datos de la sesión, sin Imprimir, prioridad mediante Select, eliminación con diálogo y navegación jerárquica según Nexo. **Revisión y envío** está al final de Acuerdos y usa requisitos del servidor. Se conservan históricos, propuestas pendientes y formatos enviados. Estos ajustes no añaden migraciones. [Recorrido de comprobación en Visual Studio](docs/migracion/COLABORACION_ENVIO.md#comprobar-los-ajustes-en-visual-studio).
+Ajustes de captura: Contexto sin Datos de la sesión, sin Imprimir, prioridad mediante Select, eliminación con diálogo y navegación jerárquica según Nexo. **Revisión y envío de la primera etapa** está al final de Sistemas y herramientas, después de Medios utilizados, y usa requisitos del servidor. Se conservan históricos, propuestas pendientes y formatos enviados. Estos ajustes no añaden migraciones.
 
-Reservas y SignalR: entrar en un campo reserva automáticamente el registro y confirma su versión antes de aceptar cambios. Salir guarda y libera; las demás sesiones reciben el estado y pueden entrar directamente, sin botones de edición ni recarga. La fila ocupada muestra nombre y candado. El intervalo de 15 segundos ya no cancela lecturas. Los fallos reales conservan propuestas con recuperación contextual mediante **Resolver**. [Comportamiento y pruebas con dos sesiones desde Visual Studio](docs/migracion/RESERVAS_SIGNALR.md). Sin migración adicional.
+Reservas y SignalR: entrar en un campo reserva automáticamente el registro y confirma su versión antes de aceptar cambios. Salir guarda y libera; las demás sesiones reciben el estado y pueden entrar directamente, sin botones de edición ni recarga. La fila ocupada muestra nombre y candado. El intervalo de 15 segundos ya no cancela lecturas. Los fallos temporales conservan lo escrito y se reintentan de forma limitada con el mismo recibo. Los errores de validación se corrigen en el campo; no hay comparación ni resolución manual de versiones. Un texto incompatible permanece visible sin sobrescribir la respuesta compartida. [Comportamiento y pruebas con dos sesiones desde Visual Studio](docs/migracion/RESERVAS_SIGNALR.md). Sin migración adicional.
+
+Corrección 2026-10-08: códigos de proceso confirmados por el servidor, validación de borrador por registro, operaciones relacionadas atómicas y eliminación directa sin reserva previa. **Sin nueva migración**. [Causa reproducida, recuperación interna, evidencia y comandos](docs/migracion/EDICION_AUTOMATICA.md).
 
 ## Dónde modificar cada cosa
 
@@ -76,7 +90,7 @@ npm.cmd --prefix ClientApp run build
 dotnet run --project tdv2 --launch-profile https-compiled
 ```
 
-F5 y el arranque web **no migran, sincronizan ni administran PostgreSQL**. El procesador continúa siendo explícito. Guía detallada: [arranque local](docs/ARRANQUE_LOCAL_WINDOWS.md).
+F5 y el arranque web **no migran ni administran PostgreSQL**. La aplicación atiende las solicitudes manuales ya aceptadas o solicitadas desde la pantalla, sin activar horarios ni crear sincronizaciones por abrir una página. La programación automática conserva el procesador externo explícito. Guía detallada: [arranque local](docs/ARRANQUE_LOCAL_WINDOWS.md).
 
 ## Migraciones EF Core
 

@@ -151,9 +151,13 @@ try {
         await page.route('**/formatos/A/reservas', async route => { await gate; await route.continue(); });
         try {
             const value = await input.inputValue(); await input.focus();
+            const caret = await input.evaluate(el => el.selectionStart || 0);
             await expect(page.getByText('Preparando edición…', { exact: true })).toBeVisible();
-            await expect(input).toHaveJSProperty('readOnly', true); await input.press('X'); assert.equal(await input.inputValue(), value);
+            await expect(input).toHaveJSProperty('readOnly', true); await input.press('X');
+            await input.evaluate(el => { const data = new DataTransfer(); data.setData('text/plain',' pegado'); el.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:data})); });
+            assert.equal(await input.inputValue(), value); await input.press('Tab');
             grant(); await expect(input).toHaveJSProperty('readOnly', false);
+            await expect(input).toHaveValue(value.slice(0, caret) + 'X pegado' + value.slice(caret));
             const releases = editingRequests.filter(r => r.path.endsWith('/liberar')).length;
             await page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true }).focus();
             await expect(input.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'owned');
@@ -169,7 +173,7 @@ try {
         await expect(otherInput).toHaveJSProperty('readOnly', true);
         await expect(other.getByText('Estás editando este registro en otra pestaña', { exact: true })).toBeVisible();
         await expect(otherInput).toHaveValue('Ganadora React');
-        await expect(other.getByRole('button', { name: 'Retirar proceso 1' })).toBeDisabled();
+        await expect(other.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeDisabled();
         const occupied = otherInput.locator('xpath=ancestor::tr');
         await expect(occupied).toHaveCSS('outline-width', '2px');
         await expect(occupied.locator('.MuiAvatar-root')).toBeVisible();
@@ -296,10 +300,28 @@ try {
         assert.equal((await stored()).version, before.version);
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Ganadora React');
         await control('recover-save');
-        await page.getByRole('button', { name: 'Resolver', exact: true }).click();
-        await savedAfter(() => page.getByRole('dialog').getByRole('button', { name: 'Confirmar propuesta' }).click());
+        await expect.poll(async () => (await stored()).contenido.identificacion[0].tramite, { timeout: 15000 }).toBe('Recuperación React');
         await expect(page.getByRole('dialog')).toHaveCount(0);
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Recuperación React');
+    });
+    await check('respuesta perdida confirma el mismo recibo sin duplicar ni abrir resolución manual', async () => {
+        await finish(); const input = await header(); await activate(input); const before = await stored();
+        const operations=[]; let first=true;
+        await page.route('**/formatos/A/bloques', async route => {
+            operations.push(route.request().postDataJSON().operationId);
+            if(first) { first=false; await route.fetch(); await route.abort('failed'); }
+            else await route.continue();
+        });
+        try {
+            await input.fill('Guardado con respuesta perdida');
+            await expect.poll(()=>operations.length,{timeout:15000}).toBe(2);
+            await expect.poll(async()=>(await stored()).contenido.identificacion[0].tramite).toBe('Guardado con respuesta perdida');
+            assert.equal(operations[0],operations[1]); assert.equal((await stored()).version,before.version+1);
+            await expect(page.getByRole('button',{name:/Resolver|Confirmar propuesta|Conservar respuesta guardada/})).toHaveCount(0);
+            await expect(page.getByRole('dialog')).toHaveCount(0);
+            await page.screenshot({path:path.join(artifacts,'captura-sin-resolucion-manual.png'),fullPage:true});
+        } finally { await page.unroute('**/formatos/A/bloques'); }
+        await finish();
     });
     await check('UR ajena deniega documento HTML y muestra pantalla conservada', async () => {
         await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
@@ -328,18 +350,18 @@ try {
         await page.getByText('No fue posible comprobar el acceso con Nexo. Inténtalo más tarde.', { exact: true }).waitFor();
         await control('restore');
         assert.equal((await page.goto(`${origin}/formatos/A`)).status(), 200);
-        assert.equal(await (await header()).inputValue(), 'Recuperación React');
+        assert.equal(await (await header()).inputValue(), 'Guardado con respuesta perdida');
         await page.screenshot({ path: path.join(artifacts, 'formato-postgresql.png') });
     });
     await check('el resumen del servidor enlaza pendientes y no ofrece envío de formato incompleto', async () => {
         await finish();
-        await page.getByRole('tab', { name: 'Acuerdos', exact: true }).click();
-        await expect(page.getByRole('heading', { name: 'Revisión y envío' })).toBeVisible();
+        await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click();
+        await expect(page.getByRole('heading', { name: 'Revisión y envío de la primera etapa' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
-        await page.getByRole('button', { name: /Identificación general · Recuperación React:/ }).click();
+        await page.getByRole('button', { name: /Identificación general · Guardado con respuesta perdida:/ }).click();
         await expect(page.getByRole('tab', { name: 'Identificación general', exact: true })).toHaveAttribute('aria-selected', 'true');
         await expect(page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true })).toBeFocused();
-        assert.equal((await stored()).contenido.identificacion[0].tramite, 'Recuperación React');
+        assert.equal((await stored()).contenido.identificacion[0].tramite, 'Guardado con respuesta perdida');
         await finish(); // El enlace enfocó y reservó el campo; la petición de prueba usa otra pestaña.
         // Aislar requisitos de llenado de las reservas de las pestañas cerradas en los casos anteriores.
         await control('expire-editing');
@@ -353,10 +375,10 @@ try {
     });
     await check('Cancelar tiene foco y no elimina filas en las cuatro tablas; borrar disponible es rojo', async () => {
         await finish(); await control('ready-to-submit'); await page.reload();
-        for (const [tab, label] of [['Identificación general', 'Retirar proceso 1'], ['Sistemas y herramientas', 'Retirar fila 1 de sistemas'], ['Datos', 'Retirar fila 1 de datos'], ['Acuerdos', 'Retirar fila 1 de acuerdos']]) {
+        for (const [tab, label] of [['Identificación general', 'Eliminar registro'], ['Sistemas y herramientas', 'Eliminar registro'], ['Datos', 'Eliminar registro'], ['Acuerdos', 'Eliminar registro']]) {
             await page.getByRole('tab', { name: tab, exact: true }).click();
             const before = (await stored()).contenido;
-            const button = page.getByRole('button', { name: label, exact: true });
+            const button = page.getByRole('button', { name: label, exact: true }).first();
             await expect(button.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'idle');
             const reservations = editingRequests.filter(r => r.path.endsWith('/reservas')).length;
             await expect(button).toBeEnabled();
@@ -395,9 +417,9 @@ try {
             await savedAfter(() => page.getByLabel('Trámite / servicio ' + number, { exact: true }).fill(label));
             await finish();
         }
-        await page.getByRole('button', { name: 'Retirar proceso 2', exact: true }).click();
+        await page.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(1).click();
         const other = await context.newPage(); await other.goto(origin + '/formatos/A'); await header(other);
-        await other.getByRole('button', { name: 'Retirar proceso 1', exact: true }).click();
+        await other.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0).click();
         await savedAfter(() => other.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click(), 200, other);
         await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveValue('Proceso elegido');
         await savedAfter(() => page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click());
@@ -407,22 +429,21 @@ try {
         await other.close(); await finish();
         for (const [tab, section] of [['Sistemas y herramientas', 'sistemas'], ['Datos', 'datos'], ['Acuerdos', 'acuerdos']]) {
             await page.getByRole('tab', { name: tab, exact: true }).click();
-            await page.getByRole('button', { name: 'Retirar fila 1 de ' + section, exact: true }).click();
+            await page.getByRole('button', { name: 'Eliminar registro', exact: true }).first().click();
             await savedAfter(() => page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click());
             assert.equal((await stored()).contenido[section].length, 0);
             await finish();
         }
     });
-    await check('desconexión conserva propuesta contextual; reconectar exige confirmarla y no pierde respuestas', async () => {
+    await check('desconexión conserva texto; reconectar confirma permisos y guarda sin resolución manual', async () => {
         await page.getByRole('tab', { name: 'Preguntas', exact: true }).click();
         const input = page.locator('#panel-preguntas textarea').first(); await activate(input);
         await input.fill('Propuesta durante desconexión'); await context.setOffline(true);
         await expect(input).toHaveJSProperty('readOnly', true);
         await expect(input).toHaveValue('Propuesta durante desconexión');
-        await expect(page.getByRole('button', { name: 'Resolver', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Conservar respuesta guardada/ })).toHaveCount(0);
         await context.setOffline(false);
-        await page.getByRole('button', { name: 'Resolver', exact: true }).click();
-        await page.getByRole('dialog').getByRole('button', { name: 'Confirmar propuesta' }).click();
+        await expect.poll(async () => (await stored()).contenido.preguntas.some(q => q.respuesta === 'Propuesta durante desconexión'), { timeout: 15000 }).toBe(true);
         await expect(page.getByRole('dialog')).toHaveCount(0);
         assert.ok((await stored()).contenido.preguntas.some(q => q.respuesta === 'Propuesta durante desconexión'));
         await finish();
@@ -447,7 +468,7 @@ try {
         const input = await header();
         await activate(input);
         await savedAfter(() => input.fill('Proceso del envío sintético'));
-        await page.getByRole('tab', { name: 'Acuerdos', exact: true }).click();
+        await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click();
         await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
         const dialog = page.getByRole('dialog', { name: 'Enviar formato', exact: true });
         await expect(dialog.getByText('100 · Área sintética A', { exact: true })).toBeVisible();
@@ -466,7 +487,7 @@ try {
         await expect(input).toHaveJSProperty('readOnly', true);
         await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Imprimir', exact: true })).toHaveCount(0);
-        await expect(page.getByRole('button', { name: 'Retirar proceso 1', exact: true })).toBeDisabled();
+        await expect(page.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeDisabled();
         const content = (await stored()).contenido;
         assert.deepEqual(content.encabezado, { fecha: '', area: '', responsable: '' });
         await page.screenshot({ path: path.join(artifacts, 'formato-enviado.png'), fullPage: true });

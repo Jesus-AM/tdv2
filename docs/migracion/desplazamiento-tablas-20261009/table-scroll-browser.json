@@ -1,0 +1,42 @@
+{
+  "realPostgreSql": true,
+  "realAspNet": true,
+  "realSignalR": true,
+  "identities": [
+    "persona@uacj.mx",
+    "colaboradora@uacj.mx"
+  ],
+  "mockedEditingTransport": false,
+  "checks": [
+    "barra horizontal nativa conserva reserva, texto y selección; otra identidad sigue bloqueada",
+    "dos usuarios en filas distintas, presencia inicial estable y liberación al salir realmente",
+    "pegado largo limitado a cuatro líneas y desplazamiento interno, rueda y barra vertical sin salida",
+    "primera tecla, Tab y selección sobreviven a la confirmación; ayuda conserva contexto",
+    "Sistemas comparte presencia y conserva contexto en barras, menús, SII y campos condicionales",
+    "un gesto iniciado sobre otra fila no la reserva; un toque completado sí cambia de registro",
+    "Eliminar arriba, rojo y 44 px; eliminación directa libre con confirmación y actualización en vivo",
+    "móvil: Edición pegada al inicio, avatar accesible con teclado y tacto, desplazamiento táctil emulado",
+    "consulta enviada conserva íntegros los textos y permite recorrerlos; backend sigue rechazando escritura"
+  ],
+  "errors": [],
+  "focusSequence": [
+    {
+      "event": "focusout",
+      "target": "TEXTAREA",
+      "related": "DIV"
+    },
+    {
+      "event": "focusin",
+      "target": "DIV",
+      "related": "TEXTAREA"
+    }
+  ],
+  "verticalBar": {
+    "x": 1093,
+    "y": 283.68794326241135,
+    "h": 1128,
+    "v": 800,
+    "client": 1085
+  },
+  "passed": true
+}

@@ -1,0 +1,50 @@
+{
+    "syntheticTransport":  true,
+    "realPostgreSql":  false,
+    "passed":  true,
+    "checks":  [
+                   {
+                       "name":  "catálogo pendiente, SII vacío persiste como borrador y los otros campos siguen disponibles",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "carga y error del catálogo son contextuales; búsqueda distingue duplicados y persiste ID",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Otra herramienta y Otro uso conservan detalles al cambiar selección sin liberar la fila",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "cuatro estados con icono, texto y color; comentarios multilínea opcionales",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "ayudas: X accesible, Cerrar, Escape, retorno de foco y reserva conservada",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "dos sesiones: reserva ajena impide seleccionar y autoguardado se recibe sin sobreescritura",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "varias filas con mismo procedimiento; claves confirmadas sin unicidad por procedimiento",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "Código y orígenes ILDA, ISO y Nuevo; Prioridad sin Ejemplo ni Consejo",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "escritorio/móvil: tabla compacta, foco teclado y scroll contenido",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "históricos y enviados conservan valores y cierran la edición",
+                       "passed":  true
+                   }
+               ],
+    "errors":  [
+
+               ]
+}

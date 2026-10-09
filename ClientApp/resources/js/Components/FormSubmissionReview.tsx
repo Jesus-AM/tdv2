@@ -4,9 +4,11 @@ export type SubmissionReview = { listo: boolean; pendientes: FormPending[] };
 export default function FormSubmissionReview({ review, canSubmit, settled, submitting, submitted, onNavigate, onSubmit }: {
     review: SubmissionReview | null; canSubmit: boolean; settled: boolean; submitting: boolean; submitted: boolean;
     onNavigate: (pending: FormPending) => void; onSubmit: () => void;
+
 }) {
     return <Box component="section" aria-labelledby="submission-review-title" sx={{ mt: 4, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Typography id="submission-review-title" variant="h2" sx={{ mb: 2 }}>Revisión y envío</Typography>
+        <Typography id="submission-review-title" variant="h2" sx={{ mb: 2 }}>Revisión y envío de la primera etapa</Typography>
+        <Typography sx={{ mb: 2 }}>Esta entrega comprende Contexto, Identificación general y Sistemas y herramientas, incluidos los Medios utilizados. Las secciones posteriores se conservan para otra etapa y no se solicitan en esta entrega.</Typography>
         {submitted ? <Typography>El formato fue enviado y está disponible para consulta.</Typography> : <>
             {!settled && <Typography sx={{ mb: 2 }}>Resuelve los cambios pendientes o errores de guardado para confirmar la revisión del servidor.</Typography>}
             {!review ? <Typography>La revisión estará disponible al recuperar el estado del servidor.</Typography> : review.pendientes.length > 0 ? <>

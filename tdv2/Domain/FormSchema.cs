@@ -10,20 +10,22 @@ public sealed class FormSchema
     private readonly JsonObject definition;
     public FormSchema(string json) => definition = JsonNode.Parse(json)!.AsObject();
     public JsonObject Definition() => (JsonObject)definition.DeepClone();
-    public static readonly string[] UserChoices = ["Comunidad universitaria", "Docentes", "Estudiantes", "Personal administrativo", "Otro"];
+    public static readonly string[] UserChoices = ["Comunidad universitaria", "Docentes", "Estudiantes", "Personal administrativo",
+        "Público en general", "Instituciones públicas externas", "Empresas y organizaciones privadas"];
+    public static bool HasRecipients(JsonNode? row) => HasUsers(row?["usuario"]);
     public static bool HasUsers(JsonNode? node) => node is JsonArray { Count: > 0 } users
         && users.All(v => v is JsonValue value && value.TryGetValue<string>(out var text) && UserChoices.Contains(text, StringComparer.Ordinal))
         && users.Select(v => v!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count() == users.Count;
     private static JsonArray Users(JsonNode? node)
     {
         if (node is not JsonArray users || users.Count > UserChoices.Length || users.Count > 0 && !HasUsers(users))
-            throw Invalid("Selecciona usuarios que atiende válidos, sin opciones repetidas.");
+            throw Invalid("Selecciona opciones válidas en ¿A quién atiende?, sin repeticiones.");
         return users.DeepClone().AsArray();
     }
     private static readonly Dictionary<string, string[]> Fields = new()
     {
         ["identificacion"] = ["id", "codigo", "prioridad", "fuente", "area", "tramite", "usuario", "resultado", "responsable", "validacion"],
-        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas"],
+        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion"],
         ["datos"] = ["id", "proceso", "dato", "fuente", "origen", "detalle"],
         ["acuerdos"] = ["id", "acuerdo", "responsable", "fecha"]
     };
@@ -76,24 +78,42 @@ public sealed class FormSchema
     {
         if (text != "" && !DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) throw Invalid();
     }
-    public JsonObject Validate(JsonObject input, Unit unit)
+    public static DomainProblem FieldError(string block, string field, string message) => new(422, message,
+        new { validation = new[] { new { block, field, message } } });
+    private static T At<T>(string block, string field, Func<T> action)
     {
+        try { return action(); }
+        catch (DomainProblem error) when (error.Status == 422) { throw FieldError(block, field, error.Message); }
+    }
+    public JsonObject Validate(JsonObject input, Unit unit, IReadOnlySet<string>? changed = null, IReadOnlySet<string>? removedCodes = null, JsonObject? previous = null)
+    {
+        bool Includes(string key) => changed is null || changed.Contains(key);
+        void Check(string block, string field, Action action) => At(block, field, () => { action(); return true; });
         if (Encoding.UTF8.GetByteCount(input.ToJsonString()) > 1_500_000) throw Invalid("El formato supera el tamaño permitido.");
         var result = Blank(unit);
         // Datos de sesión retirados: conservar su historia sin normalizarla ni exigir campos invisibles.
         if (input.ContainsKey("encabezado")) result["encabezado"] = input["encabezado"]?.DeepClone();
-        result["medioOtro"] = Text(input, "medioOtro", 500);
+        result["medioOtro"] = Includes("medios") ? JsonValue.Create(At("medios", "medioOtro", () => Text(input, "medioOtro", 500))) : input["medioOtro"]?.DeepClone();
         foreach (var (section, fields) in Fields)
         {
+            if (changed is not null && !changed.Any(k => k.StartsWith(section + ":", StringComparison.Ordinal)))
+            { result[section] = input[section]?.DeepClone(); continue; }
             var rows = Array(input[section]); var ids = new HashSet<string>(StringComparer.Ordinal);
             var normalized = new JsonArray();
             foreach (var item in rows)
             {
-                var row = Object(item, fields); var clean = new JsonObject();
-                foreach (var field in fields) clean[field] = section == "identificacion" && field == "usuario"
-                    ? Users(row[field]) : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000));
-                var id = Text(row, "id", 64);
-                if (string.IsNullOrWhiteSpace(id) || !ids.Add(id)) throw Invalid("Las filas necesitan identificadores únicos.");
+                var row = Object(item); var clean = new JsonObject();
+                var id = Text(row, "id", 64); var key = section + ":" + id;
+                if (string.IsNullOrWhiteSpace(id) || !ids.Add(id)) throw FieldError(key, "id", "Las filas necesitan identificadores únicos.");
+                // El parche no normaliza respuestas históricas de otros registros. El envío valida los bloques de la entrega vigente.
+                if (!Includes(key)) { normalized.Add(row.DeepClone()); continue; }
+                // Una petición antigua no puede reintroducir el detalle retirado tras la migración.
+                if (section == "identificacion" && row.ContainsKey("usuarioOtro"))
+                    throw FieldError(key, "usuario", "El catálogo de ¿A quién atiende? cambió. Actualiza el formato antes de guardar.");
+                Object(row, fields);
+                foreach (var field in fields) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
+                    ? Users(row[field]) : section == "sistemas" && SystemAnswers.Details.Contains(field) && !row.ContainsKey(field)
+                    ? JsonValue.Create("") : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000)));
                 normalized.Add(clean);
             }
             result[section] = normalized;
@@ -101,71 +121,104 @@ public sealed class FormSchema
         var codes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in result["identificacion"]!.AsArray().Cast<JsonObject>())
         {
-            var code = Text(row, "codigo"); var priority = Text(row, "prioridad");
-            if (code != "" && (!Regex.IsMatch(code, @"\APO-[0-9]{2,6}\z") || !codes.Add(code))
-                || priority != "" && !Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z")) throw Invalid("Código o prioridad inválidos.");
-            Choice(Text(row, "validacion"), "V", "A", "D", "N");
+            var key = "identificacion:" + row["id"]; var code = Text(row, "codigo");
+            if (code != "" && (!Regex.IsMatch(code, @"\APO-[0-9]{2,6}\z") || !codes.Add(code)))
+                throw FieldError(key, "codigo", "Código de proceso inválido o repetido.");
+            if (!Includes(key)) continue;
+            var priority = Text(row, "prioridad");
+            if (priority != "" && !Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z")) throw FieldError(key, "prioridad", "Prioridad inválida.");
+            Check(key, "validacion", () => Choice(Text(row, "validacion"), "V", "A", "D", "N"));
         }
-        foreach (var section in new[] { "sistemas", "datos" })
+        foreach (var section in new[] { "sistemas", "datos" }.Where(s => changed is null || changed.Any(k => k.StartsWith(s + ":"))))
             foreach (var row in result[section]!.AsArray().Cast<JsonObject>())
             {
-                if (Text(row, "proceso") is { Length: > 0 } code && !codes.Contains(code)) throw Invalid("El proceso seleccionado no pertenece al formato.");
-                if (section == "sistemas") Choice(Text(row, "estado"), "Funciona", "Parcial", "No funciona", "No se usa");
-                else Choice(Text(row, "origen"), "Se origina en este proceso", "Se origina en otro proceso", "Se genera en otra instancia");
+                var key = section + ":" + row["id"]; var code = Text(row, "proceso");
+                // Retirar un proceso obliga a validar también sus vínculos, aunque no vengan en el parche.
+                var unchangedLink = previous?[section]?.AsArray().Any(r => r?["id"]?.ToString() == row["id"]?.ToString() && r?["proceso"]?.ToString() == code) == true;
+                if (code.Length > 0 && !codes.Contains(code) && (Includes(key) && !unchangedLink || removedCodes?.Contains(code) == true))
+                    throw FieldError(key, "proceso", "El proceso seleccionado no pertenece al formato.");
+                if (section == "sistemas" && code.Length > 0 && Includes(key) && !unchangedLink
+                    && !ProcedureEligibility.Contains(result, code))
+                    throw FieldError(key, "proceso", "Selecciona un procedimiento completo y válido del formato, marcado como Vigente o Ajustar.");
+                if (!Includes(key)) continue;
+                if (section == "sistemas") SystemAnswers.Validate(row, previous?[section]?.AsArray().FirstOrDefault(r => r?["id"]?.ToString() == row["id"]?.ToString()), key);
+                else Check(key, "origen", () => Choice(Text(row, "origen"), "Se origina en este proceso", "Se origina en otro proceso", "Se genera en otra instancia"));
             }
-        foreach (var row in result["acuerdos"]!.AsArray().Cast<JsonObject>()) Date(Text(row, "fecha"));
+        foreach (var row in result["acuerdos"]!.AsArray().Cast<JsonObject>())
+            if (Includes("acuerdos:" + row["id"])) Check("acuerdos:" + row["id"], "fecha", () => Date(Text(row, "fecha")));
         var media = Object(input["medios"]);
         foreach (var (_, value) in media) Boolean(value);
         foreach (var (key, _) in result["medios"]!.AsObject().ToArray()) result["medios"]![key] = media.TryGetPropertyValue(key, out var value) && Boolean(value);
         // Laravel serializa un arreglo asociativo vacío como []; sólo se acepta esa forma heredada si está vacía.
-        var evaluations = input["evaluaciones"] is JsonArray { Count: 0 } ? new JsonObject() : Object(input["evaluaciones"]);
-        if (evaluations.Count > 200) throw Invalid();
-        foreach (var (code, entries) in evaluations)
+        if (changed is not null && !changed.Any(k => k.StartsWith("evaluaciones:", StringComparison.Ordinal)))
+            result["evaluaciones"] = input["evaluaciones"]?.DeepClone();
+        else
         {
-            var rows = Array(entries, 9);
-            if (!codes.Contains(code) || rows.Count != 9) throw Invalid("La evaluación no corresponde a un proceso del formato.");
-            var normalized = new JsonArray();
-            for (var i = 0; i < rows.Count; i++)
+            var evaluations = input["evaluaciones"] is JsonArray { Count: 0 } ? new JsonObject() : Object(input["evaluaciones"]);
+            if (evaluations.Count > 200) throw Invalid();
+            foreach (var (code, entries) in evaluations)
             {
-                var row = Object(rows[i], "criterio", "valor", "obs");
-                if (string.IsNullOrWhiteSpace(Text(row, "criterio", 100))) throw Invalid();
-                var value = Text(row, "valor"); Choice(value, "1", "2", "3", "4", "5");
-                normalized.Add(new JsonObject { ["criterio"] = definition["criterios"]![i]!.DeepClone(), ["valor"] = value, ["obs"] = Text(row, "obs") });
+                var rows = Array(entries, 9);
+                if (rows.Count != 9 || !codes.Contains(code) && (changed is null || removedCodes?.Contains(code) == true || changed.Any(k => k.StartsWith($"evaluaciones:{code}:"))))
+                    throw FieldError($"evaluaciones:{code}:0", "criterio", "La evaluación no corresponde a un proceso del formato.");
+                var normalized = new JsonArray();
+                for (var i = 0; i < rows.Count; i++)
+                {
+                    var key = $"evaluaciones:{code}:{i}";
+                    if (!Includes(key)) { normalized.Add(rows[i]?.DeepClone()); continue; }
+                    var row = Object(rows[i], "criterio", "valor", "obs");
+                    if (string.IsNullOrWhiteSpace(Text(row, "criterio", 100))) throw Invalid();
+                    var value = Text(row, "valor"); Check(key, "valor", () => Choice(value, "1", "2", "3", "4", "5"));
+                    normalized.Add(new JsonObject { ["criterio"] = definition["criterios"]![i]!.DeepClone(), ["valor"] = value, ["obs"] = At(key, "obs", () => Text(row, "obs")) });
+                }
+                result["evaluaciones"]![code] = normalized;
             }
-            result["evaluaciones"]![code] = normalized;
         }
-        var questions = Array(input["preguntas"], 12);
-        if (questions.Count != 12) throw Invalid("El formato debe conservar las doce preguntas generales.");
-        for (var i = 0; i < questions.Count; i++)
+        if (changed is not null && !changed.Any(k => k.StartsWith("preguntas:", StringComparison.Ordinal)))
+            result["preguntas"] = input["preguntas"]?.DeepClone();
+        else
         {
-            var row = Object(questions[i], "pregunta", "tipo", "opciones", "marcada", "respuesta");
-            var answer = Text(row, "respuesta", 8000);
-            if (definition["preguntas"]![i]!["opciones"] is JsonArray options) Choice(answer, options.Select(x => x!.GetValue<string>()).ToArray());
-            result["preguntas"]![i]!["respuesta"] = answer;
-            result["preguntas"]![i]!["marcada"] = Boolean(row["marcada"]);
+            var questions = Array(input["preguntas"], 12);
+            if (questions.Count != 12) throw Invalid("El formato debe conservar las doce preguntas generales.");
+            for (var i = 0; i < questions.Count; i++)
+            {
+                var key = "preguntas:" + i;
+                if (!Includes(key)) { result["preguntas"]![i] = questions[i]?.DeepClone(); continue; }
+                var row = Object(questions[i], "pregunta", "tipo", "opciones", "marcada", "respuesta");
+                var answer = At(key, "respuesta", () => Text(row, "respuesta", 8000));
+                if (definition["preguntas"]![i]!["opciones"] is JsonArray options) Check(key, "respuesta", () => Choice(answer, options.Select(x => x!.GetValue<string>()).ToArray()));
+                result["preguntas"]![i]!["respuesta"] = answer;
+                result["preguntas"]![i]!["marcada"] = Boolean(row["marcada"]);
+            }
         }
         return result;
     }
-    /// <summary>Calcula el avance canónico con los pesos de la plantilla; se persiste dentro del guardado.</summary>
-    /// <remarks>No aceptar el porcentaje del navegador ni recalcular respuestas durante una sincronización.</remarks>
-    public static int Progress(JsonObject data)
+    /// <summary>Genera códigos bajo el bloqueo de UR; los selectores sólo ofrecen códigos ya confirmados.</summary>
+    public string[] CompleteProcesses(JsonObject content, IReadOnlySet<string> changed, IEnumerable<string> historicalKeys)
     {
-        static bool Filled(JsonNode? node) => !string.IsNullOrWhiteSpace(node?.GetValue<string>());
-        static double Score(IEnumerable<JsonNode?> nodes, string[] fields, int weight)
+        var codes = content["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")
+            .Concat(historicalKeys.Where(k => k.StartsWith("evaluaciones:")).Select(k => k.Split(':')[1]));
+        var next = codes.Where(c => Regex.IsMatch(c, @"\APO-[0-9]{2,6}\z")).Select(c => int.Parse(c[3..], CultureInfo.InvariantCulture)).DefaultIfEmpty(0).Max();
+        if (content["evaluaciones"] is not JsonObject) content["evaluaciones"] = new JsonObject();
+        var generated = new List<string>();
+        foreach (var row in content["identificacion"]!.AsArray().Cast<JsonObject>())
         {
-            var rows = nodes.ToArray();
-            return (double)weight * rows.Sum(r => fields.Count(k => k == "usuario" ? HasUsers(r?[k]) : Filled(r?[k]))) / (Math.Max(1, rows.Length) * fields.Length);
+            var key = "identificacion:" + row["id"];
+            if (!changed.Contains(key)) continue;
+            if (row["codigo"]?.ToString() == "" && row["validacion"]?.ToString() is { Length: > 0 })
+            {
+                if (next >= 999999) throw FieldError(key, "validacion", "Se alcanzó el límite de códigos del formato.");
+                row["codigo"] = "PO-" + (++next).ToString("D2", CultureInfo.InvariantCulture);
+            }
+            if (row["codigo"]?.ToString() is not { Length: > 0 } code || content["evaluaciones"]![code] is not null) continue;
+            // Inicializa criterios ausentes, nunca respuestas ni evaluaciones existentes.
+            content["evaluaciones"]![code] = new JsonArray(definition["criterios"]!.AsArray().Select(c => (JsonNode?)new JsonObject
+                { ["criterio"] = c!.DeepClone(), ["valor"] = "", ["obs"] = "" }).ToArray());
+            generated.AddRange(Enumerable.Range(0, 9).Select(i => $"evaluaciones:{code}:{i}"));
         }
-        var value = Score(data["identificacion"]!.AsArray(), ["tramite", "usuario", "resultado", "responsable", "validacion", "prioridad"], 25)
-            + Score(data["sistemas"]!.AsArray(), ["sistema", "uso", "estado"], 15)
-            + Score(data["datos"]!.AsArray(), ["dato", "fuente", "origen"], 10)
-            + Score(data["preguntas"]!.AsArray(), ["respuesta"], 20)
-            + Score(data["acuerdos"]!.AsArray(), ["acuerdo", "responsable", "fecha"], 5);
-        var codes = data["identificacion"]!.AsArray().Where(r => Filled(r!["codigo"])).Select(r => r!["codigo"]!.GetValue<string>()).ToArray();
-        var filled = codes.Sum(c => ((data["evaluaciones"] as JsonObject)?[c] as JsonArray)?.Count(r => Filled(r?["valor"])) ?? 0);
-        // Se redistribuyen proporcionalmente los 90 puntos vigentes; no se inventan respuestas de sesión.
-        return (int)Math.Floor((value + 15d * filled / (Math.Max(1, codes.Length) * 9)) * 100 / 90 + 0.000001);
+        return generated.ToArray();
     }
+    public static int Progress(JsonObject data) => FormCapture.Progress(data);
 
     public static void RequireComplete(JsonObject content)
     {

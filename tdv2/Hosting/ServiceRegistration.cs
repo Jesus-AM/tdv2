@@ -36,6 +36,8 @@ public static class ServiceRegistration
         builder.Services.AddScoped<ICatalogSource, CatalogSource>();
         builder.Services.AddScoped<CatalogPublication>();
         builder.Services.AddScoped<SyncCoordinator>();
+        builder.Services.AddSingleton<ManualSyncDispatcher>();
+        builder.Services.AddHostedService<ManualSyncWorker>();
         builder.Services.AddScoped<ILocalCatalog, LocalCatalog>();
         builder.Services.Configure<MicrosoftSettings>(builder.Configuration.GetSection("Microsoft"));
         // User Secrets sólo es configuración de desarrollo. Estas llaves protegen sesiones/tokens

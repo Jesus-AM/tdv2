@@ -31,7 +31,7 @@ export function removalSnapshot(content: FormContent, target: RowTarget, blocks:
 /** Resuelve el ID sobre el contenido vigente: nunca elimina la fila que ocupa una posición antigua. */
 export function removeRow(content: FormContent, target: RowTarget) {
     const row = targetRow(content, target);
-    if (!row || row.id.startsWith('ilda:')) return;
+    if (!row) return;
     const index = content[target.section].findIndex(item => item.id === target.id);
     content[target.section].splice(index, 1);
     if ('codigo' in row && row.codigo) {

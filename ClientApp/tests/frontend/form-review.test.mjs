@@ -33,12 +33,19 @@ test('elimina por ID aunque otra persona inserte una fila; limpia relaciones só
     assert.equal(data.sistemas[0].proceso, ''); assert.equal(data.datos[0].proceso, 'PO-01');
     assert.deepEqual(data.evaluaciones, { 'PO-01': [2] });
 });
-test('una fila ausente o de ILDA no elimina otra fila', () => {
-    const data = { identificacion: [{ id: 'ilda:1', codigo: 'PO-01' }] };
+test('una fila ausente no elimina otra; una fila ILDA se retira por su identidad estable', () => {
+    const data = { identificacion: [{ id: 'ilda:1', codigo: 'PO-01' }], sistemas: [], datos: [], evaluaciones: { 'PO-01': [] } };
     const before = structuredClone(data);
     removeRow(data, { section: 'identificacion', id: 'missing' });
-    removeRow(data, { section: 'identificacion', id: 'ilda:1' });
     assert.deepEqual(data, before);
+    removeRow(data, { section: 'identificacion', id: 'ilda:1' });
+    assert.deepEqual(data.identificacion, []); assert.deepEqual(data.evaluaciones, {});
+});
+test('alias del módulo conserva una sola entrada y selección activa del formato', () => {
+    const modules = [{ key: 'procedimientos_institucionales', route: '/inicio' }, { key: 'procesos_operativos', route: '/inicio' }];
+    const groups = moduleGroups(modules, 'https://tdv2.test');
+    assert.equal(groups.length, 1);
+    assert.equal(activeModule(groups.map(g => g.module), '/formatos/A', 'https://tdv2.test').key, 'procedimientos_institucionales');
 });
 test('navegación respeta padres publicados, evita duplicados y no eleva huérfanos', () => {
     const modules = [{ key: 'procesos_operativos', route: '/inicio' }, { key: 'configuracion', route: '/configuracion' },

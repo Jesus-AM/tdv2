@@ -17,12 +17,14 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         var context = await access.Resolve(http);
         var rows = new List<Dictionary<string, object?>>();
         var records = await store.GetMany(context.Scopes.Keys.ToArray(), http.RequestAborted);
-        var inventories = await catalogs.Inventories(context.Scopes.Values.Where(s => records.GetValueOrDefault(s.Unit.Id)?.SubmittedAt is null).Select(s => s.Unit).ToArray(), http.RequestAborted);
+        var inventories = await catalogs.Inventories(context.Scopes.Values.Where(s => records.GetValueOrDefault(s.Unit.Id)?.SubmittedAt is null
+            && FormCapture.CurrentYear(records.GetValueOrDefault(s.Unit.Id)?.Year, s.Unit)).Select(s => s.Unit).ToArray(), http.RequestAborted);
         foreach (var scope in context.Scopes.Values.OrderBy(s => s.Unit.Code, StringComparer.OrdinalIgnoreCase))
         {
             var record = records.GetValueOrDefault(scope.Unit.Id);
+            var current = record?.SubmittedAt is null && FormCapture.CurrentYear(record?.Year, scope.Unit);
             var progress = record?.Progress ?? 0;
-            if (record?.SubmittedAt is null)
+            if (current)
             {
                 // Recalcular sólo la proyección de consulta; un GET no modifica borradores ni instantáneas enviadas.
                 var draft = record?.Content.DeepClone().AsObject() ?? schema.Blank(scope.Unit);
@@ -40,7 +42,7 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
                 ["tipo_ur"] = scope.Unit.Kind,
                 ["propia"] = scope.Own,
                 ["ejercicio"] = scope.Unit.Year,
-                ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
+                ["editable"] = scope.Edit && !context.ReadOnly && current,
                 ["enviado_en"] = record?.SubmittedAt,
                 ["porcentaje"] = progress,
                 ["actualizado_en"] = record?.UpdatedAt,
@@ -70,8 +72,9 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         var context = await access.Resolve(http);
         if (!context.Scopes.TryGetValue(ur, out var scope)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
         var record = await store.Get(ur, http.RequestAborted);
+        var current = record?.SubmittedAt is null && FormCapture.CurrentYear(record?.Year, scope.Unit);
         var content = record?.Content.DeepClone() ?? schema.Blank(scope.Unit);
-        object inventory = record?.SubmittedAt is null
+        object inventory = current
             ? LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted)).Status
             : new { estado = "enviado", nuevos = 0, total = content["identificacion"]!.AsArray().Count, aviso = (string?)null };
         var snapshot = record?.SubmissionSnapshot is { } frozen ? JsonNode.Parse(frozen) : null;
@@ -81,18 +84,27 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
             ["contenido"] = content,
             ["plantilla"] = schema.Blank(scope.Unit),
             ["definicion"] = schema.Definition(),
-            ["editable"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null,
-            ["puedeEnviar"] = scope.Edit && !context.ReadOnly && record?.SubmittedAt is null && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
+            ["editable"] = scope.Edit && !context.ReadOnly && current,
+            ["seccionesPosteriores"] = FormCapture.LaterSections(context.Profile),
+            ["porcentajeEtapa"] = FormCapture.Progress(content.AsObject()),
+            ["puedeEnviar"] = scope.Edit && !context.ReadOnly && current && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
             ["enviadoEn"] = record?.SubmittedAt,
             ["enviadoPor"] = record?.SubmittedEffective,
             ["permisoEdicion"] = scope.Edit,
             ["version"] = record?.Version ?? 0,
-            ["porcentaje"] = record?.SubmittedAt is not null ? record.Progress : FormSchema.Progress(content.AsObject()),
+            ["porcentaje"] = !current ? record!.Progress : FormSchema.Progress(content.AsObject()),
             ["actualizadoEn"] = record?.UpdatedAt,
             ["actualizadoPor"] = record?.UpdatedBy,
             ["guardarUrl"] = "/formatos/" + Uri.EscapeDataString(ur),
             ["ilda"] = inventory
         }, context.Profile);
+    }
+
+    public async Task<LocalSiiModules> Modules(string ur)
+    {
+        var context = await access.Resolve(http);
+        if (!context.Scopes.ContainsKey(ur)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
+        return await catalogs.SiiModules(http.RequestAborted);
     }
 
 }

@@ -100,13 +100,15 @@ try {
             await expect(row(other.page)).toHaveAttribute('data-edit-state', 'occupied');
             await users(other.page).click(); await expect(other.page.getByRole('listbox')).toHaveCount(0);
             await priority(other.page).click(); await expect(other.page.getByRole('listbox')).toHaveCount(0);
-            await expect(row(other.page).getByRole('button', { name: 'Retirar proceso 1', exact: true })).toBeDisabled();
+            await expect(row(other.page).getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeDisabled();
             await page.keyboard.press('Escape'); await finish(page);
             await expect(row(other.page)).toHaveAttribute('data-edit-state', 'idle');
             await expect(users(other.page)).toHaveText('Docentes, Estudiantes, Otro');
             await users(other.page).click(); await expect(row(other.page)).toHaveAttribute('data-edit-state', 'owned');
             await option(other.page, 'Otro').click(); await other.page.keyboard.press('Escape'); await finish(other.page);
             await expect(users(page)).toHaveText('Docentes, Estudiantes');
+            // El cambio confirmado y la liberación son notificaciones distintas: recibir texto no concede la fila.
+            await expect(row(page)).toHaveAttribute('data-edit-state', 'idle');
         } finally { await other.context.close(); }
     });
     await check('teclado: selección múltiple sin cerrar, Escape restaura foco y vacío queda pendiente', async () => {

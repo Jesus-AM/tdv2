@@ -51,7 +51,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
                 {
                     if (!safe) throw new DomainProblem(403, "La vista de prueba es de solo lectura. Sal de ella para guardar cambios.");
                     if (selection.ExpiresAt <= DateTimeOffset.UtcNow) throw new DomainProblem(409, "La vista de prueba venció. Vuelve a tu usuario.");
-                    if (!ModuleAccess.Allows(real, "procesos_operativos")) throw new DomainProblem(403, "No tienes acceso a Procesos operativos.");
+                    if (!ModuleAccess.Allows(real, "procesos_operativos")) throw new DomainProblem(403, "No tienes acceso a Procedimientos Institucionales.");
                     try { profile = ScenarioRoles.Resolve(selection, await Units(http), real); }
                     catch (DomainProblem) { throw new DomainProblem(409, "El rol o el área de la vista ya no están disponibles. Vuelve a tu usuario."); }
                 }

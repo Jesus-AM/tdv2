@@ -53,12 +53,12 @@ internal sealed class NativeDatabase
         await Sql("""
             GRANT USAGE ON SCHEMA public TO tdv2_native_app,tdv2_native_nexo;
             GRANT SELECT,INSERT,UPDATE,DELETE ON users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur TO tdv2_native_app;
-            GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones TO tdv2_native_app;
+            GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones,formato_exclusiones_ilda TO tdv2_native_app;
             GRANT SELECT,UPDATE ON configuracion_procesos TO tdv2_native_app;
             GRANT SELECT ON unidades_responsables_poa,colaboraciones_ur TO tdv2_native_app;
             GRANT UPDATE ON unidades_responsables_poa TO tdv2_native_app;
             GRANT INSERT ON unidades_responsables_poa TO tdv2_native_app;
-            GRANT SELECT,INSERT,UPDATE,DELETE ON sincronizaciones_institucionales,sincronizacion_catalogos,ilda_informacion_area,sincronizacion_ejecuciones,sincronizacion_configuracion TO tdv2_native_app;
+            GRANT SELECT,INSERT,UPDATE,DELETE ON sincronizaciones_institucionales,sincronizacion_catalogos,ilda_informacion_area,sii_modulos,sincronizacion_ejecuciones,sincronizacion_configuracion TO tdv2_native_app;
             GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO tdv2_native_app;
             GRANT SELECT,INSERT,UPDATE,DELETE ON tdv2_access_contexts,colaboraciones_ur TO tdv2_native_app;
             GRANT SELECT ON nexo_delegacion,nexo_delegacion_roles TO tdv2_native_nexo;
@@ -72,7 +72,7 @@ internal sealed class NativeDatabase
     {
         await Sql("UPDATE configuracion_procesos SET version=1,niveles=ARRAY[2,3],tipos_excluidos=ARRAY['N'],actualizado_en=NULL");
         await Sql("""
-            TRUNCATE sincronizacion_configuracion,sincronizacion_ejecuciones,sincronizacion_catalogos,sincronizaciones_institucionales,ilda_informacion_area RESTART IDENTITY;
+            TRUNCATE sincronizacion_configuracion,sincronizacion_ejecuciones,sincronizacion_catalogos,sincronizaciones_institucionales,ilda_informacion_area,sii_modulos RESTART IDENTITY;
             INSERT INTO sincronizacion_configuracion(id) VALUES(1);
             TRUNCATE users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur,colaboraciones_ur,unidades_responsables_poa,
               fixture_app,fixture_users,fixture_roles,fixture_modules,fixture_module_roles,fixture_grants RESTART IDENTITY CASCADE;
@@ -107,9 +107,11 @@ internal sealed class NativeDatabase
         foreach (var parameter in parameters) command.Parameters.AddWithValue(parameter);
         await command.ExecuteNonQueryAsync();
     }
-    internal async Task<object?> Scalar(string sql)
+    internal async Task<object?> Scalar(string sql, params object[] parameters)
     {
         await using var connection = new NpgsqlConnection(Admin); await connection.OpenAsync();
-        await using var command = new NpgsqlCommand(sql, connection); return await command.ExecuteScalarAsync();
+        await using var command = new NpgsqlCommand(sql, connection);
+        foreach (var parameter in parameters) command.Parameters.AddWithValue(parameter);
+        return await command.ExecuteScalarAsync();
     }
 }

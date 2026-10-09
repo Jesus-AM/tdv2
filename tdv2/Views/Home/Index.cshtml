@@ -137,14 +137,18 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 18px;
     margin-bottom: 24px;
-    padding-left: 16px;
-    border-left: 3px solid var(--turquesa);
   }
 
-  .direccion-general,
-  .subdireccion {
+  .uacj-logo {
+    display: block;
+    width: 440px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .direccion-general {
     margin: 0;
     line-height: 1.25;
   }
@@ -154,12 +158,6 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     color: var(--blanco);
-  }
-
-  .subdireccion {
-    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
-    font-weight: 500;
-    color: #dbe8f2;
   }
 
   /* node network signature */
@@ -305,35 +303,6 @@
   .reglist li{list-style:none;padding:.5rem 0 .5rem 1.5rem;position:relative;font-size:.94rem;break-inside:avoid;color:#31434f;border-bottom:1px solid var(--gris-2)}
   .reglist li::before{content:"→";position:absolute;left:0;color:var(--turquesa);font-family:"IBM Plex Mono"}
 
-  /* Proyectos — status cards */
-  .proj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:1.4rem}
-  .proj{border:1px solid var(--gris-2);border-radius:12px;padding:18px 20px;background:var(--blanco);transition:border-color .18s}
-  .proj:hover{border-color:#bcd2e6}
-  .proj .top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.7rem}
-  .proj h3{font-size:.98rem;font-weight:600;font-family:"IBM Plex Sans"}
-  .badge{
-    font-family:"IBM Plex Mono";font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
-    padding:.28rem .55rem;border-radius:6px;white-space:nowrap;flex:0 0 auto;font-weight:500;
-  }
-  .b-plan{background:#eef3f9;color:var(--tinta-2)}
-  .b-dis{background:#e6f7f4;color:#0a7d70}
-  .b-dev{background:#e8f0fb;color:var(--azul-2)}
-  .bar{height:6px;border-radius:6px;background:var(--gris-2);overflow:hidden}
-  .bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--azul-3),var(--turquesa))}
-
-  /* Indicadores — dashboard tiles */
-  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:1.4rem}
-  .tile{border:1px solid var(--gris-2);border-radius:12px;padding:20px;background:var(--gris)}
-  .tile .val{font-family:"Space Grotesk";font-weight:700;font-size:1.9rem;color:var(--azul);line-height:1}
-  .tile .val small{font-size:.9rem;color:var(--tinta-2);font-weight:500}
-  .tile .lbl{font-size:.82rem;color:var(--tinta-2);margin-top:.4rem}
-  .note{
-    display:flex;gap:.6rem;align-items:flex-start;
-    margin-top:1.1rem;font-size:.85rem;color:var(--tinta-2);
-    background:#fff8ec;border:1px solid #f2e2c4;border-radius:10px;padding:.75rem 1rem;
-  }
-  .note svg{flex:0 0 auto;margin-top:2px;color:#c08a1e}
-
   /* Beneficios */
   .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem 1.8rem;margin-top:1.3rem}
   .benefits li{list-style:none;display:flex;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--gris-2);font-size:.96rem;color:#31434f;align-items:center}
@@ -356,12 +325,10 @@
   .panel .qa a .ar{color:var(--tinta-2)}
   .panel.contact{background:linear-gradient(160deg,var(--azul),#0b3a5c);border:none;color:#fff;padding:20px}
   .panel.contact h4{color:#8fb8d6;padding:0 0 12px}
-  .contact-info{display:flex;flex-direction:column;gap:10px}
+  .contact-info{display:flex;flex-direction:column;gap:8px}
   .contact-info p{margin:0}
-  .contact-university{font-family:"Space Grotesk";font-size:1rem;font-weight:700;line-height:1.35;color:#fff}
-  .contact-area{font-size:.9rem;font-weight:600;line-height:1.4;color:#dceaf4;padding-top:4px}
-  .contact-person{font-size:.87rem;line-height:1.4;color:#dceaf4}
-  .contact-email{display:inline-flex;width:max-content;max-width:100%;margin-top:4px;font-size:.88rem;font-weight:600;color:var(--turquesa);overflow-wrap:anywhere;transition:color .15s ease}
+  .contact-area{font-size:.9rem;font-weight:600;line-height:1.4;color:#dceaf4}
+  .contact-email{display:inline-flex;width:max-content;max-width:100%;font-size:.88rem;font-weight:600;color:var(--turquesa);overflow-wrap:anywhere;transition:color .15s ease}
   .contact-email:hover{color:#fff}
   .contact-meta{font-size:.84rem;line-height:1.45;color:#bcd4e6}
   .doclist a{display:flex;gap:.6rem;align-items:center;padding:.55rem .7rem;border-radius:8px;font-size:.88rem;color:var(--tinta);transition:background .15s}
@@ -370,17 +337,7 @@
 
   /* ---------- Footer ---------- */
   footer{background:#08283d;color:#a9c4d8;margin-top:20px}
-  footer .wrap{padding:44px 24px 40px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px}
-  footer .brand .name b{color:#fff}
-  footer .brand .name span{color:#7ea4c0}
-  footer p{font-size:.88rem;max-width:38ch;margin-top:.9rem}
-  footer h5{font-family:"IBM Plex Mono";font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#7ea4c0;margin-bottom:.8rem;font-weight:500}
-  footer ul{list-style:none}
-  footer ul li{padding:.3rem 0}
-  footer ul a{font-size:.88rem;transition:color .15s}
-  footer ul a:hover{color:#fff}
-  .legal{border-top:1px solid rgba(255,255,255,.1)}
-  .legal .wrap{padding:16px 24px;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:#7ea4c0}
+  footer .wrap{padding:16px 24px;font-size:.88rem;text-align:center}
 
   /* ---------- Responsive ---------- */
   @@media(max-width:960px){
@@ -389,21 +346,17 @@
     .hero .wrap{grid-template-columns:1fr;gap:36px;padding-top:56px;padding-bottom:56px}
     .net{max-width:440px;margin:0 auto}
     .strip .wrap{grid-template-columns:repeat(2,1fr)}
-    footer .wrap{grid-template-columns:1fr 1fr}
   }
   @@media(max-width:640px){
     .nav{display:none}
     .topbar .brand-logo{height:40px;max-width:210px}
-    .cards,.checks,.proj-grid,.benefits,.reglist{grid-template-columns:1fr;columns:1}
+    .cards,.checks,.benefits,.reglist{grid-template-columns:1fr;columns:1}
     .reglist{columns:1}
     .model-grid{
       grid-template-columns:1fr;
       grid-template-areas:"center" "dir" "oper" "hab" "control" "personas";
     }
     .m-dir{max-width:none}
-    .tiles{grid-template-columns:repeat(2,1fr)}
-    .footer,.footer .wrap{grid-template-columns:1fr}
-    footer .wrap{grid-template-columns:1fr}
   }
   @@media(prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
@@ -433,8 +386,6 @@
   @@media(max-width:640px){.dgti-banner{max-width:320px;margin-bottom:16px}}
   .hero{position:relative;overflow:hidden}
   .hero .wrap{position:relative;z-index:1}
-  .hero-deco{position:absolute;right:-20px;top:50%;transform:translateY(-50%);width:340px;max-width:34%;opacity:.5;pointer-events:none;z-index:0}
-  @@media(max-width:900px){.hero-deco{display:none}}
 </style>
 </head>
 <body>
@@ -460,7 +411,6 @@
       <a href="#ejes">Ejes</a>
       <a href="#ruta">Ruta</a>
       <a href="#diagnostico">Diagnóstico</a>
-      <a href="#proyectos">Proyectos</a>
       <a href="#preguntas">Preguntas</a>
     </nav>
     @if (User.Identity?.IsAuthenticated == true) {
@@ -479,29 +429,16 @@
 
 <!-- ===== HERO ===== -->
 <section class="hero" id="inicio">
-  <img
-    class="hero-deco"
-    src="data:image/png;base64,..."
-    alt=""
-    aria-hidden="true"
-  >
-
   <div class="wrap">
     <div class="hero-text">
 
       <div class="identidad-institucional">
+        <img class="uacj-logo" src="/images/logos/firmaLogotipo-blancosinfondo-3.png"
+             alt="Universidad Autónoma de Ciudad Juárez" width="2934" height="597">
         <p class="direccion-general">
           Dirección General de Tecnologías de la Información
         </p>
-
-        <p class="subdireccion">
-          Subdirección de Inteligencia de Datos
-        </p>
       </div>
-
-      <span class="eyebrow">
-        Proyecto institucional · UACJ
-      </span>
 
       <h1>Transformación digital</h1>
 
@@ -676,48 +613,7 @@
         <a class="btn btn-dark" href="@(User.Identity?.IsAuthenticated == true ? "/inicio" : "/connect")">Registrar un proceso operativo <span class="ar">→</span></a>
       </section>
 
-      <!-- 7. Proyectos -->
-      <section class="block" id="proyectos">
-        <span class="eyebrow">Cartera institucional</span>
-        <h2>Proyectos estratégicos</h2>
-        <p class="sub">Diez iniciativas que dan forma a la transformación. El estado y avance se actualizarán con información institucional validada.</p>
-        <div class="proj-grid">
-          <div class="proj"><div class="top"><h3>Política de Innovación Tecnológica Digital</h3><span class="badge b-dev">En desarrollo</span></div><div class="bar"><i style="width:60%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Plan Institucional de Transformación Digital</h3><span class="badge b-dis">En diseño</span></div><div class="bar"><i style="width:40%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Diagnóstico de Madurez Digital</h3><span class="badge b-dev">En desarrollo</span></div><div class="bar"><i style="width:55%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Inventario Institucional de Procesos</h3><span class="badge b-dis">En diseño</span></div><div class="bar"><i style="width:30%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Modelo de Gobernanza de Datos</h3><span class="badge b-dis">En diseño</span></div><div class="bar"><i style="width:25%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Integración y actualización de sistemas</h3><span class="badge b-plan">Planeado</span></div><div class="bar"><i style="width:12%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Plataformas de visualización y analítica</h3><span class="badge b-plan">Planeado</span></div><div class="bar"><i style="width:12%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Automatización de servicios</h3><span class="badge b-plan">Planeado</span></div><div class="bar"><i style="width:10%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Estrategia institucional de inteligencia artificial</h3><span class="badge b-plan">Planeado</span></div><div class="bar"><i style="width:8%"></i></div></div>
-          <div class="proj"><div class="top"><h3>Alfabetización digital</h3><span class="badge b-dis">En diseño</span></div><div class="bar"><i style="width:20%"></i></div></div>
-        </div>
-      </section>
-
-      <!-- 8. Indicadores -->
-      <section class="block" id="indicadores">
-        <span class="eyebrow">Tablero de avance</span>
-        <h2>Indicadores de avance</h2>
-        <p class="sub">El tablero se alimentará con datos institucionales validados. Las cifras se publicarán a medida que las dependencias registren su información.</p>
-        <div class="tiles">
-          <div class="tile"><div class="val">—</div><div class="lbl">Dependencias participantes</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Procesos registrados</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Procesos analizados</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Procesos estandarizados</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Proyectos tecnológicos activos</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Sistemas integrados</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Personas capacitadas</div></div>
-          <div class="tile"><div class="val">—</div><div class="lbl">Conjuntos de datos identificados</div></div>
-          <div class="tile"><div class="val">—<small> %</small></div><div class="lbl">Avance general del plan</div></div>
-        </div>
-        <div class="note">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-          <span>Los valores mostrados son marcadores de posición. No se asignarán cifras reales hasta contar con la información institucional correspondiente.</span>
-        </div>
-      </section>
-
-      <!-- 9. Beneficios -->
+      <!-- Beneficios -->
       <section class="block" id="beneficios">
         <span class="eyebrow">Impacto</span>
         <h2>Beneficios para la comunidad</h2>
@@ -743,7 +639,6 @@
           <li><a href="#plan">Plan Institucional <span class="ar">→</span></a></li>
           <li><a href="#diagnostico">Diagnóstico de madurez <span class="ar">→</span></a></li>
           <li><a href="#participa">Registro de procesos <span class="ar">→</span></a></li>
-          <li><a href="#indicadores">Tablero de avance <span class="ar">→</span></a></li>
           <li><a href="#docs">Documentos y lineamientos <span class="ar">→</span></a></li>
           <li><a href="#preguntas">Preguntas frecuentes <span class="ar">→</span></a></li>
         </ul>
@@ -753,19 +648,9 @@
         <h4>Contacto</h4>
 
         <div class="contact-info">
-          <p class="contact-university">Universidad Autónoma de Ciudad Juárez</p>
-
-          <p class="contact-area">Dirección General de Tecnologías de la Información</p>
-          <p class="contact-person">Dr. Victor Manuel Morales Rocha</p>
-
-          <p class="contact-area">Subdirección de Inteligencia de datos</p>
-          <p class="contact-person">Mtro. Luis Felipe Fernández Martínez</p>
-          <p class="contact-person">Mtra. Eunice Aranda Montoya</p>
-          <p class="contact-person">Dra. Rosaura Gatica Castillo</p>
-
+          <p class="contact-area">Subdirección de Inteligencia de Datos</p>
           <a class="contact-email" href="mailto:sid@@uacj.mx">sid@@uacj.mx</a>
-
-          <p class="contact-meta">Extensiones telefónicas 4374, 4274, 4174</p>
+          <p class="contact-meta">Extensiones telefónicas: 4374, 4274, 4174</p>
           <p class="contact-meta">Lunes a viernes, 8:00 a 15:00 h</p>
         </div>
       </div>
@@ -795,18 +680,15 @@
       <details><summary>¿Qué papel juegan mis datos en la transformación?<span class="pm"></span></summary><p>El punto de partida es el registro correcto, completo y oportuno de los datos. Con información confiable es posible generar eficiencia, transparencia y decisiones basadas en evidencia.</p></details>
       <details><summary>¿Cómo se protege la información?<span class="pm"></span></summary><p>Mediante lineamientos de gobernanza de datos, medidas de ciberseguridad y avisos de privacidad. La protección y la continuidad de los servicios son parte central del proyecto.</p></details>
       <details><summary>¿Cómo puede participar mi área?<span class="pm"></span></summary><p>Cada dependencia puede registrar sus procesos operativos y participar en el diagnóstico de madurez digital. La transformación es un esfuerzo de toda la comunidad, porque los procesos están conectados.</p></details>
-      <details><summary>¿Dónde puedo consultar los avances?<span class="pm"></span></summary><p>En el tablero de indicadores de esta página, que se irá alimentando con información institucional validada e indicará su periodo de actualización.</p></details>
-      <details><summary>¿Con quién puedo ponerme en contacto?<span class="pm"></span></summary><p>Con la Subdirección de Inteligencia de Datos, a través del formulario de contacto disponible en la columna lateral.</p></details>
+      <details><summary>¿Con quién puedo ponerme en contacto?<span class="pm"></span></summary><p>Utiliza los datos de contacto disponibles en la columna lateral.</p></details>
     </div>
   </div>
 </section>
 
 <!-- ===== FOOTER ===== -->
 <footer>
-  <div class="legal">
-    <div class="wrap">
-      <span>© Universidad Autónoma de Ciudad Juárez — Dirección General de Tecnologías de la Información — Subdirección de Inteligencia de Datos </span>
-    </div>
+  <div class="wrap">
+    Universidad Autónoma de Ciudad Juárez
   </div>
 </footer>
 

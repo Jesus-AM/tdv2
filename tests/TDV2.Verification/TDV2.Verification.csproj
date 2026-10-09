@@ -9,4 +9,7 @@
     <ProjectReference Include="../../tdv2/tdv2.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../TDV2.NativeVerification/SyntheticSources.cs" Link="SyntheticSources.cs" />
+  </ItemGroup>
 </Project>

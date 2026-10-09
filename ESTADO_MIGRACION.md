@@ -1,6 +1,236 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-07**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-09**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+
+## 2026-10-09 — Contacto público compacto
+
+**Implementado:** únicamente el bloque Contacto y sus estilos en `tdv2/Views/Home/Index.cshtml`: Subdirección de Inteligencia de Datos, enlace `mailto:sid@uacj.mx`, «Extensiones telefónicas: 4374, 4274, 4174» y «Lunes a viernes, 8:00 a 15:00 h». Se retiran de esa tarjeta Universidad, Dirección y nombres/títulos personales. Encabezado, colores y tipografía conservados; separación de 8 px entre datos, sin márgenes adicionales ni estilos de elementos retirados.
+
+**Probado:** Razor/ASP.NET compilado y servido en aislamiento; Edge a 1440×1000, 390×844 y 320×740, contenido exacto, mailto, tarjeta compacta, ausencia de desbordamientos y capturas revisadas. Comprobación SHA-256 antes/después confirma que el resto de la portada, el layout autenticado y el PNG no cambiaron: logo de 440 px, Dirección debajo y footers centrados conservados. Evidencia local en `.artifacts/contacto-20261009/`.
+
+**Pendiente/límite:** móvil emulado y recursos externos bloqueados durante la comprobación, sin alterar sus referencias. Sin bases, credenciales ni servicios institucionales; sin cambios funcionales, push o despliegue.
+
+## 2026-10-09 — Logo público de 440 px y footers centrados
+
+**Implementado:** `.uacj-logo` pasa de 380 a 440 px conservando `max-width: 100%` y altura automática. El PNG original permanece intacto; Dirección debajo, alineada a la izquierda y sin raya decorativa externa. La vista pública centra el texto del footer y `AuthenticatedLayout.tsx` centra el footer compartido con flex y alineación textual. Ambos mantienen únicamente «Universidad Autónoma de Ciudad Juárez», fuente y espaciado compacto. Sin cambios funcionales.
+
+**Probado:** compilación Razor/ASP.NET, TypeScript y Vite correctos. Edge a 1440, 390 y 320 px: logo de 440 px en escritorio, proporción original y ajuste móvil sin desbordamiento, Dirección alineada y líneas del footer público centradas. Inicio, Configuración y Formato con transporte sintético verifican el footer compartido en los mismos tres anchos: centrado con desviación menor a 1 px, fuente de 11 px y padding de 16 × 24 px conservados. Texto exacto, imágenes locales sin errores y SHA-256 del logo servido igual al original. Capturas revisadas; evidencia local en `.artifacts/logo-footer-20261009/`.
+
+**Pendiente/límite:** móvil emulado; fuentes y fondo externos bloqueados durante la comprobación y sus referencias conservadas. Portada servida por ASP.NET aislado sin configuración institucional ni servicio de sincronización; área autenticada con transporte sintético, sin bases. No se modificaron funcionalidades, credenciales ni bases; sin push ni despliegue.
+
+## 2026-10-09 — Sincronizaciones manuales desde el proceso web
+
+**Implementado:** `ManualSyncWorker` integra la cola manual en el ciclo de vida de ASP.NET mediante `BackgroundService`, consulta persistente cada dos segundos y señal tras commit. Reutiliza `SyncCoordinator`, reservas de 30 minutos, recuperación, publicación y auditoría; no hay tareas sueltas en el endpoint. El POST devuelve 202 sin esperar descargas y el servidor excluye solicitudes incompatibles. `manualOnly` no crea horarios, no cambia su configuración ni suplanta el latido del CLI. Web y procesadores externos comparten la misma reserva. Sin nueva migración, variables, credenciales ni servicio de despliegue adicional.
+
+React distingue «Iniciando…» de «Sincronizando…» según confirmación real, actualiza estado/contadores por catálogo sin recarga y protege dobles clics y ACK perdido. Error local del procesador y demoras de inicio aparecen de forma contextual; el trabajo aceptado se conserva y se reintenta consultar la misma cola, sin duplicarlo. El administrador puede solicitar otro trabajo cuando el anterior haya terminado. Permisos, CSRF, contexto, representación, SII UR/módulos e ILDA independiente se conservan. No se modifican formularios ni respuestas.
+
+**Probado:** **44/44** casos sobre PostgreSQL nativo desechable, incluidos nueve nuevos con el hosted service real: horarios pausados/vencidos, HTTP breve durante lectura retenida, ILDA deshabilitada, doble solicitud y dos administradores distintos, proceso CLI hijo concurrente, fallos separados de los tres catálogos, error al reclamar con recuperación de la misma solicitud, pendiente sin señal, terminación real de proceso web hijo/reinicio/caducidad y rechazos directos de autorización/CSRF/representación/revocación. La caducidad se adelanta únicamente en la base sintética; no se espera media hora real. **76/76** dominio/HTTP con dobles, TypeScript y compilación Vite/ASP.NET correctos.
+
+**6/6** recorridos nuevos Edge → ASP.NET → PostgreSQL con servicio hospedado real: inicio manual sin CLI, doble clic, ACK demorado, recarga/navegación/cierre de página, fallo parcial, diagnóstico de cola, pérdida de ACK/consulta, recuperación y escritorio/móvil emulado. **13/13** recorridos de regresión: configuración versionada, horarios con/sin ILDA, permisos, catálogos y conservación de respuestas. En esta regresión histórica el host automático se retira sólo del verificador y los ciclos se invocan explícitamente para observar cada estado; no es evidencia de autoarranque. Ninguna ejecución de navegador tuvo errores JavaScript. [Cola y reservas](docs/migracion/sincronizacion-manual-20261009/postgresql.json), [servicio web y navegador](docs/migracion/sincronizacion-manual-20261009/navegador-manual.json), [regresión](docs/migracion/sincronizacion-manual-20261009/navegador-regresion.json).
+
+**Pendiente/límites:** SQL Server/MySQL son lectores ADO.NET sintéticos, Microsoft un par HTTP simulado y Nexo vistas/funciones locales sintéticas. Sólo los casos de ACK/red demoran o pierden respuestas HTTP reales; no simulan la cola, el servicio, publicaciones o reservas. Faltan SII/ILDA institucionales, dispositivos móviles físicos y operación Ubuntu/supervisor/SIGTERM. No se leyeron credenciales ni se accedió a fuentes/bases institucionales, Nexo o Herd. No hubo push, despliegue ni migración aplicada fuera del aislamiento.
+
+Comandos de esta comprobación (Node de Visual Studio ya instalado; cada script crea y detiene su propio clúster):
+
+```powershell
+dotnet run --project tests/TDV2.Verification -c Release --no-restore -p:UseAppHost=false -p:NuGetAudit=false
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -SyncOnly -DirectStart
+$env:TDV2_TEST_EPHEMERAL_TLS='true'
+$env:TDV2_TEST_NODE='C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VisualStudio\NodeJs\node.exe'
+$env:TDV2_TEST_BROWSER_FLOW='sync-manual'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly -DirectStart
+$env:TDV2_TEST_BROWSER_FLOW='sync'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly -DirectStart
+```
+
+Operación vigente y cambios de despliegue documentados en [Sincronizaciones](docs/migracion/SINCRONIZACIONES.md), [Windows](docs/ARRANQUE_LOCAL_WINDOWS.md) y [Ubuntu](docs/PUBLICACION.md). Basta el botón de Configuración → Sincronizaciones con ASP.NET en ejecución; los horarios habilitados continúan usando su procesador externo. Sin nuevos comandos de migración para este ajuste.
+
+## 2026-10-09 — Footer compartido del área autenticada
+
+**Implementado:** `ClientApp/resources/js/Layouts/AuthenticatedLayout.tsx` muestra únicamente «Universidad Autónoma de Ciudad Juárez». Conserva posición, tipografía de 11 px, espaciado y estilos originales. El mismo layout sirve a todos los módulos y submódulos. La portada pública mantiene exactamente su contenido anterior (SHA-256 verificado antes/después); sin cambios en permisos, formatos, colaboración ni persistencia.
+
+**Probado:** TypeScript y build Vite correctos. Edge con transporte sintético local: Inicio, Configuración y Formato en 1440×900, 390×844 y 320×740 (9 comprobaciones). Un solo footer, texto exacto, después del contenido, altura de 49.5 px, sin desbordamiento horizontal ni errores JavaScript. Capturas de escritorio y móvil revisadas; evidencia local en `.artifacts/authenticated-footer-20261009/`.
+
+**Pendiente/límite:** móvil emulado, sin comprobación en dispositivos físicos ni autenticación institucional. Sin acceso a bases, Nexo, Herd o credenciales; sin push ni despliegue.
+
+## 2026-10-09 — Ajuste exclusivo de la portada pública
+
+**Implementado:** únicamente `tdv2/Views/Home/Index.cshtml` cambia comportamiento público. Se retiran Proyectos estratégicos, Indicadores de avance, sus enlaces/estilos exclusivos y la FAQ que remitía al tablero retirado. Se elimina el nombre de la Subdirección y la etiqueta «Proyecto institucional · UACJ». El logo existente `/images/logos/firmaLogotipo-blancosinfondo-3.png` aparece antes de la Dirección, ambos a la izquierda, con 18 px de separación. Logo de 380 px y máximo 100%, altura automática, proporción/transparencia/colores intactos; desaparecen borde decorativo y sangría de la Dirección. Footer compacto con únicamente «Universidad Autónoma de Ciudad Juárez». Se conserva Transformación Digital, la configuración tipográfica y el acceso `/connect`. No cambia React autenticado ni backend de permisos/formatos.
+
+**Probado:** compilación Razor/ASP.NET Release; portada servida por ASP.NET con configuración vacía y protección efímera, sin bases ni servicios institucionales. Edge en 1440×1000, 390×844 y 320×740: sin desbordamiento horizontal, texto retirado ausente, destinos de sección existentes, imágenes locales cargadas, proporción/alineación y footer verificados. HTTP 200 `image/png` desde la ruta exacta; bytes idénticos al original SHA-256 `0bac7d97c01a83dcb4c3c7233947ea4bd0b6151d6c4eb223b4a9baf3254481bf`. `StaticWebAssetsPrepareForPublish` incluye el PNG como `All / PreserveNewest`, sin modificar el proyecto ni publicar. [Resultado](docs/migracion/portal-publico-20261009/verification.json), [publicación](docs/migracion/portal-publico-20261009/logo-publish.json), [escritorio](docs/migracion/portal-publico-20261009/desktop.png), [móvil](docs/migracion/portal-publico-20261009/mobile.png), [footer](docs/migracion/portal-publico-20261009/mobile-footer.png).
+
+**Pendiente/límite:** las capturas no cargaron Google Fonts ni el fondo remoto de Unsplash por restricciones de red del entorno; sus referencias originales permanecen sin cambios y se muestran las alternativas del navegador. No se probó autenticación institucional ni se accedió a bases, Nexo, Herd o credenciales. Sin migraciones, push ni despliegue. Los documentos con enlaces `#` preexistentes conservan su estado; no se inventaron URLs de documentos.
+
+## 2026-10-09 — Desplazamiento sin liberar, columna Edición y alturas compactas
+
+### Implementado
+
+Se conservaron los cambios locales y el contrato anterior de entrega, permisos y persistencia. Se reprodujo que arrastrar la barra horizontal nativa movía el foco del textarea al contenedor DIV; `onBlurCapture` lo interpretaba como salir de la fila y llamaba a guardar/liberar. `RecordEditingContext` utiliza destinos de foco y clics reales, distingue barras/gestos y conserva el contexto ante blur sin destino. No fuerza foco ni renueva por desplazamiento. Otro registro/sección conserva el guardado y liberación confirmados; ayudas y menús pertenecen al contexto original.
+
+`RowEditingPresence` ocupa la primera columna **Edición**, fija y de 124 px, con fotografía/iniciales, color y estado textual; sustituye expresamente la posición anterior en Acciones. Eliminar queda separado y arriba, con área de 44 × 44 px, icono rojo, nombre «Eliminar registro», foco y explicación accesible al deshabilitarse. Se conserva la eliminación directa atómica y el tratamiento de renovaciones tardías. Multilínea: dos a cuatro líneas visibles y scroll interno, íntegro también en consulta; ¿Qué entrega? amplía su mínimo a 280 px sin cambiar la fuente. Las dos tablas dejan el scroll vertical a la página y conservan horizontal propio.
+
+### Verificado
+
+- Reproducción anterior con barra nativa, ASP.NET y PostgreSQL desechable: reserva propia → libre al desplazar. Traza conservada.
+- **9/9** recorridos nuevos de barras, selección/cursor, texto largo, lectura enviada, presencia, eliminación, teclas/menús/ayudas, SII/Otra/Otro y móvil/tacto emulado, con **dos identidades distintas** y transporte real de escritura/reservas/SignalR.
+- **11/11** regresiones E2E: carrera de usuarios, otra pestaña, filas independientes, actualización entre usuarios, Medios, conexión/vencimiento, eliminación/renovación concurrentes, envío de primera etapa e inmutabilidad.
+- **51/51** comprobaciones de edición/autorización en PostgreSQL nativo aislado: atomicidad, concurrencia, permisos, testigos, relaciones, primera etapa e inmutabilidad.
+- **78/78** frontend con transporte simulado donde corresponde y **76/76** dominio/HTTP con dobles; TypeScript y build Vite correctos. No se confunden con los recorridos reales anteriores.
+
+[Causa, resultados, archivos y comandos de repetición](docs/migracion/DESPLAZAMIENTO_TABLAS.md). No hay nueva migración ni cambios al modelo de persistencia en este ajuste.
+
+### Pendiente
+
+Mouse/panel táctil/pantallas táctiles físicos, navegadores móviles reales y fuentes institucionales. Las pruebas sólo acreditan aislamiento sintético y emulación. Sin accesos ni cambios a Nexo, Herd, credenciales o bases institucionales; sin push ni despliegue. Las migraciones anteriores siguen requiriendo aplicación explícita del operador, nunca arranque web.
+
+## 2026-10-09 — Entrega hasta Sistemas, elegibilidad, foco y diagnóstico SII
+
+### Implementado
+
+Se conservó la versión local y todos sus cambios. Identificación y Sistemas mantienen tablas, 13 px, encabezados en negritas, contenido multilínea, fotografías y reservas por registro. El doble foco procedía de los outlines de `input/textarea` dentro de tablas más el fieldset enfocado de MUI: se retira únicamente el outline interior de `MuiOutlinedInput`, conservando foco de teclado y contorno de presencia. `RowEditingActions` reserva el mismo espacio en Acciones de ambas tablas; el avatar muestra el nombre también al enfocar, sin cambiar el foco lógico de edición.
+
+La entrega y el avance vigentes comprenden Contexto, Identificación y Sistemas con Medios. El backend reutiliza esa revisión para enviar, conserva permisos intrínsecos del responsable, control de versión/reservas, snapshot e inmutabilidad. Mostrar secciones posteriores como administrador no amplía requisitos. Se conservan sus respuestas, sin convertirlas en completadas ni normalizarlas en guardados ajenos. Medios es una sección independiente dentro de Sistemas y usa su propia reserva/autoguardado. El campo vigente `Otro medio` no tenía placeholder de CAST; continúa sin ejemplo y la opción Portal del CAST permanece en herramientas.
+
+`ProcedureEligibility` centraliza campos obligatorios actuales, validez y V/A. Lectura/ACK entregan opciones confirmadas; SignalR actualiza las otras sesiones. La escritura comprueba disponibilidad dentro de la transacción. Los borradores incompletos se guardan, pero no se ofrecen para nuevas relaciones. Un vínculo que después quede incompleto se conserva y genera pendiente contextual de entrega.
+
+Se comprobó que EF/modelo/migración `20261009080533_SiiModulesCatalog` corresponden a `public.sii_modulos`. Las consultas especializadas ahora explicitan el esquema. El diagnóstico local distingue migración pendiente, historial aplicado sin tabla, otro esquema e historial sin permiso de lectura. La pantalla administrativa informa error/contador no disponible; el procesador marca la etapa fallida sin abrir la fuente de módulos. No se crea el catálogo manualmente, no se oculta el fallo como lista vacía correcta y no se añade DDL al arranque. **No hay nueva migración en este ajuste ni cambios a migraciones anteriores.**
+
+### Verificado
+
+**76/76 .NET** de dominio/HTTP en memoria y lector ADO.NET sintético; **78/78 frontend** con transporte simulado; **10/10 recorridos Edge/React con transporte simulado**, cero errores JavaScript. Compilación Release y TypeScript/Vite correctos. **35/35 sincronizaciones en PostgreSQL nativo aislado**, incluida ausencia de esquema, fallo por catálogo sin consulta de su fuente, 1501 módulos, integridad, rollback, manual/automática e ILDA independiente (`native-postgres-20261009-115252-a9b6af89`).
+
+La verificación nativa de este ajuste pasó **51/51 casos de edición** (`native-postgres-20261009-115720-67ee7190`): alcance/permiso, revocaciones, responsables y colaboradores, reservas, versiones, atomicidad, errores, eliminación/renovación tardía, respuestas históricas y enviados. Pasó **57/57 comprobaciones EF/PostgreSQL** (`native-postgres-20261009-120236-eb1453e0`), incluidos cinco diagnósticos nuevos de módulos y aplicación/repetición mediante EF. Las pruebas de migraciones históricas conservan sus porcentajes históricos esperados; no se editaron migraciones para adaptar esos porcentajes al cálculo actual. [Edición](docs/migracion/entrega-sistemas-20261009/edicion-postgresql.json), [EF](docs/migracion/entrega-sistemas-20261009/migraciones-postgresql.json), [sincronizaciones](docs/migracion/entrega-sistemas-20261009/sincronizaciones-postgresql.json), [UI con transporte simulado](docs/migracion/entrega-sistemas-20261009/navegador-transporte-simulado.json).
+
+**11/11 recorridos Edge → ASP.NET → PostgreSQL con dos identidades distintas**, más otra pestaña de la misma cuenta, cero errores JavaScript (`native-postgres-20261009-120744-82efeb72`). Reservas simultáneas, filas independientes, identidad/presencia, guardado/salida, primeros caracteres/pegado/Tab, elegibilidad remota, eliminación y renovaciones tardías, Medios independiente, ayudas, desconexión/caducidad/reconexión, móvil y entrega sin posteriores. Se prueban rechazos directos del backend y enviados. [Reporte](docs/migracion/entrega-sistemas-20261009/dos-usuarios-postgresql.json), [foco de escritorio](docs/migracion/entrega-sistemas-20261009/escritorio-foco.png), [presencia móvil](docs/migracion/entrega-sistemas-20261009/movil-presencia.png). Las pruebas de conexión bloquean peticiones externas; no son validación institucional.
+
+**7/7 recorridos nativos de módulos** (`native-postgres-20261009-120504-4fb94e16`) y **13/13 de Sincronizaciones** (`native-postgres-20261009-120549-793841be`), cero errores JavaScript. Incluyen buscador/ID/instantánea, sin catálogo, Otra/Otro, varias herramientas, sesiones, ayudas, móvil, enviados, cola/programación/ILDA, fallos parciales y diagnóstico visible al faltar el esquema local. [Módulos](docs/migracion/entrega-sistemas-20261009/modulos-navegador-postgresql.json), [Sincronizaciones](docs/migracion/entrega-sistemas-20261009/sincronizaciones-navegador.json), [error administrativo](docs/migracion/entrega-sistemas-20261009/sincronizaciones-esquema-ausente.png). Motores aislados detenidos tras cada corrida.
+
+### Pendiente y límites
+
+No se consultó la base usada por la instalación que produjo la captura: `42P01` prueba ausencia de una relación resoluble en PostgreSQL; no determina por sí solo si la configuración apunta a otra base. La reproducción aislada con migración pendiente no acredita esa causa en una base institucional. El operador debe verificar el destino previsto y aplicar las migraciones pendientes explícitamente. Siguen pendientes SII real (SELECT de las dos columnas, DesarrolloSII, TLS/permisos/tipos/volumen), dispositivos físicos y aceptación institucional. Sin cambios en Nexo, Herd, credenciales, bases institucionales, push ni despliegue.
+
+[Contrato y comandos EF/operación](docs/migracion/SISTEMAS_HERRAMIENTAS.md) · [Edición automática](docs/migracion/EDICION_AUTOMATICA.md).
+
+## 2026-10-09 — Sistemas y herramientas y módulos de SIIv2 (entrega anterior)
+
+### Implementado
+
+Se preservaron cambios locales, tablas, tipografía y densidad compacta. Identificación muestra Código/origen sin renumerar; Prioridad pierde sólo el consejo solicitado. Ayudas compartidas con X accesible, Cerrar, Escape/foco y secciones opcionales. Sistemas utiliza una herramienta por fila, varias filas por procedimiento, selección única de herramienta/uso/funcionamiento, detalles separados y búsqueda de módulos locales. Se preservan históricos, enviados, primera etapa, participación, reservas/autoguardado y eliminación directa. El servidor valida opciones nuevas/referencias, calcula pendientes y conserva la descripción del módulo como instantánea.
+
+SII incorpora UR y módulos a la cola/procesador existente, manual/automático e independiente de ILDA. Consulta fija de dos columnas de `sii.MODULOS_SII` por la misma conexión Sii; réplica EF con IDs estables y bajas locales, publicaciones/resultados/auditoría transaccionales por catálogo y fallos sanitizados. Nueva migración **`20261009080533_SiiModulesCatalog`**, sin alterar migraciones anteriores ni respuestas. No se activa programación, se aplica DDL al arranque ni se modifica Nexo.
+
+### Verificado
+
+**74/74 .NET** (dominio/HTTP en memoria y lector ADO.NET sintético), **78/78 frontend**, **10/10 Edge con React y transporte simulado**, cero errores JavaScript. Incluyen 1501 módulos sin truncamiento, IDs/duplicados/lectura parcial, conexión compartida sin abrir, borradores, detalles, múltiples herramientas, históricos, códigos/orígenes, endpoint autorizado, ayudas, teclado, dos sesiones y anchos 1920/1366/768/360. TypeScript/Vite y solución Release correctos; .NET sin advertencias. EF confirma snapshot/modelo y genera el SQL sin conectarse. Capturas inspeccionadas. [Reporte y capturas](docs/migracion/sistemas-herramientas-20261009/navegador.json).
+
+**34/34 sincronizaciones sobre PostgreSQL 18.6 desechable**, incluidos cuatro casos nuevos de módulos: 1501/repetición/IDs, fallos preservando copia, rollback de catálogo/metadatos/resultado/auditoría y manual/automática con/sin ILDA. Corrida `native-postgres-20261009-084200-2373f124`. **7/7 recorridos Edge → ASP.NET → PostgreSQL**: borrador sin catálogo, búsqueda/ID/persistencia, renombre/baja histórica, Otra/Otro, dos sesiones/SignalR/reserva/autoguardado, filas del mismo procedimiento, móvil/teclado/enviado. Corrida `native-postgres-20261009-084018-c939ad44`, cero errores JavaScript. [Evidencia navegador PostgreSQL](docs/migracion/sistemas-herramientas-20261009/navegador-postgresql.json). Motores detenidos al finalizar.
+
+**52/52 comprobaciones EF/PostgreSQL**: aplicación desde cero/con esquema anterior, repetición, rollback, rechazos de contenido inesperado y conservación de enviados/respuestas. Se amplió el verificador de sólo lectura para reconocer `SiiModulesCatalog` pendiente. Corrida `native-postgres-20261009-084557-d4d2a18e`. [Evidencia EF](docs/migracion/sistemas-herramientas-20261009/migraciones-postgresql.json).
+
+**12/12 recorridos Edge de Sincronizaciones con ASP.NET/PostgreSQL**, cero errores JavaScript: cola/exclusión, resultado separado UR/módulos/ILDA, parcial por módulos, programación con/sin ILDA, revocación, recuperación y escritorio/móvil. Se actualizaron selectores de pruebas antiguas a «Trámite o servicio»; no se cambió la etiqueta vigente para satisfacerlas. Corrida `native-postgres-20261009-084856-06da90d2`; [reporte](docs/migracion/sistemas-herramientas-20261009/sincronizaciones-navegador.json).
+
+**49 escenarios de edición comprobados en PostgreSQL**: `native-postgres-20261009-085429-706ad183` pasó 48/49; el caso restante esperaba rechazar una referencia histórica intacta. Se ajustó a la regla vigente de conservarla y permitir su corrección explícita. La repetición `native-postgres-20261009-085927-33d92b32` pasó 2/2, incluidos ese caso y el rechazo de borrar/renombrar un código confirmado (también con null). [Evidencia agregada con ambas corridas](docs/migracion/sistemas-herramientas-20261009/edicion-postgresql.json). Se actualizaron fixtures antiguos de PUT retirado, Otro destinatario, eliminación sin intención y envío fuera de primera etapa; no se relajó producción para satisfacerlos. Las restricciones de primera etapa, revocaciones, concurrencia, reservas, auditoría, enviados y ambos casos nuevos de persistencia de módulos pasaron.
+
+### Pendiente y límites
+
+Los primeros intentos con `pg_ctl` fallaron por relanzamiento con token restringido (87/3). Se resolvió mediante `-DirectStart`, que inicia sólo el nuevo clúster verificado en `.artifacts`, con el mismo usuario/restricciones y sin elevación. Para Edge, `TDV2_TEST_EPHEMERAL_TLS=true` usa HTTPS efímero en loopback sin instalar certificados. Son adaptaciones del entorno sintético; no modifican el sitio productivo ni recurren a bases existentes.
+
+Falta SII real: SELECT sobre `sii.MODULOS_SII`, DesarrolloSII, autenticación/TLS, tipos, volumen/rendimiento y aceptación institucional/dispositivos físicos. La migración institucional queda para el operador. Sin acceso a servicios/bases institucionales, cambios en Herd/Nexo/credenciales, push ni despliegue Ubuntu. [Contrato del formulario, migración/comandos exactos y operación](docs/migracion/SISTEMAS_HERRAMIENTAS.md).
+
+
+## 2026-10-08 — Recuperación de densidad compacta en Identificación
+
+### Implementado
+
+Se retiraron exclusivamente las ampliaciones de tamaño/espaciado de la última entrega. Captura vuelve a 13 px de `capture-scroll`, encabezados a 12 px del tema con peso **700**, instrucciones a `body2`, ayudas/opciones de destinatarios a 14 px. Se recuperaron los tamaños pequeños, padding de celdas y anchos mínimos anteriores de los componentes; se quitaron las columnas y el ancho fijo de 2045 px. El tema global se conserva; no se restauraron archivos completos.
+
+Se mantienen contraste/foco visible, tabla, texto multilínea, instrucciones, siete categorías, ayudas, colores de prioridad y todos los cambios de eliminación/reservas/autoguardado. Ningún cambio de backend, autorización, datos o migraciones. La referencia a 16 px de la entrega anterior describe su estado histórico, sustituido por este ajuste visual.
+
+### Verificado
+
+TypeScript y build Vite correctos; diff sin errores de espacios. **16/16 recorridos Edge/React/ASP.NET/PostgreSQL sintético**, cero errores JavaScript, sobre el código local final. Incluyen teclado, selectores/ayudas, dos sesiones/pestañas, reserva automática, autoguardado, eliminación directa/renovación en vuelo y conservación de históricos. Las expectativas visuales existentes se ajustaron a los valores originales, sin añadir una suite nueva.
+
+[Reporte](docs/migracion/identificacion-compacta-20261008/navegador.json) y capturas: [1366 px](docs/migracion/identificacion-compacta-20261008/tabla-1366.png), [1920 px](docs/migracion/identificacion-compacta-20261008/tabla-1920.png), [768 px](docs/migracion/identificacion-compacta-20261008/tabla-768.png), [móvil 360 px](docs/migracion/identificacion-compacta-20261008/tabla-360.png). Escritorio y móvil inspeccionados; sin desbordamiento de página y con scroll dentro de la tabla. Corrida `native-postgres-20261009-055750-b66f6187`; clúster aislado detenido.
+
+### Pendiente y límites
+
+No requiere nueva migración ni reversión. Continúan pendientes las instalaciones/validaciones institucionales anteriores y la aceptación en dispositivos físicos. No se modificaron bases institucionales, Nexo, Herd ni credenciales; no hubo push ni despliegue.
+
+## 2026-10-08 — Tabla de Identificación, categorías vigentes y renovación tras eliminar
+
+### Implementado
+
+Identificación conserva tabla de ocho columnas, código junto a Fuente, tipografía original y edición directa. Texto/controles de 16 px, encabezados 700, valores normales, columnas estables, textos multilínea y acciones de 44 px; scroll contenido en móvil. Instrucciones y ayudas actualizadas; Prioridad conserva números/colores y no muestra Ejemplo en su ayuda.
+
+Destinatarios ofrece las siete categorías definitivas, sin Otro/Externo ni captura de detalle. Nueva migración **`20261009052502_CurrentRecipients`**: retira sólo esos valores JSON exactos y `usuarioOtro` en borradores del ejercicio vigente, conserva otras selecciones/respuestas, versiona filas/formato, invalida sus reservas y audita transaccionalmente. Rechazo localizado de peticiones antiguas; vacío queda pendiente. Enviados e históricos bloqueados conservan originales, mostrados como consulta. Las referencias anteriores a Otro/Externo como opciones vigentes quedan sustituidas por esta entrega.
+
+**Causa reproducida:** `commitChange` renovaba también al retirar; una renovación con intención de eliminación podía llegar después del PATCH y `FormRemoval.Changes` buscaba la fila ya borrada. Ahora espera actividad anterior, no renueva retiros y limpia estado después del ACK. El backend acredita un retiro mediante su recibo y responde 409 `registro_eliminado` sin excepción esperada; ID desconocido es 404, nunca éxito. Revalida autorización primero. Se mantienen cascada/versiones/auditoría/exclusión ILDA, reintentos idempotentes y protección de enviados. También se evita reaplicar una lectura inicial consumida tras un 422, conservando estados remotos pendientes necesarios para recibos antiguos.
+
+### Verificado
+
+- TypeScript, build Vite y solución Release finales correctos; .NET con cero errores y advertencias. La primera compilación había emitido NU1900 por auditoría de NuGet no disponible, sin errores de código.
+- **78/78 frontend**, **62/62 dominio/HTTP en memoria**, **20/20 PostgreSQL más 2/2 ampliaciones** (21 escenarios diferentes; uno repetido/reforzado), **50/50 migraciones EF**. Destinatarios/avance, permisos, revocación, bloqueos de etapa, históricos/enviados, rollback, versiones, reservas simultáneas, respuesta perdida, eliminación/relaciones y sincronización ILDA sintética.
+- **16/16 Edge/React/ASP.NET/PostgreSQL**, cero errores JS. Dos sesiones/pestañas, escritura/Tab/Select, nuevas categorías y recarga, ayudas, eliminación directa/Cancelar, renovación en vuelo sin nueva actividad del retiro, liberación automática y consulta histórica. Escritorio 1920/1366, tableta 768, móvil táctil 360 y viewport 683 equivalente al contenido al 200 %. Capturas inspeccionadas; todos los clústeres desechables detenidos.
+
+[Causa, evidencia, capturas, comandos y alcance exacto](docs/migracion/IDENTIFICACION_TABLA.md). Nueva migración preparada/probada únicamente en bases sintéticas. No cambian participación, roles, autenticación ni Nexo; fotos y edición automática se conservan.
+
+### Pendiente
+
+Aplicación explícita posterior de la migración por el operador. Zoom nativo al 200 %, lector de pantalla, dispositivos físicos y aceptación institucional: Edge headless no aplicó el atajo de zoom (`nativeZoom200=1`), por lo que no se acredita esa comprobación con la captura equivalente. No se modificaron Nexo, Herd, credenciales ni bases institucionales; no hubo push ni despliegue.
+
+## 2026-10-08 — Procedimientos Institucionales, primera etapa
+
+### Implementado
+
+- Nombre visible nuevo y autorización centralizada compatible con `procedimientos_institucionales`/`procesos_operativos`, misma ruta `/inicio`, sin duplicar navegación ni ampliar permisos. Se documentó la edición posterior del módulo existente de Nexo conservando ID, jerarquía y asignaciones; no se ejecutó sobre Nexo. `configuracion_procesos` y participación de UR siguen iguales.
+- Inicio oculta las dos descripciones solicitadas sólo para administrador efectivo. Contexto, Identificación general y Sistemas son las pestañas de primera etapa. Administrador efectivo con interruptor **Mostrar secciones posteriores**, apagado al entrar. El servidor controla reservas, renovación y guardado, incluidos medios; no basta con ocultar pestañas. Representación usa el objetivo y la vista de prueba conserva consulta.
+- Avance/revisión parciales del servidor separados del avance total: no exigen secciones ocultas ni generan un envío parcial. La etapa permanece borrador; completar el porcentaje no envía el formato. Se conservan respuestas ocultas y enviados inmutables. El administrador mantiene sólo sus facultades previas por UR y responsabilidad para envío completo.
+- Ayudas MUI reutilizables con los textos solicitados, ejemplo/consejo, Cerrar con X, Escape y retorno de foco; se consultan sin adquirir reservas, también en lectura. Etiquetas nuevas; destinatarios con **Externo**, colección única y **Otro** con `usuarioOtro` separado que permanece al desmarcar. Vacíos se guardan como borrador, pero cuentan pendientes. Sin nueva limpieza de respuestas.
+- Prioridad con círculos, números, etiquetas cortas y paleta solicitada, sin opción seleccionable para el indicativo. Sistemas ofrece Procedimiento sólo con código confirmado y V/A; el backend valida asociaciones nuevas/cambiadas y permite corregir históricos sin comparaciones.
+- Retiro ILDA permitido mediante exclusión local por UR/ejercicio/ID. `FormRemoval` calcula la cascada en servidor; verifica todas las reservas/versiones y rechaza cambios ajenos a esa operación, especialmente en secciones ocultas. Retiro, exclusión, auditoría y recibo idempotente son transaccionales. La réplica completa permanece intacta y las consultas individuales/por conjuntos omiten el registro excluido. Nueva migración **`20261009032858_FormIldaExclusions`**, exclusivamente preparada/probada en entorno sintético. Reversión protegida ante exclusiones o enviados.
+
+[Contrato, comando exacto de instalación, pruebas y Visual Studio](docs/migracion/PRIMERA_ETAPA.md). Se conservaron los cambios locales previos, fotografías/cachés, reservas automáticas, autoguardado, eliminación directa y ausencia de Resolver.
+
+### Verificado
+
+- TypeScript y build Vite correctos. Build Release ASP.NET/solución: cero errores/advertencias. **76/76** pruebas frontend, incluyendo motor de captura, versiones, respuesta perdida, desconexión, reservas, navegación y fotografías. **62/62** dominio/transporte ASP.NET (dobles en memoria; no sustituyen PostgreSQL).
+- **19/19** casos HTTP/PostgreSQL aislado, nueve nuevos de primera etapa más diez regresiones de concurrencia/seguridad. Alias y revocación, perfil efectivo/representación/prueba, secciones prohibidas y medios, progreso parcial, Otro/Externo, conservación de respuestas ocultas/enviados, V/A/códigos, cascada de eliminación, reserva ajena y obsoleta, rollback de auditoría, reintento idempotente y exclusiones en lectura individual/conjunta.
+- **13/13** recorridos Edge/React/ASP.NET/PostgreSQL; cero errores JavaScript. Dos sesiones y dos pestañas, primera escritura retenida durante adquisición, Tab, Select múltiple y Prioridad, ayudas por clic/teclado/toque/Escape sin liberar, Otro al desmarcar/recargar, eliminación ILDA directamente sin enfocar y Cancelar sin cambios, no reaparición tras nueva publicación del inventario sintético y control administrativo. Escritorio 1366/1920 y móvil táctil emulado 360 px con movimiento reducido. Capturas inspeccionadas.
+- **44/44** comprobaciones de migraciones EF en PostgreSQL aislado: snapshot/modelo, siete migraciones, actualización desde seis sin limpieza de respuestas, repetición sin cambios, datos/instantáneas/roles conservados, reversión protegida y recibos/versión del proveedor. Corrida `native-postgres-20261009-035816-30007467`.
+- Prueba adicional de retiro: ejecutó el **sincronizador de producción con lector ILDA sintético**, conservó la réplica y la exclusión evitó reaparición. También rechazó restaurar la fila con un parche directo. Arranque equivalente a **TDV2 HTTPS + React**: Vite 5173, HTTPS 7136, React, protección anónima 401 y HMR por `wss://localhost:7136`, sin consultas de datos ni servicios institucionales. No se automatizó la GUI de Visual Studio. Corrida `native-postgres-20261009-040001-a4946d37`; 2/2 agregados, cero errores JavaScript. Todos los clústeres se detuvieron.
+- Durante la validación se corrigieron expectativas de la prueba anterior (secciones posteriores ahora restringidas) y del helper de navegador (buscar una fila de una pestaña desmontada). Se corrigió el icono para el export real de MUI instalado. La prueba de reversión motivó proteger también la nueva tabla antes de retirar su historial. No se modificaron migraciones anteriores.
+
+Evidencia sintética: [frontend](docs/migracion/primera-etapa-20261008/frontend.txt), [19 casos PostgreSQL](docs/migracion/primera-etapa-20261008/postgresql.json), [13 recorridos finales del navegador](docs/migracion/primera-etapa-20261008/navegador.json), [44 comprobaciones EF](docs/migracion/primera-etapa-20261008/migraciones.json), [sincronizador y arranque](docs/migracion/primera-etapa-20261008/sincronizacion-arranque.json), [HTTPS/React/HMR](docs/migracion/primera-etapa-20261008/https-react-hmr.json). Capturas inspeccionadas: [administrador 1920 px](docs/migracion/primera-etapa-20261008/etapa-admin.png), [prioridad 1366 px](docs/migracion/primera-etapa-20261008/etapa-prioridad.png), [selector móvil](docs/migracion/primera-etapa-20261008/etapa-mobile.png) y [ayuda móvil](docs/migracion/primera-etapa-20261008/etapa-ayuda-mobile.png). Última corrida de navegador `native-postgres-20261009-040334-46ba8511`: se esperó el estado autorizado antes de capturar el administrador, 13/13 y cero errores JavaScript. Sólo se copiaron reportes/capturas sintéticos, nunca configuración privada del clúster.
+
+### Pendiente y límites
+
+El operador debe aplicar explícitamente la migración a su destino revisado e instalar TDV2 compatible **antes** de renombrar/publicar el módulo existente en Nexo. No se modificaron Nexo, Herd, credenciales ni bases institucionales; no hubo push ni despliegue. La aceptación con Microsoft/Nexo reales y dispositivos físicos sigue pendiente. El recorrido `first-stage` verifica la experiencia vigente; las evidencias de recorridos completos de entregas anteriores corresponden a su fecha y no acreditan la nueva restricción. Las propuestas siguen en memoria de la pestaña y con descarga ante fallos reales; no se promete recuperación tras cierre forzado.
+
+## 2026-10-08 — Edición automática sin resolución manual
+
+### Implementado
+
+Se mantiene entrar, editar, guardar al salir y liberar automáticamente. Se retiraron **Resolver**, **Resolver eliminación**, la comparación de propuestas y sus métodos/componentes sin uso. Se conservan reservas por fila/pregunta/criterio, permisos, enviados inmutables, fotos persistentes, avatares/colores, administración central/delegada y participación vigente. Las menciones a recuperación manual en entregas anteriores de este archivo quedan como evidencia histórica, sustituidas por esta entrega.
+
+**Causa reproducida antes del cambio:** una referencia de Sistemas a un código no confirmado devolvió 422 con reservas válidas y rechazó también un acuerdo independiente enviado en la misma operación. El motor bloqueaba después todos los bloques enviados como si fuera un conflicto. [Reproducción original](docs/migracion/edicion-automatica-20261008/reproduccion-previa.json), `native-postgres-20261008-174322-d8a19265`. El código generaba y ofrecía códigos desde el navegador antes del commit; el guardado parcial validaba todo el documento. No se examinó contenido institucional.
+
+Ahora el servidor confirma códigos y criterios vacíos bajo la transacción de UR. El borrador valida filas cambiadas y vínculos afectados, identifica bloque/campo y permite corregir con reserva vigente. El envío conserva validación completa. Los registros independientes tienen operaciones/recibos separados; las eliminaciones con relaciones siguen siendo atómicas. No se limpian vínculos históricos para evitar errores.
+
+Se conserva texto durante peticiones y se confirman respuestas perdidas con el mismo UUID, con reintentos limitados/progresivos. Volver al valor original mientras viaja un guardado espera el recibo y el cambio posterior antes de liberar. Tras vencimiento se exige nueva reserva y base idéntica; el texto incompatible queda accesible sin sobrescribir ni comparar. Se protegen primeras teclas, pegado y Tab mientras se prepara la edición. Siguen autoguardado de un segundo, descarga ante fallo real y revalidaciones SignalR cada 15 segundos.
+
+[Detalle, límites y comandos desde Visual Studio](docs/migracion/EDICION_AUTOMATICA.md). **Sin nueva migración** ni dependencias. No se modificaron bases institucionales, credenciales, Nexo, Herd, autenticación ni Ubuntu. Sin push/despliegue.
+
+### Probado
+
+- TypeScript, Vite y solución Release correctos; .NET sin errores ni advertencias. **75/75** pruebas frontend (41 del motor/captura) y **62/62** de dominio/aplicación. Incluyen cachés de fotografías, referencias estables, validación corregible, pendientes independientes, primeras teclas/pegado/Tab, recibos y edición durante guardado.
+- **28/28** escenarios de edición en PostgreSQL 18 aislado: [evidencia](docs/migracion/edicion-automatica-20261008/postgresql.json), `native-postgres-20261008-180443-63d43575`. Altas simultáneas, pertenencia sin borrar históricos, usuarios/pestañas, exclusión mutua, registros distintos, reservas vencidas/reasignadas, revocación, auditoría/rollback, eliminación con dependencias, ILDA y envío concurrente/inmutable.
+- **33/33** recorridos Edge/React/ASP.NET/PostgreSQL: [evidencia](docs/migracion/edicion-automatica-20261008/navegador.json), `native-postgres-20261008-181904-0008b450`. Primera escritura/pegado/Tab durante adquisición, Select, dos sesiones/pestañas, eliminación directa/Cancelar en cuatro tablas, carreras durante diálogo, respuesta perdida, reconexión sin comparar, criterios independientes, foto/tooltip, tres ciclos SignalR, envío y retiro central. Cero errores JavaScript. [Captura](docs/migracion/edicion-automatica-20261008/captura.png) y [eliminación ocupada](docs/migracion/edicion-automatica-20261008/eliminacion-ocupada.png), inspeccionadas. Fuentes externas bloqueadas sólo en el host sintético.
+- Una corrida previa de Edge se detuvo porque una aserción esperaba el texto anterior al nuevo caso de respuesta perdida; se actualizó al texto que éste guarda. La ampliación del selector múltiple también detectó que el verificador debía esperar la liberación: recibir contenido confirmado todavía no autoriza la fila. Se conserva esa separación en las pruebas.
+- Verificación específica final: **6/6** de selección múltiple/Prioridad en Edge, sin errores JS, con dos sesiones, recarga, teclado/Escape, foco y móvil táctil emulado de 360 px con movimiento reducido: [resultado](docs/migracion/edicion-automatica-20261008/seleccion-multiple.json), [captura móvil](docs/migracion/edicion-automatica-20261008/movil.png). **2/2** regresiones PostgreSQL repetidas con validación de bloques malformados (422 con campo, no error 500): [resultado](docs/migracion/edicion-automatica-20261008/regresion-final.json). Corrida `native-postgres-20261008-182826-7563c721`; estos dos casos amplían los ya incluidos en los 28, no son casos adicionales. Todos los clústeres aislados detenidos. Los últimos ajustes de liberación tras volver al valor original y limpieza de grupos confirmados están cubiertos también por las 41 pruebas del motor; no se modificaron luego las reglas de servidor.
+
+### Pendiente y límites
+
+Aceptación institucional de Nexo/Microsoft/proxy y móviles físicos/IME. El texto no confirmado vive en la pestaña, con aviso de salida y descarga; no se persisten respuestas privadas en almacenamiento del navegador ni se promete recuperarlas tras un cierre forzado. Las pruebas locales no acreditan despliegue ni conectividad real. Se conserva **TDV2 HTTPS + React**; las escrituras desde Visual Studio se prueban con el ejecutor aislado, sin usar User Secrets institucionales.
 
 ## Persistencia de fotografías — actualización 2026-10-07
 

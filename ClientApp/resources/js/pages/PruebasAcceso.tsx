@@ -27,7 +27,7 @@ export default function PruebasAcceso({
                             <Chip label="Solo lectura" variant="outlined" />
                         </Box>
                         {!puedeVistaPrueba && (
-                            <Typography variant="body2">Necesitas acceso a Procesos operativos en Nexo.</Typography>
+                            <Typography variant="body2">Necesitas acceso a Procedimientos Institucionales en Nexo.</Typography>
                         )}
                         <Box sx={{ mt: 2 }}>
                             <Button

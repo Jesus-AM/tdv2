@@ -15,7 +15,7 @@ using Tdv2.Web;
 namespace Tdv2.Services;
 
 public sealed record BlockRequest(string Key, [property: JsonRequired] int Version, Guid? LeaseId = null, JsonNode? Value = null);
-public sealed record EditRequest(Guid TabId, Guid OperationId, BlockRequest[] Blocks, string Section = "contexto", bool Release = false);
+public sealed record EditRequest(Guid TabId, Guid OperationId, BlockRequest[] Blocks, string Section = "contexto", bool Release = false, RowRemoval? Removal = null);
 public sealed record SubmitRequest(Guid TabId, Guid OperationId, [property: JsonRequired] int Version);
 public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn, bool otraPestana, int color, string? foto);
 public sealed record BlockView(string key, int version, LeaseView? reserva);
@@ -61,7 +61,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var form = await db.UnitForms.SingleOrDefaultAsync(f => f.UnitId == unit.Id, Ct);
         if (form is not null)
         {
-            if (form.SubmittedAt is null)
+            if (form.SubmittedAt is null && FormCapture.CurrentYear(form.Year, unit))
             {
                 var existing = JsonNode.Parse(form.Content)!.AsObject();
                 LocalCatalog.Merge(existing, await catalogs.Inventory(unit, Ct));
@@ -86,17 +86,22 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var now = await Now((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)transaction.GetDbTransaction());
         var form = await db.UnitForms.AsNoTracking().SingleOrDefaultAsync(f => f.UnitId == ur, Ct);
         var content = form is null ? schema.Blank(scope.Unit) : JsonNode.Parse(form.Content)!.AsObject();
-        if (form?.SubmittedAt is null) LocalCatalog.Merge(content, await catalogs.Inventory(scope.Unit, Ct));
+        var availableProcedures = form is null ? [] : ProcedureEligibility.Options(content);
+        var current = form?.SubmittedAt is null && FormCapture.CurrentYear(form?.Year, scope.Unit);
+        if (current) LocalCatalog.Merge(content, await catalogs.Inventory(scope.Unit, Ct));
         var blocks = await db.FormBlocks.AsNoTracking().Where(b => b.UnitId == ur).ToListAsync(Ct);
         var section = await db.FormPositions.AsNoTracking().Where(p => p.UnitId == ur && p.Actor == Actor && p.Effective == context.Profile.User.Email).Select(p => p.Section).SingleOrDefaultAsync(Ct);
         var result = new { contenido = content, version = form?.Version ?? 0,
-            porcentaje = form?.SubmittedAt is not null ? form.Progress : FormSchema.Progress(content),
+            porcentaje = !current ? form!.Progress : FormSchema.Progress(content),
+            porcentajeEtapa = FormCapture.Progress(content), revisionEtapa = FormCapture.Review(content),
+            procedimientosDisponibles = availableProcedures,
+            seccionesPosteriores = FormCapture.LaterSections(context.Profile),
             revisionEnvio = form?.SubmittedAt is null ? FormReview.Inspect(content) : null,
             actualizadoEn = form?.UpdatedAt is { } updated ? new DateTimeOffset(DateTime.SpecifyKind(updated, DateTimeKind.Utc)) : (DateTimeOffset?)null,
             actualizadoPor = form?.UpdatedBy, enviadoEn = form?.SubmittedAt, enviadoPor = form?.SubmittedEffective,
-            editable = scope.Edit && !context.ReadOnly && form?.SubmittedAt is null,
-            puedeEnviar = scope.Edit && !context.ReadOnly && form?.SubmittedAt is null && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
-            seccion = section ?? "contexto", servidorEn = now,
+            editable = scope.Edit && !context.ReadOnly && current,
+            puedeEnviar = scope.Edit && !context.ReadOnly && current && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
+            seccion = FormCapture.Section(context.Profile, section), servidorEn = now,
             bloques = blocks.Select(b => Public(b, tab, now)).ToArray() };
         await transaction.CommitAsync(Ct);
         return result;
@@ -116,7 +121,26 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         // nunca se mantiene una transacción abierta mientras la persona llena un campo.
         await store.LockUnit(ur, connection, pg, Ct);
         var form = await Load(scope.Unit, context.Profile); Editable(form, scope.Unit);
+        if (input.Removal is { } removal)
+        {
+            FormRemoval.Validate(removal);
+            FormCapture.Require(context.Profile, [removal.Section + ":" + removal.Id]);
+            var current = JsonNode.Parse(form.Content)!.AsObject();
+            if (!FormRemoval.Exists(current, removal)) return await MissingRemoval(ur, removal);
+            var related = FormRemoval.Changes(current, removal);
+            // Puede reservar un subconjunto porque otros bloques ya tienen reserva propia.
+            if (input.Blocks.Any(b => !related.ContainsKey(b.Key))) throw new DomainProblem(403, "La reserva solicitada no corresponde a esta eliminación.");
+        }
+        else FormCapture.Require(context.Profile, input.Blocks.Select(b => b.Key));
         var all = await db.FormBlocks.Where(b => b.UnitId == ur).ToDictionaryAsync(b => b.Key, Ct);
+        var valuesAtReservation = FormBlocks.Split(JsonNode.Parse(form.Content)!.AsObject());
+        foreach (var requested in input.Blocks)
+        {
+            var split = requested.Key.IndexOf(':');
+            if (split > 0 && requested.Key[..split] is "identificacion" or "sistemas" or "datos" or "acuerdos"
+                && all.TryGetValue(requested.Key, out var previous) && previous.Version > 0 && !valuesAtReservation.ContainsKey(requested.Key))
+                return await MissingRemoval(ur, new(requested.Key[..split], requested.Key[(split + 1)..]));
+        }
         var now = await Now(connection, pg);
         var result = new List<FormBlock>();
         // La UR ya está bloqueada: todos los observadores reciben la misma asignación de color.
@@ -138,7 +162,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
             var active = block.LeaseId is not null && block.ExpiresAt > now;
             if (renew && (!active || !Owner(block, input.TabId, request.LeaseId))) throw Conflict("La reserva venció o pertenece a otra sesión. Conserva tu propuesta.");
             if (active && (block.SessionHash != state.SessionHash || block.TabId != input.TabId || block.ContextRevision != Revision))
-                throw Conflict("Otra sesión está editando este bloque. Conserva tu propuesta y espera a que termine.");
+                throw Conflict($"{block.Holder ?? "Otra persona"} está editando este registro en otra sesión. Espera a que termine.");
             if (!active) block.LeaseId = Guid.NewGuid(); // Testigo nuevo: el titular vencido nunca recupera autoridad con el anterior.
             block.SessionHash = state.SessionHash; block.TabId = input.TabId; block.ContextRevision = Revision;
             block.Holder = context.Profile.User.Name; block.ExpiresAt = now.AddSeconds(45); result.Add(block);
@@ -173,6 +197,20 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
             Fingerprint = fingerprint, Response = JsonSerializer.Serialize(response), CreatedAt = now });
     private static string Fingerprint(object value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value))));
 
+    private async Task<EditRejection> MissingRemoval(string ur, RowRemoval removal)
+    {
+        var key = removal.Section + ":" + removal.Id;
+        // Sólo un recibo confirmado con valor null acredita un retiro. Un ID desconocido no es éxito.
+        // Se consulta después de autorizar y bajo el bloqueo de UR, nunca a partir de un 409 genérico.
+        var confirmed = await db.Database.SqlQuery<bool>($"""
+            SELECT EXISTS(SELECT 1 FROM formato_operaciones o,
+                LATERAL jsonb_array_elements(coalesce(o.respuesta->'bloques','[]'::jsonb)) b
+                WHERE o.id_ur={ur} AND b->>'key'={key} AND b->'value'='null'::jsonb) AS "Value"
+            """).SingleAsync(Ct);
+        return confirmed ? new(409, "registro_eliminado", "El registro ya fue eliminado. Se actualizará el formato; puedes continuar con los demás registros.")
+            : new(404, "registro_desconocido", "No se encontró el registro solicitado. Revisa el contenido vigente.");
+    }
+
     public async Task<object> Save(string ur, EditRequest input)
     {
         Validate(input); var (context, scope) = await Authorize(ur, true); var fingerprint = Fingerprint(input);
@@ -191,10 +229,78 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
                 throw Conflict("La versión o la reserva del bloque cambió. Tu propuesta no se ha sobrescrito ni guardado.");
         var deadlines = input.Blocks.Select(b => all[b.Key].ExpiresAt!.Value).ToArray();
         var old = JsonNode.Parse(form.Content)!.AsObject();
-        var candidate = FormBlocks.Apply(old, input.Blocks.ToDictionary(b => b.Key, b => b.Value, StringComparer.Ordinal));
-        var canonical = FormBlocks.Split(schema.Validate(candidate, scope.Unit));
+        var requested = input.Blocks.ToDictionary(b => b.Key, b => b.Value, StringComparer.Ordinal);
+        if (input.Removal is { } removal)
+        {
+            FormRemoval.Validate(removal);
+            FormCapture.Require(context.Profile, [removal.Section + ":" + removal.Id]);
+            if (!FormRemoval.Exists(old, removal)) return await MissingRemoval(ur, removal);
+            var planned = FormRemoval.Changes(old, removal);
+            // La cascada se determina en el servidor. Ni el cliente ni una reserva auxiliar pueden
+            // aprovechar el retiro para cambiar otras respuestas, incluidas secciones no habilitadas.
+            if (!planned.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(requested.Keys)
+                || planned.Any(p => !JsonNode.DeepEquals(p.Value, requested[p.Key])))
+                throw Conflict("El registro o sus relaciones cambiaron. Revisa la versión vigente antes de eliminar.");
+            requested = planned;
+            if (removal.Section == "identificacion" && removal.Id.StartsWith("ilda:", StringComparison.Ordinal))
+                db.FormExclusions.Add(new() { UnitId = ur, Year = scope.Unit.Year, RowId = removal.Id,
+                    CreatedAt = now, Actor = Actor, Effective = context.Profile.User.Email });
+        }
+        else
+        {
+            FormCapture.Require(context.Profile, requested.Keys);
+            if (requested.Any(p => p.Value is null && p.Key.StartsWith("identificacion:", StringComparison.Ordinal)))
+                throw new DomainProblem(422, "Confirma la eliminación del procedimiento y sus relaciones.");
+        }
+        foreach (var request in input.Blocks.Where(b => b.Value is not null && b.Key.StartsWith("identificacion:", StringComparison.Ordinal)))
+        {
+            var persisted = old["identificacion"]!.AsArray().FirstOrDefault(r => "identificacion:" + r?["id"] == request.Key);
+            if (persisted is null && request.Key.StartsWith("identificacion:ilda:", StringComparison.Ordinal))
+                throw FormSchema.FieldError(request.Key, "id", "Este registro de inventario no está disponible en el formato.");
+            if ((request.Value!["codigo"]?.ToString() ?? "") != (persisted?["codigo"]?.ToString() ?? ""))
+                throw FormSchema.FieldError(request.Key, "codigo", "El código del procedimiento se asigna al confirmar la validación en el servidor.");
+            if ((request.Value["fuente"]?.ToString() ?? "") != (persisted is null ? "Nuevo" : persisted["fuente"]?.ToString() ?? ""))
+                throw FormSchema.FieldError(request.Key, "fuente", "El origen del procedimiento se conserva en el servidor.");
+        }
+        foreach (var request in input.Blocks.Where(b => b.Value is not null && b.Key.StartsWith("sistemas:", StringComparison.Ordinal)))
+        {
+            var persisted = old["sistemas"]!.AsArray().FirstOrDefault(r => "sistemas:" + r?["id"] == request.Key);
+            var code = request.Value!["proceso"]?.ToString();
+            if (!string.IsNullOrEmpty(code) && persisted?["proceso"]?.ToString() != code
+                && !ProcedureEligibility.Contains(old, code))
+                throw FormSchema.FieldError(request.Key, "proceso", "Selecciona un procedimiento completo y válido, confirmado por el servidor como Vigente o Ajustar.");
+        }
+        var candidate = FormBlocks.Apply(old, requested);
+        var keys = input.Blocks.Select(b => b.Key).ToHashSet(StringComparer.Ordinal);
+        var generated = schema.CompleteProcesses(candidate, keys, all.Keys);
+        // No tomar por implicación una reserva que otro editor obtuvo para una evaluación nueva.
+        if (generated.Any(k => all.TryGetValue(k, out var existing) && existing.LeaseId is not null && existing.ExpiresAt > now))
+            throw Conflict("Otra sesión está editando la evaluación de este proceso.");
+        keys.UnionWith(generated);
+        var removedCodes = old["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")
+            .Except(candidate["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")).ToHashSet(StringComparer.Ordinal);
+        var validated = schema.Validate(candidate, scope.Unit, keys, removedCodes, old);
+        foreach (var row in validated["sistemas"]!.AsArray().OfType<JsonObject>().Where(r => keys.Contains("sistemas:" + r["id"])))
+        {
+            var previous = old["sistemas"]!.AsArray().FirstOrDefault(r => r?["id"]?.ToString() == row["id"]?.ToString());
+            var moduleId = row["moduloSiiId"]?.ToString() ?? "";
+            // Las descripciones son instantáneas del servidor, jamás texto autorizado por el navegador.
+            row["moduloSiiDescripcion"] = previous?["moduloSiiDescripcion"]?.DeepClone() ?? JsonValue.Create("");
+            if (row["sistema"]?.ToString() == "sii_v2" && moduleId.Length > 0
+                && (previous?["sistema"]?.ToString() != "sii_v2" || previous?["moduloSiiId"]?.ToString() != moduleId))
+            {
+                // El bloqueo comparte la transacción del formato: una baja no puede intercalarse antes del commit.
+                if (await SiiCatalogSchema.Inspect(new(connection, pg), Ct) is not null)
+                    throw FormSchema.FieldError("sistemas:" + row["id"], "moduloSiiId", "El catálogo local de módulos requiere revisión del administrador en Configuración → Sincronizaciones.");
+                var module = (await db.SiiModules.FromSqlInterpolated($"SELECT * FROM public.sii_modulos WHERE id_modulo={moduleId} AND presente FOR SHARE").AsNoTracking().ToListAsync(Ct)).SingleOrDefault();
+                if (module is null) throw FormSchema.FieldError("sistemas:" + row["id"], "moduloSiiId", "Selecciona un módulo disponible del catálogo local.");
+                row["moduloSiiDescripcion"] = module.Description;
+            }
+            else if (moduleId.Length == 0) row["moduloSiiDescripcion"] = "";
+        }
+        var canonical = FormBlocks.Split(validated);
         // Normaliza sólo los bloques de esta operación. Jamás sustituye otros bloques con una copia del cliente.
-        var changes = input.Blocks.ToDictionary(b => b.Key, b => canonical.GetValueOrDefault(b.Key), StringComparer.Ordinal);
+        var changes = keys.ToDictionary(k => k, k => canonical.GetValueOrDefault(k), StringComparer.Ordinal);
         var content = FormBlocks.Apply(old, changes);
         form.Content = content.ToJsonString(); form.Year = scope.Unit.Year; form.Version++;
         form.Progress = checked((short)FormSchema.Progress(content)); form.UpdatedBy = context.Profile.User.Email;
@@ -202,17 +308,24 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         foreach (var request in input.Blocks)
         {
             var block = all[request.Key]; block.Version++;
-            if (input.Release) { block.LeaseId = null; block.ExpiresAt = null; }
+            if (input.Release || requested[request.Key] is null) { block.LeaseId = null; block.ExpiresAt = null; }
+        }
+        foreach (var key in generated)
+        {
+            if (!all.TryGetValue(key, out var block)) { block = new FormBlock { UnitId = ur, Key = key }; all[key] = block; db.FormBlocks.Add(block); }
+            block.Version++;
         }
         var position = await db.FormPositions.SingleOrDefaultAsync(p => p.UnitId == ur && p.Actor == Actor && p.Effective == context.Profile.User.Email, Ct);
         if (position is null) { position = new() { UnitId = ur, Actor = Actor, Effective = context.Profile.User.Email }; db.FormPositions.Add(position); }
-        position.Section = input.Section;
+        position.Section = FormCapture.Section(context.Profile, input.Section);
         var response = new { version = form.Version, porcentaje = form.Progress, actualizadoEn = now, actualizadoPor = form.UpdatedBy,
+            porcentajeEtapa = FormCapture.Progress(content), revisionEtapa = FormCapture.Review(content),
+            procedimientosDisponibles = ProcedureEligibility.Options(content),
             revisionEnvio = FormReview.Inspect(content),
-            bloques = input.Blocks.Select(b => new { key = b.Key, version = all[b.Key].Version, value = changes[b.Key], reserva = Public(all[b.Key], input.TabId, now).reserva }).ToArray() };
+            bloques = keys.Select(key => new { key, version = all[key].Version, value = changes[key], reserva = Public(all[key], input.TabId, now).reserva }).ToArray() };
         Remember(ur, input.OperationId, input.TabId, fingerprint, response, now);
         await db.SaveChangesAsync(Ct);
-        await audit.Write(connection, pg, "guardar_bloques", "formato_ur", ur, "confirmado", Ct, details: new { version = form.Version, bloques = input.Blocks.Select(b => b.Key), operacion = input.OperationId });
+        await audit.Write(connection, pg, "guardar_bloques", "formato_ur", ur, "confirmado", Ct, details: new { version = form.Version, bloques = keys, operacion = input.OperationId, retiro = input.Removal });
         var beforeCommit = await Now(connection, pg);
         if (deadlines.Any(deadline => deadline <= beforeCommit))
             throw Conflict("La reserva venció antes de confirmar el guardado. Conserva tu propuesta.");
@@ -247,7 +360,10 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var blocks = await db.FormBlocks.Where(b => b.UnitId == ur).ToListAsync(Ct);
         if (blocks.Any(b => b.LeaseId is not null && b.ExpiresAt > now && (b.SessionHash != state.SessionHash || b.TabId != input.TabId || b.ContextRevision != Revision)))
             throw Conflict("Otra sesión mantiene una reserva de edición. Espera a que termine antes de enviar.");
-        var content = schema.Validate(JsonNode.Parse(form.Content)!.AsObject(), scope.Unit); FormSchema.RequireComplete(content);
+        var original = JsonNode.Parse(form.Content)!.AsObject();
+        var content = schema.Validate(original, scope.Unit,
+            FormBlocks.Split(original).Keys.Where(FormCapture.FirstStageBlock).ToHashSet(StringComparer.Ordinal), previous: original);
+        FormSchema.RequireComplete(content);
         form.Progress = checked((short)FormSchema.Progress(content));
         form.SubmissionSnapshot = JsonSerializer.Serialize(new { unidad = scope.Unit.Public(), contenido = JsonNode.Parse(form.Content), version = form.Version + 1 });
         form.SubmittedAt = now; form.SubmittedBy = Actor; form.SubmittedEffective = context.Profile.User.Email;

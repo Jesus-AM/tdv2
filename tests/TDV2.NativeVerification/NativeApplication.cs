@@ -127,7 +127,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     internal SyntheticDiagnostics Diagnostics { get; } = new();
     internal string ControlToken { get; } = ProtectedValues.Random();
     internal string PublicOrigin = "https://localhost";
-    internal bool Browser, Vite;
+    internal bool Browser, Vite, ManualProcessing;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -145,6 +145,14 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
         }); });
         builder.ConfigureTestServices(services =>
         {
+            if (!ManualProcessing)
+            {
+                // Los escenarios históricos avanzan el coordinador explícitamente.
+                // Las pruebas Sync/web y sync-manual conservan el hosted service real.
+                var worker = services.Single(d => d.ImplementationType == typeof(ManualSyncWorker));
+                services.Remove(worker);
+                services.AddSingleton(_ => { var dispatcher = new ManualSyncDispatcher(); dispatcher.Started(); return dispatcher; });
+            }
             services.AddSingleton(Reads);
             services.AddSingleton<TimeProvider>(Clock);
             services.AddDbContext<Tdv2DbContext>(options => options.AddInterceptors(Reads));
@@ -159,9 +167,9 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
         });
     }
     internal HttpClient Client() => CreateClient(new() { BaseAddress = new Uri(PublicOrigin), AllowAutoRedirect = false, HandleCookies = true });
-    internal static X509Certificate2 Certificate()
+    internal static X509Certificate2 Certificate(bool ephemeral = false)
     {
-        if (OperatingSystem.IsWindows())
+        if (OperatingSystem.IsWindows() && !ephemeral)
         {
             // Schannel cannot serve TLS with ephemeral keys. Read an existing ASP.NET development
             // certificate; never create/import/trust a certificate or modify the Windows key store.
@@ -189,6 +197,9 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
     {
         app.Use(async (http, rest) =>
         {
+            // Only the test host accepts the loopback TLS proxy's private transport marker.
+            if (IPAddress.IsLoopback(http.Connection.RemoteIpAddress ?? IPAddress.None)
+                && http.Request.Headers["X-Synthetic-Tls"] == token) http.Request.Scheme = "https";
             if (!http.Request.Path.StartsWithSegments("/__fixture", out var action))
             {
                 await rest();
@@ -227,6 +238,22 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                     if (HttpMethods.IsPost(http.Request.Method)) reads.Count = 0;
                     await http.Response.WriteAsJsonAsync(new { efCommands = reads.Count }); return;
                 case "/configuration-admin": await NativeTests.ConfigurationAdmin(database); break;
+                case "/stage-ilda-seed":
+                    var seeded = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    seeded["identificacion"]![0]!["id"] = "ilda:17";
+                    await database.Sql("DELETE FROM formato_bloques WHERE id_ur='A'");
+                    await database.Sql("UPDATE formatos_ur SET contenido=$1::json,version=version+1 WHERE id_ur='A'", seeded.ToJsonString());
+                    await database.Sql("INSERT INTO sincronizacion_catalogos VALUES('ilda',1,now()); INSERT INTO ilda_informacion_area(id_origen,ur2,informacion_generada,datos,sincronizado_en) VALUES('17','100','Inventario ILDA sintético','{}',now())");
+                    break;
+                case "/stage-ilda-republish":
+                    await database.Sql("UPDATE ilda_informacion_area SET informacion_generada='Nueva publicación sintética',presente=true,sincronizado_en=now()"); break;
+                case "/recipients-history":
+                    var history = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    history["identificacion"]![0]!["usuario"] = new System.Text.Json.Nodes.JsonArray("Docentes", "Otro", "Externo");
+                    history["identificacion"]![0]!["usuarioOtro"] = "Detalle histórico sintético";
+                    await database.Sql("UPDATE formatos_ur SET ejercicio=2025,contenido=$1::json,version=version+1 WHERE id_ur='A'", history.ToJsonString()); break;
+                case "/recipients-submitted":
+                    await database.Sql("UPDATE formatos_ur SET enviado_en=clock_timestamp(),enviado_como='persona@uacj.mx',instantanea_envio=jsonb_build_object('contenido',contenido) WHERE id_ur='A'"); break;
                 case "/scope-level3":
                     await database.Sql("""
                         UPDATE fixture_roles SET rol_clave='responsable_ur_supervisor',rol_nombre='Responsable de UR con supervisión' WHERE email='persona@uacj.mx';
@@ -241,6 +268,41 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                 case "/sync-tick":
                     using (var scope=http.RequestServices.CreateScope()) await scope.ServiceProvider.GetRequiredService<SyncCoordinator>().Tick(http.RequestAborted);
                     break;
+                case "/systems-seed":
+                    var systemsSeed = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    foreach (var field in new[] { "sistema", "uso", "estado", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion" }) systemsSeed["sistemas"]![0]![field] = "";
+                    await NativeTests.SeedStage(database, systemsSeed);
+                    break;
+                case "/delivery-seed":
+                    var delivery = NativeTests.StageOnly(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    var p2 = delivery["identificacion"]![0]!.DeepClone(); p2["id"] = "segundo"; p2["codigo"] = "PO-02"; p2["tramite"] = "Procedimiento pendiente"; p2["resultado"] = "";
+                    var p3 = delivery["identificacion"]![0]!.DeepClone(); p3["id"] = "tercero"; p3["codigo"] = "PO-03"; p3["tramite"] = "Procedimiento prescindible";
+                    delivery["identificacion"]!.AsArray().Add(p2); delivery["identificacion"]!.AsArray().Add(p3);
+                    delivery["evaluaciones"]!["PO-02"] = delivery["evaluaciones"]!["PO-01"]!.DeepClone();
+                    var s1 = delivery["sistemas"]![0]!; s1["sistema"] = "excel"; s1["uso"] = "consultar"; s1["estado"] = "bien"; s1["fallas"] = "";
+                    foreach (var detail in Tdv2.Domain.SystemAnswers.Details) s1[detail] = "";
+                    var s2 = s1.DeepClone(); s2["id"] = "segunda"; delivery["sistemas"]!.AsArray().Add(s2);
+                    await NativeTests.SeedStage(database, delivery);
+                    await database.Sql("""
+                        INSERT INTO fixture_users VALUES(50,50,'colaboradora@uacj.mx','Colaboradora sintética','individual','0050','A','adscripcion');
+                        INSERT INTO fixture_roles VALUES(50,'colaboradora@uacj.mx',31,'colaborador_local','Colaboración central sintética');
+                        INSERT INTO fixture_grants VALUES(101,'colaboradora@uacj.mx',31,'A','central');
+                        """); break;
+                case "/delivery-identity":
+                    var helperIdentity = http.Request.Query["who"] == "helper";
+                    microsoft.Email = microsoft.Mail = helperIdentity ? "colaboradora@uacj.mx" : "persona@uacj.mx";
+                    microsoft.Id = helperIdentity ? "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" : FakeMicrosoft.ObjectId;
+                    break;
+                case "/systems-rename": sources.Modules.Rows[2]["DESC_MODULO"] = "Descripción posterior"; goto case "/systems-sync";
+                case "/systems-remove": sources.Modules.Rows.RemoveAt(2); goto case "/systems-sync";
+                case "/systems-sync":
+                    using (var scope = http.RequestServices.CreateScope())
+                    {
+                        var coordinator = scope.ServiceProvider.GetRequiredService<SyncCoordinator>();
+                        await coordinator.Enqueue("sii", "comando", "prueba_sintetica", false, http.RequestAborted);
+                        await coordinator.Tick(http.RequestAborted);
+                    }
+                    break;
                 case "/sync-hold": sources.Block="ilda"; sources.Entered=new(TaskCreationOptions.RunContinuationsAsynchronously); sources.Continue=new(TaskCreationOptions.RunContinuationsAsynchronously); break;
                 case "/sync-worker-start":
                     var services=http.RequestServices.GetRequiredService<IServiceScopeFactory>();
@@ -248,6 +310,11 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                     await sources.Entered.Task.WaitAsync(TimeSpan.FromSeconds(15)); break;
                 case "/sync-worker-release": sources.Continue.TrySetResult(); if(worker is not null) await worker; sources.Block=null; break;
                 case "/sync-fail-ilda": sources.Failure="ilda"; break;
+                case "/sync-claim-fail":
+                    await database.Sql("CREATE FUNCTION fixture_browser_claim() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.propietario IS NOT NULL THEN RAISE EXCEPTION 'SYNTHETIC_CLAIM_SECRET'; END IF; RETURN NEW; END $$; CREATE TRIGGER fail_browser_claim BEFORE UPDATE ON sincronizacion_configuracion FOR EACH ROW EXECUTE FUNCTION fixture_browser_claim()"); break;
+                case "/sync-claim-recover":
+                    await database.Sql("DROP TRIGGER fail_browser_claim ON sincronizacion_configuracion; DROP FUNCTION fixture_browser_claim()"); break;
+                case "/sync-fail-modules": sources.Failure="sii_modulos"; break;
                 case "/sync-restore-source": sources.Failure=null; break;
                 case "/sync-change-source":
                     sources.Ilda.Rows.RemoveAt(0); sources.Ilda.Rows.Add(6,"100","Nuevo trámite ILDA",null,"");
@@ -256,6 +323,8 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                 case "/sync-interrupted": await database.Sql("UPDATE sincronizacion_ejecuciones SET estado='ejecutando',iniciada_en=timezone('UTC',clock_timestamp()) WHERE id=(SELECT ejecucion_activa FROM sincronizacion_configuracion); UPDATE sincronizacion_configuracion SET propietario=gen_random_uuid(),reserva_hasta=timezone('UTC',clock_timestamp())-interval '1 minute'"); break;
                 case "/sync-access-off": await database.Sql("DELETE FROM fixture_module_roles WHERE rol_id=34 AND modulo_id=51"); break;
                 case "/sync-access-on": await database.Sql("INSERT INTO fixture_module_roles VALUES(34,51)"); break;
+                case "/sync-schema-missing": await database.Sql("ALTER TABLE public.sii_modulos RENAME TO fixture_missing_modules"); break;
+                case "/sync-schema-restore": await database.Sql("ALTER TABLE public.fixture_missing_modules RENAME TO sii_modulos"); break;
                 case "/sync-fail-sql": await database.Sql("CREATE FUNCTION fixture_browser_fail_sync() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_CATALOG_SECRET'; END $$; CREATE TRIGGER browser_fail_sync BEFORE INSERT ON ilda_informacion_area FOR EACH ROW EXECUTE FUNCTION fixture_browser_fail_sync()"); break;
                 case "/sync-recover-sql": await database.Sql("DROP TRIGGER IF EXISTS browser_fail_sync ON ilda_informacion_area; DROP FUNCTION IF EXISTS fixture_browser_fail_sync()"); break;
                 case "/sync-report":

@@ -38,7 +38,7 @@ export default function ConfiguracionProcesos({ settings, levels, types }: { set
     const label = (u: Unit) => `${displayUnitCode(u.cve_ur)} · ${u.desc_ur}`;
     const unitName = (id: string | null) => id === null ? 'Sin formato' : [...(impact?.entering || []), ...(impact?.leaving || []), ...(impact?.scopeChanges.map(c => c.unidad) || [])].find(u => u.id_ur === id)?.desc_ur || id;
     return <AuthenticatedLayout><Head title="Configuración procesos" /><div className="page settings-page">
-        <PageHeading title="Configuración procesos" description="Define las áreas que participan en Procesos operativos."
+        <PageHeading title="Configuración procesos" description="Define las áreas que participan en Procedimientos Institucionales."
             breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }]} />
         <Box sx={{ maxWidth: 960 }}><SettingsSection title="Participación de áreas" icon={<Tune />}
             description="Participar determina qué áreas tienen formato; no concede roles ni permisos. Los formatos excluidos y sus respuestas se conservan.">

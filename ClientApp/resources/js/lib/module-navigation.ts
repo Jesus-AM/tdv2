@@ -1,12 +1,13 @@
 import type { Auth } from '../types/auth';
 export type NavigationModule = Auth['modules'][number];
 export function moduleGroups(modules: NavigationModule[], origin: string) {
-    const order: Record<string, number> = { procesos_operativos: 0, configuracion: 1, configuracion_procesos: 2, sincronizaciones: 3, pruebas_acceso: 4 };
+    const order: Record<string, number> = { procedimientos_institucionales: 0, procesos_operativos: 0, configuracion: 1, configuracion_procesos: 2, sincronizaciones: 3, pruebas_acceso: 4 };
     const seen = new Set<string>();
     const safe = modules.filter(module => {
         try {
-            if (!module.route || new URL(module.route, origin).origin !== origin || seen.has(module.key)) return false;
-            seen.add(module.key); return true;
+            const key = module.key === 'procesos_operativos' ? 'procedimientos_institucionales' : module.key;
+            if (!module.route || new URL(module.route, origin).origin !== origin || seen.has(key)) return false;
+            seen.add(key); return true;
         } catch { return false; }
     });
     // Sólo se agrupan relaciones publicadas; un submódulo huérfano nunca se convierte en módulo principal.
@@ -19,5 +20,5 @@ export function activeModule(modules: NavigationModule[], current: string, origi
         const route = new URL(module.route, origin).pathname;
         return path === route || route !== '/' && path.startsWith(route + '/');
     }) || (/^\/(formatos|colaboradores|vista-prueba|actuar-como-usuario)(\/|$)/.test(path)
-        ? modules.find(module => module.key === 'procesos_operativos') : undefined);
+        ? modules.find(module => ['procedimientos_institucionales', 'procesos_operativos'].includes(module.key)) : undefined);
 }

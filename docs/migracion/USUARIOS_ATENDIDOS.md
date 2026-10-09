@@ -1,5 +1,7 @@
 # Usuarios que atiende y Prioridad — 2026-10-07
 
+Actualización vigente: [Identificación general, siete categorías definitivas y CurrentRecipients](IDENTIFICACION_TABLA.md). Esta página conserva la evidencia de la primera migración; no volver a limpiar todo `usuario`. La nueva migración retira únicamente Otro/Externo/detalle en borradores actuales.
+
 ## Implementado
 
 Identificación general utiliza un Select múltiple MUI con casillas: Comunidad universitaria, Docentes, Estudiantes, Personal administrativo y Otro. Marcar o desmarcar mantiene abierto el menú; el campo presenta las selecciones como texto. Las opciones parten vacías, tanto en registros manuales como en filas nuevas de ILDA.

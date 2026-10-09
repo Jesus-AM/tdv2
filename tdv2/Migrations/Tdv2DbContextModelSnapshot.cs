@@ -211,6 +211,43 @@ namespace Tdv2.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Tdv2.Domain.Entities.FormExclusion", b =>
+                {
+                    b.Property<string>("UnitId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("id_ur");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer")
+                        .HasColumnName("ejercicio");
+
+                    b.Property<string>("RowId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("registro");
+
+                    b.Property<string>("Actor")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("actor");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Effective")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("efectivo");
+
+                    b.HasKey("UnitId", "Year", "RowId");
+
+                    b.ToTable("formato_exclusiones_ilda", "public");
+                });
+
             modelBuilder.Entity("Tdv2.Domain.Entities.FormMutation", b =>
                 {
                     b.Property<string>("UnitId")
@@ -574,6 +611,32 @@ namespace Tdv2.Migrations
                         .HasDatabaseName("tdv2_sessions_expiry");
 
                     b.ToTable("tdv2_sessions", "public");
+                });
+
+            modelBuilder.Entity("Tdv2.Domain.Entities.SiiModule", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("id_modulo");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("desc_modulo");
+
+                    b.Property<bool>("Present")
+                        .HasColumnType("boolean")
+                        .HasColumnName("presente");
+
+                    b.Property<DateTime>("SynchronizedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("sincronizado_en");
+
+                    b.HasKey("Id")
+                        .HasName("sii_modulos_pkey");
+
+                    b.ToTable("sii_modulos", "public");
                 });
 
             modelBuilder.Entity("Tdv2.Domain.Entities.SynchronizationRun", b =>
@@ -983,6 +1046,16 @@ namespace Tdv2.Migrations
                         .HasForeignKey("ParticipantUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Tdv2.Domain.Entities.UnitForm", null)
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .HasPrincipalKey("UnitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Tdv2.Domain.Entities.FormExclusion", b =>
+                {
                     b.HasOne("Tdv2.Domain.Entities.UnitForm", null)
                         .WithMany()
                         .HasForeignKey("UnitId")

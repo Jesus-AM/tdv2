@@ -33,6 +33,7 @@ export interface ProcessRow {
     tramite: string;
     // Los textos se conservan sólo para consultar instantáneas históricas; la captura nueva usa una colección.
     usuario: string[] | string;
+    usuarioOtro?: string;
     resultado: string;
     responsable: string;
     validacion: string;
@@ -44,6 +45,10 @@ export interface SystemRow {
     uso: string;
     estado: string;
     fallas: string;
+    sistemaOtro?: string;
+    usoOtro?: string;
+    moduloSiiId?: string;
+    moduloSiiDescripcion?: string;
     procesos?: string[];
 }
 export interface DataRow {
@@ -84,6 +89,9 @@ export interface FormContent {
     acuerdos: Agreement[];
 }
 export interface SaveResponse {
+    procedimientosDisponibles?: { id: string; codigo: string; tramite: string }[];
+    porcentajeEtapa?: number;
+    revisionEtapa?: import('../Components/FormSubmissionReview').SubmissionReview;
     version: number;
     porcentaje: number;
     actualizadoEn: string;

@@ -1,0 +1,124 @@
+{
+  "realPostgreSql": true,
+  "realAspNet": true,
+  "realSignalR": true,
+  "identities": [
+    "persona@uacj.mx",
+    "colaboradora@uacj.mx"
+  ],
+  "mockedEditingTransport": false,
+  "checks": [],
+  "errors": [],
+  "bar": {
+    "x": 57,
+    "y": 916.578125,
+    "width": 971,
+    "height": 17,
+    "before": 0,
+    "max": 694
+  },
+  "reproduction": {
+    "bar": {
+      "x": 57,
+      "y": 916.578125,
+      "width": 971,
+      "height": 17,
+      "before": 0,
+      "max": 694
+    },
+    "events": [
+      {
+        "event": "pointerdown",
+        "target": "DIV",
+        "related": null,
+        "active": "TEXTAREA"
+      },
+      {
+        "event": "focusout",
+        "target": "TEXTAREA",
+        "related": "DIV",
+        "active": "BODY"
+      },
+      {
+        "event": "focusin",
+        "target": "DIV",
+        "related": "TEXTAREA",
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      },
+      {
+        "event": "scroll",
+        "target": "DIV",
+        "related": null,
+        "active": "DIV"
+      }
+    ],
+    "state": "idle"
+  },
+  "passed": true
+}

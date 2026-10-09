@@ -19,6 +19,7 @@ export default function ParticipantAvatar({ name, color, url }: { name: string; 
     return <Tooltip title={name} describeChild open={open} onOpen={() => setOpen(true)} onClose={() => setOpen(false)}
         disableTouchListener disableInteractive>
         <Box component="span" role="img" tabIndex={0} aria-label={`Participante: ${name}`} data-participant-avatar="true"
+            onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
             // Consultar la foto conserva cursor/selección. Tab permite enfocarla sin iniciar captura.
             onPointerDown={event => {
                 event.preventDefault();

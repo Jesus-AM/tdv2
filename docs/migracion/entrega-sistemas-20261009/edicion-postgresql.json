@@ -1,0 +1,267 @@
+{
+  "utc": "2026-10-09T12:02:16.2017927+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 51,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Central/local sin v\u00EDnculo en nivel 2, 3 e inferior; reserva, guardado y eliminaci\u00F3n",
+      "passed": true,
+      "milliseconds": 10280
+    },
+    {
+      "name": "Central/dependencias limita rama y todos los endpoints rechazan UR ajena y nivel 4",
+      "passed": true,
+      "milliseconds": 10516
+    },
+    {
+      "name": "Central/traslado revoca edici\u00F3n anterior; retiro no cae a rol efectivo ni concesi\u00F3n delegada",
+      "passed": true,
+      "milliseconds": 5521
+    },
+    {
+      "name": "Central/cuenta suspendida, m\u00F3dulo retirado o concesiones no disponibles deniegan",
+      "passed": true,
+      "milliseconds": 4427
+    },
+    {
+      "name": "Central/concesi\u00F3n sin rol no habilita; formato enviado contin\u00FAa inmutable",
+      "passed": true,
+      "milliseconds": 6384
+    },
+    {
+      "name": "Central/identidad y jerarqu\u00EDa inv\u00E1lidas explican vac\u00EDo; tipo N auxiliar y tipo 0 elegible",
+      "passed": true,
+      "milliseconds": 5861
+    },
+    {
+      "name": "Central/revocaci\u00F3n local pendiente no se transforma en central; ambas v\u00EDas independientes",
+      "passed": true,
+      "milliseconds": 5802
+    },
+    {
+      "name": "Central/representaci\u00F3n usa s\u00F3lo concesiones del representado; preview permanece lectura",
+      "passed": true,
+      "milliseconds": 7788
+    },
+    {
+      "name": "Edici\u00F3n/regresi\u00F3n: c\u00F3digos y criterios confirmados at\u00F3micamente para dos altas simult\u00E1neas",
+      "passed": true,
+      "milliseconds": 6573
+    },
+    {
+      "name": "Edici\u00F3n/regresi\u00F3n: un v\u00EDnculo inv\u00E1lido hist\u00F3rico no paraliza otro registro ni se limpia al guardarlo",
+      "passed": true,
+      "milliseconds": 5219
+    },
+    {
+      "name": "Edici\u00F3n/reproducci\u00F3n: referencia a c\u00F3digo local no confirmado rechaza incluso un bloque independiente",
+      "passed": true,
+      "milliseconds": 4587
+    },
+    {
+      "name": "Edici\u00F3n/usuarios m\u00FAltiples: colecci\u00F3n vac\u00EDa pendiente, validaci\u00F3n estricta, guardado y recarga sin limpieza",
+      "passed": true,
+      "milliseconds": 6987
+    },
+    {
+      "name": "Edici\u00F3n/usuarios: env\u00EDo rechaza colecci\u00F3n vac\u00EDa y acepta opciones confirmadas sin alterar prioridad",
+      "passed": true,
+      "milliseconds": 5482
+    },
+    {
+      "name": "Edici\u00F3n/revisi\u00F3n omite sesi\u00F3n, recalcula borradores sin escribir y conserva historia al enviar",
+      "passed": true,
+      "milliseconds": 5529
+    },
+    {
+      "name": "Edici\u00F3n/prioridad hist\u00F3rica reduce avance y pendientes usan ID estable",
+      "passed": true,
+      "milliseconds": 4722
+    },
+    {
+      "name": "Edici\u00F3n/lectura preserva avance, contenido e instant\u00E1nea de un env\u00EDo hist\u00F3rico",
+      "passed": true,
+      "milliseconds": 5028
+    },
+    {
+      "name": "Edici\u00F3n/eliminar proceso exige reservas de sus relaciones y conserva registros ILDA",
+      "passed": true,
+      "milliseconds": 6436
+    },
+    {
+      "name": "Edici\u00F3n/SignalR permite el origen p\u00FAblico tras proxy y rechaza otro origen",
+      "passed": true,
+      "milliseconds": 3218
+    },
+    {
+      "name": "Edici\u00F3n/rol supervisor funciona solo, rama editable y consulta ajena sin m\u00F3dulos administrativos",
+      "passed": true,
+      "milliseconds": 5860
+    },
+    {
+      "name": "Edici\u00F3n/dos sesiones y dos pesta\u00F1as del mismo usuario compiten por un \u00FAnico bloque",
+      "passed": true,
+      "milliseconds": 3458
+    },
+    {
+      "name": "Edici\u00F3n/lectura durante adquisici\u00F3n queda anterior a la confirmaci\u00F3n y no invalida su reserva",
+      "passed": true,
+      "milliseconds": 4773
+    },
+    {
+      "name": "Edici\u00F3n/bloques distintos guardan concurrentemente sin sobrescribir JSON",
+      "passed": true,
+      "milliseconds": 4709
+    },
+    {
+      "name": "Edici\u00F3n/vencimiento, renovaci\u00F3n, reasignaci\u00F3n y guardado atrasado cercado por testigo",
+      "passed": true,
+      "milliseconds": 5141
+    },
+    {
+      "name": "Edici\u00F3n/lectura pasiva no renueva ni permite liberar una reserva ajena",
+      "passed": true,
+      "milliseconds": 4862
+    },
+    {
+      "name": "Edici\u00F3n/adquisici\u00F3n confirma contenido vigente y rechaza versi\u00F3n obsoleta",
+      "passed": true,
+      "milliseconds": 4233
+    },
+    {
+      "name": "Edici\u00F3n/reintento id\u00E9ntico confirma una vez; operaci\u00F3n reutilizada y versi\u00F3n vieja rechazadas",
+      "passed": true,
+      "milliseconds": 4430
+    },
+    {
+      "name": "Edici\u00F3n/revocaci\u00F3n y contexto obsoleto rechazan reserva y escritura",
+      "passed": true,
+      "milliseconds": 3445
+    },
+    {
+      "name": "Edici\u00F3n/operaci\u00F3n y auditor\u00EDa son at\u00F3micas y el fallo no pierde propuesta ni versi\u00F3n",
+      "passed": true,
+      "milliseconds": 3720
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo incompleto y reservas ajenas se rechazan; doble env\u00EDo es idempotente",
+      "passed": true,
+      "milliseconds": 6145
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo simult\u00E1neo con adquisici\u00F3n de reserva conserva una sola decisi\u00F3n",
+      "passed": true,
+      "milliseconds": 4067
+    },
+    {
+      "name": "Edici\u00F3n/env\u00EDo y guardado simult\u00E1neos de la misma sesi\u00F3n no cruzan el cierre",
+      "passed": true,
+      "milliseconds": 4639
+    },
+    {
+      "name": "Edici\u00F3n/reserva que vence durante el commit revierte respuestas, versi\u00F3n y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 3740
+    },
+    {
+      "name": "Edici\u00F3n/otra persona colaboradora edita dentro de su formato pero no puede enviarlo",
+      "passed": true,
+      "milliseconds": 7100
+    },
+    {
+      "name": "Edici\u00F3n/enviado conserva ILDA, unidad y respuestas aunque cambien los cat\u00E1logos",
+      "passed": true,
+      "milliseconds": 4793
+    },
+    {
+      "name": "Edici\u00F3n/prioridad no se selecciona por defecto; 5 repetible y valores hist\u00F3ricos conservados",
+      "passed": true,
+      "milliseconds": 6424
+    },
+    {
+      "name": "Edici\u00F3n/OIDC rechaza firma y nonce ajenos, no fuerza selector habitual y usa logout_hint opaco",
+      "passed": true,
+      "milliseconds": 4290
+    },
+    {
+      "name": "Edici\u00F3n/retiro renovaci\u00F3n: reproducci\u00F3n de actividad tard\u00EDa tras commit",
+      "passed": true,
+      "milliseconds": 5879
+    },
+    {
+      "name": "Edici\u00F3n/etapa: hist\u00F3rico de otro ejercicio conserva respuestas originales y no mezcla inventario",
+      "passed": true,
+      "milliseconds": 3991
+    },
+    {
+      "name": "Edici\u00F3n/etapa: alias Nexo, entrada \u00FAnica, ruta y revocaci\u00F3n efectiva",
+      "passed": true,
+      "milliseconds": 5161
+    },
+    {
+      "name": "Edici\u00F3n/etapa: captura limitada, medios incluidos y revocaci\u00F3n de privilegio administrativo",
+      "passed": true,
+      "milliseconds": 7374
+    },
+    {
+      "name": "Edici\u00F3n/etapa: representaci\u00F3n y vista de prueba usan contexto efectivo sin sumar administrador",
+      "passed": true,
+      "milliseconds": 6234
+    },
+    {
+      "name": "Edici\u00F3n/etapa: destinatarios vigentes, borrador vac\u00EDo, rechazo de cliente anterior e historia intacta",
+      "passed": true,
+      "milliseconds": 5755
+    },
+    {
+      "name": "Edici\u00F3n/etapa: cien habilita revisi\u00F3n de entrega sin requisitos de pesta\u00F1as posteriores ni sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 3173
+    },
+    {
+      "name": "Edici\u00F3n/etapa: c\u00F3digos confirmados V/A, v\u00EDnculos hist\u00F3ricos corregibles y rechazo de referencia nueva D/N",
+      "passed": true,
+      "milliseconds": 5569
+    },
+    {
+      "name": "Edici\u00F3n/etapa: retiro ILDA at\u00F3mico con relaciones ocultas, auditor\u00EDa, reintento y no reaparici\u00F3n",
+      "passed": true,
+      "milliseconds": 7908
+    },
+    {
+      "name": "Edici\u00F3n/etapa: retiro compite con reserva, versi\u00F3n y dependencia ocupada",
+      "passed": true,
+      "milliseconds": 5611
+    },
+    {
+      "name": "Edici\u00F3n/etapa: enviados conservan contenido, instant\u00E1nea y avance sin captura ni retiro",
+      "passed": true,
+      "milliseconds": 3708
+    },
+    {
+      "name": "Edici\u00F3n/m\u00F3dulos: cat\u00E1logo autorizado local, pendiente, m\u00F3dulo inv\u00E1lido y snapshot hist\u00F3rico",
+      "passed": true,
+      "milliseconds": 12261
+    },
+    {
+      "name": "Edici\u00F3n/m\u00F3dulos: filas independientes con mismo procedimiento, Otra/Otro y respuestas hist\u00F3ricas",
+      "passed": true,
+      "milliseconds": 4353
+    },
+    {
+      "name": "Edici\u00F3n/entrega: responsable y administrador env\u00EDan s\u00F3lo primera etapa sin alterar respuestas posteriores",
+      "passed": true,
+      "milliseconds": 4495
+    },
+    {
+      "name": "Edici\u00F3n/entrega: elegibilidad \u00FAnica, cambios concurrentes y v\u00EDnculos hist\u00F3ricos pendientes",
+      "passed": true,
+      "milliseconds": 7784
+    }
+  ]
+}

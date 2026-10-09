@@ -1,0 +1,72 @@
+{
+  "synthetic": true,
+  "checks": [
+    {
+      "name": "valores iniciales vacíos; menú de usuarios espera reserva confirmada",
+      "passed": true
+    },
+    {
+      "name": "marcar/desmarcar, scroll y autoguardado conservan menú, foco y reserva",
+      "passed": true
+    },
+    {
+      "name": "prioridad indicativa sólo en campo vacío; cinco opciones reales y persistencia",
+      "passed": true
+    },
+    {
+      "name": "dos sesiones: ocupación bloquea menús y eliminación; liberación habilita sin recargar",
+      "passed": true
+    },
+    {
+      "name": "teclado: selección múltiple sin cerrar, Escape restaura foco y vacío queda pendiente",
+      "passed": true
+    },
+    {
+      "name": "móvil táctil y movimiento reducido: casillas, textos y menú sin desbordamiento",
+      "passed": true
+    },
+    {
+      "name": "primera etapa: tres pestañas, sin envío, ayudas táctiles consultables sin adquirir reserva",
+      "passed": true
+    },
+    {
+      "name": "catálogo definitivo, sin Otro/Externo ni captura adicional; nuevas categorías persisten",
+      "passed": true
+    },
+    {
+      "name": "primera escritura durante adquisición se conserva; Tab no libera y otra pestaña permanece bloqueada",
+      "passed": true
+    },
+    {
+      "name": "ayudas con teclado/Escape conservan reserva, foco de retorno y texto; prioridad usa paleta exacta",
+      "passed": true
+    },
+    {
+      "name": "tabla compacta: tamaños del tema, encabezados 700, texto largo y scroll contenido en 1920/1366/768/360",
+      "passed": true
+    },
+    {
+      "name": "validación confirma código y Procedimiento ofrece V/A; ayuda conserva todos los campos de Sistemas",
+      "passed": true
+    },
+    {
+      "name": "eliminación espera renovación en vuelo, no emite nueva actividad y descarta respuestas anteriores",
+      "passed": true
+    },
+    {
+      "name": "ILDA: eliminación directa sin enfocar, Cancelar intacto, cascada confirmada y no reaparición",
+      "passed": true
+    },
+    {
+      "name": "administrador: descripciones ocultas, interruptor inicia apagado y no altera permisos de otro perfil",
+      "passed": true
+    },
+    {
+      "name": "históricos bloqueados y enviados muestran categorías originales y detalle sólo como consulta",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "nativeZoom200": 1,
+  "passed": true
+}

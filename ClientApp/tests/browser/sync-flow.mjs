@@ -47,7 +47,7 @@ async function control(action) {
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
     await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-    return target.getByLabel('Trámite / servicio 1', { exact: true });
+    return target.getByLabel('Trámite o servicio 1', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
     const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
@@ -67,7 +67,7 @@ async function queue(source) {
     const response = page.waitForResponse(r => new URL(r.url()).pathname === syncPath + '/ejecutar' && r.request().method() === 'POST');
     await page.getByRole('button', { name, exact: true }).click();
     assert.equal((await response).status(), 202);
-    await page.getByText('Sincronización en cola', { exact: true }).waitFor();
+    await page.locator('p').filter({ hasText: /^Iniciando…$/ }).waitFor();
 }
 async function saveSchedule(target = page, status = 200) {
     const response = target.waitForResponse(r => new URL(r.url()).pathname === syncPath + '/programacion' && r.request().method() === 'PUT');
@@ -99,17 +99,20 @@ try {
         assert.equal(await page.getByLabel('Zona horaria', { exact: true }).inputValue(), 'America/Ciudad_Juarez');
         assert.equal(await page.getByRole('alert').count(), 0);
         assert.equal((await report()).remoteCommands, 0);
+        await expect(page.getByRole('heading', { name: 'SII · Unidades responsables y módulos de SIIv2', exact: true })).toBeVisible();
+        await expect(page.getByText('Módulos de SIIv2: 0', { exact: true })).toBeVisible();
     });
     await check('React encola ambas; PostgreSQL conserva pendiente y ejecutando, excluye nuevas solicitudes', async () => {
         await control('sync-hold');
         await queue('ambas');
         assert.equal((await report()).runs[0].estado, 'pendiente');
         assert.equal((await report()).remoteCommands, 0);
-        assert.equal(await page.getByRole('button', { name: 'Sincronizar SII', exact: true }).isDisabled(), true);
+        assert.equal(await page.getByRole('button', { name: 'Iniciando…', exact: true }).first().isDisabled(), true);
         await control('sync-worker-start');
         await refresh();
-        await page.getByText('Sincronizando ILDA', { exact: true }).waitFor();
+        await page.getByText('Sincronizando… ILDA', { exact: true }).waitFor();
         assert.equal((await report()).runs[0].resultado.sii.estado, 'completada');
+        assert.equal((await report()).runs[0].resultado.sii_modulos.estado, 'completada');
         assert.equal((await report()).ilda.length, 0);
         await control('sync-worker-release');
         await finished();
@@ -120,10 +123,10 @@ try {
         const before = await report();
         await page.goto(origin + '/formatos/A');
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-        assert.equal(await page.getByLabel('Trámite / servicio 1', { exact: true }).inputValue(), 'Constancias sintéticas');
-        await page.getByLabel('Trámite / servicio 1', { exact: true }).focus();
-        await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveJSProperty('readOnly', false);
-        await savedAfter(() => page.getByLabel('Trámite / servicio 1', { exact: true }).fill('Respuesta conservada React'));
+        assert.equal(await page.getByLabel('Trámite o servicio 1', { exact: true }).inputValue(), 'Constancias sintéticas');
+        await page.getByLabel('Trámite o servicio 1', { exact: true }).focus();
+        await expect(page.getByLabel('Trámite o servicio 1', { exact: true })).toHaveJSProperty('readOnly', false);
+        await savedAfter(() => page.getByLabel('Trámite o servicio 1', { exact: true }).fill('Respuesta conservada React'));
         const after = await report();
         assert.equal(after.remoteCommands, before.remoteCommands);
         assert.equal(after.forms[0].contenido.identificacion[0].fuente, 'ILDA');
@@ -137,8 +140,8 @@ try {
         await queue('ilda'); await control('sync-tick'); await finished();
         await page.goto(origin + '/formatos/A');
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-        assert.equal(await page.getByLabel('Trámite / servicio 1', { exact: true }).inputValue(), 'Respuesta conservada React');
-        assert.equal(await page.getByLabel('Trámite / servicio 3', { exact: true }).inputValue(), 'Nuevo trámite ILDA');
+        assert.equal(await page.getByLabel('Trámite o servicio 1', { exact: true }).inputValue(), 'Respuesta conservada React');
+        assert.equal(await page.getByLabel('Trámite o servicio 3', { exact: true }).inputValue(), 'Nuevo trámite ILDA');
         const after = await report();
         assert.equal(after.forms[0].version, before.forms[0].version);
         assert.deepEqual(after.forms[0].contenido, before.forms[0].contenido);
@@ -164,6 +167,16 @@ try {
         await control('sync-recover-sql');
         await queue('ilda'); await control('sync-tick'); await finished();
     });
+    await check('SII distingue UR completada y módulos fallidos, muestra Parcial y permite reintento', async () => {
+        await control('sync-fail-modules');
+        await queue('sii'); await control('sync-tick'); await finished('Parcial');
+        const run = (await report()).runs[0];
+        assert.equal(run.resultado.sii.estado, 'completada');
+        assert.equal(run.resultado.sii_modulos.estado, 'fallida');
+        await expect(latestRow()).toContainText('SII · Módulos de SIIv2');
+        await expect(latestRow()).toContainText('No se pudo sincronizar el catálogo de módulos de SIIv2');
+        await control('sync-restore-source'); await queue('sii'); await control('sync-tick'); await finished();
+    });
     await check('Programación diaria, hora y zona se persisten; otra pestaña no sobrescribe versión vigente', async () => {
         await page.getByLabel('Activar sincronización automática', { exact: true }).check();
         await page.getByRole('combobox', { name: 'Frecuencia', exact: true }).click();
@@ -186,11 +199,14 @@ try {
     await check('Automática siempre incluye SII, admite ILDA optativa y no acumula intervalos vencidos', async () => {
         await control('sync-due'); await control('sync-tick'); await finished();
         assert.equal((await report()).runs[0].fuentes, 'ambas');
+        assert.equal((await report()).runs[0].resultado.sii_modulos.estado, 'completada');
         assert.equal((await report()).runs[0].origen, 'programada');
         await page.getByLabel('Incluir ILDA en la sincronización automática', { exact: true }).uncheck();
         await saveSchedule();
         await control('sync-due'); await control('sync-tick'); await finished();
         assert.equal((await report()).runs[0].fuentes, 'sii');
+        assert.equal((await report()).runs[0].resultado.sii_modulos.estado, 'completada');
+        assert.equal((await report()).runs[0].resultado.ilda, undefined);
         const count = (await report()).runs.length;
         await control('sync-tick'); assert.equal((await report()).runs.length, count);
         await page.getByLabel('Activar sincronización automática', { exact: true }).uncheck();
@@ -242,6 +258,16 @@ try {
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         assert.equal(await page.locator('.page-header').evaluate(el => getComputedStyle(el).animationName), 'none');
         await page.screenshot({ path: path.join(artifacts, 'sincronizaciones-encabezado-movil.png') });
+    });
+    await check('catálogo sin esquema muestra diagnóstico local y contador no disponible', async () => {
+        await control('sync-schema-missing');
+        try {
+            await page.reload();
+            await expect(page.getByText('Módulos de SIIv2: No disponible', { exact: true })).toBeVisible();
+            await expect(page.getByText(/Falta public\.sii_modulos\./)).toBeVisible();
+            await page.screenshot({ path: path.join(artifacts, 'sincronizaciones-esquema-ausente.png'), fullPage: true });
+        } finally { await control('sync-schema-restore'); }
+        await page.reload(); await expect(page.getByText('Módulos de SIIv2: No disponible', { exact: true })).toHaveCount(0);
     });
     assert.deepEqual(errors, []);
     await writeFile(path.join(artifacts, 'browser-sync.json'), JSON.stringify({

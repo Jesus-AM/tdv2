@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Head, router } from '@/lib/navigation';
 import axios from 'axios';
 import {
@@ -40,8 +40,10 @@ type Status = {
     procesador_visto_en: string | null;
     procesador_reciente: boolean;
     ilda_habilitada: boolean;
+    procesamiento_manual?: { disponible: boolean; error: string | null };
+    inicio_demorado?: boolean;
 };
-type Catalog = { registros: number; completada_en: string | null };
+type Catalog = { registros: number | null; completada_en: string | null; error?: string };
 type Result = {
     estado: string;
     mensaje?: string;
@@ -66,6 +68,7 @@ const labels: Record<string, string> = {
     parcial: 'Parcial',
     fallida: 'Con error',
 };
+const catalogLabels: Record<string, string> = { sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos de SIIv2', ilda: 'ILDA' };
 const intervals = [
     [15, 'Cada 15 minutos'],
     [30, 'Cada 30 minutos'],
@@ -82,9 +85,13 @@ export default function Sincronizaciones({
 }: {
     configuracion: Settings;
     estado: Status;
-    catalogos: { sii: Catalog; ilda: Catalog };
+    catalogos: { sii: Catalog; sii_modulos: Catalog; ilda: Catalog };
     historial: Run[];
 }) {
+    const requesting = useRef(false);
+    const refreshFlight = useRef<Promise<boolean> | null>(null);
+    const [starting, setStarting] = useState<string | null>(null);
+    const [unconfirmed, setUnconfirmed] = useState(false);
     const [draft, setDraft] = useState(configuracion),
         [busy, setBusy] = useState(false),
         [refreshing, setRefreshing] = useState(false),
@@ -100,18 +107,25 @@ export default function Sincronizaciones({
             () => {
                 if (document.visibilityState === 'visible' && !refreshing && !busy) refresh();
             },
-            estado.ejecucion_activa ? 5000 : 15000,
+            estado.ejecucion_activa || unconfirmed ? 1000 : 15000,
         );
-        return () => clearInterval(timer);
-    }, [estado.ejecucion_activa, refreshing, busy]);
-    function refresh(manual = false) {
-        if (refreshing) return;
+        const visible = () => { if (document.visibilityState === 'visible' && !busy) void refresh(); };
+        document.addEventListener('visibilitychange', visible);
+        return () => { clearInterval(timer); document.removeEventListener('visibilitychange', visible); };
+    }, [estado.ejecucion_activa, refreshing, busy, unconfirmed]);
+    function refresh(manual = false): Promise<boolean> {
+        if (refreshFlight.current) return refreshFlight.current;
         setRefreshing(true);
+        let finish!: (confirmed: boolean) => void;
+        let confirmed = false;
+        const flight = new Promise<boolean>(resolve => { finish = resolve; });
+        refreshFlight.current = flight;
         router.reload({ only: ['estado', 'historial', 'catalogos'],
             onError: (errors) => setStatusError(errors.general),
-            onSuccess: () => { setStatusError(''); if (manual) setMessage('Estado actualizado.'); },
-            onFinish: () => setRefreshing(false),
+            onSuccess: () => { confirmed = true; setUnconfirmed(false); setStatusError(''); if (manual) setMessage('Estado actualizado.'); },
+            onFinish: () => { refreshFlight.current = null; setRefreshing(false); finish(confirmed); },
         });
+        return flight;
     }
     const date = (value: string | null) =>
         value
@@ -122,19 +136,24 @@ export default function Sincronizaciones({
               }).format(new Date(value))
             : 'Sin registro';
     async function execute(fuentes: 'sii' | 'ilda' | 'ambas') {
-        if (busy || estado.ejecucion_activa) return;
+        if (requesting.current || busy || unconfirmed || estado.ejecucion_activa) return;
+        requesting.current = true;
+        setStarting(fuentes);
         setBusy(true);
         setError('');
         setConflict(false);
         try {
             const response = await axios.post('/configuracion/sincronizaciones/ejecutar', { fuentes });
             setMessage(response.data.message);
-            router.reload({ only: ['estado', 'historial', 'catalogos'] });
         } catch (e) {
             setError(errorText(e));
-            router.reload({ only: ['estado', 'historial', 'catalogos'] });
         } finally {
+            // Incluso si se pierde el ACK, consultar la cola antes de permitir otra solicitud.
+            if (refreshFlight.current) await refreshFlight.current;
+            if (!await refresh()) setUnconfirmed(true);
             setBusy(false);
+            setStarting(null);
+            requesting.current = false;
         }
     }
     async function save() {
@@ -154,6 +173,11 @@ export default function Sincronizaciones({
         }
     }
     const active = historial.find((r) => r.id === estado.ejecucion_activa);
+    const actionLabel = (source: string) => {
+        const matches = active && (active.fuentes === source || active.fuentes === 'ambas');
+        if (matches) return active.estado === 'ejecutando' ? 'Sincronizando…' : 'Iniciando…';
+        return starting === source || starting === 'ambas' ? 'Iniciando…' : null;
+    };
     const dirty = JSON.stringify(draft) !== JSON.stringify(configuracion);
     return (
         <AuthenticatedLayout>
@@ -169,27 +193,37 @@ export default function Sincronizaciones({
                         </Button>
                     }
                 />
-                {(configuracion.activa || estado.ejecucion_activa) && !estado.procesador_reciente && (
+                {configuracion.activa && !estado.procesador_reciente && (
                     <Alert severity="warning" sx={{ mb: 3 }}>
-                        El procesador no registra actividad reciente. Las solicitudes quedarán pendientes hasta que el
-                        servicio de programación esté ejecutándose en el servidor.
+                        El procesador de horarios no registra actividad reciente. Revisa el servicio de programación
+                        automática. Las solicitudes manuales se atienden desde la aplicación.
                     </Alert>
                 )}
+                {estado.procesamiento_manual?.error && <Alert severity="error" sx={{ mb: 2 }}>
+                    {estado.procesamiento_manual.error}
+                </Alert>}
+                {unconfirmed && <Alert severity="warning" sx={{ mb: 2 }}>
+                    No se pudo confirmar el estado de la solicitud. Actualiza el estado antes de reintentar para evitar duplicados.
+                </Alert>}
                 {active && (
                     <Box className="surface" sx={{ mb: 3 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
                                 {active.estado === 'pendiente'
-                                    ? 'Sincronización en cola'
-                                    : `Sincronizando ${active.etapa?.toUpperCase() || 'catálogos'}`}
+                                    ? 'Iniciando…'
+                                    : `Sincronizando… ${catalogLabels[active.etapa || ''] || 'catálogos'}`}
                             </Typography>
                             <Chip label={labels[active.estado]} variant="outlined" />
                         </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                             {active.estado === 'pendiente'
-                                ? 'El procesador revisa las solicitudes cada minuto. Puedes seguir usando TDV2.'
+                                ? 'Solicitud aceptada; esperando la confirmación del servidor. Puedes seguir usando TDV2.'
                                 : 'Puedes salir de esta pantalla; la ejecución continuará en el servidor.'}
                         </Typography>
+                        {estado.inicio_demorado && <Alert severity="warning" sx={{ mt: 1 }}>
+                            El inicio está demorando más de lo esperado. El servidor volverá a intentar procesar esta misma
+                            solicitud; no se creará otra. Revisa el acceso a la cola local si el problema continúa.
+                        </Alert>}
                         {active.estado === 'ejecutando' && <LinearProgress sx={{ mt: 2 }} />}
                     </Box>
                 )}
@@ -201,12 +235,12 @@ export default function Sincronizaciones({
                 >
                     {(['sii', 'ilda'] as const).map((source) => (
                         <SettingsSection key={source} icon={<StorageOutlined />}
-                            title={source === 'sii' ? 'SII · Unidades responsables' : 'ILDA · Información de las áreas'}
+                            title={source === 'sii' ? 'SII · Unidades responsables y módulos de SIIv2' : 'ILDA · Información de las áreas'}
                             description={source === 'sii'
-                                    ? 'Catálogo completo de UR del ejercicio más reciente, con jerarquías y encargados.'
+                                    ? 'Unidades responsables del ejercicio más reciente y módulos de SIIv2 sin filtro de ejercicio ni de UR.'
                                     : 'Inventario completo de ILDA. Los formatos consultan los registros por clave de UR.'}>
                             <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
-                                {catalogos[source].registros.toLocaleString('es-MX')}{' '}
+                                {catalogos[source].registros?.toLocaleString('es-MX') ?? 'No disponible'}{' '}
                                 <Typography component="span" variant="body2" color="text.secondary">
                                     {source === 'sii' ? 'unidades' : 'registros'}
                                 </Typography>
@@ -217,13 +251,20 @@ export default function Sincronizaciones({
                             <Button
                                 variant="outlined"
                                 startIcon={<SyncOutlined />}
+                                loading={!!actionLabel(source)}
+                                loadingPosition="start"
                                 disabled={
-                                    busy || !!estado.ejecucion_activa || (source === 'ilda' && !estado.ilda_habilitada)
+                                    busy || unconfirmed || !!estado.ejecucion_activa || (source === 'ilda' && !estado.ilda_habilitada)
                                 }
                                 onClick={() => void execute(source)}
                             >
-                                Sincronizar {source.toUpperCase()}
+                                {actionLabel(source) || `Sincronizar ${source.toUpperCase()}`}
                             </Button>
+                            {source === 'sii' && <Box sx={{ mt: 2 }}>
+                                <Typography variant="body2">Módulos de SIIv2: {catalogos.sii_modulos.registros?.toLocaleString('es-MX') ?? 'No disponible'}</Typography>
+                                {catalogos.sii_modulos.error && <Alert severity="error" sx={{ my: 1 }}>{catalogos.sii_modulos.error}</Alert>}
+                                <Typography variant="caption" color="text.secondary">Última copia correcta: {date(catalogos.sii_modulos.completada_en)}</Typography>
+                            </Box>}
                             {source === 'ilda' && !estado.ilda_habilitada && (
                                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
                                     La conexión de ILDA está deshabilitada en el servidor.
@@ -234,11 +275,12 @@ export default function Sincronizaciones({
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
                     <Button startIcon={<SyncOutlined />}
-                        disabled={busy || !!estado.ejecucion_activa || !estado.ilda_habilitada}
-                        onClick={() => void execute('ambas')}>Sincronizar SII e ILDA ahora</Button>
+                        loading={!!actionLabel('ambas')} loadingPosition="start"
+                        disabled={busy || unconfirmed || !!estado.ejecucion_activa || !estado.ilda_habilitada}
+                        onClick={() => void execute('ambas')}>{actionLabel('ambas') || 'Sincronizar SII e ILDA ahora'}</Button>
                 </Box>
                 <SettingsSection title="Programación automática" icon={<ScheduleOutlined />}
-                    description="SII se incluye en todas las ejecuciones automáticas. Puedes incorporar ILDA cuando también necesites mantener actualizado su inventario.">
+                    description="Todas las ejecuciones automáticas de SII incluyen unidades responsables y módulos de SIIv2. Incluir ILDA es independiente.">
                     <Box
                         component="form"
                         onSubmit={(e) => {
@@ -404,7 +446,7 @@ export default function Sincronizaciones({
                                                 color={result.estado === 'fallida' ? 'error.main' : 'text.secondary'}
                                                 sx={{ mb: 0.5 }}
                                             >
-                                                {source.toUpperCase()}:{' '}
+                                                {catalogLabels[source] || source.toUpperCase()}:{' '}
                                                 {result.mensaje ||
                                                     `${result.resumen?.unidades ?? result.resumen?.registros ?? 0} registros`}
                                             </Typography>
@@ -412,7 +454,7 @@ export default function Sincronizaciones({
                                         {!Object.keys(run.resultado).length && (
                                             <Typography variant="body2" color="text.secondary">
                                                 {run.estado === 'pendiente'
-                                                    ? 'En espera del procesador'
+                                                    ? 'Solicitud aceptada; inicio por confirmar'
                                                     : 'Leyendo el origen'}
                                             </Typography>
                                         )}
@@ -426,7 +468,7 @@ export default function Sincronizaciones({
                     </Table>
                 </TableContainer>}
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-                    Última actividad del procesador: {date(estado.procesador_visto_en)}
+                    Última actividad del procesador de horarios: {date(estado.procesador_visto_en)}
                 </Typography>
                 {/* El mismo aviso comunica fallos sin desplazar campos ni perder el borrador. Un error no caduca solo. */}
                 <Snackbar open={!!(message || error || statusError)} autoHideDuration={error || statusError ? null : 5000}

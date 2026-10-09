@@ -151,7 +151,7 @@ export default function Colaboradores({
             <Head title="Colaboradores" />
             <div className="page" style={{ maxWidth: 1330 }}>
                 <Button startIcon={<ArrowBack />} onClick={() => router.visit('/inicio')} sx={{ mb: 2 }}>
-                    Procesos operativos
+                    Procedimientos Institucionales
                 </Button>
                 <PageHeading
                     title="Colaboradores"

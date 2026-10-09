@@ -1,0 +1,110 @@
+{
+  "aspNet": true,
+  "databaseConnections": false,
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "logo": {
+        "width": 380,
+        "height": 77.3125,
+        "naturalWidth": 2934,
+        "naturalHeight": 597,
+        "src": "/images/logos/firmaLogotipo-blancosinfondo-3.png",
+        "alt": "Universidad Autónoma de Ciudad Juárez",
+        "x": 154,
+        "bottom": 248.3125
+      },
+      "direction": {
+        "x": 154,
+        "top": 266.3125
+      },
+      "border": "0px",
+      "padding": "0px",
+      "footer": "Universidad Autónoma de Ciudad Juárez",
+      "footerHeight": 54.515625,
+      "removed": false,
+      "retiredText": false,
+      "brokenFragments": [],
+      "brokenImages": [],
+      "login": 1,
+      "fonts": [],
+      "remainingGap": 64
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "logo": {
+        "width": 342,
+        "height": 69.578125,
+        "naturalWidth": 2934,
+        "naturalHeight": 597,
+        "src": "/images/logos/firmaLogotipo-blancosinfondo-3.png",
+        "alt": "Universidad Autónoma de Ciudad Juárez",
+        "x": 24,
+        "bottom": 192.578125
+      },
+      "direction": {
+        "x": 24,
+        "top": 210.578125
+      },
+      "border": "0px",
+      "padding": "0px",
+      "footer": "Universidad Autónoma de Ciudad Juárez",
+      "footerHeight": 54.515625,
+      "removed": false,
+      "retiredText": false,
+      "brokenFragments": [],
+      "brokenImages": [],
+      "login": 1,
+      "fonts": [],
+      "remainingGap": 64
+    },
+    {
+      "name": "small-mobile",
+      "width": 320,
+      "height": 740,
+      "overflow": false,
+      "logo": {
+        "width": 272,
+        "height": 55.34375,
+        "naturalWidth": 2934,
+        "naturalHeight": 597,
+        "src": "/images/logos/firmaLogotipo-blancosinfondo-3.png",
+        "alt": "Universidad Autónoma de Ciudad Juárez",
+        "x": 24,
+        "bottom": 221.953125
+      },
+      "direction": {
+        "x": 24,
+        "top": 239.953125
+      },
+      "border": "0px",
+      "padding": "0px",
+      "footer": "Universidad Autónoma de Ciudad Juárez",
+      "footerHeight": 54.515625,
+      "removed": false,
+      "retiredText": false,
+      "brokenFragments": [],
+      "brokenImages": [],
+      "login": 1,
+      "fonts": [],
+      "remainingGap": 64
+    }
+  ],
+  "errors": [],
+  "externalFailures": [
+    "fonts.googleapis.com",
+    "images.unsplash.com",
+    "fonts.googleapis.com",
+    "images.unsplash.com",
+    "fonts.googleapis.com",
+    "images.unsplash.com"
+  ],
+  "logoSha256": "0bac7d97c01a83dcb4c3c7233947ea4bd0b6151d6c4eb223b4a9baf3254481bf",
+  "passed": true
+}

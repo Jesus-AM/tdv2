@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-09T04:00:23.188Z",
+  "viteIndexStatus": 200,
+  "launchRedirectStatus": 302,
+  "launchDestination": "https://localhost:7136",
+  "trustedHttps": true,
+  "razorLandingRendered": true,
+  "reactRendered": true,
+  "reactPropsStatus": 200,
+  "privateHtmlStatus": 401,
+  "sameOriginHmr": true,
+  "browser": "154.0.4258.37",
+  "externalFontsBlocked": true,
+  "institutionalConnectionsAttempted": false,
+  "databaseQueriesRequested": false,
+  "microsoftLoginValidated": false,
+  "pageErrors": []
+}

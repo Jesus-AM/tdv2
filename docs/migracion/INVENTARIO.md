@@ -1,6 +1,28 @@
+# Actualización 2026-10-09 — Procesamiento manual desde ASP.NET
+
+El servicio hospedado `ManualSyncWorker` atiende solicitudes manuales persistidas mediante el coordinador existente; POST 202, señal tras commit y comprobación cada dos segundos. No crea horarios ni altera su habilitación; el CLI conserva programación, exclusión y recuperación compartidas. Interfaz con inicio/ejecución confirmados, actualización automática, diagnóstico y prevención de solicitudes duplicadas. Sin migraciones ni nuevas claves de despliegue. Verificados 44 casos PostgreSQL (nueve nuevos de servicio web), seis recorridos de navegador con hosted service real y 13 de regresión con ciclos explícitos; 76 pruebas de dominio/HTTP. Fuentes institucionales y Ubuntu pendientes. [Operación y límites](SINCRONIZACIONES.md), [evidencia y comandos](../../ESTADO_MIGRACION.md).
+
+# Actualización 2026-10-09 — Portal público
+
+La vista `Views/Home/Index.cshtml` retira Proyectos estratégicos, Indicadores de avance y referencias exclusivas. Usa el PNG blanco UACJ existente, íntegro, a 380 px/adaptable, sobre el texto de la Dirección y sin raya decorativa externa. Footer con únicamente Universidad Autónoma de Ciudad Juárez. Conserva logo Transformación Digital, fuentes configuradas y acceso de sesión. ASP.NET/Edge verificados en escritorio y dos anchos móviles, ruta/bytes de imagen y manifiesto de publicación; fuentes/fondo externos pendientes de carga por restricciones del entorno. [Implementado, probado y límites](../../ESTADO_MIGRACION.md). Sin cambios en área autenticada, datos, permisos ni migraciones.
+
+# Actualización 2026-10-09 — Sistemas y módulos SII
+
+Ajuste posterior: entrega únicamente Contexto/Identificación/Sistemas con Medios, reglas de elegibilidad compartidas en backend, presencia en la primera columna fija Edición y foco MUI único en tablas. Edición sustituye la posición anterior en Acciones; Eliminar queda arriba y separado. Desplazar conserva contexto/reserva y los textos muestran de dos a cuatro líneas con scroll interno. [Interacción vigente y evidencia](DESPLAZAMIENTO_TABLAS.md). Medios conserva reserva independiente. Diagnóstico local de tabla/migración/esquema para `42P01`; ninguna migración nueva. [Contrato vigente y operación](SISTEMAS_HERRAMIENTAS.md), [edición automática](EDICION_AUTOMATICA.md). Este alcance de envío sustituye la restricción anterior de sólo borrador para la primera etapa; conserva la política de quién puede enviar y la inmutabilidad posterior.
+
+Nueva réplica EF local `sii_modulos` (`id_modulo`, `desc_modulo`, `presente`, `sincronizado_en`), migración `20261009080533_SiiModulesCatalog`. La fuente adicional es exclusivamente `DesarrolloSII.sii.MODULOS_SII`, dos columnas, misma `ConnectionStrings:Sii`. SII manual/automática incluye UR y módulos; ILDA es independiente. Nuevo GET autorizado `/formatos/{ur}/modulos-sii`, sólo PostgreSQL local.
+
+Captura con opciones únicas por fila, detalles JSON separados, referencias/instantáneas de módulo, códigos/orígenes conservados y ayudas compartidas. Sin cambios de navegación, Nexo, permisos ni formatos enviados. PostgreSQL aislado: 34/34 sincronizaciones, 52/52 comprobaciones EF y 7/7 recorridos de navegador del formulario; SII real pendiente. [Implementado, comprobaciones y pendientes institucionales](SISTEMAS_HERRAMIENTAS.md). El inventario histórico siguiente se conserva como referencia; no sustituye este contrato vigente.
+
 # Inventario funcional y contratos
 
 ## Actualización ASP.NET vigente — 2026-10-06
+
+- **Identificación, actualización posterior 2026-10-08:** tabla con tamaños compactos originales del tema y encabezados en negritas; siete categorías definitivas, instrucciones/ayudas y retiro sin renovaciones posteriores. `CurrentRecipients` limpia una vez únicamente Otro/Externo/detalle en borradores actuales y versiona/audita; conserva enviados e históricos. Recuperar la densidad anterior no revierte funciones ni migraciones. [Contrato, causa y evidencia](IDENTIFICACION_TABLA.md).
+
+- **Primera etapa 2026-10-08:** Procedimientos Institucionales admite clave nueva y alias Nexo; tres secciones por defecto, posteriores sólo para administrador efectivo, restricciones del servidor y avance parcial separado. Ayudas, nuevas etiquetas, Externo/Otro, Prioridad compacta y Procedimiento V/A confirmado. Retiro persistente de inventario mediante `FormIldaExclusions` sin alterar réplica ni históricos. [Reglas, actualización y verificación](PRIMERA_ETAPA.md). Reemplaza las descripciones de alcance/etiquetas de entregas anteriores, no sus datos ni controles de concurrencia.
+
+- **Edición automática 2026-10-08:** se retira la resolución manual; códigos confirmados por servidor, validación localizada, guardados independientes y reintentos internos limitados con recibos idempotentes. Eliminaciones relacionadas atómicas y protección de primeras teclas/pegado/Tab. Sin migración. [Reglas y evidencia](EDICION_AUTOMATICA.md).
 
 - **Usuarios que atiende (2026-10-07):** Select múltiple MUI con cinco opciones y casillas; JSON estructurado sin duplicados, vacío pendiente de envío. La migración de datos `StructuredUsersServed` limpia una sola vez el campo anterior en borradores, conserva enviados, prioridades y colecciones nuevas, y actualiza versiones/auditoría. Prioridad muestra el indicativo sólo fuera del menú. [Actualización y evidencia](USUARIOS_ATENDIDOS.md).
 

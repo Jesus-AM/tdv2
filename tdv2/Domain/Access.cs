@@ -77,9 +77,13 @@ public sealed class UnitDirectory(IEnumerable<Unit> units, Participation? partic
 
 public static class ModuleAccess
 {
+    public const string Procedures = "procedimientos_institucionales";
+    public const string LegacyProcedures = "procesos_operativos";
+    public static bool IsProcedures(string key) => key is Procedures or LegacyProcedures;
     private static readonly Dictionary<string, (string Path, string? Parent, bool Admin)> Known = new()
     {
         ["procesos_operativos"] = ("/inicio", null, false),
+        [Procedures] = ("/inicio", null, false),
         ["configuracion"] = ("/configuracion", null, true),
         ["configuracion_procesos"] = ("/configuracion/procesos", "configuracion", true),
         ["sincronizaciones"] = ("/configuracion/sincronizaciones", "configuracion", true),
@@ -87,17 +91,21 @@ public static class ModuleAccess
     };
     public static bool Allows(Profile profile, string key)
     {
+        // Alias de transición, únicamente a partir del módulo efectivo de Nexo y su ruta vigente.
+        if (IsProcedures(key)) return profile.Modules.Any(m => IsProcedures(m.Key) && m.Path == "/inicio" && m.Parent is null);
         if (!Known.TryGetValue(key, out var local) || local.Admin && !profile.Has("administrador")) return false;
         var parent = local.Parent is null ? null : profile.Modules.FirstOrDefault(m => m.Key == local.Parent);
         if (local.Parent is not null && (parent is null || !Allows(profile, local.Parent))) return false;
         return profile.Modules.Any(m => m.Key == key && m.Path == local.Path && (parent is null || m.Parent == parent.Id));
     }
-    public static object[] Navigation(Profile profile) => profile.Modules.Where(m => Allows(profile, m.Key)).Select(m =>
+    public static object[] Navigation(Profile profile) => profile.Modules
+        .Where(m => Allows(profile, m.Key) && (!IsProcedures(m.Key) || m.Path == "/inicio" && m.Parent is null))
+        .OrderBy(m => m.Key == Procedures ? 0 : 1).DistinctBy(m => IsProcedures(m.Key) ? Procedures : m.Key).Select(m =>
         (object)new
         {
             id = m.Id,
-            key = m.Key,
-            name = m.Name,
+            key = IsProcedures(m.Key) ? Procedures : m.Key,
+            name = IsProcedures(m.Key) ? "Procedimientos Institucionales" : m.Name,
             route = m.Path,
             parent = Known[m.Key].Parent,
             icon = System.Text.RegularExpressions.Regex.IsMatch(m.Icon, "\\Amdi-[a-z0-9-]+\\z") ? m.Icon : "mdi-view-grid-outline"

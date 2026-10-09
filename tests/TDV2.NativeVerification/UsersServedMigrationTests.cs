@@ -58,8 +58,8 @@ internal static class UsersServedMigrationTests
             "usuarios: enviado, instantánea, porcentaje y reservas inmutables");
         check(Equals(historical, await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='HIST'")),
             "usuarios: conserva borrador histórico no editable por cambio de ejercicio");
-        check(Convert.ToInt32(await sql(connection, "SELECT porcentaje FROM formatos_ur WHERE id_ur='DRAFT'")) == FormSchema.Progress(stored.AsObject())
-            && Convert.ToInt32(await sql(connection, "SELECT version FROM formatos_ur WHERE id_ur='DRAFT'")) == 8, "usuarios: avance coincide con backend y aumenta versión del formato");
+        check(Convert.ToInt32(await sql(connection, "SELECT porcentaje FROM formatos_ur WHERE id_ur='DRAFT'")) == 96
+            && Convert.ToInt32(await sql(connection, "SELECT version FROM formatos_ur WHERE id_ur='DRAFT'")) == 8, "usuarios: conserva avance histórico de 96 y aumenta versión del formato");
         check((bool)(await sql(connection, """
             SELECT (SELECT version=5 AND reserva_id IS NULL AND vence_en IS NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:inicial')
               AND (SELECT version=1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:segunda')

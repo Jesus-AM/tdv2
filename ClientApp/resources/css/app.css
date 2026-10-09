@@ -150,12 +150,53 @@ a {
 .capture-scroll textarea {
     line-height: 1.5;
 }
+.systems-table .MuiTableCell-head { font-weight: 700; white-space: normal; }
+.systems-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
 .capture-scroll .MuiTextField-root {
     min-width: 150px;
 }
 .capture-scroll .wide-field {
     min-width: 255px;
 }
+/* Tamaños y espaciado del tema/captura; conservar énfasis, contraste y foco sin otra escala tipográfica. */
+.identification-table .MuiTableCell-root { color: #17263c; overflow-wrap: anywhere; }
+.identification-table .MuiTableCell-head { font-weight: 700; white-space: normal; }
+.identification-table .MuiTableCell-body { font-weight: 400; }
+.identification-table .MuiInputBase-root { font-weight: 400; color: #17263c; }
+.identification-table .MuiSelect-select.MuiSelect-select { white-space: normal; text-overflow: clip; line-height: 1.5; }
+.identification-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
+/* MUI dibuja el foco en su fieldset exterior. Sólo se retira la segunda línea del input interior. */
+:is(.identification-table, .systems-table) .MuiOutlinedInput-root .MuiInputBase-input:focus-visible { outline: none; }
+.row-editing-actions { width: 140px; min-height: 92px; display: flex; flex-direction: column; align-items: flex-start; }
+.row-editing-actions .row-presence { width: 140px; min-height: 52px; }
+/* Captura: la página desplaza verticalmente; sólo los campos largos tienen scroll propio. */
+.capture-row-scroll { max-height: none; overflow-x: auto; }
+.capture-row-scroll .MuiTableCell-root { vertical-align: top; }
+.capture-row-scroll .MuiTableCell-root:last-child { min-width: 76px; width: 76px; max-width: 76px; }
+.capture-row-scroll .row-editing-cell {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 124px;
+    min-width: 124px;
+    max-width: 124px;
+    background: #fff;
+    box-shadow: 2px 0 0 #e4eaf2;
+}
+.capture-row-scroll th.row-editing-cell { z-index: 3; background: #f5f8fc; }
+.capture-row-scroll :is([data-edit-state="owned"], [data-edit-state="occupied"]) .row-editing-cell {
+    background: color-mix(in srgb, var(--participant-color) 7%, white);
+    box-shadow: inset 2px 0 color-mix(in srgb, var(--participant-color) 50%, white), 2px 0 0 #e4eaf2;
+}
+.row-editing-cell .row-presence { width: 108px; padding: 0; }
+.row-editing-cell .row-presence > [role="status"] { min-height: 44px; gap: 4px; }
+.row-editing-cell .row-presence > [role="status"] > svg { display: none; }
+.row-editing-cell .row-presence > [role="status"] > span:last-child { overflow-wrap: normal; line-height: 1.3; }
+.row-editing-cell .row-presence > .MuiTypography-root { max-height: 6em; overflow-y: auto; }
+.capture-row-scroll textarea { scroll-margin-inline-start: 124px; }
+.identification-table .wide-field { min-width: 280px; }
+.identification-table td:nth-child(2) { min-width: 110px; }
 .form-actions {
     display: flex;
     gap: 16px;

@@ -1,0 +1,31 @@
+{
+  "synthetic": true,
+  "checks": [
+    {
+      "name": "valores iniciales vacíos; menú de usuarios espera reserva confirmada",
+      "passed": true
+    },
+    {
+      "name": "marcar/desmarcar, scroll y autoguardado conservan menú, foco y reserva",
+      "passed": true
+    },
+    {
+      "name": "prioridad indicativa sólo en campo vacío; cinco opciones reales y persistencia",
+      "passed": true
+    },
+    {
+      "name": "dos sesiones: ocupación bloquea menús y eliminación; liberación habilita sin recargar",
+      "passed": true
+    },
+    {
+      "name": "teclado: selección múltiple sin cerrar, Escape restaura foco y vacío queda pendiente",
+      "passed": true
+    },
+    {
+      "name": "móvil táctil y movimiento reducido: casillas, textos y menú sin desbordamiento",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

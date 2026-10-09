@@ -30,7 +30,7 @@ public static class SyncCommands
             {
                 var name = check[13..]; if (name is not ("sii" or "ilda" or "ambas")) { Console.Error.WriteLine("Usa --sync-check=sii|ilda|ambas."); return 2; }
                 using var scope = services.CreateScope(); var sync = scope.ServiceProvider.GetRequiredService<SyncCoordinator>();
-                foreach (var source in name == "ambas" ? new[] { "sii", "ilda" } : [name]) Console.WriteLine(source + ": " + (await sync.Check(source, cancel.Token)).ToJsonString());
+                foreach (var source in SyncCoordinator.Catalogs(name)) Console.WriteLine(source + ": " + (await sync.Check(source, cancel.Token)).ToJsonString());
                 return 0;
             }
             var loop = args.Contains("--sync-worker");

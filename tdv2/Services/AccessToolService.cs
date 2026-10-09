@@ -72,7 +72,7 @@ public sealed class AccessToolService(RequestAccess access, NexoOperations nexo,
         var email = PostgresNexoProfiles.Email(Inputs.Text(input, "email", 3, 254)); var reason = Inputs.Text(input, "motivo", 5, 300); var write = Inputs.Bool(input, "escritura");
         if (write && !NexoOperations.Flag(capability, "escritura")) throw new DomainProblem(403, "Nexo no autorizó representación con escritura para tu cuenta.");
         var profile = await profiles.ForEmail(email, http.RequestAborted);
-        if (!ModuleAccess.Allows(profile, "procesos_operativos")) throw new DomainProblem(403, "La persona no tiene acceso a Procesos operativos.");
+        if (!ModuleAccess.Allows(profile, "procesos_operativos")) throw new DomainProblem(403, "La persona no tiene acceso a Procedimientos Institucionales.");
         AccessSelection? selection = null;
         await using var connection = await connections.Open("Tdv2", http.RequestAborted);
         await using var transaction = await connection.BeginTransactionAsync(http.RequestAborted);

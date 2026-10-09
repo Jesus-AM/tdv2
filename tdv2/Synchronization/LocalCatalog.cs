@@ -3,9 +3,13 @@ using System.Text.RegularExpressions;
 using Tdv2.Domain;
 using Tdv2.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 namespace Tdv2.Synchronization;
 
 public sealed record UnitInventory(string State, IReadOnlyList<JsonObject> Rows, string? Notice);
+public sealed record LocalSiiModule(string id, string descripcion);
+public sealed record LocalSiiModules(string estado, IReadOnlyList<LocalSiiModule> modulos);
 /// <summary>Consulta únicamente las réplicas de TDV2; una página jamás conecta SII o ILDA.</summary>
 public interface ILocalCatalog
 {
@@ -17,9 +21,32 @@ public interface ILocalCatalog
         return result;
     }
     Task<DateTimeOffset?> LastSii(CancellationToken ct);
+    Task<LocalSiiModules> SiiModules(CancellationToken ct) => Task.FromResult(new LocalSiiModules("pendiente", []));
 }
 public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger) : ILocalCatalog
 {
+    public async Task<LocalSiiModules> SiiModules(CancellationToken ct)
+    {
+        try
+        {
+            await db.Database.OpenConnectionAsync(ct);
+            var sql = new SyncSql((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction?)db.Database.CurrentTransaction?.GetDbTransaction());
+            if (await SiiCatalogSchema.Inspect(sql, ct) is { } issue)
+            {
+                logger.LogWarning("Esquema local del catálogo SII: {Code}. Migración esperada {Migration}", issue.codigo, SiiCatalogSchema.Migration);
+                return new("error", []);
+            }
+            // Un único SELECT evita mezclar disponibilidad y metadatos de distintas publicaciones.
+            var rows = await db.SiiModules.AsNoTracking().Where(m => m.Present)
+                .Select(m => new LocalSiiModule(m.Id, m.Description)).ToListAsync(ct);
+            return new(rows.Count > 0 ? "disponible" : "pendiente", rows);
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            logger.LogWarning("Catálogo local de módulos no disponible. Tipo {Type}", error.GetType().Name);
+            return new("error", []);
+        }
+    }
     public sealed record InventoryRow(string Code, string Id, string? Information);
     public async Task<IReadOnlyDictionary<string, UnitInventory>> Inventories(Unit[] units, CancellationToken ct)
     {
@@ -39,13 +66,18 @@ public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger)
                     ORDER BY id_origen COLLATE "C" LIMIT 201) r
                 """, new Npgsql.NpgsqlParameter("codes", codes)).ToListAsync(ct);
             var grouped = records.ToLookup(r => r.Code, StringComparer.Ordinal);
+            var ids = units.Select(u => u.Id).ToArray();
+            var exclusions = await db.FormExclusions.AsNoTracking().Where(e => ids.Contains(e.UnitId)).ToListAsync(ct);
+            var excluded = exclusions.ToLookup(e => (e.UnitId, e.Year));
             foreach (var unit in units)
             {
                 var code = unit.Code.Trim();
                 if (code.Length == 0) { result[unit.Id] = new("sin_clave", [], "Esta área no tiene una clave institucional para consultar ILDA."); continue; }
                 var source = grouped[code].ToArray(); var rows = new List<JsonObject>(); var invalid = false;
+                var omitted = excluded[(unit.Id, unit.Year)].Select(e => e.RowId).ToHashSet(StringComparer.Ordinal);
                 foreach (var record in source.Take(200))
                 {
+                    if (omitted.Contains("ilda:" + record.Id)) continue;
                     var text = record.Information?.Trim() ?? "";
                     if (!Regex.IsMatch(record.Id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
                     rows.Add(new() { ["id"] = "ilda:" + record.Id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = new JsonArray(), ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });
@@ -79,8 +111,11 @@ public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger)
                 .OrderBy(r => EF.Functions.Collate(r.Id, "C")).Take(201)
                 .Select(r => new { r.Id, r.Information }).ToListAsync(ct);
             var rows = new List<JsonObject>(); var invalid = false;
+            var excluded = (await db.FormExclusions.AsNoTracking().Where(e => e.UnitId == unit.Id && e.Year == unit.Year)
+                .Select(e => e.RowId).ToListAsync(ct)).ToHashSet(StringComparer.Ordinal);
             foreach (var record in records.Take(200))
             {
+                if (excluded.Contains("ilda:" + record.Id)) continue;
                 var id = record.Id; var text = record.Information?.Trim() ?? "";
                 if (!Regex.IsMatch(id, "\\A[0-9]{1,40}\\z") || text == "" || text.EnumerateRunes().Count() > 4000) { invalid = true; continue; }
                 rows.Add(new() { ["id"] = "ilda:" + id, ["codigo"] = "", ["prioridad"] = "", ["fuente"] = "ILDA", ["area"] = "", ["tramite"] = text, ["usuario"] = new JsonArray(), ["resultado"] = "", ["responsable"] = "", ["validacion"] = "" });

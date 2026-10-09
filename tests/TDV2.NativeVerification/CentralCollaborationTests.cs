@@ -35,8 +35,8 @@ internal static partial class NativeTests
                 var lease = await Lease(client, tab, version: version, unit: unit);
                 Check((await Patch(client, Edit(tab, lease with { Value = Header(origin) }) with { Release = true }, unit)).IsSuccessStatusCode);
             }
-            var deleteTab = Guid.NewGuid(); var row = await Lease(client, deleteTab, "identificacion:inicial", unit: "A3");
-            Check((await Patch(client, Edit(deleteTab, row with { Value = null }) with { Release = true }, "A3")).IsSuccessStatusCode);
+            var deleteTab = Guid.NewGuid(); var removal = await RemovalRequest(client, deleteTab, new("identificacion", "inicial"), "A3");
+            Check((await Patch(client, removal, "A3")).IsSuccessStatusCode);
             Check((await Live(client, deleteTab, "A3"))["contenido"]!["identificacion"]!.AsArray().Count == 0);
             Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM colaboraciones_ur")) == 0);
             Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM activity_logs WHERE action='guardar_bloques'")) > 0);
@@ -89,7 +89,7 @@ internal static partial class NativeTests
         });
         Test("Central/concesión sin rol no habilita; formato enviado continúa inmutable", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await SeedEditing(database, Complete(app)); await Login(app, client); await Csrf(client);
             var tab = Guid.NewGuid(); Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).IsSuccessStatusCode);
             var before = await database.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='A'");
             await CentralCollaborator(database, "colaborador_dependencias");

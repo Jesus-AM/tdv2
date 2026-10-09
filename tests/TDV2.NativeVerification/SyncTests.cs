@@ -75,13 +75,13 @@ internal static partial class NativeTests
         Test("Sync/SII: cambios y bajas lógicas preservan formato, relación y respuestas",async (app,client) =>
         {
             await Login(app,client); await Csrf(client); var content=(await Form(client))["contenido"]!;
-            content["encabezado"]!["responsable"]="Conservar respuesta"; Check((await Save(client,0,content)).IsSuccessStatusCode);
+            content["encabezado"]!["responsable"]="Conservar respuesta"; await SeedStage(db, content.AsObject());
             app.Sources.Sii.Rows.Add("extra",2026,"300","Área extra",null,null,null,"A",2,"Activo");
             Check(Completed(await RunSync(app,"sii"))); app.Sources.Sii.Rows[0]["DESC_UR"]="Nuevo nombre";
             app.Sources.Sii.Rows.RemoveAt(0); Check(Completed(await RunSync(app,"sii")));
             Check((bool)(await db.Scalar("SELECT NOT presente FROM unidades_responsables_poa WHERE id_ur='A'"))!);
             Check((await db.Scalar("SELECT contenido->'encabezado'->>'responsable' FROM formatos_ur WHERE id_ur='A'"))!.ToString()=="Conservar respuesta");
-            Check(Convert.ToInt32(await db.Scalar("SELECT version FROM formatos_ur WHERE id_ur='A'"))==1);
+            Check(Convert.ToInt32(await db.Scalar("SELECT version FROM formatos_ur WHERE id_ur='A'"))==0);
             Check((await client.GetAsync("/formatos/A")).StatusCode==HttpStatusCode.Forbidden);
         });
         Test("Sync/SII: publicación concurrente exige revalidar alcance antes de guardar",async (app,client) =>
@@ -123,7 +123,7 @@ internal static partial class NativeTests
             foreach (var invalid in new Action<DataTable>[] { t=>t.Rows.Clear(), t=>t.ImportRow(t.Rows[0]),t=>t.Rows[0]["ID_UR_PERTENECE"]="A4",t=>t.Rows[1]["EJERCICIO"]=2025,t=>t.Rows.RemoveAt(0) })
             {
                 app.Sources.Sii=SyntheticSources.Units(); invalid(app.Sources.Sii);
-                Check((await RunSync(app,"sii"))["estado"]!.ToString()=="fallida"); Check(await CatalogRows(db,"unidades_responsables_poa")==before);
+                Check((await RunSync(app,"sii"))["resultado"]!["sii"]!["estado"]!.ToString()=="fallida"); Check(await CatalogRows(db,"unidades_responsables_poa")==before);
             }
         });
         Test("Sync/ILDA: duplicados, ID inválido y reducción conservan réplica previa",async (app,client) =>
@@ -157,8 +157,10 @@ internal static partial class NativeTests
         Test("Sync/ILDA: cambios y desaparición de origen no sustituyen respuestas guardadas",async (app,client) =>
         {
             Check(Completed(await RunSync(app,"ilda"))); await Login(app,client); await Csrf(client);
-            var content=(await Form(client))["contenido"]!; content["identificacion"]![0]!["tramite"]="Respuesta histórica"; content["identificacion"]![0]!["codigo"]="PO-01";
-            Check((await Save(client,0,content)).IsSuccessStatusCode);
+            var content=(await Form(client))["contenido"]!; var row=content["identificacion"]![0]!.DeepClone();
+            row["tramite"]="Respuesta histórica"; row["validacion"]="V";
+            var tab=Guid.NewGuid(); var lease=await Lease(client,tab,"identificacion:"+row["id"]);
+            Check((await Patch(client,Edit(tab,lease with { Value=row }) with { Release=true })).IsSuccessStatusCode);
             app.Sources.Ilda.Rows[0]["informacion_generada"]="Cambio externo"; app.Sources.Ilda.Rows.Add(6,"100","Registro nuevo",null,"");
             Check(Completed(await RunSync(app,"ilda"))); app.Sources.Ilda.Rows.RemoveAt(0); Check(Completed(await RunSync(app,"ilda")));
             var form=await Form(client); Check(form["contenido"]!["identificacion"]![0]!["tramite"]!.ToString()=="Respuesta histórica");
@@ -238,7 +240,7 @@ internal static partial class NativeTests
         {
             app.Sources.Failure="ilda"; var run=await RunSync(app,"ambas"); Check(run["estado"]!.ToString()=="parcial");
             Check(run["resultado"]!["sii"]!["estado"]!.ToString()=="completada");
-            Check(Convert.ToInt64(await db.Scalar("SELECT count(*) FROM sincronizacion_catalogos"))==1 && !run.ToJsonString().Contains("SECRET"));
+            Check(Convert.ToInt64(await db.Scalar("SELECT count(*) FROM sincronizacion_catalogos"))==2 && !run.ToJsonString().Contains("SECRET"));
             app.Sources.Failure="sii"; run=await RunSync(app,"ambas"); Check(run["estado"]!.ToString()=="parcial" && run["resultado"]!["ilda"]!["estado"]!.ToString()=="completada");
             Check(!(await db.Scalar("SELECT coalesce(string_agg(meta::text,''),'') FROM activity_logs"))!.ToString()!.Contains("SECRET"));
         });

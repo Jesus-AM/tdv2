@@ -1,4 +1,4 @@
-param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly,
+param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly, [switch]$DirectStart,
     [switch]$NexoDelegationOnly, [string]$NexoSource = 'C:\Users\Jesus Arenas\Herd\nexo',
     [string]$Php = 'C:\Users\Jesus Arenas\.config\herd\bin\php84\php.exe')
 $ErrorActionPreference = 'Stop'
@@ -34,9 +34,33 @@ $oldSkip = $env:TDV2_TEST_SKIP_BROWSER
 try {
     & (Join-Path $PostgresBin 'initdb.exe') -D $data -U tdv2_test_admin --auth-host=scram-sha-256 --auth-local=scram-sha-256 --encoding=UTF8 --locale=C --pwfile=$passwordFile | Out-File (Join-Path $run 'initdb.log') -Encoding utf8
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath (Join-Path $data 'PG_VERSION'))) { throw 'initdb failed; see isolated run log.' }
-    & (Join-Path $PostgresBin 'pg_ctl.exe') -D $data -l (Join-Path $run 'postgres.log') -o "-h 127.0.0.1 -p $port" -w start
-    if ($LASTEXITCODE -ne 0) { throw 'Isolated PostgreSQL startup failed.' }
-    $started = $true
+    if ($DirectStart) {
+        # Mismo usuario/restricciones. Evita sólo el relanzamiento con token de pg_ctl en Windows.
+        $testStart = New-Object Diagnostics.ProcessStartInfo
+        $testStart.FileName = Join-Path $PostgresBin 'postgres.exe'
+        $testStart.Arguments = '-D "' + $data + '" -h 127.0.0.1 -p ' + $port
+        $testStart.UseShellExecute = $false
+        $testStart.CreateNoWindow = $true
+        $testStart.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+        $testStart.RedirectStandardError = $true
+        $testStart.RedirectStandardOutput = $true
+        $testPostgres = [Diagnostics.Process]::Start($testStart)
+        $testErrorOutput = $testPostgres.StandardError.ReadToEndAsync()
+        $testStandardOutput = $testPostgres.StandardOutput.ReadToEndAsync()
+        $started = $true
+        $ready = $false
+        for ($attempt = 0; $attempt -lt 60; $attempt++) {
+            & (Join-Path $PostgresBin 'pg_isready.exe') -h 127.0.0.1 -p $port -q
+            if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+            if ($testPostgres.HasExited) { break }
+            Start-Sleep -Milliseconds 250
+        }
+        if (-not $ready) { throw 'Isolated PostgreSQL direct startup failed.' }
+    } else {
+        & (Join-Path $PostgresBin 'pg_ctl.exe') -D $data -l (Join-Path $run 'postgres.log') -o "-h 127.0.0.1 -p $port" -w start
+        if ($LASTEXITCODE -ne 0) { throw 'Isolated PostgreSQL startup failed.' }
+        $started = $true
+    }
     $env:PGPASSWORD = $password
     & (Join-Path $PostgresBin 'createdb.exe') -h 127.0.0.1 -p $port -U tdv2_test_admin tdv2_native_test
     if ($LASTEXITCODE -ne 0) { throw 'Isolated database creation failed.' }
@@ -61,6 +85,11 @@ try {
         # pg_ctl targets ONLY this script's verified, newly created cluster; no Windows service is stopped.
         & (Join-Path $PostgresBin 'pg_ctl.exe') -D $data -m fast -w stop
         if ($LASTEXITCODE -ne 0) { Write-Warning ('Stop failed for this isolated cluster: ' + $data) }
+        if ($DirectStart -and $testPostgres -and $testPostgres.WaitForExit(5000)) {
+            [IO.File]::WriteAllText((Join-Path $run 'postgres.log'), $testErrorOutput.Result, [Text.UTF8Encoding]::new($false))
+            [IO.File]::WriteAllText((Join-Path $run 'postgres.stdout'), $testStandardOutput.Result, [Text.UTF8Encoding]::new($false))
+            $testPostgres.Dispose()
+        }
     }
     $env:PGPASSWORD = $oldPassword
     $env:TDV2_TEST_POSTGRES_BIN=$oldBin

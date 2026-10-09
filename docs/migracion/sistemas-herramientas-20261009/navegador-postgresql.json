@@ -1,0 +1,36 @@
+{
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    {
+      "name": "SII sin catálogo ni módulo admite borrador pendiente en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "publicación real local, búsqueda de duplicados, ID y descripción autorizados persisten",
+      "passed": true
+    },
+    {
+      "name": "renombrar/retirar no cambia la respuesta; permite guardar comentarios históricos",
+      "passed": true
+    },
+    {
+      "name": "Otra/Otro mantienen detalle al alternar controles y guardar en PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "dos sesiones y SignalR: reserva, ayuda, autoguardado y liberación",
+      "passed": true
+    },
+    {
+      "name": "varias herramientas del mismo procedimiento en filas independientes",
+      "passed": true
+    },
+    {
+      "name": "móvil y teclado con backend real, enviado conserva consulta",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

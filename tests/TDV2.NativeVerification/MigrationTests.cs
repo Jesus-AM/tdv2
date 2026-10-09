@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using Tdv2.Domain.Entities;
 using Tdv2.Infrastructure;
+using Tdv2.Synchronization;
 
 namespace Tdv2.NativeVerification;
 
@@ -64,12 +65,43 @@ internal static class MigrationTests
             var cs = await Fresh("baseline");
             await using var db = Context(cs);
             Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
-            Check(db.Model.GetEntityTypes().Count() == 18 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 7, "18 entidades y siete relaciones locales; sin esquemas institucionales");
-            Check(db.Database.GetMigrations().Count() == 6, "seis migraciones estándar descubiertas por EF");
+            Check(db.Model.GetEntityTypes().Count() == 20 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 8, "20 entidades y ocho relaciones locales; sin esquemas institucionales");
+            Check(db.Database.GetMigrations().Count() == 9, "nueve migraciones estándar descubiertas por EF");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
+            await db.GetService<IMigrator>().MigrateAsync(db.Database.GetMigrations().ElementAt(7));
+            await using (var diagnostic = new NpgsqlConnection(cs))
+            {
+                await diagnostic.OpenAsync(); var sql = new SyncSql(diagnostic, null);
+                string? state = null;
+                try { await sql.Scalar("SELECT count(*) FROM sii_modulos", default); }
+                catch (PostgresException error) { state = error.SqlState; }
+                Check(state == "42P01", "reproduce 42P01 en SyncSql.Scalar con migración de módulos pendiente, sin SQL Server");
+                Check((await SiiCatalogSchema.Inspect(sql, default))?.codigo == "migracion_pendiente", "diagnóstico identifica migración pendiente en la base conectada");
+            }
             await db.Database.MigrateAsync();
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 6 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
-            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 19, "18 tablas y único historial __EFMigrationsHistory");
+            await using (var diagnostic = new NpgsqlConnection(cs))
+            {
+                await diagnostic.OpenAsync(); var sql = new SyncSql(diagnostic, null);
+                await sql.Execute("SET search_path=pg_catalog", default);
+                Check(await SiiCatalogSchema.Inspect(sql, default) is null && Convert.ToInt32(await sql.Scalar("SELECT count(*) FROM public.sii_modulos", default)) == 0,
+                    "EF crea public.sii_modulos; consultas explícitas funcionan con search_path distinto");
+                await using (var tx = await diagnostic.BeginTransactionAsync())
+                {
+                    var transactional = new SyncSql(diagnostic, tx);
+                    await transactional.Execute("ALTER TABLE public.sii_modulos RENAME TO fixture_catalog_renamed", default);
+                    Check((await SiiCatalogSchema.Inspect(transactional, default))?.codigo == "historial_incoherente", "historial aplicado y tabla ausente se distinguen de migración pendiente");
+                    await tx.RollbackAsync();
+                }
+                await using (var tx = await diagnostic.BeginTransactionAsync())
+                {
+                    var transactional = new SyncSql(diagnostic, tx);
+                    await transactional.Execute("CREATE SCHEMA fixture_catalog_schema; ALTER TABLE public.sii_modulos SET SCHEMA fixture_catalog_schema", default);
+                    Check((await SiiCatalogSchema.Inspect(transactional, default))?.codigo == "esquema_distinto", "tabla EF en otro esquema se identifica sin crear tablas manualmente");
+                    await tx.RollbackAsync();
+                }
+            }
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 9 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 21, "20 tablas y único historial __EFMigrationsHistory");
             Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
             Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
             var columns = (string)(await Sql(cs, DatabaseInspection.ColumnsSql))!;
@@ -114,12 +146,12 @@ internal static class MigrationTests
                     && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
                 await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 6, "reanudación aplica sólo la pendiente");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 9, "reanudación aplica sólo la pendiente");
                 await partialDb.GetService<IMigrator>().MigrateAsync("0");
                 Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
                     "Down revierte únicamente las tablas EF en la base desechable");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 6, "Up después de Down recrea esquema y configuración pausada");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 9, "Up después de Down recrea esquema y configuración pausada");
             }
             var upgrade = await Fresh("upgrade");
             await using (var previous = Context(upgrade))
@@ -146,11 +178,49 @@ internal static class MigrationTests
                     "actualización conserva JSON, prioridad antigua, versión e historia tipo 0; completa ejercicio sin enviar");
                 await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
                 Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
-                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 6
+                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 9
                     && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
                     "Down rechaza retirar protección de formatos enviados y conserva contenido e historial");
             }
             var concurrent = await Fresh("concurrent");
+            var exclusionsUpgrade = await Fresh("exclusions");
+            await using (var existing = Context(exclusionsUpgrade))
+            {
+                await existing.GetService<IMigrator>().MigrateAsync("20261007195019_StructuredUsersServed");
+                await Sql(exclusionsUpgrade, """
+                    INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur) VALUES('EX',2026,'06000');
+                    INSERT INTO formatos_ur(id_ur,ejercicio,contenido,version,porcentaje,actualizado_por)
+                    VALUES('EX',2026,'{"identificacion":[{"id":"ilda:17","usuario":["Externo","Otro"],"usuarioOtro":"Detalle existente","prioridad":"17"}],"oculto":"conservar"}',9,32,'synthetic@example.test');
+                    """);
+                var original = await Sql(exclusionsUpgrade, "SELECT row_to_json(f)::text FROM formatos_ur f");
+                await existing.GetService<IMigrator>().MigrateAsync("20261009032858_FormIldaExclusions");
+                Check(Equals(original, await Sql(exclusionsUpgrade, "SELECT row_to_json(f)::text FROM formatos_ur f")),
+                    "exclusiones: actualización desde seis migraciones conserva toda respuesta, Otro, Externo, prioridad y versión sin repetir limpieza");
+                await Sql(exclusionsUpgrade, "INSERT INTO formato_exclusiones_ilda VALUES('EX',2026,'ilda:17',now(),'actor@example.test','effective@example.test')");
+                var exclusion = await Sql(exclusionsUpgrade, "SELECT row_to_json(e)::text FROM formato_exclusiones_ilda e");
+                await existing.GetService<IMigrator>().MigrateAsync("20261009032858_FormIldaExclusions");
+                Check(Equals(exclusion, await Sql(exclusionsUpgrade, "SELECT row_to_json(e)::text FROM formato_exclusiones_ilda e"))
+                    && Equals(original, await Sql(exclusionsUpgrade, "SELECT row_to_json(f)::text FROM formatos_ur f")),
+                    "exclusiones: repetir aplicación no altera retiro, actores ni respuestas");
+                Check(await Reject(() => existing.GetService<IMigrator>().MigrateAsync("20261007195019_StructuredUsersServed"))
+                    && Equals(exclusion, await Sql(exclusionsUpgrade, "SELECT row_to_json(e)::text FROM formato_exclusiones_ilda e")),
+                    "exclusiones: reversión rechazada para no hacer reaparecer inventario retirado");
+            }
+            await CurrentRecipientsMigrationTests.Run(await Fresh("current_recipients"), database.Workspace, Sql, Check);
+            var moduleConnection = await Fresh("sii_modules");
+            await using (var modules = Context(moduleConnection))
+            {
+                var migrator = modules.GetService<IMigrator>();
+                await migrator.MigrateAsync("20261009052502_CurrentRecipients");
+                var previousTables = await Sql(moduleConnection, "SELECT count(*) FROM pg_tables WHERE schemaname='public'");
+                await modules.Database.MigrateAsync();
+                Check(Convert.ToInt32(await Sql(moduleConnection, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == Convert.ToInt32(previousTables) + 1,
+                    "SiiModulesCatalog añade sólo su réplica sobre las ocho migraciones anteriores");
+                await Sql(moduleConnection, "INSERT INTO sii_modulos VALUES('1','Igual',true,now()),('2','Igual',true,now())");
+                await modules.Database.MigrateAsync();
+                Check(Convert.ToInt32(await Sql(moduleConnection, "SELECT count(*) FROM sii_modulos")) == 2,
+                    "repetir migración conserva IDs distintos con descripción igual");
+            }
             await UsersServedMigrationTests.Run(await Fresh("users_served"), database.Workspace, Sql, Check);
             var photographUpgrade = await Fresh("photos");
             await using (var existing = Context(photographUpgrade))

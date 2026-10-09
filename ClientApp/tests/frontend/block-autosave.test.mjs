@@ -10,19 +10,106 @@ function module(name, replacements = {}) {
 }
 const normalizer = module('form-editor'), blocks = module('form-blocks');
 const { BlockEditor } = await import(module('block-editor', { './form-editor': normalizer, './form-blocks': blocks }));
+const { PendingFieldInput } = await import(module('pending-field-input', { './form-blocks': blocks }));
 const { normalizeContent } = await import(normalizer);
-const { splitBlocks } = await import(blocks);
+const { splitBlocks, applyBlocks } = await import(blocks);
+test('retiro directo no renueva y confirmación limpia foco/reserva; estado tardío no restaura fila', async () => {
+    const seed=content(); seed.sistemas=[{id:'r',sistema:'Retirar'},{id:'other',sistema:'Conservar'}]; let renewals=0;
+    const {editor,setLive}=create({reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:splitBlocks(seed)[b.key],reserva:lease()})),servidorEn:new Date().toISOString()}),
+        renew:async()=>{renewals++;throw Error('No debe renovar una eliminación');}});
+    const initial=live({contenido:seed});setLive(initial);editor.receive(initial);
+    await editor.prepareRemoval(['sistemas:r'],{section:'sistemas',id:'r'});
+    await editor.edit(c=>{c.sistemas=c.sistemas.filter(r=>r.id!=='r');});
+    assert.equal(await editor.flush(true,['sistemas:r']),true);
+    assert.equal(renewals,0);assert.equal(editor.canEdit('sistemas:r'),false);assert.equal(editor.state.blocks['sistemas:r'].reserva,null);
+    editor.receive(initial);assert.deepEqual(editor.state.content.sistemas.map(r=>r.id),['other']);
+    assert.deepEqual(editor.state.issues,{});editor.dispose();
+});
+test('retiro espera actividad anterior en vuelo y conserva pendiente independiente', async () => {
+    const seed=content(); seed.sistemas=[{id:'r',sistema:'Retirar'}]; let completeRenewal, renewals=0, reserves=0;
+    const {editor,setLive}=create({reserve:async body=>{reserves++;return {bloques:body.blocks.map(b=>({...b,value:splitBlocks(seed)[b.key]??null,reserva:lease()})),servidorEn:new Date().toISOString()};},
+        renew:body=>{renewals++;return new Promise(resolve=>{completeRenewal=()=>resolve({bloques:body.blocks.map(b=>({...b,reserva:{...lease(),id:b.leaseId}})),servidorEn:new Date().toISOString()});});}});
+    const initial=live({contenido:seed});setLive(initial);editor.receive(initial);
+    await editor.focus('sistemas:r');editor.changeBlock('sistemas:r',r=>{r.sistema='Guardado antes de eliminar';});
+    let prepared=false;const preparing=editor.prepareRemoval(['sistemas:r'],{section:'sistemas',id:'r'}).then(ok=>{prepared=ok;});
+    await Promise.resolve();assert.equal(prepared,false);completeRenewal();await preparing;assert.equal(prepared,true);
+    await editor.flush(false,['sistemas:r']);
+    await editor.focus('medios');editor.changeBlock('medios',r=>{r.medioOtro='Texto independiente';});
+    await editor.prepareRemoval(['sistemas:r'],{section:'sistemas',id:'r'});
+    await editor.edit(c=>{c.sistemas=[];});assert.equal(await editor.flush(true,['sistemas:r']),true);
+    assert.equal(editor.state.content.medioOtro,'Texto independiente');assert.equal(editor.state.dirty,true);
+    assert.equal(renewals,2); assert.equal(reserves,2);completeRenewal();editor.dispose();
+});
+test('regresión: un 422 localizado permite corregir y no impide guardar otro registro', async () => {
+    const writes=[];
+    const { editor } = create({ save: async body => {
+        writes.push(body); const block=body.blocks[0];
+        if(block.key==='contexto' && block.value.responsable==='Inválido') throw { response: { status:422,
+            data:{ message:'Revisa responsable', validation:[{block:'contexto',field:'responsable',message:'Revisa responsable'}] } } };
+        return saved(body);
+    } });
+    await editor.focus('contexto'); await editor.focus('medios');
+    editor.change(c=>{c.encabezado.responsable='Inválido';c.medioOtro='Independiente';});
+    assert.equal(await editor.flush(),false);
+    assert.deepEqual(Object.keys(editor.state.issues),['contexto']);
+    assert.equal(editor.canEdit('contexto'),true); assert.equal(editor.proposalBase().medioOtro,'Independiente');
+    editor.changeBlock('contexto',b=>{b.responsable='Corregido';});
+    assert.equal(await editor.flush(),true); assert.equal(editor.state.dirty,false); editor.dispose();
+});
+test('primeras teclas, pegado y Tab durante reserva se aplican sólo con contenido confirmado', async () => {
+    let grant;
+    const { editor } = create({reserve:body=>new Promise(resolve=>{grant=()=>resolve({bloques:body.blocks.map(b=>({...b,value:splitBlocks(content())[b.key],reserva:lease()})),servidorEn:new Date().toISOString()});})});
+    class Input { value=''; type='text'; dataset={field:'medioOtro'}; selectionStart=0; selectionEnd=0; readOnly=false; isConnected=true;
+        setSelectionRange(start,end){this.selectionStart=start;this.selectionEnd=end;} }
+    globalThis.HTMLInputElement=Input; globalThis.HTMLTextAreaElement=class {};
+    const input=new Input(); globalThis.document={activeElement:input}; globalThis.requestAnimationFrame=fn=>fn();
+    const pending=new PendingFieldInput(editor); let prevented=0;
+    try {
+        pending.key('medios',{target:input,key:'A',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>prevented++});
+        pending.paste('medios',{target:input,clipboardData:{getData:()=> ' pegado'},preventDefault:()=>prevented++});
+        const tab=editor.focus('medios'); // Tab hacia otro campo dentro del mismo registro.
+        assert.equal(editor.state.content.medioOtro,''); assert.equal(editor.canEdit('medios'),false);
+        grant(); await tab; await pending.finish('medios');
+        assert.equal(editor.state.content.medioOtro,'A pegado'); assert.equal(prevented,2);
+        assert.deepEqual(editor.state.unaccepted,{}); assert.equal(input.selectionStart,8);
+    } finally { editor.dispose(); delete globalThis.HTMLInputElement; delete globalThis.HTMLTextAreaElement; delete globalThis.document; delete globalThis.requestAnimationFrame; }
+});
+test('primera escritura con base diferente queda accesible sin modificar el contenido confirmado', async () => {
+    const {editor}=create({reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:{medios:{},medioOtro:'Nueva compartida'},reserva:lease()})),servidorEn:new Date().toISOString()})});
+    class Input { value=''; type='text'; dataset={field:'medioOtro'}; selectionStart=0; selectionEnd=0; }
+    globalThis.HTMLInputElement=Input; globalThis.HTMLTextAreaElement=class {};
+    try {
+        const pending=new PendingFieldInput(editor);
+        pending.key('medios',{target:new Input(),key:'X',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>{}});
+        await pending.finish('medios');
+        assert.equal(editor.state.content.medioOtro,'Nueva compartida'); assert.equal(editor.state.unaccepted.medios.medioOtro,'X');
+        assert.equal(editor.state.dirty,true); assert.equal(await editor.flush(),false);
+    } finally {editor.dispose();delete globalThis.HTMLInputElement;delete globalThis.HTMLTextAreaElement;}
+});
+test('una operación relacionada confirmada no agrupa futuras escrituras independientes', async () => {
+    const {editor,writes}=create(); await editor.focus('contexto'); await editor.focus('medios');
+    await editor.edit(c=>{c.encabezado.responsable='Uno';c.medioOtro='Dos';});
+    assert.equal(await editor.flush(),true); assert.equal(writes[0].blocks.length,2);
+    assert.deepEqual(editor.proposalKeys('medios'),['medios']);
+    editor.change(c=>{c.encabezado.responsable='Tres';c.medioOtro='Cuatro';}); await editor.flush();
+    assert.deepEqual(writes.slice(1).map(w=>w.blocks.length),[1,1]); editor.dispose();
+});
 const content = () => ({ encabezado: { area: 'Área', fecha: '', responsable: '' }, identificacion: [], sistemas: [], datos: [], medios: {}, medioOtro: '', evaluaciones: {}, preguntas: [], acuerdos: [] });
 const live = (changes = {}) => ({ contenido: content(), version: 0, porcentaje: 0, bloques: [], editable: true, puedeEnviar: true, enviadoEn: null, seccion: 'contexto', actualizadoEn: null, actualizadoPor: null, servidorEn: new Date().toISOString(), ...changes });
 const lease = () => ({ id: crypto.randomUUID(), propia: true, titular: 'Persona sintética', venceEn: new Date(Date.now() + 45000).toISOString() });
-const saved = body => ({ version: 1, porcentaje: 5, actualizadoEn: new Date().toISOString(), actualizadoPor: 'Persona sintética', bloques: body.blocks.map(block => ({ ...block, version: block.version + 1, reserva: null })) });
+const saved = body => ({ version: 1, porcentaje: 5, actualizadoEn: new Date().toISOString(), actualizadoPor: 'Persona sintética', bloques: body.blocks.map(block => ({ ...block, version: block.version + 1, reserva: body.release ? null : { ...lease(), id:block.leaseId } })) });
 function create(overrides = {}) {
     const writes = []; let current = live();
     const transport = {
-        read: async () => structuredClone(current),
+        read: async () => structuredClone({ ...current, servidorEn: new Date().toISOString() }),
         reserve: async body => ({ bloques: body.blocks.map(block => ({ ...block, value: splitBlocks(content())[block.key] ?? null, reserva: lease() })), servidorEn: new Date().toISOString() }),
         renew: async body => ({ bloques: body.blocks.map(block => ({ ...block, value: splitBlocks(content())[block.key] ?? null, reserva: lease() })), servidorEn: new Date().toISOString() }),
-        release: async () => ({}), save: async body => { writes.push(structuredClone(body)); return saved(body); },
+        release: async () => ({}), save: async body => {
+            writes.push(structuredClone(body)); const result=saved(body); result.version=current.version+1;
+            current={...current,version:result.version,contenido:applyBlocks(current.contenido,Object.fromEntries(result.bloques.map(b=>[b.key,b.value]))),
+                bloques:[...current.bloques.filter(b=>!result.bloques.some(x=>x.key===b.key)),...result.bloques]};
+            return result;
+        },
         submit: async () => ({ version: 2, enviadoEn: new Date().toISOString() }), ...overrides,
     };
     const editor = new BlockEditor(content(), 0, 0, true, transport, () => {}); editor.receive(current);
@@ -132,7 +219,7 @@ test('foco durante guardado espera la versión confirmada antes de adquirir otra
     while (!confirm) await new Promise(resolve => setTimeout(resolve, 0));
     const focused = editor.focus('contexto');
     assert.deepEqual(versions, [0]); confirm(); await flushing; await focused;
-    assert.deepEqual(versions, [0, 1]); assert.equal(editor.state.conflict, false); editor.dispose();
+    assert.deepEqual(versions, [0]); assert.equal(editor.state.conflict, false); editor.dispose();
 });
 
 test('actualizar tras error de envío permite nueva revisión sin modificar respuestas', async () => {
@@ -195,7 +282,7 @@ test('guarda sólo el bloque modificado y confirma después de la respuesta', as
     const { editor, writes } = create(); await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Pendiente'; });
     assert.equal(editor.state.updatedAt, null); assert.equal(editor.state.dirty, true);
     assert.equal(await editor.flush(true), true); assert.equal(writes[0].blocks.length, 1);
-    assert.equal(writes[0].blocks[0].key, 'contexto'); assert.equal(writes[0].release, true);
+    assert.equal(writes[0].blocks[0].key, 'contexto'); assert.equal(writes[0].release, false); assert.equal(editor.state.blocks.contexto.reserva, null);
     assert.ok(editor.state.updatedAt); assert.equal(editor.state.dirty, false); editor.dispose();
 });
 test('reserva ajena permite consulta y conserva el contenido original', async () => {
@@ -226,7 +313,7 @@ test('desconexión conserva propuesta y reintenta el mismo identificador', async
     const { editor } = create({ save: async body => { requests.push(structuredClone(body)); if (fail) { fail = false; throw new Error('network'); } return saved(body); } });
     await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Propuesta'; }); assert.equal(await editor.flush(), false);
     assert.equal(editor.state.content.encabezado.responsable, 'Propuesta'); assert.equal(editor.state.dirty, true);
-    assert.equal(await editor.flush(), true); assert.deepEqual(requests[0], requests[1]); editor.dispose();
+    await new Promise(r=>setTimeout(r,1100)); assert.equal(await editor.flush(), true); assert.deepEqual(requests[0], requests[1]); editor.dispose();
 });
 test('editar durante un guardado conserva la propuesta posterior', async () => {
     let resolve, sent; const received = new Promise(r => { resolve = r; });
@@ -235,22 +322,51 @@ test('editar durante un guardado conserva la propuesta posterior', async () => {
     await new Promise(r => setImmediate(r)); editor.change(c => { c.encabezado.responsable = 'Segundo'; });
     resolve(saved(sent)); await saving; assert.equal(editor.state.content.encabezado.responsable, 'Segundo'); assert.equal(editor.state.dirty, true); editor.dispose();
 });
+test('respuesta del servidor incorpora código sin perder texto posterior y libera sólo al confirmar ambos guardados', async () => {
+    let confirm; const operations=[];
+    const initial=content(); initial.identificacion=[{id:'p',codigo:'',validacion:'',tramite:''}];
+    const {editor}=create({
+        reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:initial.identificacion[0],reserva:lease()})),servidorEn:new Date().toISOString()}),
+        save:body=>new Promise(resolve=>{operations.push(body);confirm=()=>{
+            const result=saved(body); result.bloques[0].value={...body.blocks[0].value,codigo:'PO-01'}; resolve(result);
+        };}), release:async()=>{operations.push('release');}
+    });
+    editor.receive(live({contenido:initial})); await editor.focus('identificacion:p');
+    editor.changeBlock('identificacion:p',row=>{row.validacion='V';row.tramite='Primero';});
+    const saving=editor.flush(true); await new Promise(r=>setImmediate(r));
+    editor.changeBlock('identificacion:p',row=>{row.tramite='Segundo';}); confirm();
+    assert.equal(await saving,false); assert.equal(editor.canEdit('identificacion:p'),true);
+    assert.equal(editor.state.content.identificacion[0].codigo,'PO-01'); assert.equal(editor.state.content.identificacion[0].tramite,'Segundo');
+    assert.equal(operations.includes('release'),false);
+    const finishing=editor.endBlock('identificacion:p'); await new Promise(r=>setImmediate(r)); confirm(); await finishing;
+    assert.equal(operations.at(-1),'release'); assert.equal(editor.state.dirty,false); editor.dispose();
+});
+test('un recibo incierto no paraliza otra fila y volver al valor original se guarda después del recibo', async () => {
+    let confirm; const writes=[],released=[];
+    const {editor}=create({save:body=>{writes.push(body);return writes.length===1?new Promise(resolve=>{confirm=()=>resolve(saved(body));}):Promise.resolve(saved(body));},release:async body=>{released.push(body);}});
+    await editor.focus('contexto'); editor.changeBlock('contexto',b=>{b.responsable='Primero';});
+    const first=editor.flush(); await new Promise(r=>setImmediate(r)); editor.changeBlock('contexto',b=>{b.responsable='';});
+    assert.equal(editor.state.dirty,true); const leaving=editor.endBlock('contexto');
+    assert.equal(released.length,0); confirm(); await first; await leaving;
+    assert.equal(writes[1].blocks[0].value.responsable,''); assert.equal(released.length,1);
+    assert.equal(editor.state.dirty,false); editor.dispose();
+});
 test('remoto combina bloques limpios y conserva el pendiente', async () => {
     const { editor } = create(); await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Mi propuesta'; });
     const other = content(); other.medioOtro = 'Otra sesión'; editor.receive(live({ contenido: other, version: 1, bloques: [{ key: 'medios', version: 1, reserva: null }] }));
     assert.equal(editor.state.content.encabezado.responsable, 'Mi propuesta'); assert.equal(editor.state.content.medioOtro, 'Otra sesión'); editor.dispose();
 });
-test('conflicto conserva propuesta; recuperación explícita no guarda automáticamente', async () => {
-    const { editor, writes, setLive } = create(); await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Propuesta'; });
-    const other = content(); other.encabezado.responsable = 'Compartida';
-    const remote = live({ contenido: other, version: 1, bloques: [{ key: 'contexto', version: 1, reserva: null }] });
-    setLive(remote); editor.receive(remote); assert.equal(editor.state.conflict, true); assert.equal(await editor.flush(), false);
-    await editor.recover(1); assert.equal(editor.state.content.encabezado.responsable, 'Propuesta'); assert.equal(writes.length, 0);
-    assert.equal(editor.state.conflict, false); editor.dispose();
-});
-test('recuperación rechaza una versión que cambió después de compararla', async () => {
-    const { editor, setLive } = create(); await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Propuesta'; });
-    setLive(live({ version: 4 })); await assert.rejects(() => editor.recover(3)); assert.equal(editor.state.content.encabezado.responsable, 'Propuesta'); editor.dispose();
+test('interrupción incompatible conserva texto, no escribe ni pide resolución y permite otro registro', async () => {
+    const { editor,writes,setLive }=create(); await editor.focus('contexto');
+    editor.change(c=>{c.encabezado.responsable='Mi texto';});
+    const other=content(); other.encabezado.responsable='Respuesta ajena';
+    const remote=live({version:1,contenido:other,bloques:[{key:'contexto',version:1,reserva:null}]});
+    setLive(remote); editor.receive(remote); assert.equal(await editor.flush(),false);
+    assert.equal(editor.state.content.encabezado.responsable,'Mi texto'); assert.equal(writes.length,0);
+    assert.equal(editor.canEdit('contexto'),false);
+    await editor.focus('medios'); editor.changeBlock('medios',b=>{b.medioOtro='Independiente';}); await editor.flush();
+    assert.deepEqual(writes.map(r=>r.blocks.map(b=>b.key)),[['medios']]);
+    assert.equal(typeof editor.recover,'undefined'); assert.equal(typeof editor.discard,'undefined'); editor.dispose();
 });
 test('respuesta fuera de orden no reemplaza la versión reciente', () => {
     const { editor } = create(); const latest = content(); latest.encabezado.responsable = 'Nueva';
@@ -285,14 +401,15 @@ test('SignalR por sí solo nunca concede edición; una carrera de reserva no gen
     assert.equal(editor.state.error, ''); assert.deepEqual(editor.state.issues, {}); editor.dispose();
 });
 
-test('vencimiento bloquea incluso antes del temporizador y no readquiere una propuesta silenciosamente', async () => {
+test('vencimiento rechaza escrituras; reanuda con otro testigo sólo tras comprobar contenido idéntico', async () => {
     let reserves = 0;
     const { editor, writes } = create({ reserve: async body => { reserves++; return { bloques: body.blocks.map(b => ({ ...b, value: splitBlocks(content())[b.key] ?? null, reserva: lease() })), servidorEn: new Date().toISOString() }; } });
     await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Pendiente'; });
     editor.state.blocks.contexto.reserva.venceEn = new Date(Date.now() - 1).toISOString();
     assert.equal(editor.change(c => { c.encabezado.responsable = 'Atrasada'; }), false);
-    assert.equal(await editor.flush(), false); await editor.focus('contexto');
-    assert.equal(reserves, 1); assert.equal(writes.length, 0); assert.equal(editor.state.content.encabezado.responsable, 'Pendiente'); editor.dispose();
+    const old=editor.state.blocks.contexto.reserva.id;
+    assert.equal(await editor.flush(), true);
+    assert.equal(reserves, 2); assert.equal(writes.length, 1); assert.notEqual(writes[0].blocks[0].leaseId,old); assert.equal(editor.state.content.encabezado.responsable, 'Pendiente'); editor.dispose();
 });
 
 test('desconexión congela cambios; reconectar con titular distinto conserva la propuesta y admite otro bloque', async () => {
@@ -334,16 +451,6 @@ test('el foco durante lectura inicial espera acceso y luego confirma la reserva'
     assert.equal(reserves, 1); assert.equal(editor.canEdit('contexto'), true); editor.dispose();
 });
 
-test('conservar respuesta compartida es explícito y no descarta propuestas de otros bloques', async () => {
-    const { editor, setLive } = create(); await editor.focus('contexto'); await editor.focus('medios');
-    editor.change(c => { c.encabezado.responsable = 'Propuesta'; c.medioOtro = 'Conservar'; });
-    const shared = content(); shared.encabezado.responsable = 'Compartida';
-    setLive(live({ version: 1, contenido: shared }));
-    await editor.discard(1, ['contexto']);
-    assert.equal(editor.state.content.encabezado.responsable, 'Compartida');
-    assert.equal(editor.state.content.medioOtro, 'Conservar'); assert.equal(editor.state.dirty, true); editor.dispose();
-});
-
 test('volver durante liberación no acepta cambios hasta obtener otra reserva confirmada', async () => {
     let finish; let reserves = 0;
     const { editor } = create({ reserve: async body => { reserves++; return { bloques: body.blocks.map(b => ({ ...b, value: splitBlocks(content())[b.key] ?? null, reserva: lease() })), servidorEn: new Date().toISOString() }; },
@@ -370,7 +477,7 @@ test('recibo antiguo confirma sin reemplazar una respuesta compartida más recie
     await editor.flush();
     const recent = content(); recent.encabezado.responsable = 'Cambio posterior compartido';
     editor.receive(live({ version: 3, contenido: recent, bloques: [{ key: 'contexto', version: 3, reserva: null }] }));
-    await editor.flush();
+    await new Promise(r=>setTimeout(r,1100)); await editor.flush();
     assert.deepEqual(writes[0], writes[1]); assert.equal(editor.state.content.encabezado.responsable, 'Cambio posterior compartido');
     assert.equal(editor.state.version, 3); assert.equal(editor.state.blocks.contexto.version, 3); assert.equal(editor.state.dirty, false); editor.dispose();
 });

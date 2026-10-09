@@ -36,7 +36,7 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
         {
             var settings = await db.Settings(ct);
             if (fromHttp) await access.Guard(db.Connection, db.Transaction!, ct);
-            if (settings["ejecucion_activa"] is not null) throw new DomainProblem(409, "Ya hay una sincronización pendiente o en ejecución.");
+            if (settings["ejecucion_activa"] is not null) throw new DomainProblem(409, "Ya hay una sincronización pendiente o en ejecución. Se mostrará su estado.", new { id = settings["ejecucion_activa"]!.ToString() });
             return await Insert(db, sources, origin, actor, ct);
         }, ct);
     }
@@ -54,12 +54,13 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
         await new SyncSql(connection, null).Execute("UPDATE sincronizacion_configuracion SET procesador_visto_en=timezone('UTC',clock_timestamp()) WHERE id=1", ct);
     }
     // La recuperación persistente no depende de que exista una solicitud HTTP esperando.
-    public async Task<JsonObject?> Tick(CancellationToken ct)
+    public async Task<JsonObject?> Tick(CancellationToken ct, bool manualOnly = false)
     {
         await Transaction(async db =>
         {
             var settings = await db.Settings(ct); var now = await db.Now(ct);
-            await db.Execute("UPDATE sincronizacion_configuracion SET procesador_visto_en=timezone('UTC',clock_timestamp()) WHERE id=1", ct);
+            // El servicio web no anuncia que exista un procesador de horarios.
+            if (!manualOnly) await db.Execute("UPDATE sincronizacion_configuracion SET procesador_visto_en=timezone('UTC',clock_timestamp()) WHERE id=1", ct);
             if (settings["ejecucion_activa"] is not null && settings["propietario"] is not null && SyncSql.Date(settings["reserva_hasta"]) <= now)
             {
                 var id = Guid.Parse(settings["ejecucion_activa"]!.ToString());
@@ -69,7 +70,7 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
                 await db.Execute("UPDATE sincronizacion_ejecuciones SET estado=$2,resultado=$3,terminada_en=timezone('UTC',clock_timestamp()),etapa=null WHERE id=$1", ct, id, state, result);
                 await Release(db, ct); await db.Audit("sistema", "interrumpir", id, new() { ["estado"] = state, ["resultado"] = state }, ct); settings["ejecucion_activa"] = null;
             }
-            if (SyncSql.Flag(settings, "activa") && settings["ejecucion_activa"] is null && SyncSql.Date(settings["proxima_en"]) <= now)
+            if (!manualOnly && SyncSql.Flag(settings, "activa") && settings["ejecucion_activa"] is null && SyncSql.Date(settings["proxima_en"]) <= now)
             {
                 await Insert(db, SyncSql.Flag(settings, "incluir_ilda") ? "ambas" : "sii", "programada", "sistema", ct);
                 var next = SyncSql.Schedule(settings).Next(now);
@@ -77,15 +78,16 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
             }
             return true;
         }, ct);
-        return await Process(ct);
+        return await Process(ct, manualOnly);
     }
-    public Task<SyncClaim?> Claim(CancellationToken ct) => Transaction<SyncClaim?>(async db =>
+    public Task<SyncClaim?> Claim(CancellationToken ct, bool manualOnly = false) => Transaction<SyncClaim?>(async db =>
     {
         var settings = await db.Settings(ct);
         if (settings["ejecucion_activa"] is null || settings["propietario"] is not null) return null;
         var id = Guid.Parse(settings["ejecucion_activa"]!.ToString());
         var run = await db.Object("SELECT to_jsonb(r)::text FROM sincronizacion_ejecuciones r WHERE id=$1", ct, id);
         if (SyncSql.Text(run, "estado") != "pendiente") return null;
+        if (manualOnly && SyncSql.Text(run, "origen") != "manual") return null;
         var owner = Guid.NewGuid();
         await db.Execute("UPDATE sincronizacion_configuracion SET propietario=$1,reserva_hasta=timezone('UTC',clock_timestamp())+interval '30 minutes' WHERE id=1", ct, owner);
         await db.Execute("UPDATE sincronizacion_ejecuciones SET estado='ejecutando',iniciada_en=timezone('UTC',clock_timestamp()) WHERE id=$1", ct, id);
@@ -113,20 +115,21 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
         var result = run["resultado"]!.AsObject(); result[name] = entry;
         await db.Execute("UPDATE sincronizacion_ejecuciones SET resultado=$2 WHERE id=$1", ct, claim.Id, result);
     }
-    public async Task<JsonObject?> Process(CancellationToken ct)
+    public async Task<JsonObject?> Process(CancellationToken ct, bool manualOnly = false)
     {
-        var claim = await Claim(ct); return claim is null ? null : await Execute(claim, ct);
+        var claim = await Claim(ct, manualOnly); return claim is null ? null : await Execute(claim, ct);
     }
     public async Task<JsonObject> Execute(SyncClaim claim, CancellationToken ct)
     {
-        var names = claim.Sources == "ambas" ? new[] { "sii", "ilda" } : [claim.Sources];
-        try
+        var names = Catalogs(claim.Sources);
+                  try
         {
             foreach (var name in names)
             {
                 await Owned(claim, db => db.Execute("UPDATE sincronizacion_ejecuciones SET etapa=$2 WHERE id=$1", ct, claim.Id, name), ct);
                 try
                 {
+                    if (name == "sii_modulos") await Owned(claim, db => SiiCatalogSchema.Require(db, ct), ct);
                     var snapshot = publication.Validate(name, await source.Read(name, ct));
                     await Owned(claim, async db =>
                     {
@@ -140,7 +143,8 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
                 catch (Exception error)
                 {
                     logger.LogWarning("Sincronización fallida. Ejecución {Run}, fuente {Source}, tipo {Type}", claim.Id, name, error.GetType().Name);
-                    var message = error is SyncProblem ? error.Message : "No se pudo sincronizar " + name.ToUpperInvariant() + ". Revisa conexión, permisos y validez del origen. Se conservó la copia anterior.";
+                    var publicName = name == "sii_modulos" ? "el catálogo de módulos de SIIv2" : name.ToUpperInvariant();
+                    var message = error is SyncProblem ? error.Message : "No se pudo sincronizar " + publicName + ". Revisa conexión, permisos y validez del origen. Se conservó la copia anterior.";
                     await Owned(claim, async db =>
                     {
                         await Result(db, claim, name, new() { ["estado"] = "fallida", ["mensaje"] = message }, ct);
@@ -162,9 +166,15 @@ public sealed class SyncCoordinator(DatabaseConnections connections, IOptions<Sy
     }
     public async Task<JsonObject> Check(string name, CancellationToken ct)
     {
-        var snapshot = publication.Validate(name, await source.Read(name, ct));
         await using var connection = await connections.Open("Tdv2", ct);
+        if (name == "sii_modulos") await SiiCatalogSchema.Require(new(connection, null), ct);
+        var snapshot = publication.Validate(name, await source.Read(name, ct));
         await publication.CheckReduction(new(connection, null), snapshot, ct);
         var summary = snapshot.Summary.DeepClone().AsObject(); summary["comprobacion"] = true; return summary;
     }
+    public static string[] Catalogs(string sources) => sources switch
+    {
+        "sii" => ["sii", "sii_modulos"], "ambas" => ["sii", "sii_modulos", "ilda"], "ilda" => ["ilda"],
+        _ => throw new SyncProblem("Fuente no válida.")
+    };
 }

@@ -1,4 +1,6 @@
-# Reservas de edición y SignalR — 2026-10-06
+# Reservas de edición y SignalR — actualizado 2026-10-08
+
+La recuperación manual de la entrega anterior queda sustituida por [edición automática y reintentos internos](EDICION_AUTOMATICA.md).
 
 ## Implementado
 
@@ -6,23 +8,23 @@
 
 Cada entrega mantiene la comprobación de ticket, Nexo, contexto, revisión y alcance. Cancelar el stream no guarda, elimina ni libera propuestas: SignalR informa; PostgreSQL conserva la autoridad de escritura.
 
-La reserva se solicita automáticamente al entrar en un campo del registro, también con teclado. No hay botones para iniciar o terminar la edición ni confirmación para reservar. `BlockEditor` exige una reserva confirmada antes de aceptar cambios, incluidas altas y eliminaciones con relaciones. Adquirir entrega versión **y contenido vigente**. Durante la espera los campos son de consulta y aparece «Preparando edición…». Casillas, radios y Select solicitan la reserva desde el propio control; el menú sólo abre después de confirmarla. Una intención pendiente no se aplica si se abandona el registro. Una disputa normal por la reserva se muestra en el registro; no genera un conflicto global. SignalR por sí solo no concede la primera escritura.
+La reserva se solicita automáticamente al entrar en un campo del registro, también con teclado. No hay botones para iniciar o terminar la edición ni confirmación para reservar. `BlockEditor` exige una reserva confirmada antes de aceptar cambios, incluidas altas y eliminaciones con relaciones. Adquirir entrega versión **y contenido vigente**. Durante la espera los campos son de consulta y aparece «Preparando edición…». Casillas, radios y Select solicitan la reserva desde el propio control; el menú sólo abre después de confirmarla. Las primeras teclas y el pegado se conservan mientras llega la reserva; se aplican sólo si el contenido confirmado coincide con la base leída. Salir espera esa comprobación; una intención que no pudo autorizarse queda como texto sin guardar. Una disputa normal por la reserva se muestra en el registro; no genera un conflicto global. SignalR por sí solo no concede la primera escritura.
 
-**Eliminar no exige entrar antes a un campo.** El icono rojo permite abrir la confirmación al cargar un registro eliminable; abrir, enfocar el icono o cancelar no adquiere reserva. `engine.prepare(keys)` reserva el registro y sus relaciones sólo al confirmar. Se revalidan contenido y versiones por ID; una confirmación antigua se bloquea y pide cancelar/revisar. Titular ajeno u otra pestaña deshabilitan la acción con su nombre/motivo, y liberar la rehabilita por SignalR. El diálogo espera el guardado y después libera; un fallo conserva una recuperación contextual identificada por registro. [Detalle y evidencia](ELIMINACION_DIRECTA.md).
+**Eliminar no exige entrar antes a un campo.** El icono rojo permite abrir la confirmación al cargar un registro eliminable; abrir, enfocar el icono o cancelar no adquiere reserva. `engine.prepare(keys)` reserva el registro y sus relaciones sólo al confirmar. Se revalidan contenido y versiones por ID; una confirmación antigua se bloquea y pide cancelar/revisar. Titular ajeno u otra pestaña deshabilitan la acción con su nombre/motivo, y liberar la rehabilita por SignalR. El diálogo espera el guardado y después libera; un fallo conserva la intención y reintenta cuando es seguro, sin diálogo de resolución. [Detalle y evidencia](ELIMINACION_DIRECTA.md).
 
 Las filas son independientes; preguntas y criterios conservan sus bloques individuales. `BlockEditingStatus` muestra una sola indicación por registro:
 
-- Otra persona: candado, nombre y fondo ámbar suave.
-- Reserva propia: «Estás editando» en azul.
+- Otra persona: candado, nombre, avatar/foto, color coordinado y fondo suave.
+- Reserva propia: «Estás editando», con el color estable del participante.
 - Otra pestaña de la misma sesión/contexto: «Estás editando este registro en otra pestaña».
 
 No se compara el nombre para inferir identidad. Otra sesión del mismo usuario es independiente y muestra el nombre del titular. No se exponen hashes de sesión ni identificadores de reservas ajenas. Se puede consultar/copiar; modificación y eliminación quedan bloqueadas. Transiciones de 180 ms, anuladas con movimiento reducido.
 
 Las reservas duran 45 segundos y se renuevan sólo por cambios reales, como máximo una petición cada 15 segundos durante actividad. Foco, lectura SignalR y pantalla abierta no renuevan. Al salir se confirma el guardado antes de liberar automáticamente. Select/Dialog conservan el foco lógico del bloque aunque usen portales. SignalR retira el estado ocupado en las demás sesiones; basta entrar en el campo para editar directamente, sin recargar ni pulsar una acción de reserva. Si el campo conservaba foco al liberarse o vencer, una nueva interacción vuelve a confirmar reserva y contenido. No se readquiere por tener la página abierta. Volver durante una liberación espera antes de adquirir otra reserva. Los cierres abruptos se resuelven por vencimiento.
 
-La desconexión congela modificaciones. Un mensaje en vuelo no rehabilita la captura: una nueva consulta debe revalidar acceso, reserva y versión. Perder la reserva conserva la propuesta y exige una decisión explícita, sin readquirir ni sobrescribir automáticamente. Los reintentos inciertos conservan UUID y cuerpo originales.
+La desconexión congela modificaciones. Un mensaje en vuelo no rehabilita la captura: una nueva consulta debe revalidar acceso, reserva y versión. Perder la reserva conserva lo escrito. Sólo se puede volver a reservar después de revalidar permisos y comprobar que el contenido sigue siendo la base del pendiente. Un cambio incompatible permanece visible, sin sobrescribir ni pedir comparar versiones. Los reintentos inciertos conservan UUID y cuerpo originales.
 
-Se retiró el panel habitual de recuperación. Un fallo real muestra un mensaje junto al registro y **Resolver**. El diálogo compara esa propuesta y sus relaciones; permite confirmarla o conservar explícitamente la respuesta guardada y mantiene la descarga de emergencia. Cancelar no cambia respuestas. Una eliminación fallida conserva su aviso al pie de la tabla aunque la fila ya no esté en la propuesta. Se preservan propuestas de otros bloques.
+No existen Resolver, comparación ni confirmación de propuestas. Un fallo real muestra un mensaje breve junto al registro; los reintentos internos son limitados. Una eliminación no confirmada conserva su aviso junto a la tabla. La descarga de emergencia conserva respuestas pendientes, sin elegir entre versiones; los otros bloques siguen disponibles.
 
 Se mantienen auditoría, CSRF, identidad real/efectiva, versión, permisos, ILDA y bloqueo de enviados. No se modificaron roles, OAuth, Nexo ni sincronizadores. No se añadió migración ni dependencia.
 
@@ -56,7 +58,7 @@ El script crea y comprueba `tdv2_native_test` en un clúster nuevo de loopback b
 4. Entra directamente en un campo, casilla, criterio o desplegable. La reserva es automática; mientras prepara no debe aceptar cambios. Sólo una sesión obtiene la fila; las demás ven titular/candado y no pueden eliminarla. Otra fila sí puede editarse simultáneamente. La segunda pestaña muestra el mensaje específico.
 5. Cambia de campo y abre Prioridad: la reserva permanece. Edita y sal de la fila: se guarda antes de liberar. El estado se actualiza en la otra sesión, donde puedes entrar directamente al registro y recibir los valores vigentes. No hace falta recargar ni pulsar botones de edición. Eliminar → Cancelar no cambia el contenido.
 6. Deja la fila sin actividad al menos 45 segundos: vuelve a consulta sin falso conflicto. Mantén el stream más de 45 segundos con el depurador: los ciclos de 15 segundos continúan sin excepciones del temporizador.
-7. Desconecta con una propuesta pendiente y reconecta. Debe conservarse sin aplicarse automáticamente; **Resolver** permite revisarla. Comprueba recarga/navegación con respuestas guardadas y advertencia de salida con pendientes. Cerrar sesión revoca también los streams abiertos; los enviados permanecen de consulta.
+7. Desconecta con una propuesta pendiente y reconecta. Debe conservarse y reanudarse sólo tras comprobar contenido, reserva y permisos. No debe aparecer ninguna comparación; si otra sesión cambió el dato, el texto queda visible sin guardarse. Comprueba recarga/navegación con respuestas guardadas y advertencia de salida con pendientes. Cerrar sesión revoca también los streams abiertos; los enviados permanecen de consulta.
 
 ## Límites y pendientes
 

@@ -16,7 +16,7 @@ public sealed class SyncSql(NpgsqlConnection connection, NpgsqlTransaction? tran
         return command;
     }
     public async Task<object?> Scalar(string sql, CancellationToken ct, params object?[] values)
-    { await using var command = Command(sql, values); return await command.ExecuteScalarAsync(ct); }
+    { await using var command = Command(sql, values);   return await command.ExecuteScalarAsync(ct); }
     public async Task Execute(string sql, CancellationToken ct, params object?[] values)
     { await using var command = Command(sql, values); await command.ExecuteNonQueryAsync(ct); }
     public async Task<JsonObject> Object(string sql, CancellationToken ct, params object?[] values) =>

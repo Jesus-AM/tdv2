@@ -30,6 +30,7 @@ internal static class EntryPoint
         var access = new FormAccess(directory);
         var path = Path.Combine(AppContext.BaseDirectory, "Contracts", "procesos_operativos.json");
         var schema = new FormSchema(File.ReadAllText(path));
+        SystemCatalogTests.Register(Cases, schema);
         JsonObject Blank() => schema.Blank(Fixtures.Units[0]);
         void Reject(string name, Action<JsonObject> mutate) => Test(name, () => { var data = Blank(); mutate(data); Invalid(() => schema.Validate(data, Fixtures.Units[0])); });
 
@@ -190,7 +191,8 @@ internal static class EntryPoint
             foreach (var section in new[] { "identificacion", "sistemas", "datos", "acuerdos" }) foreach (var (key, _) in data[section]![0]!.AsObject().ToArray()) if (key != "id") data[section]![0]![key] = "Texto";
             data["identificacion"]![0]!["codigo"] = "PO-01"; data["identificacion"]![0]!["prioridad"] = "1"; data["identificacion"]![0]!["validacion"] = "V";
             data["identificacion"]![0]!["usuario"] = new JsonArray("Docentes");
-            data["sistemas"]![0]!["proceso"] = "PO-01"; data["sistemas"]![0]!["estado"] = "Funciona";
+            data["sistemas"]![0]!["proceso"] = "PO-01"; data["sistemas"]![0]!["estado"] = "bien";
+            data["sistemas"]![0]!["sistema"] = "excel"; data["sistemas"]![0]!["uso"] = "consultar";
             data["datos"]![0]!["proceso"] = "PO-01"; data["datos"]![0]!["origen"] = "Se origina en este proceso"; data["acuerdos"]![0]!["fecha"] = "2026-09-30";
             foreach (var q in data["preguntas"]!.AsArray()) q!["respuesta"] = q["opciones"] is JsonArray choices ? choices[0]!.DeepClone() : JsonValue.Create("Respuesta");
             data["evaluaciones"]!["PO-01"] = new JsonArray(Enumerable.Range(0, 9).Select(_ => (JsonNode)new JsonObject { ["criterio"] = "alterado", ["valor"] = "5", ["obs"] = "" }).ToArray());
@@ -213,6 +215,15 @@ internal static class EntryPoint
         Http("Falla SQL no filtra secretos", async (app, client) => { app.Store.Outage = true; var r = await client.GetAsync("/inicio"); Check(r.StatusCode == HttpStatusCode.ServiceUnavailable && !(await r.Content.ReadAsStringAsync()).Contains("SYNTHETIC_DATABASE")); });
         Http("Página no expone empleado ni tokens centrales", async (_, client) => { var r = await client.GetAsync("/inicio"); var raw = await r.Content.ReadAsStringAsync(); Check(r.IsSuccessStatusCode && !raw.Contains("0001") && !raw.Contains("num_empleado") && !raw.Contains("representacion_token")); Check(r.Headers.CacheControl?.NoStore == true); });
         Http("GET formato es lectura sin crear registro", async (app, client) => { Check((await client.GetAsync("/formatos/A")).IsSuccessStatusCode); Check(await app.Store.Get("A", default) is null); });
+        Http("Catálogo de módulos exige sesión, UR y módulo vigentes; sin catálogo no crea formato", async (app, client) =>
+        {
+            Check((await Json(await client.GetAsync("/formatos/A/modulos-sii")))["estado"]!.ToString() == "pendiente");
+            Check(await app.Store.Get("A", default) is null);
+            Check((await client.GetAsync("/formatos/B/modulos-sii")).StatusCode == HttpStatusCode.Forbidden);
+            using var guest = app.Client(false); Check((await guest.GetAsync("/formatos/A/modulos-sii")).StatusCode == HttpStatusCode.Unauthorized);
+            app.Nexo.Current = app.Nexo.Current with { Modules = [] };
+            Check((await client.GetAsync("/formatos/A/modulos-sii")).StatusCode == HttpStatusCode.Forbidden);
+        });
         Http("UR fuera de alcance denegada", async (_, client) => Check((await client.GetAsync("/formatos/B")).StatusCode == HttpStatusCode.Forbidden));
         Http("CSRF ausente y falso denegados", async (_, client) => { Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", "forjado"); Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); });
         Http("PUT completo retirado no evita las reservas por bloque", async (app, client) => { await Csrf(client); var r = await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank())); Check((int)r.StatusCode == 428); Check(await app.Store.Get("A", default) is null); });

@@ -1,0 +1,266 @@
+{
+    "aggregated":  true,
+    "realPostgreSql":  true,
+    "sources":  "Synthetic only",
+    "runs":  [
+                 {
+                     "id":  "native-postgres-20261009-085429-706ad183",
+                     "failed":  1,
+                     "passed":  48
+                 },
+                 {
+                     "id":  "native-postgres-20261009-085927-33d92b32",
+                     "failed":  0,
+                     "passed":  2
+                 }
+             ],
+    "verifiedScenarios":  49,
+    "passed":  49,
+    "results":  [
+                    {
+                        "name":  "Central/concesión sin rol no habilita; formato enviado continúa inmutable",
+                        "passed":  true,
+                        "milliseconds":  5865
+                    },
+                    {
+                        "name":  "Central/cuenta suspendida, módulo retirado o concesiones no disponibles deniegan",
+                        "passed":  true,
+                        "milliseconds":  3883
+                    },
+                    {
+                        "name":  "Central/dependencias limita rama y todos los endpoints rechazan UR ajena y nivel 4",
+                        "passed":  true,
+                        "milliseconds":  9548
+                    },
+                    {
+                        "name":  "Central/identidad y jerarquía inválidas explican vacío; tipo N auxiliar y tipo 0 elegible",
+                        "passed":  true,
+                        "milliseconds":  5687
+                    },
+                    {
+                        "name":  "Central/local sin vínculo en nivel 2, 3 e inferior; reserva, guardado y eliminación",
+                        "passed":  true,
+                        "milliseconds":  10010
+                    },
+                    {
+                        "name":  "Central/representación usa sólo concesiones del representado; preview permanece lectura",
+                        "passed":  true,
+                        "milliseconds":  7056
+                    },
+                    {
+                        "name":  "Central/revocación local pendiente no se transforma en central; ambas vías independientes",
+                        "passed":  true,
+                        "milliseconds":  5172
+                    },
+                    {
+                        "name":  "Central/traslado revoca edición anterior; retiro no cae a rol efectivo ni concesión delegada",
+                        "passed":  true,
+                        "milliseconds":  5442
+                    },
+                    {
+                        "name":  "Edición/100 por ciento no autoriza enviar prioridad histórica y pendientes usan ID estable",
+                        "passed":  true,
+                        "milliseconds":  5136
+                    },
+                    {
+                        "name":  "Edición/adquisición confirma contenido vigente y rechaza versión obsoleta",
+                        "passed":  true,
+                        "milliseconds":  4518
+                    },
+                    {
+                        "name":  "Edición/bloques distintos guardan concurrentemente sin sobrescribir JSON",
+                        "passed":  true,
+                        "milliseconds":  4797
+                    },
+                    {
+                        "name":  "Edición/dos sesiones y dos pestañas del mismo usuario compiten por un único bloque",
+                        "passed":  true,
+                        "milliseconds":  3583
+                    },
+                    {
+                        "name":  "Edición/eliminar proceso exige reservas de sus relaciones y conserva registros ILDA",
+                        "passed":  true,
+                        "milliseconds":  6387
+                    },
+                    {
+                        "name":  "Edición/enviado conserva ILDA, unidad y respuestas aunque cambien los catálogos",
+                        "passed":  true,
+                        "milliseconds":  5399
+                    },
+                    {
+                        "name":  "Edición/envío incompleto y reservas ajenas se rechazan; doble envío es idempotente",
+                        "passed":  true,
+                        "milliseconds":  6470
+                    },
+                    {
+                        "name":  "Edición/envío simultáneo con adquisición de reserva conserva una sola decisión",
+                        "passed":  true,
+                        "milliseconds":  4183
+                    },
+                    {
+                        "name":  "Edición/envío y guardado simultáneos de la misma sesión no cruzan el cierre",
+                        "passed":  true,
+                        "milliseconds":  4630
+                    },
+                    {
+                        "name":  "Edición/etapa: alias Nexo, entrada única, ruta y revocación efectiva",
+                        "passed":  true,
+                        "milliseconds":  5900
+                    },
+                    {
+                        "name":  "Edición/etapa: captura limitada, medios incluidos y revocación de privilegio administrativo",
+                        "passed":  true,
+                        "milliseconds":  7464
+                    },
+                    {
+                        "name":  "Edición/etapa: cien parcial no termina formato, sin requisitos de pestañas ocultas ni sesión",
+                        "passed":  true,
+                        "milliseconds":  3085
+                    },
+                    {
+                        "name":  "Edición/etapa: códigos confirmados V/A, vínculos históricos corregibles y rechazo de referencia nueva D/N",
+                        "passed":  true,
+                        "milliseconds":  5302
+                    },
+                    {
+                        "name":  "Edición/etapa: destinatarios vigentes, borrador vacío, rechazo de cliente anterior e historia intacta",
+                        "passed":  true,
+                        "milliseconds":  5865
+                    },
+                    {
+                        "name":  "Edición/etapa: enviados conservan contenido, instantánea y avance sin captura ni retiro",
+                        "passed":  true,
+                        "milliseconds":  3622
+                    },
+                    {
+                        "name":  "Edición/etapa: histórico de otro ejercicio conserva respuestas originales y no mezcla inventario",
+                        "passed":  true,
+                        "milliseconds":  4146
+                    },
+                    {
+                        "name":  "Edición/etapa: representación y vista de prueba usan contexto efectivo sin sumar administrador",
+                        "passed":  true,
+                        "milliseconds":  6249
+                    },
+                    {
+                        "name":  "Edición/etapa: retiro compite con reserva, versión y dependencia ocupada",
+                        "passed":  true,
+                        "milliseconds":  5875
+                    },
+                    {
+                        "name":  "Edición/etapa: retiro ILDA atómico con relaciones ocultas, auditoría, reintento y no reaparición",
+                        "passed":  true,
+                        "milliseconds":  8035
+                    },
+                    {
+                        "name":  "Edición/lectura durante adquisición queda anterior a la confirmación y no invalida su reserva",
+                        "passed":  true,
+                        "milliseconds":  4935
+                    },
+                    {
+                        "name":  "Edición/lectura pasiva no renueva ni permite liberar una reserva ajena",
+                        "passed":  true,
+                        "milliseconds":  4758
+                    },
+                    {
+                        "name":  "Edición/lectura preserva avance, contenido e instantánea de un envío histórico",
+                        "passed":  true,
+                        "milliseconds":  5020
+                    },
+                    {
+                        "name":  "Edición/módulos: catálogo autorizado local, pendiente, módulo inválido y snapshot histórico",
+                        "passed":  true,
+                        "milliseconds":  12187
+                    },
+                    {
+                        "name":  "Edición/módulos: filas independientes con mismo procedimiento, Otra/Otro y respuestas históricas",
+                        "passed":  true,
+                        "milliseconds":  4514
+                    },
+                    {
+                        "name":  "Edición/OIDC rechaza firma y nonce ajenos, no fuerza selector habitual y usa logout_hint opaco",
+                        "passed":  true,
+                        "milliseconds":  4186
+                    },
+                    {
+                        "name":  "Edición/operación y auditoría son atómicas y el fallo no pierde propuesta ni versión",
+                        "passed":  true,
+                        "milliseconds":  3878
+                    },
+                    {
+                        "name":  "Edición/otra persona colaboradora edita dentro de su formato pero no puede enviarlo",
+                        "passed":  true,
+                        "milliseconds":  7100
+                    },
+                    {
+                        "name":  "Edición/prioridad no se selecciona por defecto; 5 repetible y valores históricos conservados",
+                        "passed":  true,
+                        "milliseconds":  6288
+                    },
+                    {
+                        "name":  "Edición/regresión: códigos y criterios confirmados atómicamente para dos altas simultáneas",
+                        "passed":  true,
+                        "milliseconds":  7600
+                    },
+                    {
+                        "name":  "Edición/regresión: un vínculo inválido histórico no paraliza otro registro ni se limpia al guardarlo",
+                        "passed":  true,
+                        "milliseconds":  5025
+                    },
+                    {
+                        "name":  "Edición/reintento idéntico confirma una vez; operación reutilizada y versión vieja rechazadas",
+                        "passed":  true,
+                        "milliseconds":  4376
+                    },
+                    {
+                        "name":  "Edición/reproducción: referencia a código local no confirmado rechaza incluso un bloque independiente",
+                        "passed":  true,
+                        "milliseconds":  4784
+                    },
+                    {
+                        "name":  "Edición/reserva que vence durante el commit revierte respuestas, versión y auditoría",
+                        "passed":  true,
+                        "milliseconds":  3717
+                    },
+                    {
+                        "name":  "Edición/retiro renovación: reproducción de actividad tardía tras commit",
+                        "passed":  true,
+                        "milliseconds":  5796
+                    },
+                    {
+                        "name":  "Edición/revisión omite sesión, recalcula borradores sin escribir y conserva historia al enviar",
+                        "passed":  true,
+                        "milliseconds":  5500
+                    },
+                    {
+                        "name":  "Edición/revocación y contexto obsoleto rechazan reserva y escritura",
+                        "passed":  true,
+                        "milliseconds":  3603
+                    },
+                    {
+                        "name":  "Edición/rol supervisor funciona solo, rama editable y consulta ajena sin módulos administrativos",
+                        "passed":  true,
+                        "milliseconds":  5441
+                    },
+                    {
+                        "name":  "Edición/SignalR permite el origen público tras proxy y rechaza otro origen",
+                        "passed":  true,
+                        "milliseconds":  3132
+                    },
+                    {
+                        "name":  "Edición/usuarios múltiples: colección vacía pendiente, validación estricta, guardado y recarga sin limpieza",
+                        "passed":  true,
+                        "milliseconds":  7078
+                    },
+                    {
+                        "name":  "Edición/usuarios: envío rechaza colección vacía y acepta opciones confirmadas sin alterar prioridad",
+                        "passed":  true,
+                        "milliseconds":  5663
+                    },
+                    {
+                        "name":  "Edición/vencimiento, renovación, reasignación y guardado atrasado cercado por testigo",
+                        "passed":  true,
+                        "milliseconds":  5246
+                    }
+                ]
+}

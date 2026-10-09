@@ -1,11 +1,12 @@
 import type { FormContent, SaveResponse } from '../types/tdv2';
 import { normalizeContent } from './form-editor';
-import { applyBlocks, blockValue, changedBlocks, sameBlock, splitBlocks } from './form-blocks';
+import { applyBlocks, blockValue, changedBlocks, sameBlock } from './form-blocks';
 import type { SubmissionReview } from '../Components/FormSubmissionReview';
+import type { RowTarget } from './form-deletion';
 export type Lease = { id: string | null; propia: boolean; titular: string; venceEn: string; otraPestana?: boolean; color?: number; foto?: string | null };
 export type Block = { key: string; version: number; reserva: Lease | null; value?: unknown };
-export type LiveForm = SaveResponse & { contenido: FormContent; bloques: Block[]; editable: boolean; puedeEnviar: boolean; enviadoEn: string | null; enviadoPor: string | null; revisionEnvio: SubmissionReview | null; seccion: string; servidorEn: string };
-export type Mutation = { tabId: string; operationId: string; blocks: { key: string; version: number; leaseId?: string | null; value?: unknown }[]; section: string; release: boolean };
+export type LiveForm = SaveResponse & { contenido: FormContent; bloques: Block[]; editable: boolean; puedeEnviar: boolean; enviadoEn: string | null; enviadoPor: string | null; revisionEnvio: SubmissionReview | null; seccion: string; servidorEn: string; seccionesPosteriores?: boolean };
+export type Mutation = { tabId: string; operationId: string; blocks: { key: string; version: number; leaseId?: string | null; value?: unknown }[]; section: string; release: boolean; removal?: RowTarget };
 export interface EditingTransport {
     read(): Promise<LiveForm>;
     reserve(body: Mutation): Promise<{ bloques: Block[]; servidorEn: string }>;
@@ -20,7 +21,11 @@ export interface EditorState {
     blocks: Record<string, Block>; initialized: boolean; submitted: string | null; canSubmit: boolean;
     section: string; conflicts: string[];
     review: SubmissionReview | null; submittedBy: string | null;
-    preparing: string[]; issues: Record<string, string>;
+    procedures: NonNullable<LiveForm['procedimientosDisponibles']>;
+    stageProgress: number; stageReview: SubmissionReview | null;
+    laterSections?: boolean;
+    preparing: string[]; issues: Record<string, string>; validation: Record<string, Record<string, string>>;
+    unaccepted: Record<string, Record<string, string>>;
 }
 
 /** Mantiene una propuesta por bloque. Una respuesta antigua nunca reemplaza la escritura posterior del usuario. */
@@ -38,7 +43,13 @@ export class BlockEditor {
     private running?: Promise<boolean>;
     private acquiring?: Promise<void>;
     private releasing = new Map<string, Promise<void>>();
-    private pending?: Mutation;
+    private renewing = new Map<string, Promise<void>>();
+    private pending = new Map<string, Mutation>();
+    private removals = new Map<string, RowTarget>();
+    private retries = new Map<string, { attempts: number; due: number }>();
+    private retryTimer?: ReturnType<typeof setTimeout>;
+    private recoveryAttempts = 0;
+    private kinds = new Map<string, 'validation' | 'connection' | 'expired' | 'incompatible' | 'permission'>();
     private submitting?: { tabId: string; operationId: string; version: number };
     private serverOffset = 0;
     private serverTimestamp = 0;
@@ -58,7 +69,7 @@ export class BlockEditor {
         this.base = normalizeContent(content);
         this.state = { content: this.base, version, progress, dirty: false, saving: false, locked: !editable,
             error: '', updatedBy: null, updatedAt: null, conflict: false, blocks: {}, initialized: false, submitted: null,
-            canSubmit: false, section: 'contexto', conflicts: [], review: null, submittedBy: null, preparing: [], issues: {} };
+            canSubmit: false, section: 'contexto', conflicts: [], review: null, procedures: [], stageProgress: 0, stageReview: null, submittedBy: null, preparing: [], issues: {}, validation: {}, unaccepted: {} };
     }
     private dirtyKeys() {
         if (this.dirtyBase !== this.base || this.dirtyContent !== this.state.content) {
@@ -68,13 +79,14 @@ export class BlockEditor {
         return this.dirtyBlocks;
     }
     private emit(leasesChanged = true) {
-        this.state.dirty = this.dirtyKeys().length > 0;
+        this.state.dirty = this.dirtyKeys().length > 0 || Object.keys(this.state.unaccepted).length > 0 || this.pending.size > 0;
         this.state.conflict = this.state.conflicts.length > 0;
         if (leasesChanged) {
             clearTimeout(this.expiration);
             const remaining = Object.values(this.state.blocks).map(b => Date.parse(b.reserva?.venceEn || '') - Date.now() - this.serverOffset).filter(n => n > 0);
             if (!this.disposed && remaining.length) this.expiration = setTimeout(() => {
                 for (const key of this.dirtyKeys()) if (!this.owned(key)) this.lost(key);
+                if (this.state.conflicts.length) this.scheduleRetry();
                 this.emit();
             }, Math.min(...remaining) + 10);
             this.publishedBlocks = { ...this.state.blocks };
@@ -83,6 +95,7 @@ export class BlockEditor {
     }
     private request(keys: string[], release = false): Mutation {
         return { tabId: this.tabId, operationId: crypto.randomUUID(), section: this.state.section, release,
+            removal: keys.map(key => this.removals.get(key)).find(Boolean),
             blocks: keys.map(key => ({ key, version: this.state.blocks[key]?.version ?? 0, leaseId: this.state.blocks[key]?.reserva?.id })) };
     }
     private active(lease?: Lease | null) { return !!lease && Date.parse(lease.venceEn) > Date.now() + this.serverOffset; }
@@ -93,15 +106,24 @@ export class BlockEditor {
     }
     canEdit(key: string) {
         return !this.disposed && !this.state.locked && this.state.initialized && !this.connectionIssue
-            && !this.state.preparing.includes(key) && !this.releasing.has(key) && !this.state.issues[key] && this.owned(key);
+            && !this.state.preparing.includes(key) && !this.releasing.has(key)
+            && (!this.kinds.has(key) || this.kinds.get(key) === 'validation') && this.owned(key);
     }
     private lost(key: string) {
         this.confirmed.delete(key);
-        this.state.issues[key] ||= 'La edición se interrumpió. Tus cambios sin confirmar se conservan.';
+        if (this.kinds.get(key) === 'incompatible') return;
+        this.kinds.set(key, 'expired');
+        this.state.issues[key] ||= 'Cambios sin guardar. Comprobando la conexión y el registro…';
         if (!this.state.conflicts.includes(key)) this.state.conflicts.push(key);
     }
     proposalKeys(key: string) { return this.groups.get(key) || [key]; }
     proposalBase() { return this.base; }
+    keepUnacceptedInput(key: string, field: string, text: string) {
+        // Es texto capturado antes del permiso, no una modificación autorizada ni un guardado pendiente.
+        this.state.unaccepted[key] = { ...this.state.unaccepted[key], [field]: text };
+        this.state.issues[key] = 'No se pudo iniciar la edición. Este texto no se guardó:';
+        this.emit(false);
+    }
     async refresh() {
         const epoch = this.connectionEpoch;
         try {
@@ -109,25 +131,32 @@ export class BlockEditor {
             // Un mensaje en vuelo anterior a la desconexión no rehabilita la captura.
             // Sólo una consulta iniciada después de ella vuelve a confirmar el estado vigente.
             if (epoch === this.connectionEpoch && this.connectionIssue) {
-                this.connectionIssue = false; this.state.error = ''; this.emit();
+                this.connectionIssue = false; this.state.error = ''; this.rearmRetries(); this.emit();
             }
             // Volver a consultar permite revisar y reintentar un envío rechazado sin tocar respuestas.
             if (this.submissionIssue && !this.state.dirty && !this.state.conflict) {
                 this.submissionIssue = false; this.state.error = ''; this.emit();
             }
-            return true;
+            for (const key of this.dirtyKeys()) {
+                if (this.owned(key) && this.kinds.get(key) === 'connection' && !this.pendingFor(key)) this.clearIssue(key);
+            }
+            if (!this.state.locked && (this.pending.size || [...this.kinds.values()].some(k => k === 'connection' || k === 'expired'))) this.scheduleRetry();
+            this.emit(); return true;
         }
         catch (error) { this.failure(error); return false; }
     }
     receive(data: LiveForm) {
         if (this.disposed || data.version < this.state.version || Date.parse(data.servidorEn) < this.serverTimestamp) return;
         const first = !this.state.initialized;
-        this.latest = data;
-        if (this.state.saving) return;
+        if (this.state.saving) { this.latest = data; return; }
+        // Una lectura ya aplicada no debe reaplicarse tras un 422 y borrar reservas adquiridas
+        // después. Sí retenemos el estado compartido de bloques con propuesta/recibo pendiente.
+        this.latest = undefined;
         const previousContent = this.state.content;
         const signature = () => JSON.stringify({ ...this.state, content: undefined, blocks: this.state.blocks });
         const previousState = signature();
         const dirty = this.dirtyKeys();
+        if (dirty.length || this.pending.size) this.latest = data;
         // La copia compartida debe conservar sus versiones: la propuesta local puede retener otras.
         const incoming = normalizeContent(data.contenido);
         const updates = Object.fromEntries(changedBlocks(this.base, incoming).filter(key => !dirty.includes(key))
@@ -140,6 +169,10 @@ export class BlockEditor {
         this.base = applyBlocks(this.base, updates);
         this.state.content = applyBlocks(this.state.content, updates);
         this.state.blocks = blocks; this.state.version = data.version; this.state.progress = data.porcentaje;
+        for (const key of Object.keys(updates)) if (updates[key] === null && !dirty.includes(key)) this.retire(key);
+        this.state.stageProgress = data.porcentajeEtapa ?? this.state.stageProgress;
+        this.state.stageReview = data.revisionEtapa ?? this.state.stageReview; this.state.procedures = data.procedimientosDisponibles ?? this.state.procedures;
+        this.state.laterSections = data.seccionesPosteriores;
         this.state.updatedAt = data.actualizadoEn; this.state.updatedBy = data.actualizadoPor;
         this.state.locked = !data.editable; this.state.canSubmit = data.puedeEnviar; this.state.submitted = data.enviadoEn;
         this.state.review = data.revisionEnvio ?? null; this.state.submittedBy = data.enviadoPor ?? null;
@@ -149,7 +182,7 @@ export class BlockEditor {
         for (const key of this.confirmed.keys()) if (!this.owned(key)) this.confirmed.delete(key);
         if (!this.state.initialized && !this.sectionChosen) this.state.section = data.seccion || 'contexto';
         this.state.initialized = true;
-        for (const key of Object.keys(this.state.issues)) if (!dirty.includes(key)) delete this.state.issues[key];
+        for (const key of Object.keys(this.state.issues)) if (!dirty.includes(key) && !this.pendingFor(key) && !this.state.unaccepted[key]) this.clearIssue(key);
         // El latido sí revalida acceso y caducidad; un estado equivalente no repinta los controles.
         if (previousContent !== this.state.content || previousState !== signature()) this.emit();
         // Un campo puede recibir foco mientras llega la lectura inicial. Retomar esa intención,
@@ -160,19 +193,72 @@ export class BlockEditor {
         if (!this.disposed) {
             this.connectionEpoch++;
             this.connectionIssue = true;
-            for (const key of this.dirtyKeys())
-                this.state.issues[key] ||= 'Se perdió la conexión. Tu propuesta permanece en este registro.';
-            this.state.error = 'Reconectando la captura… Los cambios sin confirmar se conservan.'; this.emit();
+            for (const key of this.dirtyKeys()) {
+                this.kinds.set(key, 'connection'); this.state.issues[key] ||= 'Sin conexión. Lo escrito se conserva aquí, todavía sin guardar.';
+            }
+            this.state.error = 'Reconectando… Los cambios sin confirmar se conservan.'; this.scheduleRetry(); this.emit();
         }
     }
+    private clearIssue(key: string) {
+        delete this.state.issues[key]; delete this.state.validation[key]; this.kinds.delete(key);
+        this.state.conflicts = this.state.conflicts.filter(k => k !== key);
+    }
+    private pendingFor(key: string) { return [...this.pending.values()].some(p => p.blocks.some(b => b.key === key)); }
+    private rearmRetries() {
+        this.recoveryAttempts = 0;
+        for (const retry of this.retries.values()) { retry.attempts = 0; retry.due = 0; }
+    }
     private failure(error: unknown, keys: string[] = []) {
-        const response = (error as { response?: { status: number; data?: { message?: string; errors?: Record<string, string[]> } } }).response;
-        if ([401, 403, 419].includes(response?.status ?? 0)) this.state.locked = true;
-        if (response?.status === 409) for (const key of keys) this.lost(key);
-        const message = response?.data?.message || Object.values(response?.data?.errors || {}).flat()[0] || 'No se pudo guardar. Tu propuesta se conserva.';
-        if (keys.length) for (const key of keys) this.state.issues[key] = message;
-        else this.state.error = message;
+        const response = (error as { response?: { status: number; data?: { message?: string; errors?: Record<string, string[]>;
+            validation?: { block: string; field: string; message: string }[] } } }).response;
+        const status = response?.status ?? 0;
+        if ([401, 403, 419].includes(status)) this.state.locked = true;
+        const message = response?.data?.message || Object.values(response?.data?.errors || {}).flat()[0]
+            || 'Sin confirmar el guardado. Lo escrito se conserva aquí.';
+        const validation = response?.data?.validation || [];
+        if (status === 422) {
+            // Sólo el campo inválido se señala; su reserva sigue habilitando correcciones.
+            for (const key of keys) if (!validation.length || validation.some(v => v.block === key)) {
+                this.kinds.set(key, 'validation'); this.state.issues[key] = message;
+                this.state.validation[key] = Object.fromEntries(validation.filter(v => v.block === key).map(v => [v.field, v.message]));
+            }
+            if (validation.length && !validation.some(v => keys.includes(v.block)) && keys.length) {
+                this.kinds.set(keys[0], 'validation'); this.state.issues[keys[0]] = message;
+            }
+        } else if (keys.length) for (const key of keys) {
+            if (status === 409) this.lost(key);
+            else this.kinds.set(key, this.state.locked ? 'permission' : 'connection');
+            this.state.issues[key] = this.state.locked ? 'El acceso cambió. Lo escrito no se ha guardado.' : message;
+        } else this.state.error = message;
         this.emit();
+    }
+    // Tres reintentos espaciados, nunca por tecla ni por latido de SignalR.
+    private scheduleRetry() {
+        if (this.disposed || this.state.locked || this.retryTimer || this.recoveryAttempts >= 3) return;
+        const wait = [1000, 3000, 8000][this.recoveryAttempts++];
+        this.retryTimer = setTimeout(() => {
+            this.retryTimer = undefined;
+            void (async () => { if (await this.refresh()) await this.flush();
+                if (this.connectionIssue || [...this.kinds.values()].some(k => k === 'connection' || k === 'expired')) this.scheduleRetry(); })();
+        }, wait);
+    }
+    private async recheck(keys: string[]) {
+        const live = await this.transport.read(); this.receive(live);
+        if (!live.editable || this.state.locked || this.connectionIssue) return false;
+        for (const key of keys) {
+            if (this.busy(key)) return false;
+            if (!sameBlock(blockValue(this.base, key), blockValue(live.contenido, key))) {
+                this.kinds.set(key, 'incompatible');
+                this.state.issues[key] = 'Este registro cambió durante la interrupción. Lo escrito permanece aquí, sin guardar.';
+                this.emit(); return false;
+            }
+        }
+        for (const key of keys) {
+            const current = live.bloques.find(b => b.key === key);
+            this.state.blocks[key] = current ? structuredClone(current) : { key, version: 0, reserva: null };
+            this.clearIssue(key);
+        }
+        return true;
     }
     private async ensure(keys: string[]) {
         const releases = keys.flatMap(key => this.releasing.has(key) ? [this.releasing.get(key)!] : []);
@@ -182,8 +268,9 @@ export class BlockEditor {
         if (this.state.locked || this.connectionIssue) throw new Error('No se pudo confirmar el acceso.');
         const needed = keys.filter(key => !this.owned(key));
         if (!needed.length) return;
-        // Nunca volver a reservar silenciosamente una propuesta cuyo titular o versión se perdió.
-        if (needed.some(key => this.dirtyKeys().includes(key))) throw new Error('Revisa la propuesta pendiente.');
+        const dirty = needed.filter(key => this.dirtyKeys().includes(key));
+        // Reanudar sólo si la respuesta compartida sigue siendo la base de lo escrito.
+        if (dirty.length && !await this.recheck(dirty)) throw new Error('El registro no está disponible.');
         this.state.preparing = [...new Set([...this.state.preparing, ...needed])]; this.emit();
         this.acquiring = (async () => {
             const result = await this.transport.reserve(this.request(needed));
@@ -193,31 +280,56 @@ export class BlockEditor {
             this.serverTimestamp = Math.max(this.serverTimestamp, Date.parse(result.servidorEn));
             for (const block of result.bloques) {
                 if (block.version < (this.state.blocks[block.key]?.version ?? 0)) continue;
+                if (dirty.includes(block.key) && !sameBlock(blockValue(this.base, block.key), block.value)) {
+                    this.kinds.set(block.key, 'incompatible');
+                    this.state.issues[block.key] = 'El registro cambió. Lo escrito se conserva sin guardar.';
+                    void this.transport.release({ ...this.request([]), blocks: [{ key: block.key, version: block.version, leaseId: block.reserva?.id }] }).catch(() => {});
+                    continue;
+                }
                 this.state.blocks[block.key] = block;
-                if ('value' in block) {
+                if ('value' in block && !dirty.includes(block.key)) {
                     this.base = applyBlocks(this.base, { [block.key]: block.value ?? null });
                     this.state.content = applyBlocks(this.state.content, { [block.key]: block.value ?? null });
                 }
                 if (block.reserva?.propia && this.active(block.reserva) && block.reserva.id) this.confirmed.set(block.key, block.reserva.id);
-                delete this.state.issues[block.key];
+                this.clearIssue(block.key);
             }
             this.emit();
         })();
         try { await this.acquiring; } finally { this.acquiring = undefined; this.state.preparing = this.state.preparing.filter(key => !needed.includes(key)); this.emit(); }
     }
     async prepare(keys: string[]): Promise<boolean> {
-        if (this.disposed || this.state.locked || !this.state.initialized || keys.some(key => this.state.issues[key] || this.busy(key))) return false;
+        if (this.disposed || this.state.locked || !this.state.initialized || keys.some(key => this.kinds.get(key) === 'incompatible' || this.kinds.get(key) === 'permission' || this.pendingFor(key) || this.busy(key))) return false;
         try { await this.ensure(keys); return keys.every(key => this.canEdit(key)); }
         catch (error) {
+            if ((error as { response?: { data?: { code?: string } } }).response?.data?.code === 'registro_eliminado') {
+                await this.refresh(); return false;
+            }
             // Una carrera normal por la reserva se presenta en la fila, no como conflicto de guardado.
             if ((error as { response?: { status: number } }).response?.status === 409) {
-                if (await this.refresh() && !keys.some(key => this.busy(key) || this.state.issues[key])) {
+                if (await this.refresh() && !keys.some(key => this.busy(key) || this.kinds.get(key) === 'incompatible')) {
                     try { await this.ensure(keys); return keys.every(key => this.canEdit(key)); } catch { /* Releer muestra al titular ganador. */ }
                     await this.refresh();
                 }
-            } else this.failure(error, keys);
+            } else if (!keys.some(key => this.kinds.get(key) === 'incompatible' || this.busy(key))) this.failure(error, keys);
             return false;
         }
+    }
+    async prepareRemoval(keys: string[], target: RowTarget) {
+        // La actividad anterior termina antes de iniciar el retiro; nunca renovamos una eliminación.
+        await Promise.all(keys.flatMap(key => this.renewing.has(key) ? [this.renewing.get(key)!] : []));
+        // El servidor concede sólo las reservas auxiliares de esta cascada; no habilita captura de esas secciones.
+        for (const key of keys) this.removals.set(key, target);
+        return this.prepare(keys);
+    }
+    finishRemoval(keys: string[]) {
+        for (const key of keys) if (!this.dirtyKeys().includes(key) && !this.pendingFor(key)) this.removals.delete(key);
+    }
+    private retire(key: string) {
+        this.confirmed.delete(key); this.focused.delete(key); this.focusEpoch.delete(key);
+        this.lastActivity.delete(key); this.removals.delete(key); this.groups.delete(key); this.clearIssue(key);
+        this.state.preparing = this.state.preparing.filter(k => k !== key);
+        if (this.state.blocks[key]) this.state.blocks[key].reserva = null;
     }
     /** Altas y cambios con relaciones reservan todos sus bloques antes de modificar la propuesta. */
     async edit(edit: (content: FormContent) => void, stillValid: () => boolean = () => true) {
@@ -242,7 +354,7 @@ export class BlockEditor {
         // Un cambio de foco durante el guardado no debe pedir una reserva con la versión anterior.
         if (this.running) await this.running;
         if (this.focusEpoch.get(key) !== epoch) return false;
-        if (this.disposed || this.state.locked || !this.state.initialized || this.state.conflicts.includes(key) || this.busy(key)) return false;
+        if (this.disposed || this.state.locked || !this.state.initialized || this.kinds.get(key) === 'incompatible' || this.busy(key)) return false;
         const ready = await this.prepare([key]);
         // Una intención de abrir un selector o marcar una casilla no sobrevive a salir del registro.
         return ready && this.focusEpoch.get(key) === epoch && this.focused.has(key);
@@ -266,7 +378,16 @@ export class BlockEditor {
     }
     private commitChange(next: FormContent, keys: string[]) {
         const dirty = new Set(this.dirtyKeys());
+        this.recoveryAttempts = 0;
         for (const key of keys) {
+            if (this.kinds.get(key) === 'validation') this.clearIssue(key);
+            const held = this.state.unaccepted[key];
+            if (held) {
+                const before = blockValue(this.state.content, key) as Record<string, unknown> | undefined;
+                const after = blockValue(next, key) as Record<string, unknown> | undefined;
+                for (const field of Object.keys(held)) if (!sameBlock(before?.[field], after?.[field])) delete held[field];
+                if (!Object.keys(held).length) { delete this.state.unaccepted[key]; this.clearIssue(key); }
+            }
             if (sameBlock(blockValue(this.base, key), blockValue(next, key))) dirty.delete(key);
             else dirty.add(key);
         }
@@ -277,14 +398,17 @@ export class BlockEditor {
         // Sólo una interacción que cambia respuestas renueva la reserva. No hay latido de pestaña abierta.
         for (const key of keys) {
             const lease = this.state.blocks[key]?.reserva;
-            if (lease?.propia && this.active(lease) && Date.now() - (this.lastActivity.get(key) || 0) > 15000) {
+            if (!this.removals.has(key) && !this.renewing.has(key) && blockValue(next, key) != null
+                && lease?.propia && this.active(lease) && Date.now() - (this.lastActivity.get(key) || 0) > 15000) {
                 this.lastActivity.set(key, Date.now());
                 const renewal = this.request([key]);
-                void this.transport.renew(renewal).then(result => {
-                    this.serverTimestamp = Math.max(this.serverTimestamp, Date.parse(result.servidorEn) || 0);
+                const activity = this.transport.renew(renewal).then(result => {
                     for (const block of result.bloques) {
                         const current = this.state.blocks[block.key];
-                        if (current?.reserva?.id === block.reserva?.id && current.version === block.version) current.reserva = block.reserva;
+                        if (!this.disposed && current?.reserva?.id === block.reserva?.id && current.version === block.version) {
+                            current.reserva = block.reserva;
+                            this.serverTimestamp = Math.max(this.serverTimestamp, Date.parse(result.servidorEn) || 0);
+                        }
                     }
                     this.emit();
                 }).catch(error => {
@@ -292,11 +416,12 @@ export class BlockEditor {
                     // Una renovación anterior al guardado no puede convertir su confirmación en conflicto.
                     if (current?.version === renewal.blocks[0].version && current.reserva?.id === renewal.blocks[0].leaseId)
                         this.failure(error, [key]);
-                });
+                }).finally(() => { if (this.renewing.get(key) === activity) this.renewing.delete(key); });
+                this.renewing.set(key, activity);
             }
         }
         clearTimeout(this.timer);
-        if (!this.pending) this.timer = setTimeout(() => void this.flush(), 1000);
+        this.timer = setTimeout(() => void this.flush(), 1000);
         return true;
     }
     setSection(section: string) { this.sectionChosen = true; this.state.section = section; this.emit(); }
@@ -307,8 +432,9 @@ export class BlockEditor {
         if (this.state.locked) return;
         // La respuesta de adquisición puede llegar después de salir del campo: esperar antes de liberar.
         if (this.acquiring) await this.acquiring.catch(() => {});
-        if (this.dirtyKeys().includes(key) && !await this.flush()) return;
-        if (this.focusEpoch.get(key) !== epoch || this.dirtyKeys().includes(key)) return;
+        // Volver al valor original no anula una petición que ya viaja al servidor.
+        if ((this.dirtyKeys().includes(key) || this.pendingFor(key)) && !await this.flush(false, this.proposalKeys(key))) return;
+        if (this.focusEpoch.get(key) !== epoch || this.dirtyKeys().includes(key) || this.pendingFor(key)) return;
         const block = this.state.blocks[key];
         if (block?.reserva?.propia) {
             try {
@@ -317,19 +443,29 @@ export class BlockEditor {
             catch (error) { this.failure(error); }
         }
     }
-    async flush(release = false): Promise<boolean> {
-        if (this.running) {
-            const result = await this.running;
-            if (result && this.state.dirty) return this.flush(release);
-            if (result && release) await this.releaseClean();
-            return result;
-        }
+    async flush(release = false, selected?: string[]): Promise<boolean> {
+        if (this.running) { await this.running; return this.flush(release, selected); }
+        // Guardar borrador y terminar explícitamente el apartado pueden reintentar un recibo agotado.
+        // El temporizador no reinicia este presupuesto, ni inventa un nuevo identificador de operación.
+        if (release) this.rearmRetries();
         if (this.state.locked || !this.state.initialized || this.disposed) return !this.state.dirty;
         clearTimeout(this.timer);
         this.running = (async () => {
-            const saved = await this.save(release);
-            if (saved && release) await this.releaseClean();
-            return saved;
+            const considered = new Set<string>();
+            // Una fila o un cambio explícito con relaciones constituyen una operación atómica.
+            for (const key of this.dirtyKeys()) {
+                if (considered.has(key) || selected && !selected.includes(key)) continue;
+                const group = this.proposalKeys(key).filter(k => this.dirtyKeys().includes(k));
+                for (const k of group) considered.add(k);
+                await this.save(group);
+            }
+            for (const [key, operation] of this.pending) if (!considered.has(key) && (!selected || operation.blocks.some(b => selected.includes(b.key))))
+                await this.save(operation.blocks.map(b => b.key));
+            if (release) await this.releaseClean(selected);
+            else await this.releaseClean([...considered].filter(k => !this.focused.has(k)));
+            return !Object.keys(this.state.unaccepted).some(k => !selected || selected.includes(k))
+                && !this.dirtyKeys().some(k => !selected || selected.includes(k))
+                && ![...this.pending.values()].some(p => !selected || p.blocks.some(b => selected.includes(b.key)));
         })();
         try { return await this.running; } finally { this.running = undefined; }
     }
@@ -337,7 +473,7 @@ export class BlockEditor {
         if (this.acquiring) await this.acquiring.catch(() => {});
         const dirty = this.dirtyKeys();
         const keys = Object.values(this.state.blocks).filter(b => b.reserva?.propia && !dirty.includes(b.key)
-            && (!selected || selected.includes(b.key))).map(b => b.key);
+            && !this.pendingFor(b.key) && (!selected || selected.includes(b.key))).map(b => b.key);
         if (!keys.length) return;
         try {
             await this.releaseKeys(keys);
@@ -357,94 +493,76 @@ export class BlockEditor {
         this.emit();
         try { await release; } finally { for (const key of keys) this.releasing.delete(key); this.emit(); }
     }
-    private async save(release: boolean): Promise<boolean> {
-        const section = this.state.section;
-        const keys = this.dirtyKeys().filter(key => !this.state.conflicts.includes(key) && !this.state.issues[key]);
-        if (!keys.length && !this.pending) return !this.state.dirty;
+    private async save(keys: string[]): Promise<boolean> {
+        const existing = [...this.pending.entries()].find(([, p]) => p.blocks.some(b => keys.includes(b.key)));
+        const operationKey = existing?.[0] || keys[0];
+        let sent = existing?.[1];
+        if (!sent && keys.some(k => this.kinds.get(k) === 'validation' || this.kinds.get(k) === 'incompatible')) return false;
+        if (this.connectionIssue) { this.scheduleRetry(); return false; }
+        if (sent) {
+            const retry = this.retries.get(sent.operationId);
+            if (retry && (retry.attempts >= 3 || retry.due > Date.now())) { this.scheduleRetry(); return false; }
+        } else {
+            if (!await this.prepare(keys)) return false;
+            if (keys.some(k => !this.canEdit(k)) || this.disposed) return false;
+            sent = this.request(keys); // Liberar después del ACK y de agotar escrituras posteriores.
+            sent.blocks = sent.blocks.map(block => ({ ...block, value: structuredClone(blockValue(this.state.content, block.key) ?? null) }));
+            this.pending.set(operationKey, sent);
+        }
         this.state.saving = true; this.emit();
         try {
-            if (!this.pending) {
-                if (keys.some(key => !this.canEdit(key))) { for (const key of keys) if (!this.canEdit(key)) this.lost(key); return false; }
-                // Una navegación/cambio de representación puede terminar el editor mientras espera la reserva.
-                // No enviar su propuesta con el contexto de la página que lo sustituyó.
-                if (this.disposed) { void this.releaseClean(); return false; }
-                const snapshot = splitBlocks(this.state.content);
-                this.pending = this.request(keys, release);
-                this.pending.section = section;
-                for (const block of this.pending.blocks) block.value = snapshot[block.key] ?? null;
-            }
-            const sent = this.pending;
             const saved = await this.transport.save(sent);
-            const current = splitBlocks(this.state.content), confirmed = Object.fromEntries(saved.bloques.map(block => [block.key, block.value ?? null]));
-            this.base = applyBlocks(this.base, confirmed);
-            this.state.content = applyBlocks(this.state.content, Object.fromEntries(saved.bloques
-                .filter(block => sameBlock(current[block.key], sent.blocks.find(b => b.key === block.key)?.value))
-                .map(block => [block.key, block.value ?? null])));
+            const updates: Record<string, unknown> = {};
             for (const block of saved.bloques) {
-                this.state.blocks[block.key] = block;
-                delete this.state.issues[block.key];
-                this.state.conflicts = this.state.conflicts.filter(key => key !== block.key);
+                const current = blockValue(this.state.content, block.key), original = sent.blocks.find(b => b.key === block.key);
+                if (!original || sameBlock(current, original.value)) updates[block.key] = block.value ?? null;
+                else if (current && original.value && block.value && typeof current === 'object' && !Array.isArray(current)) {
+                    // Incorporar códigos confirmados sin borrar texto escrito durante la petición.
+                    const merged = { ...current as Record<string, unknown> };
+                    for (const [field, value] of Object.entries(block.value as Record<string, unknown>))
+                        if (sameBlock(merged[field], (original.value as Record<string, unknown>)[field])) merged[field] = value;
+                    updates[block.key] = merged;
+                }
+                this.state.blocks[block.key] = block; this.clearIssue(block.key);
                 if (!block.reserva?.propia) this.confirmed.delete(block.key);
             }
+            this.base = applyBlocks(this.base, Object.fromEntries(saved.bloques.map(b => [b.key, b.value ?? null])));
+            this.state.content = applyBlocks(this.state.content, updates);
+            // Sólo la confirmación del servidor retira el estado de edición, nunca la propuesta optimista.
+            for (const block of saved.bloques) if (block.value === null) this.retire(block.key);
+            const dirty = this.dirtyKeys();
+            for (const block of saved.bloques) {
+                const group = this.groups.get(block.key);
+                // Una cascada confirmada no une para siempre registros que ya son independientes.
+                if (group && !group.some(key => dirty.includes(key))) for (const key of group) this.groups.delete(key);
+            }
             this.state.version = Math.max(this.state.version, saved.version); this.state.progress = saved.porcentaje;
+            this.state.stageProgress = saved.porcentajeEtapa ?? this.state.stageProgress;
+            this.state.stageReview = saved.revisionEtapa ?? this.state.stageReview; this.state.procedures = saved.procedimientosDisponibles ?? this.state.procedures;
             this.state.updatedAt = saved.actualizadoEn; this.state.updatedBy = saved.actualizadoPor;
             this.state.review = saved.revisionEnvio ?? null;
-            this.pending = undefined; if (!this.state.conflicts.length) this.state.error = '';
+            this.pending.delete(operationKey); this.retries.delete(sent.operationId);
+            this.finishRemoval(sent.blocks.map(b => b.key));
+            if (!this.state.conflicts.length) this.state.error = '';
             return true;
         } catch (error) {
             const status = (error as { response?: { status: number } }).response?.status;
-            if (status && status < 500) this.pending = undefined;
-            this.failure(error, keys); return false;
+            if (status && status < 500 && status !== 408 && status !== 429) {
+                this.pending.delete(operationKey); this.retries.delete(sent.operationId);
+            } else {
+                const attempts = (this.retries.get(sent.operationId)?.attempts || 0) + 1;
+                this.retries.set(sent.operationId, { attempts, due: Date.now() + [1000, 3000, 8000][Math.min(attempts - 1, 2)] });
+            }
+            this.failure(error, sent.blocks.map(b => b.key));
+            if (status !== 422 && !this.state.locked) this.scheduleRetry();
+            return false;
         } finally {
             this.state.saving = false; this.emit();
             const latest = this.latest;
-            // Un recibo idempotente puede confirmar una operación anterior a la versión que ya vimos.
-            // Reaplicar también la misma versión global evita volver a mostrar aquel contenido antiguo.
             if (latest && latest.version >= this.state.version) this.receive(latest);
-            if (this.state.dirty && !this.state.error && !Object.keys(this.state.issues).length && !this.disposed) this.timer = setTimeout(() => void this.flush(), 300);
+            if (!this.disposed && this.dirtyKeys().some(k => !this.kinds.has(k) && !this.pendingFor(k)))
+                this.timer = setTimeout(() => void this.flush(), 300);
         }
-    }
-    /** Recuperación explícita: el usuario ya comparó su propuesta con el contenido compartido. */
-    async recover(comparedVersion: number, selected = this.dirtyKeys()) {
-        // Resolver primero un resultado incierto usando el mismo identificador, nunca otro guardado equivalente.
-        if (this.pending) { if (!await this.flush()) throw new Error('No se pudo confirmar el guardado. Conserva la propuesta y vuelve a intentarlo.'); return; }
-        const proposal = splitBlocks(this.state.content), keys = this.dirtyKeys().filter(key => selected.includes(key));
-        const latest = await this.transport.read();
-        if (latest.version !== comparedVersion) throw new Error('La versión compartida volvió a cambiar. Compara de nuevo.');
-        if (!latest.editable) { this.receive(latest); return; }
-        if (latest.bloques.some(block => keys.includes(block.key) && block.reserva && !block.reserva.propia && Date.parse(block.reserva.venceEn) > Date.parse(latest.servidorEn)))
-            throw new Error('Otra sesión sigue editando este registro. Tu propuesta se conserva.');
-        const previousBase = this.base, previousContent = this.state.content;
-        const shared = splitBlocks(normalizeContent(latest.contenido));
-        this.base = applyBlocks(this.base, Object.fromEntries(keys.map(key => [key, shared[key] ?? null])));
-        this.state.content = applyBlocks(this.state.content, Object.fromEntries(keys.map(key => [key, shared[key] ?? null])));
-        for (const key of keys) { this.confirmed.delete(key); delete this.state.issues[key]; }
-        this.state.conflicts = this.state.conflicts.filter(key => !keys.includes(key)); this.receive(latest);
-        try {
-            if (!await this.prepare(keys)) throw new Error('No se pudo reservar el registro.');
-            this.state.content = applyBlocks(this.state.content, Object.fromEntries(keys.map(key => [key, proposal[key] ?? null])));
-        } catch (error) {
-            this.base = previousBase; this.state.content = previousContent;
-            for (const key of keys) this.lost(key);
-            throw error;
-        } finally { this.emit(); }
-    }
-    async discard(comparedVersion: number, keys: string[]) {
-        if (this.pending) {
-            if (!await this.flush()) throw new Error('No se pudo confirmar el resultado del guardado. Tu propuesta se conserva.');
-            throw new Error('El guardado pendiente se confirmó. Revisa la respuesta actual antes de continuar.');
-        }
-        const latest = await this.transport.read();
-        if (latest.version !== comparedVersion) throw new Error('La respuesta guardada cambió. Revisa la comparación actualizada.');
-        const shared = splitBlocks(normalizeContent(latest.contenido));
-        const values = Object.fromEntries(keys.map(key => [key, shared[key] ?? null]));
-        // Descartar requiere una decisión explícita y afecta sólo a la propuesta revisada.
-        this.base = applyBlocks(this.base, values); this.state.content = applyBlocks(this.state.content, values);
-        for (const key of keys) delete this.state.issues[key];
-        this.state.conflicts = this.state.conflicts.filter(key => !keys.includes(key));
-        this.receive(latest);
-        for (const key of keys) await this.endBlock(key);
-        this.emit();
     }
     async submit(confirmedVersion?: number): Promise<boolean> {
         if (this.disposed || !this.state.canSubmit || !await this.flush(true) || this.disposed || this.state.dirty) return false;
@@ -465,5 +583,5 @@ export class BlockEditor {
             this.failure(error); return false;
         }
     }
-    dispose() { this.disposed = true; clearTimeout(this.timer); clearTimeout(this.expiration); void this.releaseClean(); }
+    dispose() { this.disposed = true; clearTimeout(this.timer); clearTimeout(this.expiration); clearTimeout(this.retryTimer); void this.releaseClean(); }
 }

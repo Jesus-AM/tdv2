@@ -1,0 +1,111 @@
+{
+  "utc": "2026-10-09T03:55:23.3195241+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 20,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Edici\u00F3n/SignalR permite el origen p\u00FAblico tras proxy y rechaza otro origen",
+      "passed": true,
+      "milliseconds": 2839
+    },
+    {
+      "name": "Edici\u00F3n/dos sesiones y dos pesta\u00F1as del mismo usuario compiten por un \u00FAnico bloque",
+      "passed": true,
+      "milliseconds": 1945
+    },
+    {
+      "name": "Edici\u00F3n/bloques distintos guardan concurrentemente sin sobrescribir JSON",
+      "passed": true,
+      "milliseconds": 2582
+    },
+    {
+      "name": "Edici\u00F3n/vencimiento, renovaci\u00F3n, reasignaci\u00F3n y guardado atrasado cercado por testigo",
+      "passed": true,
+      "milliseconds": 2824
+    },
+    {
+      "name": "Edici\u00F3n/lectura pasiva no renueva ni permite liberar una reserva ajena",
+      "passed": true,
+      "milliseconds": 2319
+    },
+    {
+      "name": "Edici\u00F3n/adquisici\u00F3n confirma contenido vigente y rechaza versi\u00F3n obsoleta",
+      "passed": true,
+      "milliseconds": 1885
+    },
+    {
+      "name": "Edici\u00F3n/reintento id\u00E9ntico confirma una vez; operaci\u00F3n reutilizada y versi\u00F3n vieja rechazadas",
+      "passed": true,
+      "milliseconds": 1576
+    },
+    {
+      "name": "Edici\u00F3n/revocaci\u00F3n y contexto obsoleto rechazan reserva y escritura",
+      "passed": true,
+      "milliseconds": 1396
+    },
+    {
+      "name": "Edici\u00F3n/operaci\u00F3n y auditor\u00EDa son at\u00F3micas y el fallo no pierde propuesta ni versi\u00F3n",
+      "passed": true,
+      "milliseconds": 1360
+    },
+    {
+      "name": "Edici\u00F3n/reserva que vence durante el commit revierte respuestas, versi\u00F3n y auditor\u00EDa",
+      "passed": true,
+      "milliseconds": 1186
+    },
+    {
+      "name": "Edici\u00F3n/etapa: alias Nexo, entrada \u00FAnica, ruta y revocaci\u00F3n efectiva",
+      "passed": true,
+      "milliseconds": 2917
+    },
+    {
+      "name": "Edici\u00F3n/etapa: captura limitada, medios incluidos y revocaci\u00F3n de privilegio administrativo",
+      "passed": true,
+      "milliseconds": 4544
+    },
+    {
+      "name": "Edici\u00F3n/etapa: representaci\u00F3n y vista de prueba usan contexto efectivo sin sumar administrador",
+      "passed": true,
+      "milliseconds": 3274
+    },
+    {
+      "name": "Edici\u00F3n/etapa: Externo y Otro incompleto guardan borrador; detalle persistente y respuestas ocultas intactas",
+      "passed": true,
+      "milliseconds": 2203
+    },
+    {
+      "name": "Edici\u00F3n/etapa: cien parcial no termina formato, sin requisitos de pesta\u00F1as ocultas ni sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 988
+    },
+    {
+      "name": "Edici\u00F3n/etapa: c\u00F3digos confirmados V/A, v\u00EDnculos hist\u00F3ricos corregibles y rechazo de referencia nueva D/N",
+      "passed": true,
+      "milliseconds": 2931
+    },
+    {
+      "name": "Edici\u00F3n/etapa: retiro ILDA at\u00F3mico con relaciones ocultas, auditor\u00EDa, reintento y no reaparici\u00F3n",
+      "passed": true,
+      "milliseconds": 4367
+    },
+    {
+      "name": "Edici\u00F3n/etapa: retiro compite con reserva, versi\u00F3n y dependencia ocupada",
+      "passed": true,
+      "milliseconds": 3166
+    },
+    {
+      "name": "Edici\u00F3n/etapa: enviados conservan contenido, instant\u00E1nea y avance sin captura ni retiro",
+      "passed": true,
+      "milliseconds": 1323
+    },
+    {
+      "name": "React \u2192 ASP.NET \u2192 PostgreSQL / Edge",
+      "passed": true
+    }
+  ]
+}

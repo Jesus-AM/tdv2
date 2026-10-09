@@ -4,7 +4,7 @@ import { AccountTreeOutlined, SettingsOutlined, SyncOutlined, FactCheckOutlined,
 import type { NavigationModule } from '@/lib/module-navigation';
 import { activeModule, moduleGroups } from '@/lib/module-navigation';
 const icons: Record<string, React.ReactNode> = {
-    procesos_operativos: <AccountTreeOutlined fontSize="small" />, configuracion: <SettingsOutlined fontSize="small" />,
+    procedimientos_institucionales: <AccountTreeOutlined fontSize="small" />, procesos_operativos: <AccountTreeOutlined fontSize="small" />, configuracion: <SettingsOutlined fontSize="small" />,
     sincronizaciones: <SyncOutlined fontSize="small" />, pruebas_acceso: <FactCheckOutlined fontSize="small" />,
     configuracion_procesos: <Tune fontSize="small" />,
 };

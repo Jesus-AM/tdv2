@@ -7,7 +7,7 @@ using Tdv2.Web;
 
 namespace Tdv2.Controllers;
 
-public sealed class ConfigurationController(RequestAccess access, SynchronizationQueries queries, SyncCoordinator sync) : ControllerBase
+public sealed class ConfigurationController(RequestAccess access, SynchronizationQueries queries, SyncCoordinator sync, ManualSyncDispatcher dispatcher) : ControllerBase
 {
     [HttpGet("/configuracion")]
     public async Task<IResult> Index()
@@ -48,7 +48,9 @@ public sealed class ConfigurationController(RequestAccess access, Synchronizatio
     [EnableRateLimiting("sync-start")]
     public async Task<IResult> Enqueue([FromBody] JsonObject input)
     {
+        dispatcher.RequireAvailable();
         var id = await sync.Enqueue(Inputs.Text(input, "fuentes", 3, 5), "manual", access.Actor(HttpContext), true, HttpContext.RequestAborted);
-        return Results.Json(new { message = "Sincronización en cola. Se procesará en el siguiente ciclo del servicio.", id }, statusCode: 202);
+        dispatcher.Wake();
+        return Results.Json(new { message = "Solicitud aceptada. Confirmando el inicio de la sincronización.", id }, statusCode: 202);
     }
 }

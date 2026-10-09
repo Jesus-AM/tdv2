@@ -21,6 +21,23 @@ internal static partial class NativeTests
     private static JsonObject Header(string responsible) => new() { ["fecha"] = "2026-10-05", ["area"] = "Área sintética A", ["responsable"] = responsible };
     private static async Task<JsonObject> Live(HttpClient client, Guid tab, string unit = "A") => await Json(await client.GetAsync($"/formatos/{unit}/estado?tab={tab}"));
     private static JsonObject Complete(NativeApplication app) => Complete(app.Services.GetRequiredService<FormSchema>());
+    private static Task FinalStage(NativeDatabase database) => database.Sql("""
+        INSERT INTO fixture_roles SELECT 10,'persona@uacj.mx',34,'administrador','Administrador'
+        WHERE NOT EXISTS(SELECT 1 FROM fixture_roles WHERE email='persona@uacj.mx' AND rol_clave='administrador')
+        """);
+    // Existing historical responses are seeded only in the disposable database; PUT capture is retired.
+    private static async Task SeedEditing(NativeDatabase database, JsonObject content)
+    {
+        await FinalStage(database);
+        await database.Sql("""
+            INSERT INTO formatos_ur(id_ur,ejercicio,contenido,version,porcentaje,actualizado_por,created_at,updated_at)
+            VALUES('A',2026,$1::json,1,$2,'persona@uacj.mx',now(),now())
+            ON CONFLICT(id_ur) DO UPDATE SET contenido=EXCLUDED.contenido,version=1,porcentaje=EXCLUDED.porcentaje
+            """, content.ToJsonString(), FormSchema.Progress(content));
+        await database.Sql("DELETE FROM formato_bloques WHERE id_ur='A'");
+        foreach (var key in FormBlocks.Split(content).Keys)
+            await database.Sql("INSERT INTO formato_bloques(id_ur,bloque,version,revision_contexto,participante,color) VALUES('A',$1,1,0,'',0)", key);
+    }
     internal static JsonObject Complete(FormSchema schema)
     {
         var content = schema.Blank(new("A", "100", "Área sintética A", 2, null, 2026));
@@ -39,6 +56,72 @@ internal static partial class NativeTests
     }
     private static void RegisterEditingCases(NativeDatabase database, Action<string, Func<NativeApplication, HttpClient, Task>> Test)
     {
+        Test("Edición/regresión: códigos y criterios confirmados atómicamente para dos altas simultáneas", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); var first = Guid.NewGuid(); var second = Guid.NewGuid();
+            var row = (await Live(client, first))["contenido"]!["identificacion"]![0]!.DeepClone();
+            row["validacion"] = "V"; row["tramite"] = "Proceso uno";
+            row["usuario"] = new JsonArray("Docentes"); row["resultado"] = "Entrega"; row["responsable"] = "Área"; row["prioridad"] = "3";
+            var other = row.DeepClone(); other["id"] = "segundo"; other["tramite"] = "Proceso dos";
+            var a = await Lease(client, first, "identificacion:inicial"); var b = await Lease(client, second, "identificacion:segundo");
+            var incomplete = row.DeepClone().AsObject(); incomplete.Remove("codigo");
+            var invalid = await Patch(client, Edit(first, a with { Value = incomplete }));
+            Check(invalid.StatusCode == HttpStatusCode.UnprocessableEntity);
+            Check((await Json(invalid))["validation"]![0]!["field"]!.ToString() == "codigo");
+            var outcomes = await Task.WhenAll(Patch(client, Edit(first, a with { Value = row })), Patch(client, Edit(second, b with { Value = other })));
+            Check(outcomes.All(r => r.IsSuccessStatusCode));
+            var live = await Live(client, first); var content = live["contenido"]!;
+            var codes = content["identificacion"]!.AsArray().Select(r => r!["codigo"]!.ToString()).Order().ToArray();
+            Check(codes.SequenceEqual(new[] { "PO-01", "PO-02" }));
+            Check(codes.All(c => content["evaluaciones"]![c]!.AsArray().Count == 9));
+            Check(live["bloques"]!.AsArray().Count(b => b!["key"]!.ToString().StartsWith("evaluaciones:") && b["version"]!.GetValue<int>() == 1) == 18);
+            var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = codes[0];
+            var link = await Lease(client, first, "sistemas:inicial");
+            Check((await Patch(client, Edit(first, link with { Value = system }))).IsSuccessStatusCode);
+            // Un código confirmado no se renombra ni deja vínculos huérfanos.
+            row = content["identificacion"]![0]!.DeepClone(); row["codigo"] = "PO-98";
+            Check((await Patch(client, Edit(first, a with { Version = 1, Value = row }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            foreach (var cleared in new string?[] { "", null })
+            {
+                row["codigo"] = cleared;
+                Check((await Patch(client, Edit(first, a with { Version = 1, Value = row }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            }
+        });
+        Test("Edición/regresión: un vínculo inválido histórico no paraliza otro registro ni se limpia al guardarlo", async (app, client) =>
+        {
+            await FinalStage(database);
+            await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
+            var agreement = await Lease(client, tab, "acuerdos:inicial");
+            // Fixture sintético de la incidencia previa; nunca se ejecuta sobre una conexión institucional.
+            await database.Sql("UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{sistemas,0,proceso}','\"PO-99\"')::json WHERE id_ur='A'");
+            var original = (await Live(client, tab))["contenido"]!;
+            var row = original["acuerdos"]![0]!.DeepClone(); row["acuerdo"] = "Independiente";
+            Check((await Patch(client, Edit(tab, agreement with { Value = row }))).IsSuccessStatusCode);
+            var after = (await Live(client, tab))["contenido"]!;
+            Check(JsonNode.DeepEquals(after["sistemas"], original["sistemas"]));
+            var system = after["sistemas"]![0]!.DeepClone(); system["sistema"] = "excel";
+            var lease = await Lease(client, tab, "sistemas:inicial");
+            Check((await Patch(client, Edit(tab, lease with { Value = system }))).IsSuccessStatusCode);
+            Check((await Live(client, tab))["contenido"]!["sistemas"]![0]!["proceso"]!.ToString() == "PO-99");
+            system["proceso"] = ""; // Corrección explícita de la referencia histórica, conservando la reserva.
+            Check((await Patch(client, Edit(tab, lease with { Version = 1, Value = system }))).IsSuccessStatusCode);
+        });
+        Test("Edición/reproducción: referencia a código local no confirmado rechaza incluso un bloque independiente", async (app, client) =>
+        {
+            await FinalStage(database);
+            await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
+            var content = (await Live(client, tab))["contenido"]!;
+            var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = "PO-01";
+            var agreement = content["acuerdos"]![0]!.DeepClone(); agreement["acuerdo"] = "Respuesta independiente";
+            var a = await Lease(client, tab, "sistemas:inicial"); var b = await Lease(client, tab, "acuerdos:inicial");
+            var rejected = await Patch(client, Edit(tab, a with { Value = system }, b with { Value = agreement }));
+            Check(rejected.StatusCode == HttpStatusCode.UnprocessableEntity);
+            Check((await Json(rejected))["validation"]![0]!["field"]!.ToString() == "proceso");
+            Check((await Live(client, tab))["contenido"]!["acuerdos"]![0]!["acuerdo"]!.ToString() == "");
+            // Misma sesión, testigos y versiones vigentes: es validación de referencias, no concurrencia.
+            system["proceso"] = "";
+            Check((await Patch(client, Edit(tab, a with { Value = system }, b with { Value = agreement }))).IsSuccessStatusCode);
+        });
         Test("Edición/usuarios múltiples: colección vacía pendiente, validación estricta, guardado y recarga sin limpieza", async (app, client) =>
         {
             await Login(app, client); await Csrf(client);
@@ -50,7 +133,7 @@ internal static partial class NativeTests
                 row["usuario"] = invalid;
                 Check((await Patch(client, Edit(tab, block with { Value = row }))).StatusCode == HttpStatusCode.UnprocessableEntity);
             }
-            row["usuario"] = new JsonArray("Comunidad universitaria", "Docentes", "Otro");
+            row["usuario"] = new JsonArray("Comunidad universitaria", "Docentes", "Público en general");
             Check((await Patch(client, Edit(tab, block with { Value = row }))).IsSuccessStatusCode);
             var live = await Live(client, tab);
             Check(JsonNode.DeepEquals(row["usuario"], live["contenido"]!["identificacion"]![0]!["usuario"]));
@@ -68,12 +151,13 @@ internal static partial class NativeTests
         {
             await Login(app, client); await Csrf(client);
             var content = Complete(app); content["identificacion"]![0]!["usuario"] = new JsonArray();
-            Check((await Save(client, 0, content)).IsSuccessStatusCode);
+            await SeedEditing(database, content);
             var tab = Guid.NewGuid(); var live = await Live(client, tab);
-            Check(!live["revisionEnvio"]!["listo"]!.GetValue<bool>() && live["revisionEnvio"]!["pendientes"]!.AsArray().Count == 1);
+            Check(!live["revisionEnvio"]!["listo"]!.GetValue<bool>() && live["revisionEnvio"]!["pendientes"]!.AsArray().Count == 2);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
-            content["identificacion"]![0]!["usuario"] = new JsonArray("Estudiantes", "Otro");
-            Check((await Save(client, 1, content)).IsSuccessStatusCode);
+            content["identificacion"]![0]!["usuario"] = new JsonArray("Estudiantes", "Docentes");
+            var block = await Lease(client, tab, "identificacion:inicial", 1);
+            Check((await Patch(client, Edit(tab, block with { Value = content["identificacion"]![0]!.DeepClone() }) with { Release = true })).IsSuccessStatusCode);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 2))).IsSuccessStatusCode);
             live = await Live(client, tab);
             Check(!live["editable"]!.GetValue<bool>() && live["contenido"]!["identificacion"]![0]!["prioridad"]!.ToString() == "5");
@@ -84,7 +168,7 @@ internal static partial class NativeTests
             await Login(app, client); await Csrf(client); var complete = Complete(app);
             // Un encabezado heredado irregular no puede convertirse en un requisito invisible.
             complete["encabezado"] = new JsonObject { ["area"] = "Área histórica", ["fecha"] = "fecha heredada", ["responsable"] = null };
-            Check((await Save(client, 0, complete)).IsSuccessStatusCode);
+            await SeedEditing(database, complete);
             await database.Sql("UPDATE formatos_ur SET porcentaje=45 WHERE id_ur='A'");
             var before = (await database.Scalar("SELECT contenido::text FROM formatos_ur WHERE id_ur='A'"))!.ToString();
             var tab = Guid.NewGuid(); var live = await Live(client, tab);
@@ -98,20 +182,20 @@ internal static partial class NativeTests
             live = await Live(client, tab);
             Check(live["enviadoPor"]!.ToString() == "persona@uacj.mx" && live["revisionEnvio"] is null && !live["editable"]!.GetValue<bool>());
         });
-        Test("Edición/100 por ciento no autoriza enviar prioridad histórica y pendientes usan ID estable", async (app, client) =>
+        Test("Edición/prioridad histórica reduce avance y pendientes usan ID estable", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
             await database.Sql("UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,prioridad}','\"17\"')::json WHERE id_ur='A'");
             var tab = Guid.NewGuid(); var live = await Live(client, tab);
-            Check(live["porcentaje"]!.GetValue<int>() == 100 && !live["revisionEnvio"]!["listo"]!.GetValue<bool>());
-            var pending = live["revisionEnvio"]!["pendientes"]!.AsArray().Single()!;
+            Check(live["porcentaje"]!.GetValue<int>() < 100 && !live["revisionEnvio"]!["listo"]!.GetValue<bool>());
+            var pending = live["revisionEnvio"]!["pendientes"]!.AsArray().Single(p => p!["seccion"]!.ToString() == "identificacion")!;
             Check(pending["bloque"]!.ToString() == "identificacion:inicial" && pending["campo"]!.ToString() == "prioridad");
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
             Check((await Live(client, tab))["editable"]!.GetValue<bool>());
         });
         Test("Edición/lectura preserva avance, contenido e instantánea de un envío histórico", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
             await database.Sql("""
                 UPDATE formatos_ur SET porcentaje=37,enviado_en=clock_timestamp(),enviado_por='actor@example.test',
                   enviado_como='responsable@example.test',envio_id=gen_random_uuid(),
@@ -129,13 +213,14 @@ internal static partial class NativeTests
         });
         Test("Edición/eliminar proceso exige reservas de sus relaciones y conserva registros ILDA", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
             var tab = Guid.NewGuid(); var process = await Lease(client, tab, "identificacion:inicial", 1);
             Check((await Patch(client, Edit(tab, process with { Value = null }))).StatusCode == HttpStatusCode.UnprocessableEntity);
             var other = await Lease(client, Guid.NewGuid(), "sistemas:inicial", 1);
             var content = (await Live(client, tab))["contenido"]!.AsObject();
             var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = "";
-            Check((await Patch(client, Edit(tab, process with { Value = null }, other with { Value = system }))).StatusCode == HttpStatusCode.Conflict);
+            var removal = Edit(tab, new BlockRequest(process.Key, 1), new BlockRequest(other.Key, 1)) with { Removal = new("identificacion", "inicial") };
+            Check((await client.PostAsJsonAsync("/formatos/A/reservas", removal)).StatusCode == HttpStatusCode.Conflict);
             Check((await Live(client, tab))["contenido"]!["identificacion"]!.AsArray().Count == 1);
             await database.Sql("UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,id}','\"ilda:17\"')::json WHERE id_ur='A'");
             var ilda = await Lease(client, tab, "identificacion:ilda:17");
@@ -196,6 +281,8 @@ internal static partial class NativeTests
         });
         Test("Edición/bloques distintos guardan concurrentemente sin sobrescribir JSON", async (app, client) =>
         {
+            // Este escenario cubre preguntas de etapas posteriores; la captura restringida se verifica aparte.
+            await database.Sql("UPDATE fixture_roles SET rol_clave='administrador'");
             await Login(app, client); await Csrf(client); using var other = app.Client(); await Login(app, other); await Csrf(other);
             var a = Guid.NewGuid(); var b = Guid.NewGuid(); var first = await Lease(client, a); var second = await Lease(other, b, "preguntas:0");
             var question = (await Live(client, a))["contenido"]!["preguntas"]![0]!.DeepClone(); question["respuesta"] = question["opciones"] is JsonArray opts ? opts[0]!.DeepClone() : JsonValue.Create("Respuesta de otra sesión");
@@ -265,9 +352,10 @@ internal static partial class NativeTests
         });
         Test("Edición/envío incompleto y reservas ajenas se rechazan; doble envío es idempotente", async (app, client) =>
         {
+            await FinalStage(database);
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 0))).StatusCode == HttpStatusCode.UnprocessableEntity);
-            Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await SeedEditing(database, Complete(app));
             var lease = await Lease(client, Guid.NewGuid(), "contexto", 1);
             var submission = new SubmitRequest(tab, Guid.NewGuid(), 1);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", submission)).StatusCode == HttpStatusCode.Conflict);
@@ -281,14 +369,14 @@ internal static partial class NativeTests
         });
         Test("Edición/envío simultáneo con adquisición de reserva conserva una sola decisión", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
             var results = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(Guid.NewGuid(), Guid.NewGuid(), 1)),
                 client.PostAsJsonAsync("/formatos/A/reservas", Edit(Guid.NewGuid(), new BlockRequest("contexto", 1))));
             Check(results.Count(r => r.IsSuccessStatusCode) == 1 && results.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1);
         });
         Test("Edición/envío y guardado simultáneos de la misma sesión no cruzan el cierre", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
+            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
             var tab = Guid.NewGuid(); var block = await Lease(client, tab, "contexto", 1);
             var responses = await Task.WhenAll(Patch(client, Edit(tab, block with { Value = Header("Último cambio") })),
                 client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1)));
@@ -330,7 +418,7 @@ internal static partial class NativeTests
         Test("Edición/enviado conserva ILDA, unidad y respuestas aunque cambien los catálogos", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); var complete = Complete(app); complete["identificacion"]![0]!["id"] = "ilda:17";
-            Check((await Save(client, 0, complete)).IsSuccessStatusCode);
+            await SeedEditing(database, complete);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(Guid.NewGuid(), Guid.NewGuid(), 1))).IsSuccessStatusCode);
             var before = (await Form(client))["contenido"]!.ToJsonString();
             await database.Sql("UPDATE unidades_responsables_poa SET desc_ur='Descripción nueva' WHERE id_ur='A'; INSERT INTO sincronizacion_catalogos(fuente,registros,completada_en) VALUES('ilda',1,timezone('UTC',now())); INSERT INTO ilda_informacion_area(id_origen,ur2,informacion_generada,datos,presente,sincronizado_en) VALUES('999','100','Otro trámite','{}',true,timezone('UTC',now()))");

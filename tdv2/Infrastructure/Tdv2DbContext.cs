@@ -14,6 +14,7 @@ public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbC
     public DbSet<FormBlock> FormBlocks => Set<FormBlock>();
     public DbSet<FormMutation> FormMutations => Set<FormMutation>();
     public DbSet<FormPosition> FormPositions => Set<FormPosition>();
+    public DbSet<FormExclusion> FormExclusions => Set<FormExclusion>();
     public DbSet<ProcessSettings> ProcessSettings => Set<ProcessSettings>();
     public DbSet<UnitCollaboration> UnitCollaborations => Set<UnitCollaboration>();
     public DbSet<SessionTicket> SessionTickets => Set<SessionTicket>();
@@ -22,6 +23,7 @@ public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbC
     public DbSet<InstitutionalSynchronization> InstitutionalSynchronizations => Set<InstitutionalSynchronization>();
     public DbSet<CatalogSynchronization> CatalogSynchronizations => Set<CatalogSynchronization>();
     public DbSet<IldaAreaInformation> IldaAreaInformations => Set<IldaAreaInformation>();
+    public DbSet<SiiModule> SiiModules => Set<SiiModule>();
     public DbSet<SynchronizationRun> SynchronizationRuns => Set<SynchronizationRun>();
     public DbSet<SynchronizationSettings> SynchronizationSettings => Set<SynchronizationSettings>();
 

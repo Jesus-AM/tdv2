@@ -73,16 +73,21 @@ internal static partial class NativeTests
     {
         if (args.Contains("--database-check")) return await DatabaseInspection.Run(args);
         var database = new NativeDatabase();
+        if (args.Contains("--sync-once-child"))
+        {
+            await database.Attach(); await using var cli = new NativeApplication(database);
+            return await Tdv2.Synchronization.SyncCommands.Run(cli.Services, ["--sync-once"]);
+        }
         if (args.Contains("--nexo-delegation-only")) return await NexoDelegationTests.Run(database);
         if (args.Contains("--migrations-only"))
         {
             await database.ValidateCluster();
             return await MigrationTests.Run(database);
         }
-        if (args.Contains("--sync-child"))
+        if (args.Contains("--sync-child") || args.Contains("--manual-sync-child"))
         {
-            await database.Attach(); await using var childApp=new NativeApplication(database); childApp.Sources.Block="ilda";
-            using var scope=childApp.Services.CreateScope(); var work=scope.ServiceProvider.GetRequiredService<Tdv2.Synchronization.SyncCoordinator>().Tick(default);
+            await database.Attach(); await using var childApp=new NativeApplication(database) { ManualProcessing = args.Contains("--manual-sync-child") }; childApp.Sources.Block="ilda";
+            using var scope=childApp.Services.CreateScope(); var work=childApp.ManualProcessing ? Task.Delay(Timeout.Infinite) : (Task)scope.ServiceProvider.GetRequiredService<Tdv2.Synchronization.SyncCoordinator>().Tick(default);
             await childApp.Sources.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30)); Console.WriteLine("SYNC_RESERVED");
             await work; return 0;
         }
@@ -357,7 +362,10 @@ internal static partial class NativeTests
         RegisterPhotoCases(database, Test);
         RegisterParticipationCases(database, Test);
         RegisterSyncCases(database, Test);
+        RegisterManualSyncCases(database, Test);
         RegisterEditingCases(database, Test);
+        RegisterFirstStageCases(database, Test);
+        RegisterSystemModuleCases(database, Test); RegisterDeliveryCases(database, Test);
         if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
             cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
         // El alcance de colaboradores centrales forma parte de la autorización de captura.
@@ -366,7 +374,7 @@ internal static partial class NativeTests
             var watch = Stopwatch.StartNew();
             try
             {
-                await database.Reset(); await using var app = new NativeApplication(database); using var client = app.Client();
+                await database.Reset(); await using var app = new NativeApplication(database) { ManualProcessing = name.StartsWith("Sync/web:") }; using var client = app.Client();
                 await run(app, client); passed++; Console.WriteLine("PASS " + name); results.Add(new { name, passed = true, milliseconds = watch.ElapsedMilliseconds });
             }
             catch (Exception error)
@@ -402,21 +410,24 @@ internal static partial class NativeTests
     {
         var selectedFlow = Environment.GetEnvironmentVariable("TDV2_TEST_BROWSER_FLOW") ?? "all";
         if (selectedFlow == "visual-studio") { await VerifyDevelopmentStartup(database); return; }
-        Check(new[] { "all", "formats", "access", "scope", "sync", "performance", "capture-matrix", "participants", "presentation", "users-served", "photos" }.Contains(selectedFlow), "Unknown browser flow.");
+        Check(new[] { "all", "formats", "access", "scope", "sync", "sync-manual", "performance", "capture-matrix", "participants", "presentation", "users-served", "photos", "first-stage", "systems", "delivery", "table-scroll" }.Contains(selectedFlow), "Unknown browser flow.");
         await database.Reset();
-        if (selectedFlow == "photos") await SetupSync(database);
+        if (selectedFlow is "photos" or "sync-manual") await SetupSync(database);
         if (selectedFlow == "presentation")
         {
             await SetupSync(database);
             await database.Sql("INSERT INTO fixture_modules VALUES(53,47,'configuracion_procesos','Configuración procesos','/configuracion/procesos','mdi-tune',13,50); INSERT INTO fixture_module_roles VALUES(34,53)");
         }
-        using var certificate = NativeApplication.Certificate();
-        await using var app = new NativeApplication(database) { Browser = true };
-        app.UseKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
+        var ephemeralTls = Environment.GetEnvironmentVariable("TDV2_TEST_EPHEMERAL_TLS") == "true";
+        using var certificate = NativeApplication.Certificate(ephemeralTls);
+        await using var app = new NativeApplication(database) { Browser = true, ManualProcessing = selectedFlow == "sync-manual" };
+        app.UseKestrel(options => options.Listen(IPAddress.Loopback, 0, listen => { if (!ephemeralTls) listen.UseHttps(certificate); }));
         using var client = app.CreateClient(new() { AllowAutoRedirect = false });
         var origin = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single().TrimEnd('/');
+        await using var proxy = ephemeralTls ? await SyntheticTlsProxy.Start(database.Workspace, origin, app.ControlToken, certificate) : null;
+        if (proxy is not null) origin = proxy.Origin;
         app.Services.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin = origin;
-        var start = new ProcessStartInfo("node")
+        var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("TDV2_TEST_NODE") ?? "node")
         { WorkingDirectory = Path.Combine(database.Workspace, "ClientApp"), UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("tests/browser/native-flow.mjs");
@@ -424,14 +435,20 @@ internal static partial class NativeTests
         start.Environment["TDV2_BROWSER_ARTIFACTS"] = database.Artifacts;
         // Browser runner needs no database credentials.
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
-        if (selectedFlow is "performance" or "capture-matrix" or "participants" or "presentation" or "users-served" or "photos")
+        if (selectedFlow is "sync-manual" or "performance" or "capture-matrix" or "participants" or "presentation" or "users-served" or "photos" or "first-stage" or "systems" or "delivery" or "table-scroll")
         {
             start.ArgumentList.Clear(); start.ArgumentList.Add(selectedFlow switch {
+                "sync-manual" => "tests/browser/sync-manual-native.mjs",
+                "systems" => "tests/browser/system-tools-native.mjs",
+                "delivery" => "tests/browser/delivery-collaboration-native.mjs",
+                "table-scroll" => "tests/browser/table-scroll-native.mjs",
+                "first-stage" => "tests/browser/first-stage-flow.mjs",
                 "photos" => "tests/browser/photos-flow.mjs",
                 "users-served" => "tests/browser/users-served-flow.mjs", "presentation" => "tests/browser/presentation-flow.mjs", "participants" => "tests/browser/participants-browser.mjs", "performance" => "tests/browser/performance-flow.mjs", _ => "tests/browser/capture-matrix.mjs" });
             using var measured = Process.Start(start)!;
-            var output = measured.StandardOutput.ReadToEndAsync(); var errors = measured.StandardError.ReadToEndAsync();
-            await measured.WaitForExitAsync(); Console.Write(await output); Console.Write(await errors);
+            async Task Forward(StreamReader stream) { while (await stream.ReadLineAsync() is { } line) Console.WriteLine(line); }
+            var output = Forward(measured.StandardOutput); var errors = Forward(measured.StandardError);
+            await measured.WaitForExitAsync(); await Task.WhenAll(output, errors);
             Check(measured.ExitCode == 0, "Browser verification failed: " + selectedFlow); return;
         }
         if (selectedFlow is "all" or "formats")

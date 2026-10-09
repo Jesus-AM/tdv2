@@ -1,0 +1,25 @@
+{
+  "realPostgreSql": true,
+  "realAspNet": true,
+  "realSignalR": true,
+  "identities": [
+    "persona@uacj.mx",
+    "colaboradora@uacj.mx"
+  ],
+  "mockedEditingTransport": false,
+  "checks": [
+    "dos identidades autorizadas: carrera real de reserva acepta exactamente una",
+    "filas distintas, fotografías, presencia fija y un único foco MUI",
+    "primera tecla, pegado y Tab se conservan al confirmar la reserva",
+    "incompletos excluidos; completar e invalidar actualiza otra identidad por SignalR",
+    "eliminación directa libre y actualización de opciones en la otra sesión",
+    "Medios es independiente, menús y ayudas mantienen reserva de herramientas",
+    "otra pestaña se distingue de otra persona y no adquiere la fila ocupada",
+    "backend rechaza eliminación ajena y renovación tardía tras retiro",
+    "desconexión conserva propuesta; reconexión y vencimiento exigen reserva vigente",
+    "móvil, teclado, tacto y posición compartida de presencia",
+    "primera etapa se entrega sin posteriores, conserva sus datos y bloquea enviados"
+  ],
+  "errors": [],
+  "passed": true
+}

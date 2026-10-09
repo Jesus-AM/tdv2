@@ -12,12 +12,13 @@ internal sealed class SyntheticSources : ISourceConnections
 {
     internal DataTable Sii = Units();
     internal DataTable Ilda = Inventory();
+    internal DataTable Modules = Table(["ID_MODULO", "DESC_MODULO"], [1, "Solicitudes"], [2, "Consultas"], [3, "Consultas"], [4, "Reportes"], [5, "Histórico"]);
     internal readonly ConcurrentQueue<string> Queries = new();
     internal string? Failure;
-    internal string? Block;
+    internal string? Block = null;
     internal TaskCompletionSource Entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal TaskCompletionSource Continue = new(TaskCreationOptions.RunContinuationsAsynchronously);
-    internal Func<Task>? OnRead;
+    internal Func<Task>? OnRead = null;
     internal int FailAfter = -1;
     public DbConnection Create(string source) => new SyntheticConnection(this,source);
     internal static DataTable Table(string[] columns, params object?[][] rows)
@@ -62,21 +63,21 @@ internal sealed class SyntheticSources : ISourceConnections
         protected override DbParameter CreateDbParameter() => new Npgsql.NpgsqlParameter();
         public override int ExecuteNonQuery()
         {
-            if (name != "sii" || CommandText != "SET TRANSACTION ISOLATION LEVEL READ COMMITTED") throw new InvalidOperationException("Unexpected remote mutation.");
+            if (name is not ("sii" or "sii_modulos") || CommandText != "SET TRANSACTION ISOLATION LEVEL READ COMMITTED") throw new InvalidOperationException("Unexpected remote mutation.");
             owner.Queries.Enqueue(CommandText); return 0;
         }
         public override object? ExecuteScalar() => throw new NotSupportedException();
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => ExecuteDbDataReaderAsync(behavior,CancellationToken.None).GetAwaiter().GetResult();
         protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior,CancellationToken ct)
         {
-            if (CommandText != CatalogSource.IldaSelect && CommandText != CatalogSource.SiiSelect + CatalogSource.SiiLatest && CommandText != CatalogSource.SiiSelect)
+            if (CommandText != CatalogSource.IldaSelect && CommandText != CatalogSource.SiiSelect + CatalogSource.SiiLatest && CommandText != CatalogSource.SiiSelect && CommandText != CatalogSource.SiiModulesSelect)
                 throw new InvalidOperationException("Unexpected remote SQL.");
             if (name == "ilda" && (int)parameters.Parameters[0].Value! <= 0) throw new InvalidOperationException("Expected bound row sentinel.");
             owner.Queries.Enqueue(CommandText);
             if (owner.Failure == name) throw new IOException("password=SYNTHETIC_SOURCE_SECRET; source contents must never escape");
             if (owner.OnRead is not null) await owner.OnRead();
             if (owner.Block == name) { owner.Entered.TrySetResult(); await owner.Continue.Task.WaitAsync(ct); }
-            var data = name == "sii" ? owner.Sii : owner.Ilda;
+            var data = name == "sii" ? owner.Sii : name == "sii_modulos" ? owner.Modules : owner.Ilda;
             return new InterruptibleReader(data.CreateDataReader(),owner.FailAfter);
         }
     }

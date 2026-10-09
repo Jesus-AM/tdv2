@@ -50,16 +50,18 @@ public static class FormBlocks
                 var rows = result[table]!.AsArray(); var index = rows.Select((r, i) => (r, i)).Where(p => p.r!["id"]!.ToString() == id).Select(p => p.i).DefaultIfEmpty(-1).Single();
                 if (value is null)
                 {
-                    if (id.StartsWith("ilda:")) throw new DomainProblem(422, "Los registros de ILDA se conservan; utiliza la validación N cuando no correspondan.");
                     if (index >= 0) rows.RemoveAt(index);
                 }
                 else
                 {
                     if (value is not JsonObject || value["id"]?.ToString() != id) throw new DomainProblem(422, "El identificador del bloque cambió.");
+                    if (table == "identificacion" && index >= 0 && rows[index]?["codigo"]?.ToString() is { Length: > 0 } assigned
+                        && value["codigo"]?.ToString() != assigned)
+                        throw FormSchema.FieldError(key, "codigo", "El código confirmado del proceso no puede cambiarse.");
                     if (table == "identificacion" && value["prioridad"]?.ToString() is { Length: > 0 } priority
                         && priority is not ("1" or "2" or "3" or "4" or "5")
                         && (index < 0 || rows[index]?["prioridad"]?.ToString() != priority))
-                        throw new DomainProblem(422, "Selecciona una prioridad de 1 a 5.");
+                        throw FormSchema.FieldError(key, "prioridad", "Selecciona una prioridad de 1 a 5.");
                     if (index < 0) rows.Add(value.DeepClone()); else rows[index] = value.DeepClone();
                 }
             }
