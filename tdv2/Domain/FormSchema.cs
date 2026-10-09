@@ -127,7 +127,11 @@ public sealed class FormSchema
             if (!Includes(key)) continue;
             var priority = Text(row, "prioridad");
             if (priority != "" && !Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z")) throw FieldError(key, "prioridad", "Prioridad inválida.");
-            Check(key, "validacion", () => Choice(Text(row, "validacion"), "V", "A", "D", "N"));
+            var validation = Text(row, "validacion");
+            var unchangedHistorical = validation is "D" or "N" && previous?["identificacion"]?.AsArray()
+                .Any(old => old?["id"]?.ToString() == row["id"]?.ToString() && old?["validacion"]?.ToString() == validation) == true;
+            if (!unchangedHistorical && validation is not ("" or "V" or "A"))
+                throw FieldError(key, "validacion", "Selecciona Vigente o Ajustar.");
         }
         foreach (var section in new[] { "sistemas", "datos" }.Where(s => changed is null || changed.Any(k => k.StartsWith(s + ":"))))
             foreach (var row in result[section]!.AsArray().Cast<JsonObject>())
@@ -205,7 +209,7 @@ public sealed class FormSchema
         {
             var key = "identificacion:" + row["id"];
             if (!changed.Contains(key)) continue;
-            if (row["codigo"]?.ToString() == "" && row["validacion"]?.ToString() is { Length: > 0 })
+            if (row["codigo"]?.ToString() == "" && ProcedureEligibility.Valid(row, "validacion"))
             {
                 if (next >= 999999) throw FieldError(key, "validacion", "Se alcanzó el límite de códigos del formato.");
                 row["codigo"] = "PO-" + (++next).ToString("D2", CultureInfo.InvariantCulture);

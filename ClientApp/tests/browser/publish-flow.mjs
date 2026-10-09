@@ -28,7 +28,7 @@ try {
     }
     assert.ok(ready);
     assert.equal((await page.goto(origin)).status(), 200);
-    await page.getByRole('link', { name: 'Registrar un proceso operativo' }).waitFor();
+    await page.getByRole('link', { name: 'Registrar un procedimiento institucional' }).waitFor();
     assert.equal((await page.goto(origin + '/acceso-restringido')).status(), 200);
     await page.getByRole('heading', { name: 'Acceso no disponible', exact: true }).waitFor();
     assert.ok(await page.locator('script[src^="/assets/"]').count());

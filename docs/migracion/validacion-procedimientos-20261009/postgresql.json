@@ -1,0 +1,41 @@
+{
+  "utc": "2026-10-09T16:29:32.1517294+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 6,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Edici\u00F3n/validaci\u00F3n: nuevas asignaciones D/N rechazadas sin cambios parciales",
+      "passed": true,
+      "milliseconds": 7634
+    },
+    {
+      "name": "Edici\u00F3n/validaci\u00F3n: D/N hist\u00F3ricos permiten otros campos, quedan pendientes y se corrigen a V/A",
+      "passed": true,
+      "milliseconds": 7724
+    },
+    {
+      "name": "Edici\u00F3n/validaci\u00F3n: D/N heredados no autorizan duplicar filas y se eliminan directamente",
+      "passed": true,
+      "milliseconds": 5018
+    },
+    {
+      "name": "Edici\u00F3n/validaci\u00F3n: D/N intactos y escritura bloqueada en ejercicio hist\u00F3rico",
+      "passed": true,
+      "milliseconds": 4298
+    },
+    {
+      "name": "Edici\u00F3n/validaci\u00F3n: D/N intactos y escritura bloqueada en enviados",
+      "passed": true,
+      "milliseconds": 3900
+    },
+    {
+      "name": "React \u2192 ASP.NET \u2192 PostgreSQL / Edge",
+      "passed": true
+    }
+  ]
+}

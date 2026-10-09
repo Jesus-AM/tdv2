@@ -26,7 +26,7 @@ try {
     page.on('websocket', socket => sockets.push(new URL(socket.url()).origin));
     assert.equal((await page.goto(vite + '/__vite/__launch')).status(), 200);
     assert.equal(page.url(), origin + '/');
-    await page.getByRole('link', { name: 'Registrar un proceso operativo' }).waitFor();
+    await page.getByRole('link', { name: 'Registrar un procedimiento institucional' }).waitFor();
     const props = page.waitForResponse(r => new URL(r.url()).pathname === '/acceso-restringido' && r.request().headers()['x-tdv2-page'] === '1');
     assert.equal((await page.goto(origin + '/acceso-restringido', { timeout: 90000 })).status(), 200);
     assert.equal((await props).status(), 200);

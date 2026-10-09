@@ -87,7 +87,7 @@ async function finish(target = page) {
 try {
     await check('portada y login Microsoft simulado crean sesión segura', async () => {
         assert.equal((await page.goto(origin)).status(), 200);
-        await page.getByRole('link', { name: /Registrar un proceso operativo/ }).click();
+        await page.getByRole('link', { name: /Registrar un procedimiento institucional/ }).click();
         await page.waitForURL(`${origin}/inicio`);
         await page.getByRole('heading', { name: 'Procesos operativos', exact: true }).waitFor();
         const cookies = await context.cookies();

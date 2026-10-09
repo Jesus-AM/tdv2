@@ -12,7 +12,7 @@ public static class ProcedureEligibility
     {
         "usuario" => FormSchema.HasRecipients(row),
         "prioridad" => row?[field]?.ToString() is "1" or "2" or "3" or "4" or "5",
-        "validacion" => row?[field]?.ToString() is "V" or "A" or "D" or "N",
+        "validacion" => row?[field]?.ToString() is "V" or "A",
         "codigo" => Regex.IsMatch(row?[field]?.ToString() ?? "", @"\APO-[0-9]{2,6}\z"),
         _ => row?[field] is JsonValue value && value.TryGetValue<string>(out var text)
             && !string.IsNullOrWhiteSpace(text) && text.EnumerateRunes().Count() <= 4000

@@ -1,0 +1,17 @@
+{
+  "realPostgreSql": true,
+  "realAspNet": true,
+  "mockedEditingTransport": false,
+  "microsoft": "synthetic HTTP peer",
+  "mobile": "emulated",
+  "checks": [
+    "portal: texto completo y alineado a 1440, 390 y 320 px; acceso conserva autenticación",
+    "selector vacío sin opción indicativa, sólo V/A; reserva, guardado y recarga",
+    "D/N anteriores legibles y pendientes; otros campos de la misma fila se autoguardan sin convertirlos",
+    "históricos se corrigen a A/V; menú sin D/N, teclado, móvil y pendientes actualizados",
+    "eliminación directa de N desde fila libre conserva los demás datos",
+    "formato enviado mantiene las etiquetas históricas, sin edición ni aviso de corrección"
+  ],
+  "errors": [],
+  "passed": true
+}

@@ -288,6 +288,11 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                         INSERT INTO fixture_roles VALUES(50,'colaboradora@uacj.mx',31,'colaborador_local','Colaboración central sintética');
                         INSERT INTO fixture_grants VALUES(101,'colaboradora@uacj.mx',31,'A','central');
                         """); break;
+                case "/validation-history":
+                    var validations = NativeTests.RetiredValidationFixture(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    await database.Sql("DELETE FROM formato_bloques WHERE id_ur='A'");
+                    await database.Sql("UPDATE formatos_ur SET contenido=$1::json,version=version+1 WHERE id_ur='A'", validations.ToJsonString());
+                    break;
                 case "/delivery-identity":
                     var helperIdentity = http.Request.Query["who"] == "helper";
                     microsoft.Email = microsoft.Mail = helperIdentity ? "colaboradora@uacj.mx" : "persona@uacj.mx";

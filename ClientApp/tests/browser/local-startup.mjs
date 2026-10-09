@@ -30,7 +30,7 @@ let loginStatus;
 try {
     await check('HTTPS confiable y portada real servida por ASP.NET', async () => {
         assert.equal((await page.goto(origin)).status(), 200);
-        await page.getByRole('link', { name: 'Registrar un proceso operativo' }).waitFor();
+        await page.getByRole('link', { name: 'Registrar un procedimiento institucional' }).waitFor();
         // Use Edge's Windows trust store for API calls too, without ignoring TLS errors.
         assert.equal(await page.evaluate(async () => (await fetch('/health/live')).status), 200);
         await page.screenshot({ path: path.join(artifacts, 'portada.png') });

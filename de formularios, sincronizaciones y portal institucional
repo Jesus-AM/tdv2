@@ -1,0 +1,199 @@
+ ClientApp/resources/css/app.css                    |   41 [32m+[m
+ .../resources/js/Components/BlockEditingStatus.tsx |   17 [32m+[m[31m-[m
+ ClientApp/resources/js/Components/FieldHelp.tsx    |   33 [32m+[m
+ .../js/Components/FormProposalComparison.tsx       |   51 [31m-[m
+ .../js/Components/FormSubmissionReview.tsx         |    4 [32m+[m[31m-[m
+ .../js/Components/IdentificationInstructions.tsx   |   14 [32m+[m
+ .../resources/js/Components/ModuleNavigation.tsx   |    2 [32m+[m[31m-[m
+ .../resources/js/Components/ParticipantAvatar.tsx  |    1 [32m+[m
+ .../resources/js/Components/PrioritySelect.tsx     |   22 [32m+[m[31m-[m
+ .../resources/js/Components/ProcedureFieldHelp.tsx |   71 [32m++[m
+ .../resources/js/Components/RowEditingActions.tsx  |   13 [32m+[m
+ .../resources/js/Components/RowEditingPresence.tsx |   12 [32m+[m
+ ClientApp/resources/js/Components/SystemField.tsx  |   81 [32m++[m
+ .../resources/js/Components/UsersServedSelect.tsx  |    5 [32m+[m[31m-[m
+ .../resources/js/Layouts/AuthenticatedLayout.tsx   |    6 [32m+[m[31m-[m
+ ClientApp/resources/js/lib/block-editor.ts         |  362 [32m++++[m[31m---[m
+ ClientApp/resources/js/lib/form-deletion.ts        |    2 [32m+[m[31m-[m
+ ClientApp/resources/js/lib/module-navigation.ts    |    9 [32m+[m[31m-[m
+ ClientApp/resources/js/lib/pending-field-input.ts  |   61 [32m++[m
+ .../resources/js/lib/record-editing-context.ts     |   66 [32m++[m
+ ClientApp/resources/js/pages/Colaboradores.tsx     |    2 [32m+[m[31m-[m
+ .../resources/js/pages/ConfiguracionProcesos.tsx   |    2 [32m+[m[31m-[m
+ ClientApp/resources/js/pages/FormatoUR.tsx         |  359 [32m++++[m[31m---[m
+ ClientApp/resources/js/pages/Inicio.tsx            |   12 [32m+[m[31m-[m
+ ClientApp/resources/js/pages/PruebasAcceso.tsx     |    2 [32m+[m[31m-[m
+ ClientApp/resources/js/pages/Sincronizaciones.tsx  |  102 [32m+[m[31m-[m
+ ClientApp/resources/js/types/tdv2.ts               |    8 [32m+[m
+ ClientApp/tests/browser/deletion-flow.mjs          |   16 [32m+[m[31m-[m
+ .../browser/delivery-collaboration-native.mjs      |  179 [32m++++[m
+ ClientApp/tests/browser/first-stage-flow.mjs       |  337 [32m++++++[m
+ ClientApp/tests/browser/native-flow.mjs            |   61 [32m+[m[31m-[m
+ ClientApp/tests/browser/participant-flow.mjs       |    2 [32m+[m[31m-[m
+ ClientApp/tests/browser/performance-flow.mjs       |    2 [32m+[m[31m-[m
+ ClientApp/tests/browser/sync-flow.mjs              |   46 [32m+[m[31m-[m
+ ClientApp/tests/browser/sync-manual-native.mjs     |  118 [32m++[m
+ ClientApp/tests/browser/synthetic-tls-proxy.mjs    |   32 [32m+[m
+ ClientApp/tests/browser/system-tools-native.mjs    |   90 [32m++[m
+ ClientApp/tests/browser/system-tools-ui.mjs        |  130 [32m+++[m
+ ClientApp/tests/browser/system-ui-fixture.mjs      |   93 [32m++[m
+ ClientApp/tests/browser/table-scroll-native.mjs    |  175 [32m+++[m
+ ClientApp/tests/browser/users-served-flow.mjs      |    4 [32m+[m[31m-[m
+ ClientApp/tests/frontend/block-autosave.test.mjs   |  171 [32m++[m[31m-[m
+ ClientApp/tests/frontend/form-review.test.mjs      |   13 [32m+[m[31m-[m
+ ESTADO_MIGRACION.md                                |  232 [32m+++[m[31m-[m
+ README.md                                          |   20 [32m+[m[31m-[m
+ docs/ARRANQUE_LOCAL_WINDOWS.md                     |    4 [32m+[m[31m-[m
+ docs/PUBLICACION.md                                |    6 [32m+[m[31m-[m
+ docs/migracion/COLABORACION_ENVIO.md               |    8 [32m+[m[31m-[m
+ docs/migracion/CONFIGURACION_NEXO_ENTRA.md         |   20 [32m+[m[31m-[m
+ docs/migracion/DESPLAZAMIENTO_TABLAS.md            |   60 [32m++[m
+ docs/migracion/EDICION_AUTOMATICA.md               |   95 [32m++[m
+ docs/migracion/ELIMINACION_DIRECTA.md              |   12 [32m+[m[31m-[m
+ docs/migracion/IDENTIFICACION_TABLA.md             |   73 [32m++[m
+ docs/migracion/INVENTARIO.md                       |   22 [32m+[m
+ docs/migracion/PRIMERA_ETAPA.md                    |   67 [32m++[m
+ docs/migracion/RESERVAS_SIGNALR.md                 |   18 [32m+[m[31m-[m
+ docs/migracion/SINCRONIZACIONES.md                 |   44 [32m+[m[31m-[m
+ docs/migracion/SISTEMAS_HERRAMIENTAS.md            |  138 [32m+++[m
+ docs/migracion/USUARIOS_ATENDIDOS.md               |    2 [32m+[m
+ .../delivery-browser.json                          |   25 [32m+[m
+ .../editing-native.json                            |  267 [32m+++++[m
+ .../reproduccion-anterior.json                     |  124 [32m+++[m
+ .../table-scroll-browser.json                      |   42 [32m+[m
+ .../edicion-automatica-20261008/captura.png        |  Bin [31m0[m -> [32m68802[m bytes
+ .../eliminacion-ocupada.png                        |  Bin [31m0[m -> [32m92774[m bytes
+ .../edicion-automatica-20261008/movil.png          |  Bin [31m0[m -> [32m52011[m bytes
+ .../edicion-automatica-20261008/navegador.json     |  139 [32m+++[m
+ .../edicion-automatica-20261008/postgresql.json    |  152 [32m+++[m
+ .../regresion-final.json                           |   26 [32m+[m
+ .../reproduccion-previa.json                       |   17 [32m+[m
+ .../seleccion-multiple.json                        |   31 [32m+[m
+ .../dos-usuarios-postgresql.json                   |   25 [32m+[m
+ .../edicion-postgresql.json                        |  267 [32m+++++[m
+ .../entrega-sistemas-20261009/escritorio-foco.png  |  Bin [31m0[m -> [32m117532[m bytes
+ .../migraciones-postgresql.json                    |   66 [32m++[m
+ .../modulos-navegador-postgresql.json              |   36 [32m+[m
+ .../entrega-sistemas-20261009/movil-presencia.png  |  Bin [31m0[m -> [32m100065[m bytes
+ .../navegador-transporte-simulado.json             |   50 [32m+[m
+ .../sincronizaciones-esquema-ausente.png           |  Bin [31m0[m -> [32m201023[m bytes
+ .../sincronizaciones-navegador.json                |   62 [32m++[m
+ .../sincronizaciones-postgresql.json               |  187 [32m++++[m
+ .../identificacion-20261008/etapa-admin.png        |  Bin [31m0[m -> [32m103672[m bytes
+ .../identificacion-20261008/etapa-ayuda-mobile.png |  Bin [31m0[m -> [32m87624[m bytes
+ .../identificacion-20261008/etapa-desktop.png      |  Bin [31m0[m -> [32m113231[m bytes
+ .../identificacion-20261008/etapa-mobile.png       |  Bin [31m0[m -> [32m89605[m bytes
+ .../identificacion-20261008/etapa-prioridad.png    |  Bin [31m0[m -> [32m112865[m bytes
+ .../migracion/identificacion-20261008/frontend.txt |   90 [32m++[m
+ .../historicos-revocacion.json                     |   22 [32m+[m
+ .../identificacion-20261008/migraciones.json       |   59 [32m+[m
+ .../identificacion-20261008/navegador.json         |   72 [32m++[m
+ .../identificacion-20261008/postgresql.json        |  112 [32m++[m
+ .../reproduccion-previa.json                       |   17 [32m+[m
+ .../identificacion-20261008/reservas.json          |    3 [32m+[m
+ .../identificacion-20261008/tabla-1366.png         |  Bin [31m0[m -> [32m146310[m bytes
+ .../identificacion-20261008/tabla-1920.png         |  Bin [31m0[m -> [32m150208[m bytes
+ .../identificacion-20261008/tabla-360.png          |  Bin [31m0[m -> [32m99355[m bytes
+ .../identificacion-20261008/tabla-768.png          |  Bin [31m0[m -> [32m128000[m bytes
+ .../identificacion-20261008/tabla-viewport-200.png |  Bin [31m0[m -> [32m112995[m bytes
+ .../navegador.json                                 |   72 [32m++[m
+ .../tabla-1366.png                                 |  Bin [31m0[m -> [32m122335[m bytes
+ .../tabla-1920.png                                 |  Bin [31m0[m -> [32m126966[m bytes
+ .../identificacion-compacta-20261008/tabla-360.png |  Bin [31m0[m -> [32m83344[m bytes
+ .../identificacion-compacta-20261008/tabla-768.png |  Bin [31m0[m -> [32m105220[m bytes
+ docs/migracion/portal-publico-20261009/desktop.png |  Bin [31m0[m -> [32m414463[m bytes
+ .../portal-publico-20261009/logo-publish.json      |    6 [32m+[m
+ .../portal-publico-20261009/mobile-footer.png      |  Bin [31m0[m -> [32m2047[m bytes
+ docs/migracion/portal-publico-20261009/mobile.png  |  Bin [31m0[m -> [32m182894[m bytes
+ .../portal-publico-20261009/verification.json      |  110 [32m++[m
+ .../primera-etapa-20261008/etapa-admin.png         |  Bin [31m0[m -> [32m64240[m bytes
+ .../primera-etapa-20261008/etapa-ayuda-mobile.png  |  Bin [31m0[m -> [32m52460[m bytes
+ .../primera-etapa-20261008/etapa-desktop.png       |  Bin [31m0[m -> [32m71597[m bytes
+ .../primera-etapa-20261008/etapa-mobile.png        |  Bin [31m0[m -> [32m53854[m bytes
+ .../primera-etapa-20261008/etapa-prioridad.png     |  Bin [31m0[m -> [32m78146[m bytes
+ docs/migracion/primera-etapa-20261008/frontend.txt |   88 [32m++[m
+ .../primera-etapa-20261008/https-react-hmr.json    |   18 [32m+[m
+ .../primera-etapa-20261008/migraciones.json        |   53 [32m+[m
+ .../primera-etapa-20261008/navegador.json          |   59 [32m+[m
+ .../primera-etapa-20261008/postgresql.json         |  111 [32m++[m
+ .../sincronizacion-arranque.json                   |   21 [32m+[m
+ .../sincronizacion-manual-20261009/escritorio.png  |  Bin [31m0[m -> [32m134989[m bytes
+ .../sincronizacion-manual-20261009/movil.png       |  Bin [31m0[m -> [32m160438[m bytes
+ .../navegador-manual.json                          |   34 [32m+[m
+ .../navegador-regresion.json                       |   62 [32m++[m
+ .../sincronizacion-manual-20261009/postgresql.json |  232 [32m++++[m
+ .../edicion-postgresql.json                        |  266 [32m+++++[m
+ .../migraciones-postgresql.json                    |   61 [32m++[m
+ .../navegador-postgresql.json                      |   36 [32m+[m
+ .../sistemas-herramientas-20261009/navegador.json  |   50 [32m+[m
+ .../sincronizaciones-escritorio.png                |  Bin [31m0[m -> [32m96480[m bytes
+ .../sincronizaciones-movil.png                     |  Bin [31m0[m -> [32m54357[m bytes
+ .../sincronizaciones-navegador.json                |   58 [32m+[m
+ .../sincronizaciones-postgresql.json               |  182 [32m++++[m
+ .../systems-1366.png                               |  Bin [31m0[m -> [32m89633[m bytes
+ .../systems-1920.png                               |  Bin [31m0[m -> [32m94569[m bytes
+ .../systems-360-tools.png                          |  Bin [31m0[m -> [32m67687[m bytes
+ .../sistemas-herramientas-20261009/systems-360.png |  Bin [31m0[m -> [32m64568[m bytes
+ .../sistemas-herramientas-20261009/systems-768.png |  Bin [31m0[m -> [32m77506[m bytes
+ .../systems-native-mobile.png                      |  Bin [31m0[m -> [32m79370[m bytes
+ scripts/Test-NativePostgres.ps1                    |   37 [32m+[m[31m-[m
+ tdv2/Controllers/ConfigurationController.cs        |    6 [32m+[m[31m-[m
+ tdv2/Controllers/FormsController.cs                |   11 [32m+[m[31m-[m
+ tdv2/Domain/Access.cs                              |   14 [32m+[m[31m-[m
+ tdv2/Domain/Entities/FormExclusion.cs              |   12 [32m+[m
+ tdv2/Domain/Entities/SiiModule.cs                  |   10 [32m+[m
+ tdv2/Domain/FormBlocks.cs                          |    6 [32m+[m[31m-[m
+ tdv2/Domain/FormCapture.cs                         |   29 [32m+[m
+ tdv2/Domain/FormRemoval.cs                         |   33 [32m+[m
+ tdv2/Domain/FormReview.cs                          |   21 [32m+[m[31m-[m
+ tdv2/Domain/FormSchema.cs                          |  163 [32m++[m[31m-[m
+ tdv2/Domain/ProcedureEligibility.cs                |   28 [32m+[m
+ tdv2/Domain/SystemAnswers.cs                       |   38 [32m+[m
+ tdv2/Hosting/ServiceRegistration.cs                |    2 [32m+[m
+ .../Configurations/FormExclusionConfiguration.cs   |   20 [32m+[m
+ .../Configurations/SiiModuleConfiguration.cs       |   17 [32m+[m
+ tdv2/Infrastructure/Tdv2DbContext.cs               |    2 [32m+[m
+ tdv2/Integrations/Catalogs/CatalogSource.cs        |   22 [32m+[m[31m-[m
+ .../20261009032858_FormIldaExclusions.Designer.cs  | 1099 [32m+++++++++++++++++++[m
+ .../20261009032858_FormIldaExclusions.cs           |   56 [32m+[m
+ .../20261009052502_CurrentRecipients.Designer.cs   | 1099 [32m+++++++++++++++++++[m
+ .../Migrations/20261009052502_CurrentRecipients.cs |  105 [32m++[m
+ .../20261009080533_SiiModulesCatalog.Designer.cs   | 1125 [32m++++++++++++++++++++[m
+ .../Migrations/20261009080533_SiiModulesCatalog.cs |   48 [32m+[m
+ tdv2/Migrations/Tdv2DbContextModelSnapshot.cs      |   73 [32m++[m
+ tdv2/Program.cs                                    |    3 [32m+[m[31m-[m
+ tdv2/Services/AccessToolService.cs                 |    2 [32m+[m[31m-[m
+ tdv2/Services/FormEditingService.cs                |  148 [32m++[m[31m-[m
+ tdv2/Services/FormService.cs                       |   26 [32m+[m[31m-[m
+ tdv2/Synchronization/CatalogPublication.cs         |   26 [32m+[m[31m-[m
+ tdv2/Synchronization/LocalCatalog.cs               |   35 [32m+[m
+ tdv2/Synchronization/ManualSyncWorker.cs           |   61 [32m++[m
+ tdv2/Synchronization/SiiCatalogSchema.cs           |   26 [32m+[m
+ tdv2/Synchronization/SyncCommands.cs               |    2 [32m+[m[31m-[m
+ tdv2/Synchronization/SyncCoordinator.cs            |   34 [32m+[m[31m-[m
+ tdv2/Synchronization/SyncSql.cs                    |    2 [32m+[m[31m-[m
+ tdv2/Synchronization/SynchronizationQueries.cs     |   16 [32m+[m[31m-[m
+ tdv2/Views/Home/Index.cshtml                       |  164 [32m+[m[31m--[m
+ tdv2/Web/RequestAccess.cs                          |    2 [32m+[m[31m-[m
+ .../logos/firmaLogotipo-blancosinfondo-3.png       |  Bin [31m0[m -> [32m45078[m bytes
+ .../CentralCollaborationTests.cs                   |    6 [32m+[m[31m-[m
+ .../CurrentRecipientsMigrationTests.cs             |   79 [32m++[m
+ .../TDV2.NativeVerification/DatabaseInspection.cs  |   10 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/DeliveryTests.cs     |   65 [32m++[m
+ tests/TDV2.NativeVerification/EditingTests.cs      |  122 [32m++[m[31m-[m
+ tests/TDV2.NativeVerification/FirstStageTests.cs   |  226 [32m++++[m
+ tests/TDV2.NativeVerification/ManualSyncTests.cs   |  187 [32m++++[m
+ tests/TDV2.NativeVerification/MigrationTests.cs    |   84 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/NativeApplication.cs |   75 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/NativeDatabase.cs    |   12 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/NativeTests.cs       |   43 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/SyncTests.cs         |   14 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/SyntheticSources.cs  |   11 [32m+[m[31m-[m
+ tests/TDV2.NativeVerification/SyntheticTlsProxy.cs |   38 [32m+[m
+ tests/TDV2.NativeVerification/SystemModuleTests.cs |  139 [32m+++[m
+ .../UsersServedMigrationTests.cs                   |    4 [32m+[m[31m-[m
+ tests/TDV2.Verification/EntryPoint.cs              |   13 [32m+[m[31m-[m
+ tests/TDV2.Verification/Fixtures.cs                |    1 [32m+[m
+ tests/TDV2.Verification/SystemCatalogTests.cs      |  144 [32m+++[m
+ tests/TDV2.Verification/TDV2.Verification.csproj   |    3 [32m+[m
+ 198 files changed, 12095 insertions(+), 864 deletions(-)

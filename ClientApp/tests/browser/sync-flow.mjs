@@ -84,7 +84,7 @@ async function finished(label = 'Completada') {
 try {
     await check('Pantalla original: administrador, programación pausada, zona Juárez y sin alertas innecesarias', async () => {
         await page.goto(origin);
-        await page.getByRole('link', { name: 'Registrar un proceso operativo' }).click();
+        await page.getByRole('link', { name: 'Registrar un procedimiento institucional' }).click();
         await page.waitForURL(origin + '/inicio');
         assert.equal((await page.goto(origin + syncPath)).status(), 200);
         await page.getByRole('heading', { name: 'Sincronizaciones', exact: true }).waitFor();

@@ -112,7 +112,7 @@ async function exit() {
 try {
     await check('login y Configuración conservan las dos herramientas separadas', async () => {
         await page.goto(origin);
-        await page.getByRole('link', { name: /Registrar un proceso operativo/ }).click();
+        await page.getByRole('link', { name: /Registrar un procedimiento institucional/ }).click();
         await page.waitForURL(origin + '/inicio');
         await page.goto(origin + '/configuracion/pruebas-acceso');
         await page.getByRole('heading', { name: 'Actuar como usuario', exact: true }).waitFor();

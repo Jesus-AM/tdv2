@@ -15,6 +15,9 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
             foreach (var row in rows)
             {
                 var missing = fields.Where(f => section == "identificacion" ? !ProcedureEligibility.Valid(row, f.Key) : !SystemAnswers.Filled(row, f.Key)).ToList();
+                if (section == "identificacion" && row?["validacion"]?.ToString() is "D" or "N")
+                    missing = missing.Select(f => f.Key == "validacion"
+                        ? (f.Key, "validación pendiente de actualizar (Vigente o Ajustar)") : f).ToList();
                 if (section == "sistemas") missing = missing.Select(f => f.Key switch {
                     "sistema" when row?["sistema"]?.ToString() == "sii_v2" => ("moduloSiiId", "Módulo de SIIv2"),
                     "sistema" when row?["sistema"]?.ToString() == "otra" => ("sistemaOtro", "Nombre de la herramienta"),

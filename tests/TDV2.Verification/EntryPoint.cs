@@ -199,7 +199,7 @@ internal static class EntryPoint
             var valid = schema.Validate(data, Fixtures.Units[0]); Check(FormSchema.Progress(valid) == 100); FormSchema.RequireComplete(valid); Check(valid["encabezado"]!["fecha"]!.ToString() == ""); Check(valid["evaluaciones"]!["PO-01"]![0]!["criterio"]!.GetValue<string>() != "alterado");
         });
 
-        Http("Portada pública no consulta Nexo y conserva tipografía", async (app, client) => { app.Nexo.Outage = true; var r = await client.GetAsync("/"); Check(r.IsSuccessStatusCode); var html = await r.Content.ReadAsStringAsync(); Check(html.Contains("Space+Grotesk") && html.Contains("IBM+Plex+Sans") && html.Contains("Registrar un proceso operativo")); });
+        Http("Portada pública no consulta Nexo y conserva tipografía", async (app, client) => { app.Nexo.Outage = true; var r = await client.GetAsync("/"); Check(r.IsSuccessStatusCode); var html = await r.Content.ReadAsStringAsync(); Check(html.Contains("Space+Grotesk") && html.Contains("IBM+Plex+Sans") && html.Contains("Registrar un procedimiento institucional")); });
         Http("ASP.NET sirve enlace profundo y bundle React generado", async (_, client) =>
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "/formatos/A"); request.Headers.Accept.ParseAdd("text/html");

@@ -73,6 +73,9 @@
   .btn-outline:hover{border-color:var(--blanco);background:rgba(255,255,255,.08)}
   .btn-dark{background:var(--azul);color:var(--blanco)}
   .btn-dark:hover{background:var(--azul-2)}
+  .registration-cta{max-width:100%;text-align:left}
+  .registration-cta>span:first-child{min-width:0}
+  .registration-cta .ar{flex-shrink:0}
   .btn .ar{transition:transform .15s ease}
   .btn:hover .ar{transform:translateX(3px)}
 
@@ -610,7 +613,7 @@
           <li>Riesgos y necesidades de seguridad</li>
           <li>Propuestas de mejora o automatización</li>
         </ul>
-        <a class="btn btn-dark" href="@(User.Identity?.IsAuthenticated == true ? "/inicio" : "/connect")">Registrar un proceso operativo <span class="ar">→</span></a>
+        <a class="btn btn-dark registration-cta" href="@(User.Identity?.IsAuthenticated == true ? "/inicio" : "/connect")"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
       </section>
 
       <!-- Beneficios -->

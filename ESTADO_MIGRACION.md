@@ -2,6 +2,37 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-09**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## 2026-10-09 — Acceso público y validación Vigente/Ajustar
+
+**Implementado:** el botón principal del portal muestra «Registrar un procedimiento institucional», con texto adaptable al ancho y flecha alineada. Conserva exactamente el destino condicional `/connect` o `/inicio` y la autenticación. Identificación general ofrece sólo `V · Vigente` y `A · Ajustar`; «Selecciona una opción» es indicativo, sin entrada seleccionable. Se mantienen las instrucciones de eliminar registros ajenos al área.
+
+D/N existentes conservan su etiqueta y, en formatos editables, muestran «Validación pendiente de actualizar». El servidor sólo los admite sin modificación cuando coinciden con el valor persistido del mismo registro, dentro de la operación de escritura existente. Permite guardar otros campos de esa fila y otros bloques; rechaza nuevas asignaciones, cambios D↔N y copias a nuevos IDs. La regla compartida de elegibilidad exige V/A en avance, revisión, relaciones y envío; corregir a V/A o eliminar utiliza reservas/autoguardado/retiro existentes. No hay conversión, limpieza ni migración nueva; enviados e históricos bloqueados conservan contenido e instantáneas. [Contrato de captura](docs/migracion/IDENTIFICACION_TABLA.md).
+
+**Probado:** TypeScript y compilaciones Vite/ASP.NET correctas; **78/78** pruebas de frontend y **76/76** de dominio/HTTP con dobles. **5/5** casos nuevos ASP.NET → PostgreSQL 18 nativo desechable: rechazo HTTP 422 de D/N en filas actuales y nuevas, atomicidad de varios bloques, conservación al editar otros campos, pendientes/avance y rechazo de envío, corrección V/A persistida y envío permitido, eliminación directa y lecturas/escrituras bloqueadas de enviados e históricos con comparación íntegra de la fila almacenada. [Resultados PostgreSQL](docs/migracion/validacion-procedimientos-20261009/postgresql.json); el contador del runner incluye además un grupo de navegador.
+
+**6/6** recorridos Edge → ASP.NET → PostgreSQL: acceso desde el portal antes/después de autenticar, botón completo a 1440/390/320 px, menú exactamente V/A, indicativo no seleccionable, reserva, autoguardado, guardado/recarga, D/N legibles y pendientes, edición de otros campos sin conversiones, corrección por mouse/teclado, eliminación directa y enviado de consulta. **11/11** recorridos de regresión con dos identidades sintéticas distintas: exclusión por fila, edición simultánea de filas distintas, fotografías/presencia, primera escritura/pegado/Tab, actualización SignalR, eliminación libre/ajena, renovación tardía, Medios independiente, menús/ayudas, otra pestaña, desconexión/reconexión/caducidad y envío de primera etapa. Cero errores JavaScript. [Navegador](docs/migracion/validacion-procedimientos-20261009/navegador.json), [colaboración](docs/migracion/validacion-procedimientos-20261009/colaboracion.json). Capturas finales revisadas en `.artifacts/native-postgres-20261009-163112-0531b958/`.
+
+**Pendiente/límites:** móvil/tacto emulados, sin comprobación en dispositivos físicos ni con identidades institucionales. Microsoft es un par HTTP sintético y Nexo vistas/funciones locales de prueba; la captura, las reservas y la persistencia no usan transporte simulado. La regresión de carrera retiene solicitudes reales y la de desconexión emula pérdida de red. Recursos externos del portal bloqueados durante la verificación, referencias de fuentes conservadas. Sin consultas ni cambios a bases/fuentes institucionales, Nexo, Herd o credenciales. Sin push ni despliegue; sin migraciones que aplicar por este ajuste.
+
+Comandos reproducibles desde la raíz (Node instalado con Visual Studio; cada ejecución nativa crea y detiene su clúster aislado):
+
+```powershell
+$env:TDV2_TEST_NODE='C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VisualStudio\NodeJs\node.exe'
+$env:PATH=(Split-Path $env:TDV2_TEST_NODE)+';'+$env:PATH
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run build
+npm.cmd --prefix ClientApp run test:forms
+dotnet run --project tests/TDV2.Verification -c Release --no-restore -p:UseAppHost=false -p:NuGetAudit=false
+$env:TDV2_TEST_EPHEMERAL_TLS='true'
+$env:TDV2_TEST_CASE_PREFIX='Edición/validación:'
+$env:TDV2_TEST_BROWSER_FLOW='validation'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -EditingOnly -DirectStart
+Remove-Item Env:TDV2_TEST_CASE_PREFIX
+$env:TDV2_TEST_BROWSER_FLOW='delivery'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly -DirectStart
+Remove-Item Env:TDV2_TEST_BROWSER_FLOW
+```
+
 ## 2026-10-09 — Contacto público compacto
 
 **Implementado:** únicamente el bloque Contacto y sus estilos en `tdv2/Views/Home/Index.cshtml`: Subdirección de Inteligencia de Datos, enlace `mailto:sid@uacj.mx`, «Extensiones telefónicas: 4374, 4274, 4174» y «Lunes a viernes, 8:00 a 15:00 h». Se retiran de esa tarjeta Universidad, Dirección y nombres/títulos personales. Encabezado, colores y tipografía conservados; separación de 8 px entre datos, sin márgenes adicionales ni estilos de elementos retirados.

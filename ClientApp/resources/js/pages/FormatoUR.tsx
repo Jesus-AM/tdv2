@@ -106,8 +106,6 @@ const tabs = [
 const validation = [
     { value: 'V', label: 'V · Vigente' },
     { value: 'A', label: 'A · Ajustar' },
-    { value: 'D', label: 'D · Duplicado o relacionado' },
-    { value: 'N', label: 'N · No corresponde' },
 ];
 const id = () => crypto.randomUUID();
 export default function FormatoUR(props: Props) {
@@ -398,6 +396,13 @@ function Editor(props: Props) {
     function field(value: string, def: Field, label: string, onChange: (value: string) => void, blockKey?: string) {
         const readOnly = locked || !!blockKey && !engine.canEdit(blockKey);
         if (def.key === 'prioridad') return <PrioritySelect value={value} label={label} onChange={onChange} {...selectEvents(blockKey!, def.key)} />;
+        const isValidation = def.key === 'validacion';
+        const retiredValidation = isValidation && (value === 'D' || value === 'N');
+        const validationError = blockKey ? state.validation[blockKey]?.[def.key] : undefined;
+        // Conserva el valor histórico en el borrador sin agregarlo como opción ni cambiarlo al renderizar.
+        const validationLabel = validation.find(option => option.value === value)?.label
+            || (value === 'D' ? 'D · Duplicado o relacionado' : value === 'N' ? 'N · No corresponde' : value)
+            || 'Selecciona una opción';
         return (
             <>
                 <TextField
@@ -408,13 +413,16 @@ function Editor(props: Props) {
                     minRows={!def.options && !def.type ? 2 : undefined}
                     maxRows={!def.options && !def.type ? (blockKey?.startsWith('identificacion:') || blockKey?.startsWith('sistemas:') ? 4 : 6) : undefined}
                     type={def.type || 'text'}
-                    value={value || ''}
-                    error={!!blockKey && !!state.validation[blockKey]?.[def.key]}
-                    helperText={blockKey ? state.validation[blockKey]?.[def.key] : undefined}
+                    value={isValidation && !validation.some(option => option.value === value) ? '' : value || ''}
+                    error={!!validationError}
+                    helperText={validationError || (retiredValidation && !locked
+                        ? 'Validación pendiente de actualizar.' : undefined)}
                     onChange={(e) => onChange(e.target.value)}
                     slotProps={{
                         input: { readOnly },
-                        select: { ...(blockKey ? selectEvents(blockKey, def.key) : { readOnly }), SelectDisplayProps: { 'aria-label': label, ...{ 'data-field': def.key } } },
+                        select: { ...(blockKey ? selectEvents(blockKey, def.key) : { readOnly }),
+                            ...(isValidation ? { displayEmpty: true, renderValue: () => validationLabel } : {}),
+                            SelectDisplayProps: { 'aria-label': label, ...{ 'data-field': def.key } } },
                         htmlInput: {
                             'aria-label': label,
                             'data-field': def.key,
@@ -424,7 +432,7 @@ function Editor(props: Props) {
                     }}
                 >
                     {def.options && [
-                        <MenuItem key="empty" value="">
+                        !isValidation && <MenuItem key="empty" value="">
                             Sin seleccionar
                         </MenuItem>,
                         ...def.options.map((o) => (
@@ -432,7 +440,7 @@ function Editor(props: Props) {
                                 {o.label}
                             </MenuItem>
                         )),
-                        ...(value && !def.options.some(o => o.value === value) ? [<MenuItem key="historical" value={value} disabled>{value} · Vínculo histórico</MenuItem>] : []),
+                        ...(!isValidation && value && !def.options.some(o => o.value === value) ? [<MenuItem key="historical" value={value} disabled>{value} · Vínculo histórico</MenuItem>] : []),
                     ]}
                 </TextField>
             </>
@@ -580,7 +588,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {c.identificacion.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`identificacion:${r.id}`), state.issues[`identificacion:${r.id}`], engine.canEdit(`identificacion:${r.id}`), collaborationStamp(r.id), openSelect?.key === `identificacion:${r.id}` ? openSelect.field : null, c.sistemas, c.datos, c.evaluaciones]} render={() => <TableRow {...blockEvents(`identificacion:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`identificacion:${r.id}`), state.issues[`identificacion:${r.id}`], state.validation[`identificacion:${r.id}`], engine.canEdit(`identificacion:${r.id}`), collaborationStamp(r.id), openSelect?.key === `identificacion:${r.id}` ? openSelect.field : null, c.sistemas, c.datos, c.evaluaciones]} render={() => <TableRow {...blockEvents(`identificacion:${r.id}`)}>
                                     <RowEditingPresence engine={engine} state={state} blockKey={`identificacion:${r.id}`} />
                                     <TableCell>
                                         <Typography
