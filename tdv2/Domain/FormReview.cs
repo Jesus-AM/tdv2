@@ -12,8 +12,10 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
         {
             var rows = content[section]!.AsArray();
             if (rows.Count == 0) pending.Add(new(section, section, "", $"{title}: agrega al menos un registro."));
+            var index = 0;
             foreach (var row in rows)
             {
+                index++;
                 var missing = fields.Where(f => section == "identificacion" ? !ProcedureEligibility.Valid(row, f.Key) : !SystemAnswers.Filled(row, f.Key)).ToList();
                 if (section == "identificacion" && row?["validacion"]?.ToString() is "D" or "N")
                     missing = missing.Select(f => f.Key == "validacion"
@@ -29,15 +31,20 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
                 if (missing.Count == 0) continue;
                 var label = section == "sistemas" ? SystemAnswers.ToolLabel(row) : row?[fields[0].Key]?.ToString();
                 if (string.IsNullOrWhiteSpace(label)) label = "Registro sin completar";
-                pending.Add(new(section, section + ":" + row!["id"], missing[0].Key == "codigo" ? "validacion" : missing[0].Key,
-                    $"{title} · {label}: completa {string.Join(", ", missing.Select(f => f.Label))}."));
+                foreach (var field in missing.Where(f => f.Key != "codigo" || missing.All(m => m.Key != "validacion")))
+                    pending.Add(new(section, section + ":" + row!["id"], field.Key == "codigo" ? "validacion" : field.Key,
+                        $"{title} · Registro {index}{(row?["codigo"]?.ToString() is { Length: > 0 } code ? " · " + code : "")} · {label}: completa {field.Label}."));
             }
         }
         Rows("identificacion", "Identificación general", ProcedureEligibility.Required);
         Rows("sistemas", "Sistemas", ("sistema", "Sistema o herramienta"), ("uso", "¿Para qué se usa?"), ("estado", "¿Cómo funciona?"));
+        var systemIndex = 0;
         foreach (var row in content["sistemas"]!.AsArray())
+        {
+            systemIndex++;
             if (!ProcedureEligibility.Contains(content, row?["proceso"]?.ToString()))
-                pending.Add(new("sistemas", "sistemas:" + row!["id"], "proceso", $"Sistemas · {SystemAnswers.ToolLabel(row)}: completa y valida el procedimiento relacionado en Identificación general (Vigente o Ajustar)."));
+                pending.Add(new("sistemas", "sistemas:" + row!["id"], "proceso", $"Sistemas · Registro {systemIndex} · {SystemAnswers.ToolLabel(row)}: completa y valida el procedimiento relacionado en Identificación general (Vigente o Ajustar)."));
+        }
         if (firstStage) return new(pending.Count == 0, pending);
         Rows("datos", "Datos", ("dato", "dato"), ("fuente", "fuente"), ("origen", "origen"));
         foreach (var row in content["identificacion"]!.AsArray())

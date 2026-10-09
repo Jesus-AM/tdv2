@@ -159,7 +159,7 @@ try {
             grant(); await expect(input).toHaveJSProperty('readOnly', false);
             await expect(input).toHaveValue(value.slice(0, caret) + 'X pegado' + value.slice(caret));
             const releases = editingRequests.filter(r => r.path.endsWith('/liberar')).length;
-            await page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true }).focus();
+            await page.getByRole('combobox', { name: '¿A quién atiende? 1', exact: true }).focus();
             await expect(input.locator('xpath=ancestor::tr')).toHaveAttribute('data-edit-state', 'owned');
             await page.waitForTimeout(150);
             assert.equal(editingRequests.filter(r => r.path.endsWith('/liberar')).length, releases);
@@ -355,12 +355,12 @@ try {
     });
     await check('el resumen del servidor enlaza pendientes y no ofrece envío de formato incompleto', async () => {
         await finish();
-        await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click();
-        await expect(page.getByRole('heading', { name: 'Revisión y envío de la primera etapa' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
-        await page.getByRole('button', { name: /Identificación general · Guardado con respuesta perdida:/ }).click();
+        await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
+        await expect(page.getByRole('heading', { name: 'Revisar y enviar' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toBeDisabled();
+        await page.getByRole('button', { name: /Identificación general · Registro 1.*Guardado con respuesta perdida: completa.*atiende/ }).click();
         await expect(page.getByRole('tab', { name: 'Identificación general', exact: true })).toHaveAttribute('aria-selected', 'true');
-        await expect(page.getByRole('combobox', { name: 'Usuarios que atiende 1', exact: true })).toBeFocused();
+        await expect(page.getByRole('combobox', { name: '¿A quién atiende? 1', exact: true })).toBeFocused();
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Guardado con respuesta perdida');
         await finish(); // El enlace enfocó y reservó el campo; la petición de prueba usa otra pestaña.
         // Aislar requisitos de llenado de las reservas de las pestañas cerradas en los casos anteriores.
@@ -461,22 +461,22 @@ try {
         await cancelStream(page, id); assert.equal((await streamState(page, id)).error, '');
         const again = await watchStream(page); await cancelStream(page, again);
     });
-    await check('Enviar formato aparece sólo en Acuerdos; confirma sin datos de sesión y bloquea la captura', async () => {
+    await check('Enviar primera etapa aparece sólo en Revisar y enviar; confirma sin datos de sesión y bloquea la captura', async () => {
         await control('ready-to-submit'); await page.reload();
         await page.getByRole('tab', { name: 'Contexto', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
         const input = await header();
         await activate(input);
         await savedAfter(() => input.fill('Proceso del envío sintético'));
-        await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click();
-        await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
-        const dialog = page.getByRole('dialog', { name: 'Enviar formato', exact: true });
+        await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
+        await page.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: 'Enviar primera etapa', exact: true });
         await expect(dialog.getByText('100 · Área sintética A', { exact: true })).toBeVisible();
-        await expect(dialog.getByText(/Después de enviar, este formato quedará bloqueado para edición/)).toBeVisible();
+        await expect(dialog.getByText(/Al enviar la primera etapa, sus respuestas quedarán disponibles para consulta y ya no podrán editarse./)).toBeVisible();
         await expect(dialog.getByRole('button', { name: 'Cancelar', exact: true })).toBeFocused();
         await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
         await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeEnabled();
-        await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
+        await page.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
         const [response] = await Promise.all([page.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/enviar'),
             dialog.getByRole('button', { name: 'Confirmar envío', exact: true }).click()]);
         assert.equal(response.status(), 200);
@@ -485,7 +485,7 @@ try {
         await expect(page.getByText(/Enviado el .* por persona@uacj.mx/)).toBeVisible();
         await page.reload(); await header();
         await expect(input).toHaveJSProperty('readOnly', true);
-        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Imprimir', exact: true })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeDisabled();
         const content = (await stored()).contenido;

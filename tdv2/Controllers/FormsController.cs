@@ -55,4 +55,8 @@ public sealed class FormsController(FormService service) : ControllerBase
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Submit(string ur, [FromBody] SubmitRequest input, [FromServices] FormEditingService editing) => Results.Json(await editing.Submit(ur, input));
 
+    [HttpPost("/formatos/{ur}/posicion")]
+    [EnableRateLimiting("form-writes")]
+    public async Task<IResult> Position(string ur, [FromBody] FormPositionRequest input, [FromServices] FormEditingService editing) => Results.Json(await editing.Position(ur, input));
+
 }

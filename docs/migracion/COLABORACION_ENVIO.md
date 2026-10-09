@@ -1,6 +1,6 @@
 # Captura colaborativa y envío
 
-Actualización: [SignalR, exclusión por registro y pruebas con dos sesiones](RESERVAS_SIGNALR.md). No requiere migración adicional.
+Actualización vigente: pestaña [Revisar y enviar y envíos por etapa](REVISAR_ENVIO_ETAPAS.md), con migración `20261009171656_StageSubmissions`. Se conserva [SignalR y la exclusión por registro](RESERVAS_SIGNALR.md).
 
 ## Captura
 
@@ -27,13 +27,13 @@ El servidor asigna códigos bajo el bloqueo de UR e inicializa criterios vacíos
 
 ## Envío definitivo
 
-Al final de Acuerdos, Revisión y envío muestra los pendientes del servidor con enlaces a los campos. Enviar formato aparece sólo para un responsable autorizado, sin cambios pendientes ni errores y con revisión aprobada. Antes del diálogo se guarda y se vuelve a consultar el servidor; se confirma la UR y la versión revisada. El backend exige responsabilidad institucional, alcance editable, versión vigente, llenado completo y ausencia de reservas de otras sesiones/pestañas. Colaboradores o consulta institucional no conceden envío. Un administrador necesita ser responsable institucional además de estar en su rama editable.
+La pestaña Revisar y enviar está después de Sistemas y herramientas y se puede abrir con pendientes. Enviar primera etapa requiere permiso vigente, cambios confirmados, revisión completa y ausencia de reservas ajenas. Antes del diálogo se guarda y consulta el estado; el servidor vuelve a comprobar UR, etapa, permisos, versión, requisitos y reservas. Colaboradores y consulta institucional no conceden envío. El administrador conserva su límite de responsabilidad institucional y rama editable.
 
-Se guardan fecha UTC, ejercicio, UUID, versión, actor Microsoft real, identidad efectiva y auditoría. La instantánea conserva unidad y respuestas, incluidos los trámites ILDA incorporados. La consulta deja de combinar nuevos inventarios o descripciones y muestra fecha e identidad efectiva del envío. Un trigger impide UPDATE/DELETE del formato enviado incluso desde otros procesos. **No existe reapertura**.
+Cada envío nuevo conserva fecha UTC, ejercicio, UUID, versión, actor Microsoft, identidad efectiva, nombre y auditoría. Su instantánea guarda el área y las respuestas de esa etapa. Triggers y servicio protegen esas respuestas, incluida Identificación con los procedimientos ILDA confirmados. Los envíos globales anteriores conservan todos sus datos y bloqueo, sin asignación inferida de etapa. **No existe reapertura**.
 
-Requisitos visibles: procesos con código, validación, prioridad y los campos de avance; sistemas; datos; doce preguntas; acuerdos; nueve criterios por proceso. `FormReview` centraliza los pendientes y `RequireComplete` los exige durante el envío. Un 100 % no sustituye esa revisión, por ejemplo ante una prioridad histórica fuera de 1–5.
+La revisión vigente sólo comprende Contexto, Identificación y Sistemas con Medios. Usa `FormStages` y las reglas existentes de `FormReview` y `FormCapture`; los pendientes D/N se conservan. Datos, evaluaciones, preguntas y acuerdos posteriores no impiden enviar ni se sustituyen en guardados parciales. Un 100 % no sustituye la comprobación final del servidor.
 
-El avance de borradores usa los pesos restantes (25/15/10/15/20/5, total 90), normalizados a 100 y redondeados hacia abajo. Consultar recalcula la proyección sin escribir filas; el próximo guardado o envío persiste el valor vigente. Los formatos enviados conservan avance, contenido e instantánea originales. Este ajuste no necesita migración ni backfill. Si un ID de UR reaparece con otro ejercicio, se bloquea la sobrescritura del histórico y debe resolverse su correspondencia institucional.
+El avance utiliza únicamente los campos vigentes de la etapa activa. Consultar recalcula la proyección sin escribir respuestas; el siguiente guardado o envío persiste el valor vigente. La pestaña de revisión no suma avance. Los enviados históricos conservan su porcentaje. Si un ID de UR reaparece con otro ejercicio se mantiene el bloqueo histórico. La segunda etapa sigue sin habilitarse; [persistencia y aplicación posterior de la migración](REVISAR_ENVIO_ETAPAS.md).
 
 ## Prioridad y valores anteriores
 

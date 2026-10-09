@@ -18,18 +18,19 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         var rows = new List<Dictionary<string, object?>>();
         var records = await store.GetMany(context.Scopes.Keys.ToArray(), http.RequestAborted);
         var inventories = await catalogs.Inventories(context.Scopes.Values.Where(s => records.GetValueOrDefault(s.Unit.Id)?.SubmittedAt is null
+            && records.GetValueOrDefault(s.Unit.Id)?.Stage?.Blocked != true
             && FormCapture.CurrentYear(records.GetValueOrDefault(s.Unit.Id)?.Year, s.Unit)).Select(s => s.Unit).ToArray(), http.RequestAborted);
         foreach (var scope in context.Scopes.Values.OrderBy(s => s.Unit.Code, StringComparer.OrdinalIgnoreCase))
         {
             var record = records.GetValueOrDefault(scope.Unit.Id);
-            var current = record?.SubmittedAt is null && FormCapture.CurrentYear(record?.Year, scope.Unit);
+            var current = record?.SubmittedAt is null && record?.Stage?.Blocked != true && FormCapture.CurrentYear(record?.Year, scope.Unit);
             var progress = record?.Progress ?? 0;
             if (current)
             {
                 // Recalcular sólo la proyección de consulta; un GET no modifica borradores ni instantáneas enviadas.
                 var draft = record?.Content.DeepClone().AsObject() ?? schema.Blank(scope.Unit);
-                LocalCatalog.Merge(draft, inventories[scope.Unit.Id]);
-                progress = FormSchema.Progress(draft);
+                if ((record?.Stage?.id ?? FormStages.First) == FormStages.First) LocalCatalog.Merge(draft, inventories[scope.Unit.Id]);
+                progress = FormStages.Progress(record?.Stage?.id ?? FormStages.First, draft);
             }
             rows.Add(new()
             {
@@ -72,27 +73,31 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         var context = await access.Resolve(http);
         if (!context.Scopes.TryGetValue(ur, out var scope)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
         var record = await store.Get(ur, http.RequestAborted);
-        var current = record?.SubmittedAt is null && FormCapture.CurrentYear(record?.Year, scope.Unit);
+        var current = record?.SubmittedAt is null && record?.Stage?.Blocked != true && FormCapture.CurrentYear(record?.Year, scope.Unit);
         var content = record?.Content.DeepClone() ?? schema.Blank(scope.Unit);
-        object inventory = current
+        object inventory = current && (record?.Stage?.id ?? FormStages.First) == FormStages.First
             ? LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted)).Status
             : new { estado = "enviado", nuevos = 0, total = content["identificacion"]!.AsArray().Count, aviso = (string?)null };
         var snapshot = record?.SubmissionSnapshot is { } frozen ? JsonNode.Parse(frozen) : null;
+        var stage = record?.Stage ?? new FormStageStatus(FormStages.First, FormStages.Name(FormStages.First), true,
+            record?.SubmittedAt is not null ? "historico" : "borrador", record?.Year is > 0 ? record.Year : scope.Unit.Year,
+            record?.SubmittedAt, record?.SubmittedEffective, null);
         return new PageData("FormatoUR", new()
         {
             ["unidad"] = (object?)snapshot?["unidad"] ?? scope.Unit.Public(),
             ["contenido"] = content,
+            ["entrega"] = FormStages.Describe(stage, content.AsObject()),
             ["plantilla"] = schema.Blank(scope.Unit),
             ["definicion"] = schema.Definition(),
             ["editable"] = scope.Edit && !context.ReadOnly && current,
             ["seccionesPosteriores"] = FormCapture.LaterSections(context.Profile),
-            ["porcentajeEtapa"] = FormCapture.Progress(content.AsObject()),
+            ["porcentajeEtapa"] = FormStages.Progress(stage.id, content.AsObject()),
             ["puedeEnviar"] = scope.Edit && !context.ReadOnly && current && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
             ["enviadoEn"] = record?.SubmittedAt,
             ["enviadoPor"] = record?.SubmittedEffective,
             ["permisoEdicion"] = scope.Edit,
             ["version"] = record?.Version ?? 0,
-            ["porcentaje"] = !current ? record!.Progress : FormSchema.Progress(content.AsObject()),
+            ["porcentaje"] = !current ? record!.Progress : FormStages.Progress(stage.id, content.AsObject()),
             ["actualizadoEn"] = record?.UpdatedAt,
             ["actualizadoPor"] = record?.UpdatedBy,
             ["guardarUrl"] = "/formatos/" + Uri.EscapeDataString(ur),

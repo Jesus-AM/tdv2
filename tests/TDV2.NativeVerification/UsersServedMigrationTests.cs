@@ -35,17 +35,17 @@ internal static class UsersServedMigrationTests
                 ('DRAFT','medios',2,0,gen_random_uuid(),clock_timestamp()+interval '1 hour'),
                 ('SENT','identificacion:inicial',3,0,gen_random_uuid(),clock_timestamp()+interval '1 hour');
             """);
-        var submitted = await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='SENT'");
-        var historical = await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='HIST'");
+        var submitted = await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='SENT'");
+        var historical = await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='HIST'");
         var sentBlock = await sql(connection, "SELECT row_to_json(b)::text FROM formato_bloques b WHERE id_ur='SENT'");
-        var draftBefore = await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='DRAFT'");
+        var draftBefore = await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='DRAFT'");
         await sql(connection, """
             CREATE FUNCTION fixture_fail_users_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC'; END $$;
             CREATE TRIGGER fail_users_audit BEFORE INSERT ON activity_logs FOR EACH ROW EXECUTE FUNCTION fixture_fail_users_audit();
             """);
         bool rejected = false;
         try { await db.Database.MigrateAsync(); } catch (PostgresException) { rejected = true; }
-        check(rejected && Equals(draftBefore, await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='DRAFT'"))
+        check(rejected && Equals(draftBefore, await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='DRAFT'"))
             && (await db.Database.GetAppliedMigrationsAsync()).Count() == 5, "usuarios: fallo de auditoría revierte contenido, versiones e historial EF");
         await sql(connection, "DROP TRIGGER fail_users_audit ON activity_logs; DROP FUNCTION fixture_fail_users_audit()");
         await db.Database.MigrateAsync();
@@ -53,10 +53,10 @@ internal static class UsersServedMigrationTests
         expected["identificacion"]![0]!["usuario"] = new JsonArray(); expected["identificacion"]![1]!["usuario"] = new JsonArray();
         var stored = JsonNode.Parse((string)(await sql(connection, "SELECT contenido::text FROM formatos_ur WHERE id_ur='DRAFT'"))!)!;
         check(JsonNode.DeepEquals(expected, stored), "usuarios: limpia sólo campo anterior y conserva todas las filas, prioridades 4/17, listas nuevas y demás respuestas");
-        check(Equals(submitted, await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='SENT'"))
+        check(Equals(submitted, await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='SENT'"))
             && Equals(sentBlock, await sql(connection, "SELECT row_to_json(b)::text FROM formato_bloques b WHERE id_ur='SENT'")),
             "usuarios: enviado, instantánea, porcentaje y reservas inmutables");
-        check(Equals(historical, await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='HIST'")),
+        check(Equals(historical, await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='HIST'")),
             "usuarios: conserva borrador histórico no editable por cambio de ejercicio");
         check(Convert.ToInt32(await sql(connection, "SELECT porcentaje FROM formatos_ur WHERE id_ur='DRAFT'")) == 96
             && Convert.ToInt32(await sql(connection, "SELECT version FROM formatos_ur WHERE id_ur='DRAFT'")) == 8, "usuarios: conserva avance histórico de 96 y aumenta versión del formato");
@@ -67,11 +67,11 @@ internal static class UsersServedMigrationTests
               AND NOT EXISTS(SELECT 1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:nueva')
             """))!, "usuarios: invalida reserva/versiones antiguas únicamente de los bloques modificados");
         await sql(connection, """UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,usuario}','["Otro","Comunidad universitaria"]')::json WHERE id_ur='DRAFT'""");
-        var after = await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='DRAFT'");
+        var after = await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='DRAFT'");
         await db.Database.MigrateAsync();
         var script = migrator.GenerateScript("20261007161549_ParticipantPhotographs", options: MigrationsSqlGenerationOptions.Idempotent);
         await sql(connection, script);
-        check(Equals(after, await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='DRAFT'"))
+        check(Equals(after, await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='DRAFT'"))
             && Convert.ToInt32(await sql(connection, "SELECT count(*) FROM activity_logs WHERE action='migrar_usuarios_atendidos'")) == 1,
             "usuarios: repetir comando y script idempotente no limpia selecciones nuevas ni duplica auditoría");
     }

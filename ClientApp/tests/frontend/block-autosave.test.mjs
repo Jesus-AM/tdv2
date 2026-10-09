@@ -204,6 +204,31 @@ test('dos pestañas del mismo usuario tienen identificadores independientes', ()
     const a = create(), b = create(); assert.notEqual(a.editor.tabId, b.editor.tabId); a.editor.dispose(); b.editor.dispose();
 });
 
+test('envío por etapa comparte operación ante doble clic y acepta SignalR anterior al ACK', async () => {
+    let release, calls = 0, request;
+    const sent = { version: 1, enviadoEn: new Date().toISOString(), enviadoPor: 'responsable@example.test',
+        entrega: { etapa: { id: 1, estado: 'enviada' }, revision: { listo: true, pendientes: [] } } };
+    const { editor } = create({ submit: body => { calls++; request = body; return new Promise(resolve => { release = () => resolve(sent); }); } });
+    editor.receive(live({ entrega: { etapa: { id: 1, estado: 'borrador' } } }));
+    const first = editor.submit(0), second = editor.submit(0);
+    while (!release) await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(calls, 1); assert.equal(request.stage, 1);
+    editor.receive(live({ ...sent, editable: false, puedeEnviar: false }));
+    release(); assert.equal(await first, true); assert.equal(await second, true);
+    assert.equal(editor.state.delivery.etapa.estado, 'enviada'); assert.equal(editor.state.locked, true);
+    assert.equal(editor.state.error, ''); assert.equal(await editor.submit(1), false); assert.equal(calls, 1); editor.dispose();
+});
+
+test('reintento de envío sin confirmación conserva operación, versión y etapa', async () => {
+    const requests = [];
+    const { editor } = create({ submit: async body => {
+        requests.push(structuredClone(body)); if (requests.length === 1) throw new Error('Transporte sintético interrumpido');
+        return { version: 1, enviadoEn: new Date().toISOString() };
+    } });
+    assert.equal(await editor.submit(0), false); assert.equal(await editor.submit(0), true);
+    assert.deepEqual(requests[0], requests[1]); assert.equal(requests[0].stage, 1); editor.dispose();
+});
+
 test('foco durante guardado espera la versión confirmada antes de adquirir otra reserva', async () => {
     let confirm;
     const versions = [];

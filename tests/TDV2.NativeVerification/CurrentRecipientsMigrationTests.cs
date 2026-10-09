@@ -56,7 +56,7 @@ internal static class CurrentRecipientsMigrationTests
         }
         var stored = JsonNode.Parse((string)(await sql(connection, "SELECT contenido::text FROM formatos_ur WHERE id_ur='DRAFT'"))!)!;
         check(JsonNode.DeepEquals(expected, stored), "destinatarios: cinco combinaciones, conserva opciones válidas, campos, filas y prioridades; elimina detalle sin compatibilidad");
-        check(Equals(immutable, await sql(connection, "SELECT jsonb_agg(to_jsonb(f) ORDER BY id_ur)::text FROM formatos_ur f WHERE id_ur<>'DRAFT'")),
+        check(Equals(immutable, await sql(connection, "SELECT jsonb_agg(to_jsonb(f)-'etapa_activa' ORDER BY id_ur)::text FROM formatos_ur f WHERE id_ur<>'DRAFT'")),
             "destinatarios: enviados, instantáneas y ejercicio histórico permanecen idénticos");
         check(Convert.ToInt32(await sql(connection, "SELECT porcentaje FROM formatos_ur WHERE id_ur='DRAFT'")) == 81
             && !FormSchema.HasRecipients(stored["identificacion"]![0]) && FormCapture.Progress(expected) < 100,

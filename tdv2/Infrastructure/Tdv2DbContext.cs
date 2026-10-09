@@ -11,6 +11,7 @@ public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbC
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     public DbSet<ResponsibleUnit> ResponsibleUnits => Set<ResponsibleUnit>();
     public DbSet<UnitForm> UnitForms => Set<UnitForm>();
+    public DbSet<FormStageSubmission> FormStageSubmissions => Set<FormStageSubmission>();
     public DbSet<FormBlock> FormBlocks => Set<FormBlock>();
     public DbSet<FormMutation> FormMutations => Set<FormMutation>();
     public DbSet<FormPosition> FormPositions => Set<FormPosition>();

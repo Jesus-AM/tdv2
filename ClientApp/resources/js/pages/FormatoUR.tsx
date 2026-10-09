@@ -51,7 +51,7 @@ import FormSubmissionReview from '@/Components/FormSubmissionReview';
 import RowEditingActions from '@/Components/RowEditingActions';
 import RowEditingPresence from '@/Components/RowEditingPresence';
 import { isScrollbarPointer, RecordEditingContext } from '@/lib/record-editing-context';
-import type { FormPending } from '@/Components/FormSubmissionReview';
+import type { FormPending, StageReview } from '@/Components/FormSubmissionReview';
 import { removalBlocks, removalSnapshot, removeRow, rowLabel, targetRow } from '@/lib/form-deletion';
 import type { RowTarget } from '@/lib/form-deletion';
 import { displayUnitCode } from '@/lib/area-directory';
@@ -69,6 +69,7 @@ type Definition = {
 const CaptureRow = memo(function CaptureRow({ render }: { dependencies: unknown[]; render: () => React.ReactNode }) { return render(); },
     (a, b) => a.dependencies.length === b.dependencies.length && a.dependencies.every((value, i) => Object.is(value, b.dependencies[i])));
 type Props = {
+    entrega?: StageReview;
     unidad: Unit;
     contenido: FormContent;
     plantilla: FormContent;
@@ -98,6 +99,7 @@ const tabs = [
     ['contexto', 'Contexto'],
     ['identificacion', 'Identificación general'],
     ['sistemas', 'Sistemas y herramientas'],
+    ['revision', 'Revisar y enviar'],
     ['datos', 'Datos'],
     ['evaluacion', 'Evaluación'],
     ['preguntas', 'Preguntas'],
@@ -138,7 +140,7 @@ function Editor(props: Props) {
         [showLater, setShowLater] = useState(false),
         [evalCode, setEvalCode] = useState(''),
         [notice, setNotice] = useState(''),
-        [confirmSend, setConfirmSend] = useState<number | null>(null),
+        [confirmSend, setConfirmSend] = useState<{ version: number; stage: number } | null>(null),
         [removal, setRemoval] = useState<(RowTarget & { snapshot: string; label: string }) | null>(null),
         [sending, setSending] = useState(false),
         [finishing, setFinishing] = useState(false);
@@ -163,6 +165,7 @@ function Editor(props: Props) {
                     save: async body => (await axios.patch(`${props.guardarUrl}/bloques`, body, { timeout: 15000 })).data,
                     release: async body => (await axios.post(`${props.guardarUrl}/reservas/liberar`, body, { timeout: 15000 })).data,
                     submit: async body => (await axios.post(`${props.guardarUrl}/enviar`, body, { timeout: 15000 })).data,
+                    position: async section => (await axios.post(`${props.guardarUrl}/posicion`, { section }, { timeout: 15000 })).data,
                 },
                 (s) => redraw.current(s),
             );
@@ -175,8 +178,15 @@ function Editor(props: Props) {
     const c = state.content,
         locked = state.locked || !state.initialized;
     const administrator = state.laterSections ?? props.seccionesPosteriores;
-    const visibleTabs = administrator && showLater ? tabs : tabs.slice(0, 3);
+    const visibleTabs = administrator && showLater ? tabs : tabs.slice(0, 4);
     const showingLater = administrator && showLater;
+    const delivery = state.delivery || props.entrega || null;
+    const settled = state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict
+        && !state.preparing.length && !Object.keys(state.issues).length && !Object.keys(state.unaccepted).length;
+    const otherEditing = Object.keys(state.blocks).some(key => engine.busy(key));
+    const autosave = locked ? 'Solo consulta' : state.saving || finishing ? 'Guardando…'
+        : state.error || Object.keys(state.issues).length ? 'No se pudo guardar'
+        : state.dirty ? 'Cambios pendientes' : state.updatedAt ? 'Guardado' : 'Sin cambios pendientes';
     const initializedSection = useRef(false);
     useEffect(() => {
         // Perder la reserva cierra el menú; una adquisición posterior no debe reabrir una intención antigua.
@@ -372,9 +382,10 @@ function Editor(props: Props) {
             removing.current = false; setRemovingRow(false);
         }
     }
-    function navigatePending(pending: FormPending) {
+    async function navigatePending(pending: FormPending) {
         if (!visibleTabs.some(([key]) => key === pending.seccion)) return;
-        void engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
+        // Termina el guardado/liberación anterior antes de enfocar y reservar el destino.
+        await engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
         if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
         requestAnimationFrame(() => requestAnimationFrame(() => {
             const panel = document.getElementById('panel-' + pending.seccion);
@@ -387,10 +398,12 @@ function Editor(props: Props) {
         }));
     }
     async function reviewForSubmission() {
+        if (sending) return;
         setSending(true);
         try {
             if (await engine.flush(true) && await engine.refresh() && !engine.state.dirty && !engine.state.saving
-                && engine.state.canSubmit && engine.state.review?.listo) setConfirmSend(engine.state.version);
+                && engine.state.canSubmit && engine.state.review?.listo && !Object.keys(engine.state.blocks).some(key => engine.busy(key)))
+                setConfirmSend({ version: engine.state.version, stage: engine.state.delivery?.etapa.id ?? 1 });
         } finally { setSending(false); }
     }
     function field(value: string, def: Field, label: string, onChange: (value: string) => void, blockKey?: string) {
@@ -698,12 +711,11 @@ function Editor(props: Props) {
                 />
                 </Box>
                 </Box>
-                <FormSubmissionReview review={state.stageReview} canSubmit={state.canSubmit}
-                    settled={state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict}
-                    submitting={sending} submitted={!!(state.submitted || props.enviadoEn)}
-                    onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />
             </>
         ),
+        revision: () => <FormSubmissionReview delivery={delivery} area={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
+            canSubmit={state.canSubmit} settled={settled} busy={otherEditing} autosave={autosave}
+            submitting={sending} onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
         datos: () => (
             <>
                 <Typography variant="h2" sx={{ mb: 2 }}>
@@ -917,7 +929,7 @@ function Editor(props: Props) {
                     actions={
                         <Box sx={{ minWidth: 135 }}>
                             <Typography variant="caption" color="text.secondary">
-                                {state.submitted || props.enviadoEn ? 'Avance guardado' : 'Avance de la primera etapa'}
+                                {state.submitted || props.enviadoEn ? 'Avance guardado' : `Avance de la ${delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}`}
                             </Typography>
                             <Typography variant="h2" color="primary" sx={{ my: 0.5 }}>
                                 {state.submitted || props.enviadoEn ? state.progress : state.initialized ? state.stageProgress : props.porcentajeEtapa}%
@@ -1047,15 +1059,17 @@ function Editor(props: Props) {
                         for (const key of keys) void engine.endBlock(key);
                     }} onConfirm={() => void confirmRemoval()} />
                 <Dialog open={confirmSend !== null} onClose={() => !sending && setConfirmSend(null)} aria-labelledby="confirm-send-title">
-                    <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
+                    <DialogTitle id="confirm-send-title">Enviar {delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}</DialogTitle>
                     <DialogContent>
                         <Typography sx={{ fontWeight: 600, mb: 2 }}>{displayUnitCode(props.unidad.cve_ur)} · {props.unidad.desc_ur}</Typography>
-                        <Typography>Esta entrega comprende Contexto, Identificación general y Sistemas y herramientas, incluidos los Medios utilizados. Se conservarán las respuestas guardadas de esta UR y ejercicio. Después de enviar, este formato quedará bloqueado para edición.</Typography>
+                        <Typography>Al enviar la {delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}, sus respuestas quedarán disponibles para consulta y ya no podrán editarse.</Typography>
+                        {confirmSend && (confirmSend.version !== state.version || confirmSend.stage !== delivery?.etapa.id) && <Typography role="status" sx={{ mt: 2 }}>Las respuestas o la etapa cambiaron. Cierra esta confirmación y revisa el estado actualizado antes de enviar.</Typography>}
+                        {otherEditing && <Typography role="status" sx={{ mt: 2 }}>Otra sesión está editando. Espera a que termine antes de enviar.</Typography>}
                         {state.error && <Alert severity="error" sx={{ mt: 2 }}>{state.error}</Alert>}
                     </DialogContent>
                     <DialogActions><Button autoFocus disabled={sending} onClick={() => setConfirmSend(null)}>Cancelar</Button>
-                        <Button variant="contained" disabled={sending || !state.canSubmit} onClick={async () => {
-                            setSending(true); try { if (await engine.submit(confirmSend!)) setConfirmSend(null); } finally { setSending(false); }
+                        <Button variant="contained" disabled={sending || !state.canSubmit || !settled || otherEditing || !delivery?.revision.listo || confirmSend?.version !== state.version || confirmSend?.stage !== delivery?.etapa.id} onClick={async () => {
+                            setSending(true); try { if (await engine.submit(confirmSend!.version)) setConfirmSend(null); } finally { setSending(false); }
                         }}>{sending ? 'Enviando…' : 'Confirmar envío'}</Button></DialogActions>
                 </Dialog>
 

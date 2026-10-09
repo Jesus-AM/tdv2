@@ -3,7 +3,8 @@ using Tdv2.Domain;
 namespace Tdv2.Infrastructure;
 
 public sealed record StoredForm(string UnitId, JsonObject Content, int Version, int Progress, DateTimeOffset UpdatedAt, string UpdatedBy,
-    DateTimeOffset? SubmittedAt = null, string? SubmissionSnapshot = null, int Year = 0, string? SubmittedEffective = null);
+    DateTimeOffset? SubmittedAt = null, string? SubmissionSnapshot = null, int Year = 0, string? SubmittedEffective = null,
+    FormStageStatus? Stage = null);
 public sealed record SaveForm(int? Version, JsonObject? Contenido);
 public interface IFormStore
 {

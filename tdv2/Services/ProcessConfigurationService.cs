@@ -54,7 +54,8 @@ public sealed class ProcessConfigurationService(Tdv2DbContext db, IFormStore sto
         var leaving = before.Units.Values.Where(u => before.Participates(u) && !after.Participates(u)).OrderBy(u => u.Id).ToArray();
         var affected = entering.Concat(leaving).Select(u => u.Id).ToArray();
         var forms = await db.UnitForms.AsNoTracking().Where(f => affected.Contains(f.UnitId))
-            .OrderBy(f => f.UnitId).Select(f => new { id = f.UnitId, version = f.Version, enviadoEn = f.SubmittedAt }).ToArrayAsync(ct);
+            .OrderBy(f => f.UnitId).Select(f => new { id = f.UnitId, version = f.Version,
+                enviadoEn = f.SubmittedAt ?? f.StageSubmissions.Where(s => s.Stage == f.ActiveStage).Select(s => (DateTimeOffset?)s.SubmittedAt).FirstOrDefault() }).ToArrayAsync(ct);
         // Describe alcances potenciales por adscripción, sin enumerar personas ni inferir concesiones de sus roles.
         var branches = new Dictionary<(UnitDirectory Directory, string Root), string[]>();
         string[] Branch(UnitDirectory d, Unit u)

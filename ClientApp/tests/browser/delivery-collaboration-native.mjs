@@ -166,8 +166,9 @@ try {
     await check('primera etapa se entrega sin posteriores, conserva sus datos y bloquea enviados', async () => {
         assert.deepEqual(later(await stored()), history);
         assert.equal((await request(b, '/formatos/A/enviar', 'POST', { tabId: crypto.randomUUID(), operationId: crypto.randomUUID(), version: (await live(b)).version })).status, 403);
-        await expect(a.getByRole('heading', { name: 'Revisión y envío de la primera etapa' })).toBeVisible();
-        await expect(a.getByRole('button', { name: 'Enviar formato', exact: true })).toBeVisible(); await a.getByRole('button', { name: 'Enviar formato', exact: true }).click();
+        await tab(a, 'Revisar y enviar');
+        await expect(a.getByRole('heading', { name: 'Revisar y enviar', exact: true })).toBeVisible();
+        await expect(a.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toBeVisible(); await a.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
         await a.getByRole('dialog').getByRole('button', { name: 'Confirmar envío', exact: true }).click();
         await expect(input(b, 'Fallas o comentarios 1')).toHaveJSProperty('readOnly', true);
         assert.deepEqual(later(await stored()), history);

@@ -1,7 +1,7 @@
 import type { FormContent, SaveResponse } from '../types/tdv2';
 import { normalizeContent } from './form-editor';
 import { applyBlocks, blockValue, changedBlocks, sameBlock } from './form-blocks';
-import type { SubmissionReview } from '../Components/FormSubmissionReview';
+import type { SubmissionReview, StageReview } from '../Components/FormSubmissionReview';
 import type { RowTarget } from './form-deletion';
 export type Lease = { id: string | null; propia: boolean; titular: string; venceEn: string; otraPestana?: boolean; color?: number; foto?: string | null };
 export type Block = { key: string; version: number; reserva: Lease | null; value?: unknown };
@@ -13,7 +13,8 @@ export interface EditingTransport {
     renew(body: Mutation): Promise<{ bloques: Block[]; servidorEn: string }>;
     save(body: Mutation): Promise<SaveResponse & { bloques: Block[]; revisionEnvio: SubmissionReview }>;
     release(body: Mutation): Promise<unknown>;
-    submit(body: { tabId: string; operationId: string; version: number }): Promise<{ version: number; enviadoEn: string; enviadoPor: string }>;
+    position?(section: string): Promise<unknown>;
+    submit(body: { tabId: string; operationId: string; version: number; stage?: number }): Promise<{ version: number; enviadoEn: string; enviadoPor: string; entrega?: StageReview }>;
 }
 export interface EditorState {
     content: FormContent; version: number; progress: number; dirty: boolean; saving: boolean; locked: boolean;
@@ -23,6 +24,7 @@ export interface EditorState {
     review: SubmissionReview | null; submittedBy: string | null;
     procedures: NonNullable<LiveForm['procedimientosDisponibles']>;
     stageProgress: number; stageReview: SubmissionReview | null;
+    delivery: StageReview | null;
     laterSections?: boolean;
     preparing: string[]; issues: Record<string, string>; validation: Record<string, Record<string, string>>;
     unaccepted: Record<string, Record<string, string>>;
@@ -50,7 +52,9 @@ export class BlockEditor {
     private retryTimer?: ReturnType<typeof setTimeout>;
     private recoveryAttempts = 0;
     private kinds = new Map<string, 'validation' | 'connection' | 'expired' | 'incompatible' | 'permission'>();
-    private submitting?: { tabId: string; operationId: string; version: number };
+    private submitting?: { tabId: string; operationId: string; version: number; stage?: number };
+    private submitFlight?: Promise<boolean>;
+    private positionQueue = Promise.resolve();
     private serverOffset = 0;
     private serverTimestamp = 0;
     private connectionIssue = false;
@@ -69,7 +73,7 @@ export class BlockEditor {
         this.base = normalizeContent(content);
         this.state = { content: this.base, version, progress, dirty: false, saving: false, locked: !editable,
             error: '', updatedBy: null, updatedAt: null, conflict: false, blocks: {}, initialized: false, submitted: null,
-            canSubmit: false, section: 'contexto', conflicts: [], review: null, procedures: [], stageProgress: 0, stageReview: null, submittedBy: null, preparing: [], issues: {}, validation: {}, unaccepted: {} };
+            canSubmit: false, section: 'contexto', conflicts: [], review: null, procedures: [], stageProgress: 0, stageReview: null, delivery: null, submittedBy: null, preparing: [], issues: {}, validation: {}, unaccepted: {} };
     }
     private dirtyKeys() {
         if (this.dirtyBase !== this.base || this.dirtyContent !== this.state.content) {
@@ -171,6 +175,7 @@ export class BlockEditor {
         this.state.blocks = blocks; this.state.version = data.version; this.state.progress = data.porcentaje;
         for (const key of Object.keys(updates)) if (updates[key] === null && !dirty.includes(key)) this.retire(key);
         this.state.stageProgress = data.porcentajeEtapa ?? this.state.stageProgress;
+        this.state.delivery = data.entrega ?? this.state.delivery;
         this.state.stageReview = data.revisionEtapa ?? this.state.stageReview; this.state.procedures = data.procedimientosDisponibles ?? this.state.procedures;
         this.state.laterSections = data.seccionesPosteriores;
         this.state.updatedAt = data.actualizadoEn; this.state.updatedBy = data.actualizadoPor;
@@ -424,7 +429,15 @@ export class BlockEditor {
         this.timer = setTimeout(() => void this.flush(), 1000);
         return true;
     }
-    setSection(section: string) { this.sectionChosen = true; this.state.section = section; this.emit(); }
+    setSection(section: string) {
+        const changed = this.state.section !== section;
+        this.sectionChosen = true; this.state.section = section; this.emit();
+        if (changed && this.state.initialized && !this.state.locked && this.transport.position)
+            this.positionQueue = this.positionQueue.then(async () => {
+                if (this.running) await this.running;
+                if (!this.disposed) await this.transport.position!(section);
+            }).catch(() => { /* La ubicación local se conserva; no es una respuesta pendiente. */ });
+    }
     async endBlock(key: string) {
         this.focused.delete(key);
         const epoch = (this.focusEpoch.get(key) || 0) + 1;
@@ -539,6 +552,7 @@ export class BlockEditor {
             this.state.version = Math.max(this.state.version, saved.version); this.state.progress = saved.porcentaje;
             this.state.stageProgress = saved.porcentajeEtapa ?? this.state.stageProgress;
             this.state.stageReview = saved.revisionEtapa ?? this.state.stageReview; this.state.procedures = saved.procedimientosDisponibles ?? this.state.procedures;
+            this.state.delivery = saved.entrega ?? this.state.delivery;
             this.state.updatedAt = saved.actualizadoEn; this.state.updatedBy = saved.actualizadoPor;
             this.state.review = saved.revisionEnvio ?? null;
             this.pending.delete(operationKey); this.retries.delete(sent.operationId);
@@ -565,17 +579,23 @@ export class BlockEditor {
         }
     }
     async submit(confirmedVersion?: number): Promise<boolean> {
+        if (this.submitFlight) return this.submitFlight;
+        this.submitFlight = this.submitConfirmed(confirmedVersion);
+        try { return await this.submitFlight; } finally { this.submitFlight = undefined; }
+    }
+    private async submitConfirmed(confirmedVersion?: number): Promise<boolean> {
         if (this.disposed || !this.state.canSubmit || !await this.flush(true) || this.disposed || this.state.dirty) return false;
         // Un diálogo abierto no autoriza enviar respuestas recibidas después de esa revisión.
         if (!this.submitting && confirmedVersion !== undefined && confirmedVersion !== this.state.version) {
             this.submissionIssue = true;
             this.state.error = 'Las respuestas cambiaron. Cierra la confirmación y actualiza el estado antes de enviar.'; this.emit(); return false;
         }
-        this.submitting ||= { tabId: this.tabId, operationId: crypto.randomUUID(), version: this.state.version };
+        this.submitting ||= { tabId: this.tabId, operationId: crypto.randomUUID(), version: this.state.version, stage: this.state.delivery?.etapa.id ?? 1 };
         try {
             const result = await this.transport.submit(this.submitting);
             this.state.submitted = result.enviadoEn; this.state.version = result.version; this.state.locked = true; this.state.canSubmit = false;
             this.state.submittedBy = result.enviadoPor; this.state.review = null;
+            this.state.delivery = result.entrega ?? this.state.delivery;
             this.state.error = ''; this.emit(); return true;
         } catch (error) {
             if ((error as { response?: { status: number } }).response?.status! < 500) this.submitting = undefined;

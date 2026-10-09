@@ -89,6 +89,7 @@ export interface FormContent {
     acuerdos: Agreement[];
 }
 export interface SaveResponse {
+    entrega?: import('../Components/FormSubmissionReview').StageReview;
     procedimientosDisponibles?: { id: string; codigo: string; tramite: string }[];
     porcentajeEtapa?: number;
     revisionEtapa?: import('../Components/FormSubmissionReview').SubmissionReview;

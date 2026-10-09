@@ -18,7 +18,7 @@ export async function verifyCentralCollaboration({ page, context, origin, contro
         await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
         await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
         await page.getByRole('tab', { name: 'Acuerdos', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
         assert.equal((await context.request.get(origin + '/formatos/B')).status(), 403);
     });
     await check('retiro central durante edición termina SignalR, bloquea reserva/guardado y conserva la versión compartida', async () => {

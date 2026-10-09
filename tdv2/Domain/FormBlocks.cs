@@ -5,6 +5,7 @@ namespace Tdv2.Domain;
 public static class FormBlocks
 {
     public static readonly string[] Sections = ["contexto", "identificacion", "sistemas", "datos", "evaluacion", "preguntas", "acuerdos"];
+    public static readonly string[] Locations = [..Sections, "revision"];
     private static readonly string[] Tables = ["identificacion", "sistemas", "datos", "acuerdos"];
     public static Dictionary<string, JsonNode?> Split(JsonObject content)
     {

@@ -23,6 +23,7 @@ public sealed class UnitFormConfiguration : IEntityTypeConfiguration<UnitForm>
             .OnDelete(DeleteBehavior.Restrict).HasConstraintName("formatos_ur_id_ur_fkey");
         b.Property(x => x.Version).IsConcurrencyToken().HasSentinel(-1);
         b.Property(x => x.Year).HasColumnName("ejercicio");
+        b.Property(x => x.ActiveStage).HasColumnName("etapa_activa").HasDefaultValue(1);
         b.Property(x => x.SubmittedAt).HasColumnName("enviado_en");
         b.Property(x => x.SubmittedBy).HasColumnName("enviado_por").HasMaxLength(254);
         b.Property(x => x.SubmittedEffective).HasColumnName("enviado_como").HasMaxLength(254);

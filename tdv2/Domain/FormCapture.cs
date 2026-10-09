@@ -8,7 +8,7 @@ public static class FormCapture
     public static bool LaterSections(Profile profile) => profile.Has("administrador");
     public static bool FirstStageBlock(string key) => key is "contexto" or "medios"
         || key.StartsWith("identificacion:", StringComparison.Ordinal) || key.StartsWith("sistemas:", StringComparison.Ordinal);
-    public static string Section(Profile profile, string? section) => section is "contexto" or "identificacion" or "sistemas"
+    public static string Section(Profile profile, string? section) => section is "contexto" or "identificacion" or "sistemas" or "revision"
         || LaterSections(profile) && FormBlocks.Sections.Contains(section) ? section! : "contexto";
     public static void Require(Profile profile, IEnumerable<string> keys)
     {

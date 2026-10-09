@@ -40,16 +40,17 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
 
     public async Task<StoredForm?> Get(string unit, CancellationToken cancellation)
     {
-        var form = await db.UnitForms.AsNoTracking().SingleOrDefaultAsync(f => f.UnitId == unit, cancellation);
+        var form = await db.UnitForms.AsNoTracking().Include(f => f.StageSubmissions).SingleOrDefaultAsync(f => f.UnitId == unit, cancellation);
         return form is null ? null : Stored(form);
     }
 
     private static StoredForm Stored(UnitForm form) => new(form.UnitId, JsonNode.Parse(form.Content)!.AsObject(),
         form.Version, form.Progress, new DateTimeOffset(DateTime.SpecifyKind(form.UpdatedAt!.Value, DateTimeKind.Utc)), form.UpdatedBy,
-        form.SubmittedAt, form.SubmissionSnapshot, form.Year, form.SubmittedEffective);
+        FormStages.Status(form).enviadoEn, form.SubmissionSnapshot ?? FormStages.Submission(form)?.Snapshot,
+        form.Year, FormStages.Status(form).enviadoPor, FormStages.Status(form));
 
     public async Task<IReadOnlyDictionary<string, StoredForm>> GetMany(string[] units, CancellationToken cancellation) =>
-        (await db.UnitForms.AsNoTracking().Where(f => units.Contains(f.UnitId)).ToListAsync(cancellation)).ToDictionary(f => f.UnitId, Stored);
+        (await db.UnitForms.AsNoTracking().Include(f => f.StageSubmissions).Where(f => units.Contains(f.UnitId)).ToListAsync(cancellation)).ToDictionary(f => f.UnitId, Stored);
 
     public async Task LockUnit(string unit, NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken cancellation)
     {

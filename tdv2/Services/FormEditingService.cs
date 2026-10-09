@@ -16,7 +16,8 @@ namespace Tdv2.Services;
 
 public sealed record BlockRequest(string Key, [property: JsonRequired] int Version, Guid? LeaseId = null, JsonNode? Value = null);
 public sealed record EditRequest(Guid TabId, Guid OperationId, BlockRequest[] Blocks, string Section = "contexto", bool Release = false, RowRemoval? Removal = null);
-public sealed record SubmitRequest(Guid TabId, Guid OperationId, [property: JsonRequired] int Version);
+public sealed record SubmitRequest(Guid TabId, Guid OperationId, [property: JsonRequired] int Version, int Stage = FormStages.First);
+public sealed record FormPositionRequest(string Section);
 public sealed record LeaseView(Guid? id, bool propia, string? titular, DateTimeOffset? venceEn, bool otraPestana, int color, string? foto);
 public sealed record BlockView(string key, int version, LeaseView? reserva);
 
@@ -47,21 +48,21 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (input.TabId == Guid.Empty || input.OperationId == Guid.Empty || input.Blocks is null || input.Blocks.Length is < 1 or > 2400
             || input.Blocks.Any(b => b is null || b.Version < 0 || string.IsNullOrEmpty(b.Key) || !FormBlocks.ValidKey(b.Key))
             || input.Blocks.Select(b => b.Key).Distinct(StringComparer.Ordinal).Count() != input.Blocks.Length
-            || !FormBlocks.Sections.Contains(input.Section)) throw new DomainProblem(422, "Revisa los bloques y la sesión de edición.");
+            || !FormBlocks.Locations.Contains(input.Section)) throw new DomainProblem(422, "Revisa los bloques y la sesión de edición.");
     }
     private bool Owner(FormBlock block, Guid tab, Guid? lease) => block.LeaseId is not null && block.LeaseId == lease
         && block.SessionHash == state.SessionHash && block.TabId == tab && block.ContextRevision == Revision;
     private static void Editable(UnitForm form, Unit unit)
     {
-        if (form.SubmittedAt is not null) throw Conflict("El formato ya fue enviado y es de solo consulta.");
+        if (FormStages.Status(form).Blocked) throw Conflict("La etapa está bloqueada para edición o todavía no está habilitada.");
         if (form.Year != 0 && form.Year != unit.Year) throw Conflict("El ejercicio del catálogo cambió. El formato histórico se conserva y no puede sobrescribirse.");
     }
     private async Task<UnitForm> Load(Unit unit, Profile effective)
     {
-        var form = await db.UnitForms.SingleOrDefaultAsync(f => f.UnitId == unit.Id, Ct);
+        var form = await db.UnitForms.Include(f => f.StageSubmissions).SingleOrDefaultAsync(f => f.UnitId == unit.Id, Ct);
         if (form is not null)
         {
-            if (form.SubmittedAt is null && FormCapture.CurrentYear(form.Year, unit))
+            if (!FormStages.Status(form).Blocked && form.ActiveStage == FormStages.First && FormCapture.CurrentYear(form.Year, unit))
             {
                 var existing = JsonNode.Parse(form.Content)!.AsObject();
                 LocalCatalog.Merge(existing, await catalogs.Inventory(unit, Ct));
@@ -84,27 +85,46 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var (context, scope) = await Authorize(ur, false);
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, Ct);
         var now = await Now((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)transaction.GetDbTransaction());
-        var form = await db.UnitForms.AsNoTracking().SingleOrDefaultAsync(f => f.UnitId == ur, Ct);
+        var form = await db.UnitForms.AsNoTracking().Include(f => f.StageSubmissions).SingleOrDefaultAsync(f => f.UnitId == ur, Ct);
         var content = form is null ? schema.Blank(scope.Unit) : JsonNode.Parse(form.Content)!.AsObject();
         var availableProcedures = form is null ? [] : ProcedureEligibility.Options(content);
-        var current = form?.SubmittedAt is null && FormCapture.CurrentYear(form?.Year, scope.Unit);
-        if (current) LocalCatalog.Merge(content, await catalogs.Inventory(scope.Unit, Ct));
+        var stage = FormStages.Status(form, scope.Unit.Year);
+        var current = !stage.Blocked && FormCapture.CurrentYear(form?.Year, scope.Unit);
+        if (current && stage.id == FormStages.First) LocalCatalog.Merge(content, await catalogs.Inventory(scope.Unit, Ct));
+        var delivery = FormStages.Describe(stage, content);
         var blocks = await db.FormBlocks.AsNoTracking().Where(b => b.UnitId == ur).ToListAsync(Ct);
         var section = await db.FormPositions.AsNoTracking().Where(p => p.UnitId == ur && p.Actor == Actor && p.Effective == context.Profile.User.Email).Select(p => p.Section).SingleOrDefaultAsync(Ct);
         var result = new { contenido = content, version = form?.Version ?? 0,
-            porcentaje = !current ? form!.Progress : FormSchema.Progress(content),
-            porcentajeEtapa = FormCapture.Progress(content), revisionEtapa = FormCapture.Review(content),
+            entrega = delivery,
+            porcentaje = !current ? form!.Progress : FormStages.Progress(stage.id, content),
+            porcentajeEtapa = FormStages.Progress(stage.id, content), revisionEtapa = delivery.revision,
             procedimientosDisponibles = availableProcedures,
             seccionesPosteriores = FormCapture.LaterSections(context.Profile),
-            revisionEnvio = form?.SubmittedAt is null ? FormReview.Inspect(content) : null,
+            revisionEnvio = current ? delivery.revision : null,
             actualizadoEn = form?.UpdatedAt is { } updated ? new DateTimeOffset(DateTime.SpecifyKind(updated, DateTimeKind.Utc)) : (DateTimeOffset?)null,
-            actualizadoPor = form?.UpdatedBy, enviadoEn = form?.SubmittedAt, enviadoPor = form?.SubmittedEffective,
+            actualizadoPor = form?.UpdatedBy, enviadoEn = stage.enviadoEn, enviadoPor = stage.enviadoPor,
             editable = scope.Edit && !context.ReadOnly && current,
             puedeEnviar = scope.Edit && !context.ReadOnly && current && new FormAccess(context.Directory).CanSubmit(context.Profile, scope.Unit),
             seccion = FormCapture.Section(context.Profile, section), servidorEn = now,
             bloques = blocks.Select(b => Public(b, tab, now)).ToArray() };
         await transaction.CommitAsync(Ct);
         return result;
+    }
+    public async Task<object> Position(string ur, FormPositionRequest input)
+    {
+        var (context, _) = await Authorize(ur, false);
+        if (!FormBlocks.Locations.Contains(input.Section) || FormCapture.Section(context.Profile, input.Section) != input.Section)
+            throw new DomainProblem(422, "La ubicación no está disponible.");
+        await using var tx = await db.Database.BeginTransactionAsync(Ct);
+        await store.LockUnit(ur, (NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)tx.GetDbTransaction(), Ct);
+        // La navegación de un formato nuevo no crea respuestas ni altera el avance.
+        if (await db.UnitForms.AnyAsync(f => f.UnitId == ur, Ct))
+        {
+            var position = await db.FormPositions.SingleOrDefaultAsync(p => p.UnitId == ur && p.Actor == Actor && p.Effective == context.Profile.User.Email, Ct);
+            if (position is null) { position = new() { UnitId = ur, Actor = Actor, Effective = context.Profile.User.Email }; db.FormPositions.Add(position); }
+            position.Section = input.Section; await db.SaveChangesAsync(Ct);
+        }
+        await tx.CommitAsync(Ct); return new { seccion = input.Section };
     }
     private BlockView Public(FormBlock block, Guid tab, DateTimeOffset now) => new(block.Key, block.Version,
         block.ExpiresAt > now && block.LeaseId is not null ? new(Owner(block, tab, block.LeaseId) ? block.LeaseId : null,
@@ -121,6 +141,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         // nunca se mantiene una transacción abierta mientras la persona llena un campo.
         await store.LockUnit(ur, connection, pg, Ct);
         var form = await Load(scope.Unit, context.Profile); Editable(form, scope.Unit);
+        FormStages.RequireWritable(form, input.Blocks.Select(b => b.Key));
         if (input.Removal is { } removal)
         {
             FormRemoval.Validate(removal);
@@ -277,6 +298,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (generated.Any(k => all.TryGetValue(k, out var existing) && existing.LeaseId is not null && existing.ExpiresAt > now))
             throw Conflict("Otra sesión está editando la evaluación de este proceso.");
         keys.UnionWith(generated);
+        FormStages.RequireWritable(form, keys);
         var removedCodes = old["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")
             .Except(candidate["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")).ToHashSet(StringComparer.Ordinal);
         var validated = schema.Validate(candidate, scope.Unit, keys, removedCodes, old);
@@ -303,7 +325,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var changes = keys.ToDictionary(k => k, k => canonical.GetValueOrDefault(k), StringComparer.Ordinal);
         var content = FormBlocks.Apply(old, changes);
         form.Content = content.ToJsonString(); form.Year = scope.Unit.Year; form.Version++;
-        form.Progress = checked((short)FormSchema.Progress(content)); form.UpdatedBy = context.Profile.User.Email;
+        form.Progress = checked((short)FormStages.Progress(form.ActiveStage, content)); form.UpdatedBy = context.Profile.User.Email;
         form.UpdatedAt = DateTime.SpecifyKind(now.UtcDateTime, DateTimeKind.Unspecified);
         foreach (var request in input.Blocks)
         {
@@ -319,9 +341,10 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (position is null) { position = new() { UnitId = ur, Actor = Actor, Effective = context.Profile.User.Email }; db.FormPositions.Add(position); }
         position.Section = FormCapture.Section(context.Profile, input.Section);
         var response = new { version = form.Version, porcentaje = form.Progress, actualizadoEn = now, actualizadoPor = form.UpdatedBy,
-            porcentajeEtapa = FormCapture.Progress(content), revisionEtapa = FormCapture.Review(content),
+            entrega = FormStages.Describe(FormStages.Status(form, scope.Unit.Year), content),
+            porcentajeEtapa = FormStages.Progress(form.ActiveStage, content), revisionEtapa = FormStages.Definition(form.ActiveStage).Review(content),
             procedimientosDisponibles = ProcedureEligibility.Options(content),
-            revisionEnvio = FormReview.Inspect(content),
+            revisionEnvio = FormStages.Definition(form.ActiveStage).Review(content),
             bloques = keys.Select(key => new { key, version = all[key].Version, value = changes[key], reserva = Public(all[key], input.TabId, now).reserva }).ToArray() };
         Remember(ur, input.OperationId, input.TabId, fingerprint, response, now);
         await db.SaveChangesAsync(Ct);
@@ -354,6 +377,8 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         await store.LockUnit(ur, connection, pg, Ct); var form = await Load(scope.Unit, context.Profile);
         var fingerprint = Fingerprint(input);
         if (await Receipt(ur, input.OperationId, input.TabId, fingerprint) is { } prior) return prior;
+        FormStages.RequireEnabled(input.Stage);
+        if (form.ActiveStage != input.Stage) throw Conflict("La etapa activa cambió. Revisa el estado antes de enviar.");
         Editable(form, scope.Unit);
         if (form.Version != input.Version) throw Conflict("Hay respuestas más recientes. Revísalas antes de confirmar el envío.");
         var now = await Now(connection, pg);
@@ -361,18 +386,23 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         if (blocks.Any(b => b.LeaseId is not null && b.ExpiresAt > now && (b.SessionHash != state.SessionHash || b.TabId != input.TabId || b.ContextRevision != Revision)))
             throw Conflict("Otra sesión mantiene una reserva de edición. Espera a que termine antes de enviar.");
         var original = JsonNode.Parse(form.Content)!.AsObject();
+        var definition = FormStages.Definition(input.Stage);
         var content = schema.Validate(original, scope.Unit,
-            FormBlocks.Split(original).Keys.Where(FormCapture.FirstStageBlock).ToHashSet(StringComparer.Ordinal), previous: original);
-        FormSchema.RequireComplete(content);
-        form.Progress = checked((short)FormSchema.Progress(content));
-        form.SubmissionSnapshot = JsonSerializer.Serialize(new { unidad = scope.Unit.Public(), contenido = JsonNode.Parse(form.Content), version = form.Version + 1 });
-        form.SubmittedAt = now; form.SubmittedBy = Actor; form.SubmittedEffective = context.Profile.User.Email;
-        form.SubmissionId = input.OperationId; form.Version++;
+            FormBlocks.Split(original).Keys.Where(definition.IncludesBlock).ToHashSet(StringComparer.Ordinal), previous: original);
+        var review = definition.Review(content);
+        if (!review.listo) throw new DomainProblem(422, "Completa los pendientes de Revisar y enviar antes de enviar.", new { revisionEnvio = review });
+        form.Progress = checked((short)definition.Progress(content));
+        var submission = new FormStageSubmission { UnitId = ur, Stage = input.Stage, Year = form.Year, Version = form.Version + 1,
+            OperationId = input.OperationId, SubmittedAt = now, Actor = Actor, Effective = context.Profile.User.Email, Name = context.Profile.User.Name,
+            Snapshot = JsonSerializer.Serialize(new { etapa = input.Stage, unidad = scope.Unit.Public(),
+                contenido = FormStages.Capture(original, input.Stage), version = form.Version + 1 }) };
+        form.StageSubmissions.Add(submission); form.Version++;
         foreach (var block in blocks) { block.LeaseId = null; block.ExpiresAt = null; }
-        var response = new { version = form.Version, enviadoEn = now, enviadoPor = context.Profile.User.Email };
+        var response = new { version = form.Version, enviadoEn = now, enviadoPor = context.Profile.User.Email,
+            entrega = FormStages.Describe(FormStages.Status(form, scope.Unit.Year), original) };
         Remember(ur, input.OperationId, input.TabId, fingerprint, response, now);
         await db.SaveChangesAsync(Ct);
-        await audit.Write(connection, pg, "enviar", "formato_ur", ur, "confirmado", Ct, details: new { version = form.Version, ejercicio = form.Year, operacion = input.OperationId });
+        await audit.Write(connection, pg, "enviar", "formato_ur", ur, "confirmado", Ct, details: new { etapa = input.Stage, version = form.Version, ejercicio = form.Year, operacion = input.OperationId });
         await tx.CommitAsync(Ct); notifications.Changed(ur); return response;
     }
 }

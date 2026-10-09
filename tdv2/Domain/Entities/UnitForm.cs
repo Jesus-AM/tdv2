@@ -12,6 +12,8 @@ public sealed class UnitForm
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int Year { get; set; }
+    public int ActiveStage { get; set; } = 1;
+    public ICollection<FormStageSubmission> StageSubmissions { get; set; } = new List<FormStageSubmission>();
     public DateTimeOffset? SubmittedAt { get; set; }
     public string? SubmittedBy { get; set; }
     public string? SubmittedEffective { get; set; }

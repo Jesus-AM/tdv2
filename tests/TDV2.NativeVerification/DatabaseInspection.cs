@@ -86,16 +86,18 @@ internal static class DatabaseInspection
             var migrations = applied.Length == 0 ? [] : applied.Split(',');
             var known = db.Database.GetMigrations().ToArray();
             // También reconoce el punto de partida de esta actualización, sin adoptar tablas desconocidas.
-            var priorTables = expected.Except(new[] { "formato_bloques", "formato_operaciones", "formato_posiciones", "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos" }).ToArray();
+            var priorTables = expected.Except(new[] { "formato_bloques", "formato_operaciones", "formato_posiciones", "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }).ToArray();
             var previousVersion = migrations.SequenceEqual(known.Take(2)) && tables.SequenceEqual(priorTables);
             var previousCapture = migrations.SequenceEqual(known.Take(3));
             var previousPresence = migrations.SequenceEqual(known.Take(4));
             var previousPhotographs = migrations.SequenceEqual(known.Take(5)) || migrations.SequenceEqual(known.Take(6));
             var previousModules = migrations.SequenceEqual(known.Take(7)) || migrations.SequenceEqual(known.Take(8));
+            var previousStages = migrations.SequenceEqual(known.Take(9));
             var recognized = tables.SequenceEqual(expected) || previousVersion
-                || previousCapture && tables.SequenceEqual(expected.Except(new[] { "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos" }))
-                || (previousPresence || previousPhotographs) && tables.SequenceEqual(expected.Except(new[] { "formato_exclusiones_ilda", "sii_modulos" }))
-                || previousModules && tables.SequenceEqual(expected.Except(new[] { "sii_modulos" }));
+                || previousCapture && tables.SequenceEqual(expected.Except(new[] { "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
+                || (previousPresence || previousPhotographs) && tables.SequenceEqual(expected.Except(new[] { "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
+                || previousModules && tables.SequenceEqual(expected.Except(new[] { "sii_modulos", "formato_envios_etapas" }))
+                || previousStages && tables.SequenceEqual(expected.Except(new[] { "formato_envios_etapas" }));
             var counts = new Dictionary<string, long>();
             if (recognized)
             {
@@ -119,7 +121,7 @@ internal static class DatabaseInspection
                       AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_class'::regclass AND d.objid=c.oid AND d.deptype='e')
                     UNION ALL SELECT p.oid FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
                     WHERE n.nspname NOT IN ('pg_catalog','information_schema')
-                      AND NOT (n.nspname='public' AND p.proname='proteger_formato_enviado' AND p.pronargs=0 AND p.prorettype='trigger'::regtype)
+                      AND NOT (n.nspname='public' AND p.proname IN ('proteger_formato_enviado','proteger_envio_etapa','proteger_respuestas_etapas') AND p.pronargs=0 AND p.prorettype='trigger'::regtype)
                       AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e')
                     UNION ALL SELECT t.oid FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace
                     WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND t.typtype IN ('e','d')
@@ -135,8 +137,15 @@ internal static class DatabaseInspection
                     WHERE n.nspname='public' AND c.relname='formatos_ur' AND p.proname='proteger_formato_enviado'
                       AND NOT t.tgisinternal AND t.tgenabled IN ('O','A'))
                 """))!;
+            var stageProtection = (bool)(await Scalar(connection, """
+                SELECT count(*)=2 FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid
+                JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+                WHERE n.nspname='public' AND NOT t.tgisinternal AND t.tgenabled IN ('O','A')
+                  AND ((c.relname='formatos_ur' AND p.proname='proteger_respuestas_etapas')
+                    OR (c.relname='formato_envios_etapas' AND p.proname='proteger_envio_etapa'))
+                """))!;
             var valid = empty || recognized && otherObjects == 0 && paused
-                && (previousVersion || (previousCapture || previousPresence || previousPhotographs || previousModules || migrations.SequenceEqual(known)) && protection);
+                && (previousVersion || (previousCapture || previousPresence || previousPhotographs || previousModules || previousStages || migrations.SequenceEqual(known) && stageProtection) && protection);
             var report = new { utc = DateTimeOffset.UtcNow, readOnly = true, target, address, tls, permissionsVerified = true,
                 serverVersion = await Scalar(connection, "SHOW server_version"), empty, recognized, tables, counts, otherObjects,
                 applied = migrations, pending = known.Except(migrations).ToArray(), submissionProtection = protection,

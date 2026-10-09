@@ -1,0 +1,20 @@
+{
+  "realPostgreSql": true,
+  "realAspNet": true,
+  "realSignalR": true,
+  "identities": [
+    "persona@uacj.mx",
+    "colaboradora@uacj.mx"
+  ],
+  "checks": [
+    "formato nuevo inicia en Contexto; revisión accesible con pendientes y sin avance adicional",
+    "pendiente identifica registro y campo; enlace enfoca la corrección y restaura última ubicación",
+    "colaborador consulta sin permiso de envío; otra sesión actualiza resumen y reservas en vivo",
+    "autoguardado sin confirmar deshabilita envío y conserva los pendientes reales del servidor",
+    "cambio remoto durante confirmación invalida envío; servidor rechaza la versión revisada",
+    "revisión compacta en escritorio, móvil y navegación por teclado",
+    "doble clic no duplica; reintento confirma envío y recarga conserva autor, fecha y bloqueo"
+  ],
+  "errors": [],
+  "passed": true
+}

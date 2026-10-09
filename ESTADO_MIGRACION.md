@@ -2,6 +2,30 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-09**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## 2026-10-09 — Revisar y enviar por etapa
+
+**Implementado:** pestaña **Revisar y enviar** después de Sistemas y herramientas, accesible con pendientes y sin sumar avance. Reutiliza la revisión, el diálogo y los servicios existentes. Presenta Primera etapa, área/ejercicio, estado de las tres secciones, resumen de procedimientos/herramientas/medios, autoguardado y enlaces por sección, registro y campo. Conserva Contexto inicial, recuperación de ubicación, tablas compactas, ayudas, presencia, reservas y eliminación directa. Se corrigió una carrera reproducida al seguir un pendiente: ahora termina el guardado/liberación anterior antes de enfocar y reservar el destino.
+
+**Enviar primera etapa** conserva permisos y añade comprobación explícita de etapa. Se habilita sólo con respuestas completas y confirmadas, sin errores ni reservas ajenas. D/N históricos continúan pendientes. El diálogo explica el bloqueo y queda invalidado ante cambios remotos de versión/etapa o edición ajena. El servidor revalida requisitos, permisos, contexto, CSRF, ejercicio, versión y reservas dentro de la transacción existente. Petición única en curso y recibo idempotente evitan duplicados; envío, recibo y auditoría son atómicos. Tras confirmar se muestra **Primera etapa enviada**, fecha y nombre del autor efectivo.
+
+La migración nueva **`20261009171656_StageSubmissions`** añade etapa activa y envíos independientes con instantánea parcial, fecha, actores, nombre, versión y operación. Triggers y servicio protegen cada etapa enviada. No atribuye envíos globales anteriores a una etapa: sus datos, autores, fechas, auditorías y bloqueo permanecen intactos. No borra respuestas posteriores. La segunda etapa permanece deshabilitada y sin definición de campos/requisitos; su futuro envío no heredará el de la primera. [Contrato, persistencia y operación](docs/migracion/REVISAR_ENVIO_ETAPAS.md).
+
+**Probado:** TypeScript, Vite y compilación .NET correctos; **80/80** pruebas frontend (incluyen doble clic, reintento y SignalR anterior al ACK) y **76/76** dominio/HTTP con dobles. **57/57** comprobaciones de migración en PostgreSQL 18 desechable: esquema aditivo, modelo/snapshot, aplicación inicial/repetida, scripts idempotentes, Up/Down sin contenido, rechazo de reversión con enviados, protección y conservación de históricos. Las expectativas de las suites antiguas se ajustaron a la columna aditiva `etapa_activa`; las migraciones anteriores no cambiaron. [Resultados EF](docs/migracion/revisar-enviar-20261009/migraciones.json).
+
+**56 casos de regresión nativa y 10 casos de etapas comprobados:** responsables/administradores/colaboradores/consulta, rechazo de UR ajena, D/N, revisión incompleta, ubicación sin avance, primera etapa sin requisitos posteriores, solicitudes concurrentes y reintentos, reservas/versiones obsoletas, fallo de auditoría con rollback, históricos y separación de etapas. La corrida completa inicial dio 65/66: la prueba nueva esperaba incorrectamente que consulta escribiera su ubicación; el servidor conservó su HTTP 403. Se corrigió esa expectativa y se repitieron las diez pruebas de etapas: **10/10**, sin ampliar permisos. [Corrida inicial](docs/migracion/revisar-enviar-20261009/regresion-inicial.json), [repetición de etapas](docs/migracion/revisar-enviar-20261009/etapas-postgresql.json).
+
+**7/7 recorridos de revisión y 11/11 de colaboración en Edge → ASP.NET → PostgreSQL/SignalR reales**, con dos identidades sintéticas distintas y contextos separados: revisión incompleta, enlaces/foco, recuperación de pestaña, colaboración sin envío, guardado retenido, cambio remoto durante confirmación, rechazo directo del backend, doble clic/reintento, recarga con fecha/autor/bloqueo, tablas, reservas, primera escritura/pegado/Tab, eliminación, Medios independiente y reconexión/vencimiento. Escritorio 1440 px, móvil 390/320 px y teclado; sin errores JavaScript. Capturas revisadas: [escritorio](docs/migracion/revisar-enviar-20261009/stage-review-1440.png), [móvil](docs/migracion/revisar-enviar-20261009/stage-review-390.png), [envío confirmado](docs/migracion/revisar-enviar-20261009/stage-submitted-mobile.png). [Revisión](docs/migracion/revisar-enviar-20261009/revision-navegador.json), [colaboración](docs/migracion/revisar-enviar-20261009/colaboracion-navegador.json).
+
+**Pendiente/límites:** migración sin aplicar a bases institucionales; segunda etapa sin habilitar; dispositivos físicos y aceptación institucional pendientes. Microsoft/Nexo son pares sintéticos; las pruebas unitarias sí simulan transporte. En navegador las carreras retienen solicitudes reales y la desconexión se emula, sin reemplazar la API de edición. La independencia de una segunda etapa se comprueba sólo con persistencia y datos sintéticos: no demuestra una API de captura de segunda etapa habilitada. Sin acceso institucional ni cambios en Nexo, Herd o credenciales; sin push ni despliegue.
+
+Aplicación **posterior y explícita por el operador**, desde la raíz y sobre el destino previamente verificado/configurado:
+
+```powershell
+dotnet ef database update 20261009171656_StageSubmissions --project tdv2 -- --environment Development
+```
+
+Development utiliza User Secrets vigentes sin modificarlos. No hay migraciones al arrancar. [Comandos reproducibles de pruebas, revisión SQL y operación](docs/migracion/REVISAR_ENVIO_ETAPAS.md).
+
 ## 2026-10-09 — Icono de ayuda en la instrucción de Identificación
 
 **Implementado:** `IdentificationInstructions.tsx` sustituye únicamente el carácter ⓘ por `HelpOutlineOutlined` de MUI, el mismo componente utilizado en `FieldHelp.tsx`: 19 px, `text.primary` y alineación vertical al centro del texto. Referencia visual sin interacción, con nombre accesible «Ayuda». Conserva el párrafo y «procedimientos institucionales» en negritas.

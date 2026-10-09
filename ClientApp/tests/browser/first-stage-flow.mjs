@@ -143,7 +143,7 @@ try {
         await expect(page.getByRole('tab')).toHaveCount(3);
         await expect(page.getByRole('checkbox', { name: 'Mostrar secciones posteriores' })).toHaveCount(0);
         await expect(page.getByText('Avance de la primera etapa', { exact: true })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Enviar formato/ })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Enviar primera etapa/ })).toHaveCount(0);
         const button = page.getByRole('button', { name: 'Ayuda: Trámite o servicio', exact: true });
         await button.tap(); await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText('Gestión y seguimiento de proyectos institucionales', { exact: true })).toBeVisible();

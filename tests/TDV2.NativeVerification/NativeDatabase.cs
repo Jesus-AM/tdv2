@@ -54,6 +54,7 @@ internal sealed class NativeDatabase
             GRANT USAGE ON SCHEMA public TO tdv2_native_app,tdv2_native_nexo;
             GRANT SELECT,INSERT,UPDATE,DELETE ON users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur TO tdv2_native_app;
             GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones,formato_exclusiones_ilda TO tdv2_native_app;
+            GRANT SELECT,INSERT ON formato_envios_etapas TO tdv2_native_app;
             GRANT SELECT,UPDATE ON configuracion_procesos TO tdv2_native_app;
             GRANT SELECT ON unidades_responsables_poa,colaboraciones_ur TO tdv2_native_app;
             GRANT UPDATE ON unidades_responsables_poa TO tdv2_native_app;
