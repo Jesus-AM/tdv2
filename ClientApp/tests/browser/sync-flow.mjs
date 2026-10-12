@@ -63,9 +63,15 @@ async function refresh() {
     assert.equal((await response).status(), 200);
 }
 async function queue(source) {
-    const name = source === 'ambas' ? 'Sincronizar SII e ILDA ahora' : 'Sincronizar ' + source.toUpperCase();
     const response = page.waitForResponse(r => new URL(r.url()).pathname === syncPath + '/ejecutar' && r.request().method() === 'POST');
-    await page.getByRole('button', { name, exact: true }).click();
+    if (source === 'ambas') {
+        // Compatibilidad de la API/cola: la interfaz manual ahora separa SQL Server e ILDA.
+        await page.evaluate(async () => {
+            const { token } = await (await fetch('/session/csrf')).json();
+            await fetch('/configuracion/sincronizaciones/ejecutar', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token }, body: JSON.stringify({ fuentes: 'ambas' }) });
+        });
+        await refresh();
+    } else await page.locator(`[data-sync-source="${source}"]`).getByRole('button').click();
     assert.equal((await response).status(), 202);
     await page.locator('p').filter({ hasText: /^Iniciando…$/ }).waitFor();
 }
@@ -159,10 +165,10 @@ try {
         assert.equal((await page.locator('body').innerText()).includes('SECRET'), false);
         await control('sync-restore-source');
     });
-    await check('Error SQL revierte publicación completa, muestra Con error y permite reintento', async () => {
+    await check('Error SQL revierte publicación completa, muestra Fallida y permite reintento', async () => {
         const before = (await report()).ilda;
         await control('sync-fail-sql');
-        await queue('ilda'); await control('sync-tick'); await finished('Con error');
+        await queue('ilda'); await control('sync-tick'); await finished('Fallida');
         assert.deepEqual((await report()).ilda, before);
         await control('sync-recover-sql');
         await queue('ilda'); await control('sync-tick'); await finished();
@@ -214,8 +220,8 @@ try {
     });
     await check('Reserva interrumpida visible termina fallida y permite nueva ejecución manual', async () => {
         await queue('sii'); await control('sync-interrupted');
-        await refresh(); await latestRow().getByText('En proceso', { exact: true }).waitFor();
-        await control('sync-tick'); await finished('Con error');
+        await refresh(); await latestRow().getByText('En curso', { exact: true }).waitFor();
+        await control('sync-tick'); await finished('Fallida');
         await queue('sii'); await control('sync-tick'); await finished();
     });
     await check('Revocar módulo Nexo bloquea pantalla y llamada directa; auditoría no contiene secretos', async () => {

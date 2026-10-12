@@ -9,7 +9,8 @@ using Tdv2.Web;
 namespace Tdv2.Services;
 
 /// <summary>Coordina las concesiones locales y centrales de colaboradores dentro de una solicitud autorizada.</summary>
-public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess delegation, NexoOperations nexo, DatabaseConnections connections, AccessState state, OperationAudit audit, PostgresCollaborationStore store, IHttpContextAccessor accessor)
+public sealed class CollaboratorService(RequestAccess access, ICollaboratorAccess delegation, NexoOperations nexo, DatabaseConnections connections, AccessState state, OperationAudit audit, PostgresCollaborationStore store, IHttpContextAccessor accessor,
+    ICollaborationListingStore listing, INexoCollaborationDirectory directorySource)
 {
     // RequestAccess es scoped: la identidad y Nexo se revalidan en cada solicitud, nunca en un singleton.
     private HttpContext http => accessor.HttpContext ?? throw new InvalidOperationException("No hay una solicitud activa.");
@@ -18,6 +19,10 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
     {
         var context = await access.Resolve(http); var roots = await delegation.Roots(http); var profile = context.Profile;
         var admin = profile.Has("administrador"); var branch = admin ? context.Directory.AdministratorRoot(profile.User) : null;
+        // Ver la rama que se tiene a cargo no requiere adquirir facultades de delegación.
+        // Administradores conservan la misma rama delegada autorizada, incluso con roles combinados.
+        var visibleRoots = admin ? roots : context.Directory.Responsibilities(profile.User).Where(UnitDirectory.IsForm)
+            .ToDictionary(u => u.Id, StringComparer.Ordinal);
         var kinds = access.Selection?.Kind == "preview" ? new[] { "local", "dependencias" } : roots.Count > 0 ? (await delegation.Roles(http.RequestAborted)).Keys.ToArray() : [];
         kinds = kinds.Where(kind => kind == "local" || roots.Values.Any(u => u.Level == 2)).ToArray();
         string? notice = null;
@@ -28,7 +33,17 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
                 : "Nexo no publicó una delegación válida para tu cuenta. Revisa los roles autorizados y la responsabilidad institucional.";
         }
         else if (kinds.Length == 0) notice = "No hay roles de colaborador habilitados para asignar en la administración delegada de Nexo.";
-        var links = roots.Count > 0 ? await store.List(roots.Keys.ToArray(), context.Directory, http.RequestAborted) : [];
+        IReadOnlyList<CollaborationListItem> links = [];
+        if (visibleRoots.Count > 0 && access.Selection?.Kind != "preview")
+        {
+            var scopes = context.Directory.Units.Values.Where(u => CollaborationRules.Visible(context.Directory, visibleRoots.Values, u.Id, "local")).Select(u => u.Id).ToArray();
+            var candidates = await listing.Candidates(scopes, roots.Keys.ToArray(), http.RequestAborted);
+            var affiliations = context.Directory.Units.Values.Where(u => visibleRoots.Values.Any(root =>
+                root.Level == 2 && context.Directory.LevelTwo(u.Id)?.Id == root.Id
+                || root.Level == 3 && context.Directory.FormUnit(u.Id)?.Id == root.Id)).Select(u => u.Id).ToArray();
+            var identities = await directorySource.Collaborators(affiliations, candidates.Select(c => c.Email).Distinct().ToArray(), http.RequestAborted);
+            links = CollaborationListing.Build(context.Directory, visibleRoots, candidates, identities, context.ReadOnly, roots.Keys.ToHashSet(StringComparer.Ordinal));
+        }
         return new PageData("Colaboradores", new()
         {
             ["unidades"] = roots.Values.Select(u => u.Public()).ToArray(),
@@ -36,7 +51,10 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
             ["administrador"] = admin,
             ["urAdministracion"] = branch?.Public(),
             ["avisoDelegacion"] = notice,
-            ["colaboraciones"] = links
+            ["colaboraciones"] = links,
+            ["avisoAsignaciones"] = access.Selection?.Kind == "preview"
+                ? "La vista por rol y área no muestra asignaciones personales."
+                : "Sólo se muestran asignaciones cuyo rol y área pueden comprobarse. Si faltan esos datos, no se presume alcance institucional."
         }, profile);
     }
 
@@ -102,9 +120,12 @@ public sealed class CollaboratorService(RequestAccess access, CollaboratorAccess
     public async Task<bool> Remove(long collaboration)
     {
         await access.Resolve(http);
+        var roots = await delegation.Roots(http);
+        if (roots.Count == 0) throw new DomainProblem(403, "No tienes autorización para retirar colaboraciones.");
         await using var connection = await connections.Open("Tdv2", http.RequestAborted);
         var link = await store.Find(connection, collaboration, http.RequestAborted) ?? throw new DomainProblem(404, "No se encontró la colaboración.");
-        var unit = NexoOperations.Text(link, "ur_otorgante")!; await delegation.Root(http, unit);
+        var unit = NexoOperations.Text(link, "ur_otorgante")!;
+        if (!roots.ContainsKey(unit)) throw new DomainProblem(403, "El área no está habilitada para delegar en Nexo y TDV2.");
         var email = NexoOperations.Text(link, "email")!; var origin = NexoOperations.Text(link, "id_ur_origen")!; var role = NexoOperations.Number(link, "nexo_rol_id");
         await store.Lock(connection, email, origin, role, false, http.RequestAborted);
         try

@@ -27,9 +27,10 @@ async function session(helper = false) {
 }
 const check = async (name, work) => { await work(); report.checks.push(name); console.log('STAGE PASS ' + name); };
 async function tab(page, name = 'Revisar y enviar') { await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
-const send = page => page.getByRole('button', { name: 'Enviar primera etapa', exact: true });
+const send = page => page.getByRole('button', { name: 'Enviar formato', exact: true });
+const pending = (page, id) => page.locator(`[data-pending-block="identificacion:${id}"][data-pending-field="resultado"]`).getByRole('button', { name: 'Ir al campo', exact: true });
 const row = (page, id) => page.locator(`[data-edit-block="identificacion:${id}"]`);
-async function finish(page) { await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
+async function finish(page) { await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
 async function request(page, url, method = 'GET', body) {
     return page.evaluate(async ({ url, method, body }) => {
         const csrf = await (await fetch('/session/csrf')).json();
@@ -43,7 +44,7 @@ try {
     await check('formato nuevo inicia en Contexto; revisión accesible con pendientes y sin avance adicional', async () => {
         await a.goto(origin + '/formatos/A'); await expect(a.getByRole('tab', { name: 'Contexto', exact: true })).toHaveAttribute('aria-selected', 'true');
         await expect(a.getByRole('tab')).toHaveText(['Contexto', 'Identificación general', 'Sistemas y herramientas', 'Revisar y enviar']);
-        const before = await live(a); await tab(a); await expect(a.getByRole('heading', { name: 'Revisar y enviar', exact: true })).toBeVisible();
+        const before = await live(a); await tab(a); await expect(a.getByRole('heading', { name: 'Resumen del formato', exact: true })).toBeVisible();
         await expect(send(a)).toBeDisabled(); assert.equal((await live(a)).porcentajeEtapa, before.porcentajeEtapa);
         await a.goto(origin + '/inicio'); await control('delivery-seed'); second = await session(true);
         for (const p of [a, second.page]) await p.goto(origin + '/formatos/A');
@@ -51,8 +52,8 @@ try {
     const b = second.page;
     await check('pendiente identifica registro y campo; enlace enfoca la corrección y restaura última ubicación', async () => {
         await tab(a);
-        await expect(a.getByText('Primera etapa', { exact: true })).toBeVisible(); await expect(a.getByText(/Área sintética A · Ejercicio 2026/)).toBeVisible();
-        await a.getByRole('button', { name: /Registro 2.*Procedimiento pendiente: completa ¿Qué entrega/ }).click();
+        await expect(a.getByText('Primera etapa', { exact: true })).toHaveCount(0); await expect(a.getByText(/Área sintética A · Ejercicio 2026/)).toBeVisible();
+        await pending(a, 'segundo').click();
         const field = a.getByLabel('¿Qué entrega? 2', { exact: true }); await expect(field).toBeFocused();
         await expect(row(a, 'segundo')).toHaveAttribute('data-edit-state', 'owned'); await finish(a);
         await tab(a); await expect.poll(async () => (await live(a)).seccion).toBe('revision'); await a.reload();
@@ -75,14 +76,14 @@ try {
         try {
             await field.fill(''); await expect.poll(() => arrived).toBe(true); await tab(a);
             await expect(a.getByText('Autoguardado: Guardando…', { exact: true })).toBeVisible(); await expect(send(a)).toBeDisabled(); release();
-            await expect(a.getByRole('button', { name: /Registro 1.*completa ¿Qué entrega/ })).toBeVisible();
+            await expect(pending(a, 'inicial')).toBeVisible();
         } finally { release(); await a.unroute('**/formatos/A/bloques'); }
-        await a.getByRole('button', { name: /Registro 1.*completa ¿Qué entrega/ }).click(); await expect(field).toBeFocused();
+        await pending(a, 'inicial').click(); await expect(field).toBeFocused();
         await expect(row(a, 'inicial')).toHaveAttribute('data-edit-state', 'owned'); await field.fill('Entrega restablecida'); await finish(a); await tab(a); await expect(send(a)).toBeEnabled();
     });
     await check('cambio remoto durante confirmación invalida envío; servidor rechaza la versión revisada', async () => {
         const old = await live(a); await send(a).click(); const dialog = a.getByRole('dialog');
-        await expect(dialog.getByText('Al enviar la primera etapa, sus respuestas quedarán disponibles para consulta y ya no podrán editarse.')).toBeVisible();
+        await expect(dialog.getByText('Al enviar el formato, sus respuestas quedarán disponibles para consulta y ya no podrán editarse.')).toBeVisible();
         const field = b.getByLabel('¿Qué entrega? 2', { exact: true }); await field.click(); await expect(row(b, 'segundo')).toHaveAttribute('data-edit-state', 'owned');
         await field.fill(''); await finish(b);
         await expect(dialog.getByRole('button', { name: 'Confirmar envío', exact: true })).toBeDisabled();
@@ -95,7 +96,7 @@ try {
         await a.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).focus(); await a.keyboard.press('ArrowRight'); await a.keyboard.press('Enter');
         await expect(a.getByRole('tab', { name: 'Revisar y enviar', exact: true })).toHaveAttribute('aria-selected', 'true');
         for (const width of [1440, 390, 320]) {
-            await a.setViewportSize({ width, height: 900 }); await a.getByRole('heading', { name: 'Revisar y enviar', exact: true }).scrollIntoViewIfNeeded();
+            await a.setViewportSize({ width, height: 900 }); await a.getByRole('heading', { name: 'Resumen del formato', exact: true }).scrollIntoViewIfNeeded();
             assert.ok(await a.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
             await a.screenshot({ path: path.join(artifacts, `stage-review-${width}.png`), fullPage: true });
         }
@@ -107,12 +108,12 @@ try {
         try {
             const confirm = dialog.getByRole('button', { name: /^(Confirmar envío|Enviando…)$/ }); await confirm.click();
             await expect(confirm).toBeDisabled(); await confirm.dispatchEvent('click'); await expect.poll(() => count).toBe(1); release();
-            await expect(dialog).toHaveCount(0); await expect(a.getByText('Primera etapa enviada', { exact: true })).toBeVisible();
+            await expect(dialog).toHaveCount(0); await expect(a.getByText('Formato enviado', { exact: true })).toBeVisible();
         } finally { release(); await a.unroute('**/formatos/A/enviar'); }
         assert.equal((await request(a, '/formatos/A/enviar', 'POST', body)).status, 200);
         const state = await live(a); assert.equal(state.entrega.etapa.enviadoNombre, 'Persona sintética'); assert.ok(state.entrega.etapa.enviadoEn);
-        await a.reload(); await expect(a.getByText('Primera etapa enviada', { exact: true })).toBeVisible(); await expect(send(a)).toHaveCount(0);
-        await expect(a.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeDisabled();
+        await a.reload(); await expect(a.getByText('Formato enviado', { exact: true })).toBeVisible(); await expect(send(a)).toHaveCount(0);
+        await expect(a.getByRole('button', { name: 'Guardar', exact: true })).toBeDisabled();
         await expect(row(b, 'segundo').getByLabel('¿Qué entrega? 2', { exact: true })).toHaveJSProperty('readOnly', true);
         await a.screenshot({ path: path.join(artifacts, 'stage-submitted-mobile.png'), fullPage: true });
     });

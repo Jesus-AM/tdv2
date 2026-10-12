@@ -11,6 +11,12 @@ export interface AreaNode {
 
 export type AreaFilter = 'todos' | 'edicion' | 'sin_iniciar' | 'en_proceso' | 'completos';
 
+export const uniqueForms = (forms: FormRow[]) => [...new Map(forms.map(form => [form.id_ur, form])).values()];
+export function averageProgress(forms: FormRow[]): number {
+    const unique = uniqueForms(forms);
+    return unique.length ? Math.floor(unique.reduce((sum, form) => sum + Math.max(0, Math.min(100, Number(form.porcentaje) || 0)), 0) / unique.length) : 0;
+}
+
 // Sólo presentación: id_ur y cve_ur originales siguen siendo las claves de asociación.
 export function displayUnitCode(code: string): string {
     const value = code.trim();
@@ -56,7 +62,7 @@ export function matchesForm(form: FormRow | null, filter: AreaFilter): boolean {
 // La jerarquía usa identificadores originales; los nodos auxiliares no son áreas elegibles.
 export function buildAreaDirectory(units: Unit[], forms: FormRow[], policy: Participation = defaultParticipation): { roots: AreaNode[]; others: AreaNode[] } {
     // Sólo los niveles configurados tienen formato; un nivel nulo no se convierte en nivel cero.
-    const ordered = units
+    const ordered = [...new Map(units.map(unit => [unit.id_ur, unit])).values()]
         .filter((unit) => unit.nivel_ur != null && String(unit.nivel_ur).trim() !== '' && eligibleArea(unit, policy) && policy.levels.includes(Number(unit.nivel_ur)))
         .sort((a, b) => a.cve_ur.localeCompare(b.cve_ur, 'es', { numeric: true }) || a.id_ur.localeCompare(b.id_ur));
     const byId = new Map(units.map((unit) => [unit.id_ur, unit]));

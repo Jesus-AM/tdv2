@@ -37,8 +37,8 @@ const priority = page => page.getByRole('combobox', { name: 'Prioridad 1', exact
 const row = page => page.locator('[data-edit-block="identificacion:inicial"]');
 const option = (page, name) => page.getByRole('option', { name, exact: true });
 async function finish(page) {
-    await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toHaveAttribute('aria-busy', 'false');
     await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/);
     await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0);
 }
@@ -143,7 +143,7 @@ try {
         await expect(page.getByRole('tab')).toHaveCount(3);
         await expect(page.getByRole('checkbox', { name: 'Mostrar secciones posteriores' })).toHaveCount(0);
         await expect(page.getByText('Avance de la primera etapa', { exact: true })).toBeVisible();
-        await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Enviar primera etapa/ })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Enviar formato/ })).toHaveCount(0);
         const button = page.getByRole('button', { name: 'Ayuda: Trámite o servicio', exact: true });
         await button.tap(); await expect(page.getByRole('dialog')).toBeVisible();
         await expect(page.getByText('Gestión y seguimiento de proyectos institucionales', { exact: true })).toBeVisible();
@@ -313,7 +313,7 @@ try {
         await expect(page.getByRole('tab', { name: 'Contexto', exact: true })).toHaveAttribute('aria-selected', 'true');
         await page.reload(); await expect(page.getByRole('tab')).toHaveCount(3); await expect(toggle).not.toBeChecked();
         await expect(page.getByRole('progressbar', { name: 'Cargando estado de colaboración' })).toHaveCount(0);
-        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeEnabled();
+        await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeEnabled();
         await page.setViewportSize({ width: 1920, height: 1080 }); await page.screenshot({ path: path.join(artifacts, 'etapa-admin.png'), fullPage: true });
     });
     await check('históricos bloqueados y enviados muestran categorías originales y detalle sólo como consulta', async()=>{

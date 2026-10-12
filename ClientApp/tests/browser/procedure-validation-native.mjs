@@ -25,7 +25,7 @@ const stored = async () => (await (await control('stored')).json()).contenido;
 const row = id => page.locator(`[data-edit-block="identificacion:${id}"]`);
 const select = n => page.getByRole('combobox', { name: 'Validación ' + n, exact: true });
 async function header() { await page.getByRole('tab', { name: 'Identificación general', exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
-async function finish() { await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
+async function finish() { await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
 async function options(n) { await select(n).click(); await expect(page.getByRole('option')).toHaveText(['V · Vigente', 'A · Ajustar']); }
 async function showValidation(n) {
     // Desplaza la tabla como el usuario: el campo debe quedar a la derecha de Edición, que es fija.

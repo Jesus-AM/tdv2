@@ -46,8 +46,8 @@ try {
     const times = await page.evaluate(() => window.captureTimes.sort((a, b) => a - b));
     report.inputToFrame = { samples: times.length, averageMs: times.reduce((a, b) => a + b, 0) / times.length, p95Ms: times[Math.floor(times.length * .95)] };
     await expect(input).toHaveValue('Medición sintética de escritura');
-    await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toHaveAttribute('aria-busy', 'false');
     report.checks.push('800 filas, reserva automática, primera escritura y guardado confirmado.');
     if (phase === 'after') {
         assert.equal(report.mountedPanels, 1); assert.equal(report.contextControls, 0);

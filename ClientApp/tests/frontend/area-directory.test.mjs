@@ -6,7 +6,7 @@ const source = readFileSync(new URL('../../resources/js/lib/area-directory.ts', 
 const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
-const { buildAreaDirectory, filterAreaTree, displayUnitCode, eligibleArea } = await import(
+const { buildAreaDirectory, filterAreaTree, displayUnitCode, eligibleArea, averageProgress, uniqueForms } = await import(
     `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
 );
 const unit = (id, level, parent, name = id) => ({
@@ -21,6 +21,17 @@ const a = unit('a', 2, null, 'Tecnologías'),
     b = unit('b', 3, 'a', 'Sistemas'),
     c = unit('c', 4, 'b', 'Aplicaciones'),
     d = unit('d', 2, null, 'Finanzas');
+
+test('promedios usan cada formato una vez, sólo nodos participantes y no redondean pendientes a 100', () => {
+    const forms = [{ ...a, porcentaje: 100 }, { ...b, porcentaje: 99 }];
+    assert.equal(averageProgress([]), 0);
+    assert.equal(averageProgress([...forms, forms[0]]), 99);
+    assert.equal(uniqueForms([...forms, forms[0]]).length, 2);
+    const root = buildAreaDirectory([a, b, a, b, c], [...forms, forms[0], { ...c, porcentaje: 0 }]).roots[0];
+    assert.equal(root.forms.length, 2); assert.equal(root.children.length, 1);
+    assert.equal(averageProgress(root.forms), 99);
+    assert.equal(averageProgress(forms.map(form => ({ ...form, porcentaje: 100 }))), 100);
+});
 test('participación configurable conserva ancestros excluidos y muestra niveles nuevos sin confundir tipo 0', () => {
     const root = { ...unit('root', 2, null), tipo_ur: ' N ' };
     const middle = { ...unit('middle', 3, 'root'), tipo_ur: '0' };

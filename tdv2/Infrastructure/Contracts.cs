@@ -24,3 +24,11 @@ public interface INexoProfiles
     Task<Profile> ForEmail(string email, CancellationToken cancellation);
     Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken cancellation);
 }
+public interface ICollaborationListingStore
+{
+    Task<IReadOnlyList<Tdv2.Domain.Entities.UnitCollaboration>> Candidates(string[] scopes, string[] grantors, CancellationToken cancellation);
+}
+public interface INexoCollaborationDirectory
+{
+    Task<IReadOnlyList<CollaborationIdentity>> Collaborators(string[] affiliations, string[] linkedEmails, CancellationToken cancellation);
+}

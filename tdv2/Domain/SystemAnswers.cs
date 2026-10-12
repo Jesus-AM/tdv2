@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 namespace Tdv2.Domain;
 
 public static class SystemAnswers
@@ -16,16 +17,20 @@ public static class SystemAnswers
     };
     public static bool Filled(JsonNode? row, string field)
     {
-        bool Has(string key) => !string.IsNullOrWhiteSpace(row?[key]?.ToString());
-        if (!Has(field)) return false;
         return field switch
         {
-            "sistema" when row?[field]?.ToString() == "sii_v2" => Has("moduloSiiId") && Has("moduloSiiDescripcion"),
-            "sistema" when row?[field]?.ToString() == "otra" => Has("sistemaOtro"),
-            "uso" when row?[field]?.ToString() == "otro" => Has("usoOtro"),
-            _ => true // Las respuestas históricas se leen sin convertirlas ni borrarlas.
+            "sistema" when row?[field]?.ToString() == "sii_v2" => ValidModuleId(row?["moduloSiiId"]?.ToString()) && ValidText(row, "moduloSiiDescripcion"),
+            "sistema" when row?[field]?.ToString() == "otra" => ValidText(row, "sistemaOtro"),
+            "uso" when row?[field]?.ToString() == "otro" => ValidText(row, "usoOtro"),
+            "sistema" => Tools.Contains(row?[field]?.ToString()),
+            "uso" => Uses.Contains(row?[field]?.ToString()),
+            "estado" => States.Contains(row?[field]?.ToString()),
+            _ => ValidText(row, field)
         };
     }
+    public static bool ValidText(JsonNode? row, string field) => row?[field] is JsonValue value && value.TryGetValue<string>(out var text)
+        && !string.IsNullOrWhiteSpace(text) && text.EnumerateRunes().Count() <= 4000;
+    public static bool ValidModuleId(string? id) => id is not null && Regex.IsMatch(id, @"\A[0-9]{1,40}\z") && id.Any(c => c != '0');
     public static void Validate(JsonObject row, JsonNode? previous, string block)
     {
         foreach (var (field, choices) in new[] { ("sistema", Tools), ("uso", Uses), ("estado", States) })

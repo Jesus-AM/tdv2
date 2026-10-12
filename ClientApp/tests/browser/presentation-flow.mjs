@@ -165,7 +165,7 @@ async function interactions() {
         await page.goto(origin + '/configuracion/pruebas-acceso/rol-area');
         await page.getByRole('combobox', { name: 'Área de pertenencia o responsabilidad' }).click();
         await page.getByRole('option').first().click();
-        await expect(page.getByRole('button', { name: 'Iniciar vista de prueba' })).toBeEnabled();
+        await expect(page.getByRole('button', { name: 'Aplicar vista' })).toBeEnabled();
         await capture('after-area-selected-360');
     });
     await check('Sin permiso de submódulo: menú y acceso directo respetan Nexo sintético', async () => {

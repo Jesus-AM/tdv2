@@ -17,6 +17,7 @@ import {
 import { Search, ManageAccountsOutlined } from '@mui/icons-material';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
+import AccessModeTabs from '@/Components/AccessModeTabs';
 import { errorText } from '@/lib/http';
 type Person = {
     usuario_id: number;
@@ -45,6 +46,7 @@ export default function ActuarComoUsuario({
         [reason, setReason] = useState(''),
         [write, setWrite] = useState(false),
         [busy, setBusy] = useState(false),
+        [activating, setActivating] = useState(false),
         [error, setError] = useState(''),
         [searched, setSearched] = useState(false),
         [more, setMore] = useState(false),
@@ -78,6 +80,7 @@ export default function ActuarComoUsuario({
     }
     function start() {
         if (!selected || busy) return;
+        setActivating(true);
         setBusy(true);
         setError('');
         router.post(
@@ -85,19 +88,20 @@ export default function ActuarComoUsuario({
             { email: selected.email, motivo: reason.trim(), escritura: write },
             {
                 onError: (errors) => setError(Object.values(errors)[0] || 'No se pudo iniciar.'),
-                onFinish: () => setBusy(false),
+                onFinish: () => { setBusy(false); setActivating(false); },
             },
         );
     }
     return (
         <AuthenticatedLayout>
             <Head title="Actuar como usuario" />
-            <div className="page settings-page">
+            <div className="page settings-page access-page">
                 <PageHeading
                     breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }, { label: 'Pruebas de acceso', href: '/configuracion/pruebas-acceso' }]}
                     title="Actuar como usuario"
                     description="Revisa la plataforma con el acceso autorizado de una persona. Tu cuenta queda identificada en las acciones."
                 />
+                <AccessModeTabs value="usuario" />
                 {active ? (
                     <Typography variant="body2" color="text.secondary">
                         Vuelve a tu usuario desde el aviso superior antes de iniciar otra representación.
@@ -109,7 +113,7 @@ export default function ActuarComoUsuario({
                             : 'Nexo no autorizó esta función para tus roles.'}
                     </Alert>
                 ) : (
-                    <div className="stack" style={{ maxWidth: 1060 }}>
+                    <div className="access-columns">
                         <Box className="surface">
                             <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Selecciona una persona</Typography>
                             <Box
@@ -146,11 +150,13 @@ export default function ActuarComoUsuario({
                                 {capacidad.alcance === 'rama_ur'
                                     ? 'Se muestran personas de tu área y sus áreas dependientes.'
                                     : 'Se muestran personas con acceso vigente a TDV2.'}{' '}
-                                Duración: hasta {capacidad.duracion_minutos} minutos.
+                                {capacidad.duracion_minutos ? `Duración: hasta ${capacidad.duracion_minutos} minutos.` : 'Nexo confirmará la duración al activar.'}
                             </Typography>
                             <List aria-label="Personas disponibles">
                                 {people.map((p) => (
                                     <ListItemButton
+                                        role="button"
+                                        aria-pressed={selected?.usuario_id === p.usuario_id}
                                         key={p.usuario_id}
                                         disabled={busy}
                                         selected={selected?.usuario_id === p.usuario_id}
@@ -176,8 +182,9 @@ export default function ActuarComoUsuario({
                                     </ListItemButton>
                                 ))}
                             </List>
+                            {busy && <Typography variant="body2" role="status">{activating ? 'Activando…' : 'Consultando…'}</Typography>}
                             {searched && !people.length && !error && (
-                                <Typography variant="body2">
+                                <Typography variant="body2" role="status">
                                     No hay personas que coincidan dentro del alcance autorizado.
                                 </Typography>
                             )}
@@ -186,16 +193,13 @@ export default function ActuarComoUsuario({
                                     Mostrar más
                                 </Button>
                             )}
-                        </Box>
                         {selected && (
-                            <Box className="surface">
-                                <Typography component="h2" variant="h2" sx={{ mb: 2 }}>
-                                    Representar a {selected.nombre}
-                                </Typography>
+                            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', mt: 2, pt: 2 }}>
                                 <TextField
                                     fullWidth
                                     multiline
                                     minRows={2}
+                                    maxRows={4}
                                     label="Motivo de la representación"
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
@@ -228,18 +232,33 @@ export default function ActuarComoUsuario({
                                         La representación será de solo lectura.
                                     </Typography>
                                 )}
-                                <Button
+                                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}><Button
                                     variant="contained"
                                     startIcon={<ManageAccountsOutlined />}
+                                    sx={{ minHeight: 40 }}
                                     disabled={busy || reason.trim().length < 5}
                                     onClick={start}
+                                    loading={busy}
                                 >
-                                    Actuar como {selected.nombre}
+                                    Activar representación
                                 </Button>
-                                <Chip label={write ? 'Con escritura' : 'Solo lectura'} sx={{ ml: 2 }} />
+                                <Chip label={write ? 'Con escritura' : 'Solo lectura'} /></Box>
                             </Box>
                         )}
-                        {error && <Alert severity="error">{error}</Alert>}
+                        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+                        </Box>
+                        <Box className="surface" role="status" aria-live="polite">
+                            <Typography component="h2" variant="h2" sx={{ mb: 2 }}>Contexto por activar</Typography>
+                            {selected ? <Box sx={{ overflowWrap: 'anywhere' }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{selected.nombre}</Typography>
+                                <Typography variant="body2">{selected.email}</Typography>
+                                <Typography variant="body2" sx={{ mt: 1 }}>Área: {selected.desc_ur || 'Sin UR única'}</Typography>
+                                <Typography variant="body2">Roles disponibles: {selected.roles.map(role => role.nombre).join(', ') || 'Nexo confirmará el acceso'}</Typography>
+                                <Typography variant="body2" sx={{ mt: 1 }}>{write ? 'Se solicitará escritura con los permisos de esta persona.' : 'Se solicitará acceso de solo lectura.'}</Typography>
+                            </Box> : <Typography variant="body2">Busca y selecciona una persona autorizada para revisar su contexto.</Typography>}
+                            <Typography variant="body2" sx={{ mt: 2, overflowWrap: 'anywhere' }}>Cuenta autenticada: {props.auth.user?.email}.</Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>Nexo comprobará de nuevo los permisos al activar. La selección no modifica asignaciones; la franja superior permite volver a tu usuario.</Typography>
+                        </Box>
                     </div>
                 )}
             </div>

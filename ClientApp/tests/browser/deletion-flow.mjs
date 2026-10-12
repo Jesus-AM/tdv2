@@ -9,7 +9,7 @@ export async function verifyDirectDeletion({ check, page, context, browser, orig
     const confirm = target => dialog(target).getByRole('button', { name: 'Eliminar', exact: true });
     const header = async target => {
         await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-        await expect(target.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeEnabled();
+        await expect(target.getByRole('button', { name: 'Guardar', exact: true })).toBeEnabled();
     };
     const reset = async () => { await finish(); await control('ready-to-submit'); await page.reload(); await header(page); };
     const mutations = request => /\/formatos\/A\/(reservas|bloques)$/.test(new URL(request.url()).pathname) && ['POST', 'PATCH'].includes(request.method());

@@ -96,7 +96,7 @@ async function startRepresentation(write = false) {
     await page.getByRole('button', { name: /Encargada sintética.*encargada@uacj/ }).click();
     await page.getByLabel('Motivo de la representación').fill('Prueba sintética desde React');
     if (write) await page.getByRole('checkbox', { name: 'Permitir cambios reales con los permisos de esta persona' }).check();
-    await page.getByRole('button', { name: 'Actuar como Encargada sintética', exact: true }).click();
+    await page.getByRole('button', { name: 'Activar representación', exact: true }).click();
     await page.waitForURL(origin + '/inicio');
     await page.getByText('Actuando como Encargada sintética', { exact: true }).waitFor();
 }
@@ -227,7 +227,7 @@ try {
         await page.getByRole('option', { name: 'Colaborador local', exact: true }).click();
         await page.getByRole('combobox', { name: 'Área de pertenencia o responsabilidad', exact: true }).fill('Área sintética A4');
         await page.getByRole('option', { name: /Área sintética A4/ }).click();
-        await page.getByRole('button', { name: 'Iniciar vista de prueba', exact: true }).click();
+        await page.getByRole('button', { name: 'Aplicar vista', exact: true }).click();
         await page.waitForURL(origin + '/inicio');
         const form = await request('/formatos/A3'); assert.equal(form.body.props.editable, false);
         assert.equal((await request('/formatos/A3', 'PUT', { version: 0, contenido: form.body.props.contenido })).status, 403);

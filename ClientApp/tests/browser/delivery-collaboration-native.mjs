@@ -29,7 +29,7 @@ async function session(who) {
 async function tab(page, name) { await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
 const row = (page, id) => page.locator(`[data-edit-block="${id}"]`);
 const input = (page, label) => page.getByLabel(label, { exact: true });
-async function finish(page) { await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
+async function finish(page) { await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
 async function stored() { return (await (await first.context.request.get(origin + '/__fixture/stored', { headers: { 'X-Fixture-Key': key } })).json()).contenido; }
 async function request(page, url, method = 'GET', body) {
     return page.evaluate(async ({ url, method, body }) => {
@@ -167,8 +167,8 @@ try {
         assert.deepEqual(later(await stored()), history);
         assert.equal((await request(b, '/formatos/A/enviar', 'POST', { tabId: crypto.randomUUID(), operationId: crypto.randomUUID(), version: (await live(b)).version })).status, 403);
         await tab(a, 'Revisar y enviar');
-        await expect(a.getByRole('heading', { name: 'Revisar y enviar', exact: true })).toBeVisible();
-        await expect(a.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toBeVisible(); await a.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
+        await expect(a.getByRole('heading', { name: 'Resumen del formato', exact: true })).toBeVisible();
+        await expect(a.getByRole('button', { name: 'Enviar formato', exact: true })).toBeVisible(); await a.getByRole('button', { name: 'Enviar formato', exact: true }).click();
         await a.getByRole('dialog').getByRole('button', { name: 'Confirmar envío', exact: true }).click();
         await expect(input(b, 'Fallas o comentarios 1')).toHaveJSProperty('readOnly', true);
         assert.deepEqual(later(await stored()), history);

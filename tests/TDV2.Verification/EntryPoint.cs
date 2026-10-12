@@ -31,6 +31,55 @@ internal static class EntryPoint
         var path = Path.Combine(AppContext.BaseDirectory, "Contracts", "procesos_operativos.json");
         var schema = new FormSchema(File.ReadAllText(path));
         SystemCatalogTests.Register(Cases, schema);
+        CaptureProgressTests.Register(Cases, schema);
+        CollaborationVisibilityTests.Register(Cases);
+        Http("Colaboradores GET filtra asignaciones centrales/delegadas por rama; visibilidad no concede retiro", async (app, client) =>
+        {
+            app.Nexo.Current = Fixtures.Profile("administrador", "responsable_ur");
+            var local = CollaborationVisibilityTests.Link(1, grantor: "A3");
+            var branch = CollaborationVisibilityTests.Link(2, "dependencias", "A", "A");
+            app.Collaborators.Links.AddRange([local, branch]);
+            app.Collaborators.People.Add(CollaborationVisibilityTests.Identity(CollaborationVisibilityTests.Grant(local), CollaborationVisibilityTests.Grant(branch), new(100, 30, "B", "central")));
+            var alien = CollaborationVisibilityTests.Person("B3") with { User = CollaborationVisibilityTests.Person("B3").User with { Email = "ajeno@uacj.mx" } };
+            app.Collaborators.People.Add(new(alien, [new(101, 30, "B3", "central")]));
+            var response = await client.GetAsync("/colaboradores?ur=B"); Check(response.IsSuccessStatusCode);
+            var props = (await Json(response))["props"]!; var rows = props["colaboraciones"]!.AsArray();
+            Check(rows.Count == 3 && rows.All(r => r!["email"]!.ToString() != "ajeno@uacj.mx"));
+            Check(!app.Collaborators.Affiliations.Contains("B3") && app.Collaborators.Affiliations.Contains("A4"));
+            Check(rows.Single(r => r!["origen"]!.ToString() == "central")!["puedeRetirar"]!.GetValue<bool>() == false);
+            Check(!rows.Single(r => r!["id"]?.ToString() == "1")!["puedeRetirar"]!.GetValue<bool>() && rows.Single(r => r!["id"]?.ToString() == "2")!["puedeRetirar"]!.GetValue<bool>());
+            app.Nexo.Current = Fixtures.Profile("responsable_ur") with { User = Fixtures.Profile().User with { Employee = "0002", UnitId = "A3" } };
+            rows = (await Json(await client.GetAsync("/colaboradores")))["props"]!["colaboraciones"]!.AsArray();
+            Check(rows.Count == 2 && rows.All(r => r!["tipo"]!.ToString() == "local") && rows.Single(r => r!["id"]?.ToString() == "1")!["puedeRetirar"]!.GetValue<bool>());
+        });
+        Http("Colaboradores suspensión/fallo de publicación no conserva una lista efectiva obsoleta", async (app, client) =>
+        {
+            var link = CollaborationVisibilityTests.Link(5); app.Collaborators.Links.Add(link);
+            app.Collaborators.People.Add(CollaborationVisibilityTests.Identity(CollaborationVisibilityTests.Grant(link)));
+            Check((await Json(await client.GetAsync("/colaboradores")))["props"]!["colaboraciones"]!.AsArray().Count == 1);
+            app.Collaborators.People.Clear(); Check((await Json(await client.GetAsync("/colaboradores")))["props"]!["colaboraciones"]!.AsArray().Count == 0);
+            app.Collaborators.Outage = true; Check((await client.GetAsync("/colaboradores")).StatusCode == HttpStatusCode.ServiceUnavailable);
+        });
+        Http("Colaboradores responsable sin facultad de delegar consulta su asignación sin adquirir alta ni retiro", async (app, client) =>
+        {
+            app.Nexo.Current = Fixtures.Profile("responsable_ur") with { User = Fixtures.Profile().User with { Employee = "0002", UnitId = "A3" } };
+            app.Collaborators.DelegationEnabled = false;
+            var link = CollaborationVisibilityTests.Link(7, grantor: "A3"); app.Collaborators.Links.Add(link);
+            app.Collaborators.People.Add(CollaborationVisibilityTests.Identity(CollaborationVisibilityTests.Grant(link)));
+            var props = (await Json(await client.GetAsync("/colaboradores")))["props"]!;
+            Check(props["unidades"]!.AsArray().Count == 0 && props["colaboraciones"]!.AsArray().Count == 1
+                && !props["colaboraciones"]![0]!["puedeRetirar"]!.GetValue<bool>());
+            await Csrf(client);
+            Check((await client.DeleteAsync("/colaboradores/7")).StatusCode == HttpStatusCode.Forbidden);
+            Check((await client.PostAsJsonAsync("/colaboradores", new { ur = "A3", email = "colabora@uacj.mx", id_ur = "A4", tipo = "local" })).StatusCode == HttpStatusCode.Forbidden);
+        });
+        Http("Colaboradores consulta sin responsabilidad y mutaciones sin autorización se rechazan antes de leer asignaciones", async (app, client) =>
+        {
+            app.Nexo.Current = Fixtures.Profile("consulta_institucional");
+            Check((await client.GetAsync("/colaboradores")).StatusCode == HttpStatusCode.Forbidden && app.Collaborators.Reads == 0);
+            await Csrf(client); Check((await client.DeleteAsync("/colaboradores/1")).StatusCode == HttpStatusCode.Forbidden);
+            Check((await client.PostAsJsonAsync("/colaboradores", new { ur = "A", email = "colabora@uacj.mx", id_ur = "A4", tipo = "local" })).StatusCode == HttpStatusCode.Forbidden);
+        });
         JsonObject Blank() => schema.Blank(Fixtures.Units[0]);
         void Reject(string name, Action<JsonObject> mutate) => Test(name, () => { var data = Blank(); mutate(data); Invalid(() => schema.Validate(data, Fixtures.Units[0])); });
 
@@ -215,6 +264,29 @@ internal static class EntryPoint
         Http("Falla SQL no filtra secretos", async (app, client) => { app.Store.Outage = true; var r = await client.GetAsync("/inicio"); Check(r.StatusCode == HttpStatusCode.ServiceUnavailable && !(await r.Content.ReadAsStringAsync()).Contains("SYNTHETIC_DATABASE")); });
         Http("Página no expone empleado ni tokens centrales", async (_, client) => { var r = await client.GetAsync("/inicio"); var raw = await r.Content.ReadAsStringAsync(); Check(r.IsSuccessStatusCode && !raw.Contains("0001") && !raw.Contains("num_empleado") && !raw.Contains("representacion_token")); Check(r.Headers.CacheControl?.NoStore == true); });
         Http("GET formato es lectura sin crear registro", async (app, client) => { Check((await client.GetAsync("/formatos/A")).IsSuccessStatusCode); Check(await app.Store.Get("A", default) is null); });
+        Http("Avance confirmado coincide en Inicio, formato y revisión tras recargar; GET no reescribe ni concede edición", async (app, client) =>
+        {
+            client.DefaultRequestHeaders.Add("X-TDV2-Page", "1");
+            var content = Blank(); content["identificacion"]![0]!["tramite"] = "Parcial";
+            app.Store.Seed("A", new StoredForm("A", content, 1, 100, DateTimeOffset.UtcNow, "persona@example.test"));
+            async Task Verify(int expected, bool ready)
+            {
+                var index = (await Json(await client.GetAsync("/inicio")))["props"]!;
+                var form = (await Json(await client.GetAsync("/formatos/A")))["props"]!;
+                Check(index["formatos"]!.AsArray().Single(f => f!["id_ur"]!.ToString() == "A")!["porcentaje"]!.GetValue<int>() == expected);
+                Check(form["porcentaje"]!.GetValue<int>() == expected && form["porcentajeEtapa"]!.GetValue<int>() == expected);
+                Check(form["entrega"]!["revision"]!["listo"]!.GetValue<bool>() == ready);
+            }
+            await Verify(12, false); Check((await app.Store.Get("A", default))!.Progress == 100); // Cache anterior intacta en GET.
+            var row = content["identificacion"]![0]!; row["codigo"] = "PO-01"; row["prioridad"] = "3"; row["validacion"] = "V";
+            row["usuario"] = new JsonArray("Docentes"); row["resultado"] = "Constancia"; row["responsable"] = "Área";
+            var tool = content["sistemas"]![0]!; tool["proceso"] = "PO-01"; tool["sistema"] = "otra"; tool["uso"] = "consultar"; tool["estado"] = "bien";
+            await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(91, false);
+            tool["sistemaOtro"] = "Propia"; await app.Store.Save("A", 2, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(100, true);
+            app.Nexo.Current = Fixtures.Profile("consulta_institucional"); await Verify(100, true);
+            var readOnly = (await Json(await client.GetAsync("/formatos/A")))["props"]!;
+            Check(!readOnly["editable"]!.GetValue<bool>() && !readOnly["puedeEnviar"]!.GetValue<bool>());
+        });
         Http("Catálogo de módulos exige sesión, UR y módulo vigentes; sin catálogo no crea formato", async (app, client) =>
         {
             Check((await Json(await client.GetAsync("/formatos/A/modulos-sii")))["estado"]!.ToString() == "pendiente");
@@ -223,6 +295,18 @@ internal static class EntryPoint
             using var guest = app.Client(false); Check((await guest.GetAsync("/formatos/A/modulos-sii")).StatusCode == HttpStatusCode.Unauthorized);
             app.Nexo.Current = app.Nexo.Current with { Modules = [] };
             Check((await client.GetAsync("/formatos/A/modulos-sii")).StatusCode == HttpStatusCode.Forbidden);
+        });
+        Http("Avance histórico enviado conserva porcentaje, contenido, fecha y bloqueo sin reinterpretar el envío", async (app, client) =>
+        {
+            client.DefaultRequestHeaders.Add("X-TDV2-Page", "1");
+            var content = Blank(); content["identificacion"]![0]!["validacion"] = "N";
+            var sent = DateTimeOffset.Parse("2025-09-10T12:00:00Z");
+            app.Store.Seed("A", new StoredForm("A", content, 3, 37, sent, "persona@example.test", SubmittedAt: sent, Year: 2025));
+            var page = (await Json(await client.GetAsync("/formatos/A")))["props"]!;
+            Check(page["porcentaje"]!.GetValue<int>() == 37 && !page["editable"]!.GetValue<bool>() && !page["puedeEnviar"]!.GetValue<bool>());
+            Check(page["entrega"]!["etapa"]!["estado"]!.ToString() == "historico");
+            var stored = await app.Store.Get("A", default);
+            Check(stored!.SubmittedAt == sent && stored.Version == 3 && JsonNode.DeepEquals(stored.Content, content));
         });
         Http("UR fuera de alcance denegada", async (_, client) => Check((await client.GetAsync("/formatos/B")).StatusCode == HttpStatusCode.Forbidden));
         Http("CSRF ausente y falso denegados", async (_, client) => { Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", "forjado"); Check((int)(await client.PutAsJsonAsync("/formatos/A", new SaveForm(0, Blank()))).StatusCode == 419); });

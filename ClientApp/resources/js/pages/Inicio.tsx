@@ -5,10 +5,10 @@ import { PeopleOutlined, Refresh, DescriptionOutlined, DonutLarge, TaskAlt, Arro
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import AreaDirectory from '@/Components/AreaDirectory';
 import PageHeading from '@/Components/PageHeading';
-import { displayUnitCode, type Participation } from '@/lib/area-directory';
+import { displayUnitCode, averageProgress, uniqueForms, type Participation } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
 export default function Inicio({
-    formatos,
+    formatos: suppliedForms,
     administrador,
     consultaInstitucional = false,
     directorio = [],
@@ -30,9 +30,8 @@ export default function Inicio({
     const { props } = usePage();
     const [refreshing, setRefreshing] = useState(false);
     const readOnly = !!props.simulacion || !!(props.representacion && !props.representacion.escritura);
-    const avg = formatos.length
-        ? Math.round(formatos.reduce((s, f) => s + Number(f.porcentaje), 0) / formatos.length)
-        : 0;
+    const formatos = uniqueForms(suppliedForms);
+    const avg = averageProgress(formatos);
     return (
         <AuthenticatedLayout>
             <Head title="Procedimientos Institucionales" />
@@ -52,7 +51,7 @@ export default function Inicio({
                                     Colaboradores
                                 </Button>
                             )}
-                            <Button variant="text" color="primary" startIcon={<Refresh />}
+                            <Button variant="outlined" color="primary" startIcon={<Refresh />}
                                 loading={refreshing} loadingPosition="start" aria-busy={refreshing}
                                 onClick={() => {
                                     if (refreshing) return;
@@ -98,7 +97,7 @@ export default function Inicio({
                     </Typography>
                 )}
                 {consultaInstitucional || administrador ? (
-                    <AreaDirectory participation={participacion}
+                    <AreaDirectory key={`${props.auth.user?.email}:${props.contextoEdicion}`} participation={participacion}
                         units={directorio}
                         forms={formatos}
                         ownRoot={urAdministracion?.id_ur || null}
@@ -121,6 +120,7 @@ export default function Inicio({
                                             {displayUnitCode(f.cve_ur)}
                                         </Typography>
                                         <Chip label={f.editable && !readOnly ? 'Puedes llenar' : 'Solo consulta'} variant="outlined" />
+                                        <Typography variant="caption">{f.enviado_en ? 'Enviado' : f.porcentaje === 100 ? 'Captura completa' : f.porcentaje > 0 ? 'En captura' : 'Sin iniciar'}</Typography>
                                     </Box>
                                 </Box>
                                 <Box sx={{ width: 100 }}>

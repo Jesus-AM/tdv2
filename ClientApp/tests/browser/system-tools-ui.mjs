@@ -18,9 +18,13 @@ async function session(width = 1366) {
 async function systems(page) { await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
 const row = page => page.locator('[data-edit-block="sistemas:inicial"]');
 const choice = (page, name) => page.getByRole('combobox', { name: name + ' 1', exact: true });
-async function select(page, label, option) { await choice(page, label).click(); await page.getByRole('option', { name: option, exact: true }).click(); }
+async function select(page, label, option) {
+    await choice(page, label).click();
+    try { await page.getByRole('option', { name: option, exact: true }).click(); }
+    catch (error) { await page.screenshot({ path: path.join(artifacts, 'selection-failure.png'), fullPage: true }); throw error; }
+}
 async function finish(page) {
-    await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
     await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0);
     await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/);
 }

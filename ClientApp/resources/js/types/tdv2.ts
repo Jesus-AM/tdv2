@@ -9,6 +9,7 @@ export interface Unit {
     ejercicio: number;
 }
 export interface FormRow extends Unit {
+    enviado_en?: string | null;
     propia?: boolean;
     editable: boolean;
     porcentaje: number;
@@ -100,11 +101,15 @@ export interface SaveResponse {
 }
 export type CollaborationKind = 'local' | 'dependencias';
 export interface Collaboration {
-    id: number;
+    key: string;
+    id: number | null;
     nombre: string;
     email: string;
     tipo: CollaborationKind;
-    ur_otorgante: string;
+    ur_otorgante: string | null;
+    id_ur_alcance: string;
+    origen: 'central' | 'aplicacion';
+    puedeRetirar: boolean;
     alcance: string;
     revocada: boolean;
     pendiente: boolean;

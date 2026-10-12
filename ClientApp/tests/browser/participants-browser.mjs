@@ -24,7 +24,7 @@ try {
     assert.equal((await context.request.post(origin + '/__fixture/ready-to-submit', { headers: { 'X-Fixture-Key': key } })).status(), 200);
     await page.goto(origin + '/formatos/A');
     const finish = async () => {
-        const button = page.getByRole('button', { name: 'Guardar borrador', exact: true });
+        const button = page.getByRole('button', { name: 'Guardar', exact: true });
         await expect(button).toBeEnabled(); await button.click(); await expect(button).toHaveAttribute('aria-busy', 'false');
         await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/);
     };

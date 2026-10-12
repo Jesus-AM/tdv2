@@ -68,6 +68,6 @@ public static class FormStages
         var media = (content["medios"] as JsonObject)?.Where(p => p.Value is JsonValue v && v.TryGetValue<bool>(out var selected) && selected)
             .Select(p => p.Key).ToList() ?? [];
         if (!string.IsNullOrWhiteSpace(content["medioOtro"]?.ToString())) media.Add(content["medioOtro"]!.ToString());
-        return new((content["identificacion"] as JsonArray)?.Count ?? 0, (content["sistemas"] as JsonArray)?.Count ?? 0, media.ToArray());
+        return new(FormRequirements.Rows(content, "identificacion").Length, FormRequirements.Rows(content, "sistemas").Length, media.ToArray());
     }
 }

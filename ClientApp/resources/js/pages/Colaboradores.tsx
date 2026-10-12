@@ -40,11 +40,13 @@ export default function Colaboradores({
     tipos,
     colaboraciones,
     avisoDelegacion,
+    avisoAsignaciones,
 }: {
     unidades: Unit[];
     tipos: CollaborationKind[];
     colaboraciones: Collaboration[];
     avisoDelegacion: string | null;
+    avisoAsignaciones?: string;
 }) {
     const { props } = usePage();
     const readOnly = !!props.simulacion || !!(props.representacion && !props.representacion.escritura);
@@ -131,7 +133,7 @@ export default function Colaboradores({
         }
     }
     async function remove() {
-        if (readOnly || busy || !removing) return;
+        if (readOnly || busy || !removing?.puedeRetirar || removing.id === null) return;
         setBusy(true);
         try {
             const { data, status } = await axios.delete(`/colaboradores/${removing.id}`);
@@ -377,13 +379,14 @@ export default function Colaboradores({
                     <Box className="surface" sx={{ p: '0!important' }}>
                         {colaboraciones.map((c) => (
                             <Box
-                                key={c.id}
+                                key={c.key}
+                                data-assignment={c.key}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     flexWrap: 'wrap',
-                                    gap: 2,
-                                    p: 2,
+                                    gap: 1.5,
+                                    p: 1.5,
                                     borderBottom: '1px solid',
                                     borderColor: 'divider',
                                 }}
@@ -401,20 +404,23 @@ export default function Colaboradores({
                                     </Typography>
                                 </Box>
                                 <Box sx={{ flex: 1, minWidth: 180 }}>
-                                    <Typography variant="body2">{c.alcance}</Typography>
+                                    <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>Área asignada: {c.alcance}</Typography>
                                     <Chip
                                         label={c.tipo === 'local' ? 'Local' : 'Áreas dependientes'}
                                         variant="outlined"
                                         sx={{ mt: 0.5 }}
                                     />
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: .5 }}>
+                                        {c.origen === 'central' ? 'Agregado por Administrador' : 'Origen: delegación en TDV2'}
+                                    </Typography>
                                     {c.revocada && <Chip label="Revocada" color="warning" sx={{ ml: 1 }} />}
                                     {c.pendiente && (
                                         <Typography variant="caption" color="warning.main" sx={{ display: 'block' }}>
-                                            Retiro pendiente de confirmar en Nexo
+                                            Retiro pendiente de confirmar
                                         </Typography>
                                     )}
                                 </Box>
-                                <Button
+                                {c.puedeRetirar ? <Button
                                     color="error"
                                     startIcon={<DeleteOutlined />}
                                     disabled={readOnly || busy}
@@ -422,7 +428,9 @@ export default function Colaboradores({
                                     aria-label={`Retirar a ${c.nombre}`}
                                 >
                                     {c.pendiente ? 'Reintentar retiro' : 'Retirar'}
-                                </Button>
+                                </Button> : <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 200 }}>
+                                    Solo consulta.{c.origen !== 'central' && ' El retiro corresponde al área que otorgó la asignación.'}
+                                </Typography>}
                             </Box>
                         ))}
                     </Box>
@@ -432,8 +440,9 @@ export default function Colaboradores({
                     </div>
                 )}
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                    El acceso depende de que la autorización en Nexo y la adscripción al área sigan vigentes.
+                    El acceso depende de que la autorización y la adscripción al área sigan vigentes.
                 </Typography>
+                {avisoAsignaciones && <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>{avisoAsignaciones}</Typography>}
             </div>
             <Dialog open={!!removing} onClose={() => !busy && setRemoving(null)}>
                 <DialogTitle>Retirar colaboración</DialogTitle>

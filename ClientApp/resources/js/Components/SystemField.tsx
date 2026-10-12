@@ -47,7 +47,7 @@ export default function SystemField({ row, field, index, readOnly, events, chang
             : catalog.modulos.find(m => m.id === row.moduloSiiId)?.label || `ID ${row.moduloSiiId}`,
     } : null, [row.moduloSiiId, row.moduloSiiDescripcion, catalog.modulos]);
     const moduleEvents = events('moduloSiiId');
-    return <Box sx={{ display: 'grid', gap: 1.5, minWidth: field === 'sistema' ? 270 : 220 }}>
+    return <Box sx={{ display: 'grid', gap: 1.5, minWidth: 0 }}>
         <TextField fullWidth select value={value} onChange={e => change(field, e.target.value)}
             error={!!errors?.[field]} helperText={errors?.[field] || (historical ? 'Respuesta histórica' : undefined)}
             slotProps={{ select: { ...events(field), displayEmpty: true,

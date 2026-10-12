@@ -1,5 +1,11 @@
 # Contratos: colaboradores, representación y auditoría
 
+## Interfaz vigente — 2026-10-10
+
+Complemento: **Colaboradores** lista cada asignación efectiva por área/jerarquía, con origen y permiso de retiro explícitos. Las altas centrales usan las vistas ya publicadas; nunca se crean vínculos locales para mostrarlas. Local se comparte entre el responsable del área y su nivel 2; dependencias queda en nivel 2. El responsable puede consultar su ámbito aunque no tenga delegación para modificar; administradores conservan la rama delegada vigente. El retiro sigue limitado al área otorgante y a contexto con escritura. Las dos modalidades de acceso muestran selección a la izquierda y resumen a la derecha, centradas, apiladas en móvil. [Reglas completas, pruebas y limitaciones](COLABORADORES_VISIBILIDAD_ACCIONES.md).
+
+Pruebas de acceso separa **Vista por rol y área** y **Actuar como usuario** mediante pestañas compartidas. La primera agrupa rol y área buscable por nombre/clave, resume la selección y explica la consulta sin escritura antes de **Aplicar vista**. La segunda consulta exclusivamente la búsqueda autorizada existente, distingue carga/vacío/error y muestra nombre, correo, área y roles recibidos antes de **Activar representación**; escritura continúa desmarcada por defecto. El contexto activo bloquea activar otra modalidad hasta salir. La franja compartida conserva acciones de salida y distingue contexto efectivo y cuenta autenticada al navegar. No cambian concesiones, autoridad, auditoría, rutas ni tokens. [Pruebas sintéticas, archivos y límites](AVANCE_Y_PRUEBAS_ACCESO.md).
+
 Revisión previa de código Laravel, exclusivamente lectura. Fuente: controladores CollaboratorController, RepresentationController, PreviewController y ConfigurationController; NexoDelegation, NexoRepresentation, PreviewSession, ViewContext, FormAccess, RepresentationAudit; middleware ApplyRepresentation, ApplyPreview y RequireConfiguration; rutas/configuración y pruebas CollaboratorTest, RepresentationTest, PreviewTest y NexoDelegationContractTest.
 
 ## Delegación
@@ -9,7 +15,7 @@ Revisión previa de código Laravel, exclusivamente lectura. Fuente: controlador
 - Funciones public.nexo_a{ID publicado y validado}_buscar_personas(actor, ur, q, pagina), conceder_acceso(actor, ur, email, rol_id, ur_origen), retirar_acceso(actor, ur, concesion_id). Parámetros enlazados, READ COMMITTED. Nunca escribir tablas internas Nexo. P0001 es rechazo público 422; otros errores son 503 sin texto SQL.
 - Contrato TDV2 vigente desde 2026-10-05: responsables de nivel 2 y 3 pueden delegar, previa coincidencia institucional y publicación de Nexo. Nivel 3 sólo asigna `colaborador_local` para su propio formato; nivel 2 conserva `colaborador_local` y `colaborador_dependencias`. El límite anterior a nivel 2 queda sustituido por instrucción expresa del usuario. [Configuración y actualización](RESPONSABLES_UR.md).
 - Local: formato del ancestro nivel 3 o 2. Dependencias/global: formatos 2/3 dentro de la UR nivel 2 que autoriza. No crear formato para nivel 4 o inferiores.
-- Alta central antes de vínculo local; volver a leer identidad publicada después de conceder. Sin vínculo local validado no hay permiso de edición, incluso si ya existe rol central. Retiro local confirmado antes de intentar retiro central; error conserva revocación y retiro_central_pendiente para reintento. No retirar una concesión con otro vínculo local activo.
+- En la vía delegada, alta en Nexo antes de vínculo local; volver a leer identidad publicada después de conceder. Sin vínculo local validado no hay permiso delegado de edición. La vía `central` explícita conserva el contrato posterior: rol efectivo y adscripción vigente, sin vínculo local. Retiro local confirmado antes de intentar retiro central; error conserva revocación y retiro_central_pendiente para reintento. No retirar una concesión con otro vínculo local activo.
 
 ## Representación
 

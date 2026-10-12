@@ -77,7 +77,7 @@ try {
         if (width > 900) assert.equal(measured.navigation.x - measured.logo.right, 32);
         if (phase === 'after' && width >= 768) {
             measured.stats.forEach(r => assert.ok(r.height >= 76 && r.height <= 84));
-            assert.ok(measured.firstArea.height >= 76 && measured.firstArea.height <= 88);
+            assert.ok(measured.firstArea.height >= 64 && measured.firstArea.height <= 88);
         }
         if (phase === 'after') {
             const labelsFit = await page.locator('.operational-stat-copy .MuiTypography-body2').evaluateAll(labels =>
@@ -92,10 +92,12 @@ try {
         await page.goto(origin + '/inicio');
         const stat = label => page.getByText(label, { exact: true }).locator('xpath=ancestor::*[contains(@class,"surface")][1]');
         await expect(stat('Formatos disponibles')).toContainText(String(forms.length));
-        await expect(stat('Avance promedio')).toContainText(`${Math.round(forms.reduce((s, f) => s + f.porcentaje, 0) / forms.length)}%`);
+        await expect(stat('Avance promedio')).toContainText(`${Math.floor(forms.reduce((s, f) => s + f.porcentaje, 0) / forms.length)}%`);
+        await expect(page.getByText('El avance del conjunto promedia el formato principal y los de sus áreas dependientes.', { exact: true })).toHaveCount(0);
         await expect(stat('Formatos completos')).toContainText(String(forms.filter(f => f.porcentaje === 100).length));
         await expect(page.getByText(auxiliary.desc_ur)).toHaveCount(0);
-        await expect(page.getByText('10 áreas principales · 12 áreas con formato', { exact: true })).toHaveCount(1);
+        await expect(page.getByText('10 áreas principales · 12 áreas con formato', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Áreas de la universidad', { exact: true })).toHaveCount(0);
         await page.getByRole('button', { name: 'Expandir visibles' }).click();
         const open = name => page.getByRole('button', { name: `Abrir formato de ${name}`, exact: true });
         await expect(open(roots[1].desc_ur)).toBeVisible(); // Sin dependientes: conserva su formato propio.

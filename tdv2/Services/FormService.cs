@@ -44,7 +44,7 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
                 ["propia"] = scope.Own,
                 ["ejercicio"] = scope.Unit.Year,
                 ["editable"] = scope.Edit && !context.ReadOnly && current,
-                ["enviado_en"] = record?.SubmittedAt,
+                ["enviado_en"] = record?.SubmittedAt ?? record?.Stage?.enviadoEn,
                 ["porcentaje"] = progress,
                 ["actualizado_en"] = record?.UpdatedAt,
                 ["actualizado_por"] = record?.UpdatedBy,

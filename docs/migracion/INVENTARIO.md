@@ -1,3 +1,19 @@
+# Actualización 2026-10-11 — Etiqueta de origen en Colaboradores
+
+Presentación central como **Agregado por Administrador**, sin revelar el sistema de origen en etiquetas o ayudas de la lista. Origen interno, responsables, permisos y acciones conservados. TypeScript, Vite, ASP.NET Release y 4 recorridos de navegador con transporte simulado correctos; sin bases. [Detalle y límites](COLABORADORES_VISIBILIDAD_ACCIONES.md).
+
+# Actualización 2026-10-10 — Colaboradores por asignación y acciones de captura
+
+Guardar secundario sin enviar; Enviar formato azul y confirmado con la versión vigente. Colaboradores integra asignaciones centrales y delegadas por alcance/jerarquía, con permisos de retiro independientes. Pruebas de acceso centra selección/resumen en columnas equilibradas. Verificados 101 casos dominio/HTTP, 87 frontend, 4 recorridos nuevos de acciones/colaboraciones, 4 de acceso, 9 de interfaz y 10 de Sistemas; dobles y transporte simulado, sin bases. [Reglas, limitación del alcance central, archivos y comprobaciones](COLABORADORES_VISIBILIDAD_ACCIONES.md).
+
+# Actualización 2026-10-10 — Avance y contextos de prueba
+
+Backend centraliza requisitos aplicables para avance y revisión; agregados usan formatos únicos, porcentajes sin redondeo hacia 100 y datos confirmados. La interfaz retira la explicación del conjunto y las referencias visibles a primera etapa, conservando su alcance y los cambios previos de distribución. SQL Server reúne UR y módulos en una sola acción real, con ILDA aparte y resultados por catálogo. Pruebas de acceso separa modalidades, selección, contexto activo y cuenta original sin ampliar autoridad. Verificados 87 casos frontend, 87 dominio/HTTP, 9 recorridos de interfaz, 4 de acceso, 10 de Sistemas y 3 grupos de Inicio, con límites de transporte simulado y sin bases. [Implementación, fórmula, archivos y pendientes](AVANCE_Y_PRUEBAS_ACCESO.md).
+
+# Actualización 2026-10-10 — Distribución operativa (ajuste inicial)
+
+Inicio mantiene indicadores y árbol de áreas, con pestañas/filtros compactos y preferencias de vista conservadas. Sistemas usa un selector de Procedimiento limitado y buscable, sin modificar asociaciones o reglas de disponibilidad. Revisión presenta **Ir al campo** y **Enviar formato**; Sincronizaciones distingue resultado, último éxito y acción por UR, módulos SII e ILDA. Sin cambios de backend, dependencias o esquema. Comprobaciones frontend y dominio/HTTP con dobles; navegador con transporte simulado, sin bases. [Implementado, pruebas, límites y archivos](INTERFAZ_OPERATIVA.md).
+
 # Actualización 2026-10-09 — Revisar y enviar por etapa
 
 Pestaña independiente después de Sistemas, accesible con pendientes y sin avance adicional; resumen y envío de primera etapa con reglas del servidor, autoguardado y control de concurrencia. `20261009171656_StageSubmissions` separa estados/instantáneas por etapa y conserva envíos globales anteriores sin atribución inferida. Segunda etapa deshabilitada. Verificados 80 casos frontend, 76 dominio/HTTP, 56 regresiones nativas y 10 casos de etapas, 57 comprobaciones EF y 18 recorridos de navegador real con identidades sintéticas. Aplicación institucional y dispositivos físicos pendientes. [Contrato y comandos](REVISAR_ENVIO_ETAPAS.md), [resultados y límites](../../ESTADO_MIGRACION.md).

@@ -79,8 +79,8 @@ async function savedAfter(work, status = 200, target = page) {
     assert.equal(response.status(), status);
 }
 async function finish(target = page) {
-    await target.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
-    await expect(target.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
+    await target.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(target.getByRole('button', { name: 'Guardar', exact: true })).toHaveAttribute('aria-busy', 'false');
     await expect(target.locator('.form-actions [role="status"]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/);
     // El indicador espera también la liberación. networkidle ya ocurrido no espera peticiones posteriores.
 }
@@ -324,7 +324,7 @@ try {
         await finish();
     });
     await check('UR ajena deniega documento HTML y muestra pantalla conservada', async () => {
-        await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
+        await page.getByRole('button', { name: 'Guardar', exact: true }).click();
         assert.equal((await page.goto(`${origin}/formatos/B`)).status(), 403);
         await page.getByText('No tienes acceso al formato de esta UR.', { exact: true }).waitFor();
         await page.screenshot({ path: path.join(artifacts, 'ur-denegada.png') });
@@ -356,9 +356,9 @@ try {
     await check('el resumen del servidor enlaza pendientes y no ofrece envío de formato incompleto', async () => {
         await finish();
         await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
-        await expect(page.getByRole('heading', { name: 'Revisar y enviar' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toBeDisabled();
-        await page.getByRole('button', { name: /Identificación general · Registro 1.*Guardado con respuesta perdida: completa.*atiende/ }).click();
+        await expect(page.getByRole('heading', { name: 'Resumen del formato' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toBeDisabled();
+        await page.locator('[data-pending-block="identificacion:inicial"][data-pending-field="usuario"]').getByRole('button', { name: 'Ir al campo', exact: true }).click();
         await expect(page.getByRole('tab', { name: 'Identificación general', exact: true })).toHaveAttribute('aria-selected', 'true');
         await expect(page.getByRole('combobox', { name: '¿A quién atiende? 1', exact: true })).toBeFocused();
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Guardado con respuesta perdida');
@@ -464,28 +464,28 @@ try {
     await check('Enviar primera etapa aparece sólo en Revisar y enviar; confirma sin datos de sesión y bloquea la captura', async () => {
         await control('ready-to-submit'); await page.reload();
         await page.getByRole('tab', { name: 'Contexto', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
         const input = await header();
         await activate(input);
         await savedAfter(() => input.fill('Proceso del envío sintético'));
         await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
-        await page.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
-        const dialog = page.getByRole('dialog', { name: 'Enviar primera etapa', exact: true });
+        await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: 'Enviar formato', exact: true });
         await expect(dialog.getByText('100 · Área sintética A', { exact: true })).toBeVisible();
-        await expect(dialog.getByText(/Al enviar la primera etapa, sus respuestas quedarán disponibles para consulta y ya no podrán editarse./)).toBeVisible();
+        await expect(dialog.getByText(/Al enviar el formato, sus respuestas quedarán disponibles para consulta y ya no podrán editarse./)).toBeVisible();
         await expect(dialog.getByRole('button', { name: 'Cancelar', exact: true })).toBeFocused();
         await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeEnabled();
-        await page.getByRole('button', { name: 'Enviar primera etapa', exact: true }).click();
+        await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeEnabled();
+        await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
         const [response] = await Promise.all([page.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/enviar'),
             dialog.getByRole('button', { name: 'Confirmar envío', exact: true }).click()]);
         assert.equal(response.status(), 200);
         await expect(page.getByRole('dialog')).toHaveCount(0);
-        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toBeDisabled();
+        await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeDisabled();
         await expect(page.getByText(/Enviado el .* por persona@uacj.mx/)).toBeVisible();
         await page.reload(); await header();
         await expect(input).toHaveJSProperty('readOnly', true);
-        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Imprimir', exact: true })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0)).toBeDisabled();
         const content = (await stored()).contenido;

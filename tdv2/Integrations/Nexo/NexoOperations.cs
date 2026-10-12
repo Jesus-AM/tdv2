@@ -6,12 +6,43 @@ using Tdv2.Domain;
 using Tdv2.Infrastructure;
 namespace Tdv2.Integrations.Nexo;
 
-public sealed class NexoOperations(DatabaseConnections connections, PostgresNexoProfiles profiles, ILogger<NexoOperations> logger)
+public sealed class NexoOperations(DatabaseConnections connections, PostgresNexoProfiles profiles, ILogger<NexoOperations> logger) : INexoCollaborationDirectory
 {
     public static string? Text(JsonObject row, string key) => row[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
     public static long Number(JsonObject row, string key) => long.TryParse(row[key]?.ToString(), out var n) ? n : 0;
     public static bool Flag(JsonObject row, string key) => row[key] is JsonValue v && v.TryGetValue<bool>(out var b) && b;
     private static DomainProblem Unavailable() => new(503, "No se pudo comprobar la operación con Nexo. Inténtalo más tarde.");
+    public async Task<IReadOnlyList<CollaborationIdentity>> Collaborators(string[] affiliations, string[] linkedEmails, CancellationToken ct)
+    {
+        return await Guard<IReadOnlyList<CollaborationIdentity>>(async () =>
+        {
+            await profiles.ApplicationId(ct);
+            var emails = new List<string>();
+            await using (var connection = await connections.Open("Nexo", ct))
+            {
+                // Sólo vistas publicadas para TDV2: ya excluyen suspensión, revocación y caducidad.
+                // La selección inicial se limita a la rama o a vínculos locales candidatos, nunca a todo el directorio.
+                await using var command = new NpgsqlCommand("""
+                    SELECT DISTINCT u.email FROM public.nexo_usuarios u
+                    JOIN public.nexo_usuario_rol r ON r.usuario_aplicacion_id=u.usuario_aplicacion_id AND r.email=u.email
+                    JOIN public.nexo_concesiones g ON g.email=u.email AND g.rol_id=r.rol_id
+                    WHERE r.rol_clave IN ('colaborador_local','colaborador_dependencias')
+                      AND ((g.origen='central' AND u."ID_UR"=ANY($1)) OR u.email=ANY($2))
+                    """, connection);
+                command.Parameters.AddWithValue(affiliations); command.Parameters.AddWithValue(linkedEmails);
+                await using var reader = await command.ExecuteReaderAsync(ct);
+                while (await reader.ReadAsync(ct)) emails.Add(reader.GetString(0));
+            }
+            var result = new List<CollaborationIdentity>();
+            foreach (var email in emails)
+            {
+                // Revalida identidad, roles, módulos y concesiones; un traslado entre lecturas no conserva la visibilidad anterior.
+                try { result.Add(new(await profiles.ForEmail(email, ct), await profiles.Grants(email, ct))); }
+                catch (DomainProblem error) when (error.Status == 403) { /* Acceso retirado entre lecturas. */ }
+            }
+            return result;
+        });
+    }
     public async Task<JsonArray> Rows(string resource, string? email, CancellationToken ct)
     {
         if (resource is not ("delegacion" or "delegacion_roles" or "usuarios")) throw new ArgumentException("Unknown Nexo view.");

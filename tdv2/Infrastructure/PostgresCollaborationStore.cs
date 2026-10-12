@@ -6,27 +6,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Tdv2.Infrastructure;
 
 /// <summary>SQL local de colaboraciones. El servicio conserva la transacción y su auditoría.</summary>
-public sealed class PostgresCollaborationStore(Tdv2DbContext db)
+public sealed class PostgresCollaborationStore(Tdv2DbContext db) : ICollaborationListingStore
 {
-    public async Task<IReadOnlyList<object>> List(string[] roots, UnitDirectory directory, CancellationToken ct)
-    {
-        var links = new List<object>();
-        var rows = await db.UnitCollaborations.AsNoTracking().Where(c => roots.Contains(c.GrantorUnitId)
-            && (c.RevokedAt == null || c.CentralRemovalPending)).OrderBy(c => c.Name).ThenBy(c => c.Id).ToListAsync(ct);
-        foreach (var row in rows)
-            links.Add(new
-            {
-                id = row.Id,
-                email = row.Email,
-                nombre = row.Name,
-                tipo = row.Kind,
-                ur_otorgante = row.GrantorUnitId,
-                alcance = directory.Get(row.ScopeUnitId)?.Description ?? row.ScopeUnitId,
-                revocada = row.RevokedAt != null,
-                pendiente = row.CentralRemovalPending
-            });
-        return links;
-    }
+    public async Task<IReadOnlyList<Tdv2.Domain.Entities.UnitCollaboration>> Candidates(string[] scopes, string[] grantors, CancellationToken ct) =>
+        await db.UnitCollaborations.AsNoTracking().Where(c => scopes.Contains(c.ScopeUnitId) && c.RevokedAt == null
+            || grantors.Contains(c.GrantorUnitId) && c.CentralRemovalPending)
+            .OrderBy(c => c.Name).ThenBy(c => c.Id).ToListAsync(ct);
 
     public async Task<JsonObject?> Find(NpgsqlConnection connection, long id, CancellationToken ct)
     {

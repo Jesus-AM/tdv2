@@ -237,15 +237,16 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 {(rep || preview) && (
                     <AccessNotice writing={!!rep?.escritura}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                            <Box sx={{ flex: 1, minWidth: 220 }}>
+                              <Box sx={{ flex: 1, minWidth: 'min(100%, 220px)', overflowWrap: 'anywhere' }}>
                                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                    {rep ? `Actuando como ${rep.nombre}` : `Vista de prueba · ${preview?.label}`}
+                                    {rep ? `Actuando como ${rep.nombre}` : `Vista por rol y área · ${preview?.roleLabel || preview?.label}`}
                                 </Typography>
                                 <Typography variant="caption">
                                     {rep
                                         ? `${rep.email} · Tu cuenta: ${auth.user?.name} · Hasta ${new Date(rep.expira_en).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`
-                                        : preview?.unit?.desc_ur || preview?.roleLabel}
+                                        : `${preview?.unit?.desc_ur || preview?.roleLabel} · Tu cuenta: ${auth.user?.name}`}
                                 </Typography>
+                                <Typography variant="caption" sx={{ display: 'block' }}>Cuenta autenticada: {auth.user?.email}</Typography>
                             </Box>
                             <Chip
                                 label={rep?.escritura ? 'Cambios reales habilitados' : 'Solo lectura'}

@@ -7,6 +7,7 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
     /// <summary>La misma revisión alimenta los enlaces de captura y la autorización final del envío.</summary>
     public static FormReview Inspect(JsonObject content, bool firstStage = true)
     {
+        if (firstStage) return FormRequirements.Inspect(content).Review;
         var pending = new List<FormPending>();
         void Rows(string section, string title, params (string Key, string Label)[] fields)
         {

@@ -15,10 +15,10 @@ export async function verifyCentralCollaboration({ page, context, origin, contro
         await input.focus(); await expect(input).toHaveJSProperty('readOnly', false);
         const response = page.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A3/bloques' && r.request().method() === 'PATCH');
         await input.fill('Captura central sintética'); assert.equal((await response).status(), 200);
-        await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
+        await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+        await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toHaveAttribute('aria-busy', 'false');
         await page.getByRole('tab', { name: 'Acuerdos', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Enviar primera etapa', exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toHaveCount(0);
         assert.equal((await context.request.get(origin + '/formatos/B')).status(), 403);
     });
     await check('retiro central durante edición termina SignalR, bloquea reserva/guardado y conserva la versión compartida', async () => {

@@ -6,7 +6,6 @@ import {
     Box,
     Button,
     Checkbox,
-    Chip,
     FormControlLabel,
     LinearProgress,
     MenuItem,
@@ -25,6 +24,8 @@ import { Refresh, SaveOutlined, StorageOutlined, SyncOutlined, ScheduleOutlined 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import SettingsSection from '@/Components/SettingsSection';
+import SyncState from '@/Components/SyncState';
+import { catalogAttempt, catalogNames, processedCount, sqlServerAttempt, type CatalogId, type SyncRun as Run } from '@/lib/sync-presentation';
 import { errorResponse, errorText } from '@/lib/http';
 type Settings = {
     version: number;
@@ -44,30 +45,6 @@ type Status = {
     inicio_demorado?: boolean;
 };
 type Catalog = { registros: number | null; completada_en: string | null; error?: string };
-type Result = {
-    estado: string;
-    mensaje?: string;
-    resumen?: { unidades?: number; registros?: number; columnas?: number; ejercicio?: number };
-};
-type Run = {
-    id: string;
-    fuentes: string;
-    origen: string;
-    solicitado_por: string;
-    estado: string;
-    etapa: string | null;
-    solicitada_en: string;
-    iniciada_en: string | null;
-    terminada_en: string | null;
-    resultado: Record<string, Result>;
-};
-const labels: Record<string, string> = {
-    pendiente: 'Pendiente',
-    ejecutando: 'En proceso',
-    completada: 'Completada',
-    parcial: 'Parcial',
-    fallida: 'Con error',
-};
 const catalogLabels: Record<string, string> = { sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos de SIIv2', ilda: 'ILDA' };
 const intervals = [
     [15, 'Cada 15 minutos'],
@@ -179,6 +156,21 @@ export default function Sincronizaciones({
         return starting === source || starting === 'ambas' ? 'Iniciando…' : null;
     };
     const dirty = JSON.stringify(draft) !== JSON.stringify(configuracion);
+    const sql = sqlServerAttempt(historial, estado.ejecucion_activa);
+    const ilda = catalogAttempt('ilda', historial, estado.ejecucion_activa);
+    const catalogDetail = (catalog: CatalogId) => {
+        const attempt = catalogAttempt(catalog, historial, estado.ejecucion_activa), count = processedCount(attempt.result);
+        return <Box data-catalog={catalog} sx={{ minWidth: 0, display: 'grid', alignContent: 'start', gap: 1 }}>
+            {catalog !== 'ilda' && <Typography component="h3" variant="h3">{catalogNames[catalog]}</Typography>}
+            <Box role="status"><SyncState state={catalogos[catalog].error ? 'no_disponible' : attempt.state} /></Box>
+            <Box><Typography variant="body2" sx={{ fontWeight: 600 }}>Última sincronización correcta</Typography>
+                <Typography variant="body2" data-last-success>{date(catalogos[catalog].completada_en)}</Typography></Box>
+            <Typography variant="body2">Copia local: {catalogos[catalog].registros?.toLocaleString('es-MX') ?? 'No disponible'} registros</Typography>
+            <Box><Typography variant="caption" color="text.secondary">{attempt.run ? `Intento: ${date(attempt.run.solicitada_en)}` : 'Sin intento en el historial disponible.'}</Typography>
+                <Typography variant="body2">{count !== null ? `${count.toLocaleString('es-MX')} registros procesados` : 'Recuento del intento no disponible.'}</Typography></Box>
+            {(catalogos[catalog].error || attempt.result?.mensaje) && <Alert severity="error">{catalogos[catalog].error || attempt.result?.mensaje}</Alert>}
+        </Box>;
+    };
     return (
         <AuthenticatedLayout>
             <Head title="Sincronizaciones" />
@@ -186,7 +178,7 @@ export default function Sincronizaciones({
                 <PageHeading
                     breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }]}
                     title="Sincronizaciones"
-                    description="Mantén actualizadas las áreas y el inventario que utilizan los formatos."
+                    description="Mantén actualizadas las unidades responsables, los módulos SII y el inventario ILDA que utilizan los formatos."
                     actions={
                         <Button variant="text" startIcon={<Refresh />} loading={refreshing} loadingPosition="start" onClick={() => refresh(true)}>
                             Actualizar estado
@@ -213,7 +205,7 @@ export default function Sincronizaciones({
                                     ? 'Iniciando…'
                                     : `Sincronizando… ${catalogLabels[active.etapa || ''] || 'catálogos'}`}
                             </Typography>
-                            <Chip label={labels[active.estado]} variant="outlined" />
+                            <SyncState state={active.estado} />
                         </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                             {active.estado === 'pendiente'
@@ -227,57 +219,33 @@ export default function Sincronizaciones({
                         {active.estado === 'ejecutando' && <LinearProgress sx={{ mt: 2 }} />}
                     </Box>
                 )}
-                <Box
-                    className="settings-grid"
-                    sx={{
-                        mb: 2,
-                    }}
-                >
-                    {(['sii', 'ilda'] as const).map((source) => (
-                        <SettingsSection key={source} icon={<StorageOutlined />}
-                            title={source === 'sii' ? 'SII · Unidades responsables y módulos de SIIv2' : 'ILDA · Información de las áreas'}
-                            description={source === 'sii'
-                                    ? 'Unidades responsables del ejercicio más reciente y módulos de SIIv2 sin filtro de ejercicio ni de UR.'
-                                    : 'Inventario completo de ILDA. Los formatos consultan los registros por clave de UR.'}>
-                            <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
-                                {catalogos[source].registros?.toLocaleString('es-MX') ?? 'No disponible'}{' '}
-                                <Typography component="span" variant="body2" color="text.secondary">
-                                    {source === 'sii' ? 'unidades' : 'registros'}
-                                </Typography>
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                                Última copia correcta: {date(catalogos[source].completada_en)}
-                            </Typography>
-                            <Button
-                                variant="outlined"
-                                startIcon={<SyncOutlined />}
-                                loading={!!actionLabel(source)}
-                                loadingPosition="start"
-                                disabled={
-                                    busy || unconfirmed || !!estado.ejecucion_activa || (source === 'ilda' && !estado.ilda_habilitada)
-                                }
-                                onClick={() => void execute(source)}
-                            >
-                                {actionLabel(source) || `Sincronizar ${source.toUpperCase()}`}
+                <Box className="sync-sources" sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', lg: 'minmax(0,2fr) minmax(0,1fr)' }, alignItems: 'start', gap: 2, mb: 2 }}>
+                    <SettingsSection title="SQL Server" icon={<StorageOutlined />} description="Unidades responsables y Módulos SII se sincronizan juntos, en ese orden.">
+                        <Box data-sync-source="sii">
+                            <Box role="status" sx={{ mb: 1 }}><SyncState state={sql.state} /></Box>
+                            <Typography variant="body2" sx={{ mb: 2 }}>Última ejecución correcta de ambos catálogos: {sql.lastSuccess ? date(sql.lastSuccess) : 'No disponible en el historial recibido.'}</Typography>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2,minmax(0,1fr))' }, gap: 2 }}>
+                                {catalogDetail('sii')}{catalogDetail('sii_modulos')}
+                            </Box>
+                            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                                {sql.state === 'parcial' && <Typography variant="body2" sx={{ mb: 1 }}>El resultado es parcial. Revisa el catálogo marcado como fallido.</Typography>}
+                                <Button variant="outlined" startIcon={<SyncOutlined />} loading={!!actionLabel('sii')} loadingPosition="start"
+                                    disabled={busy || unconfirmed || !!estado.ejecucion_activa} onClick={() => void execute('sii')}>
+                                    {actionLabel('sii') || 'Sincronizar SQL Server'}
+                                </Button>
+                            </Box>
+                        </Box>
+                    </SettingsSection>
+                    <SettingsSection title="ILDA" icon={<StorageOutlined />} description="Sincronización independiente de SQL Server.">
+                        <Box data-sync-source="ilda">
+                            {catalogDetail('ilda')}
+                            {!estado.ilda_habilitada && <Typography variant="body2" sx={{ mt: 1 }}>ILDA está deshabilitada en el servidor.</Typography>}
+                            <Button sx={{ mt: 2 }} variant="outlined" startIcon={<SyncOutlined />} loading={!!actionLabel('ilda')} loadingPosition="start"
+                                disabled={busy || unconfirmed || !!estado.ejecucion_activa || !estado.ilda_habilitada} onClick={() => void execute('ilda')}>
+                                {actionLabel('ilda') || (ilda.state === 'fallida' ? 'Reintentar ILDA' : 'Sincronizar ILDA')}
                             </Button>
-                            {source === 'sii' && <Box sx={{ mt: 2 }}>
-                                <Typography variant="body2">Módulos de SIIv2: {catalogos.sii_modulos.registros?.toLocaleString('es-MX') ?? 'No disponible'}</Typography>
-                                {catalogos.sii_modulos.error && <Alert severity="error" sx={{ my: 1 }}>{catalogos.sii_modulos.error}</Alert>}
-                                <Typography variant="caption" color="text.secondary">Última copia correcta: {date(catalogos.sii_modulos.completada_en)}</Typography>
-                            </Box>}
-                            {source === 'ilda' && !estado.ilda_habilitada && (
-                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                                    La conexión de ILDA está deshabilitada en el servidor.
-                                </Typography>
-                            )}
-                        </SettingsSection>
-                    ))}
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-                    <Button startIcon={<SyncOutlined />}
-                        loading={!!actionLabel('ambas')} loadingPosition="start"
-                        disabled={busy || unconfirmed || !!estado.ejecucion_activa || !estado.ilda_habilitada}
-                        onClick={() => void execute('ambas')}>{actionLabel('ambas') || 'Sincronizar SII e ILDA ahora'}</Button>
+                        </Box>
+                    </SettingsSection>
                 </Box>
                 <SettingsSection title="Programación automática" icon={<ScheduleOutlined />}
                     description="Todas las ejecuciones automáticas de SII incluyen unidades responsables y módulos de SIIv2. Incluir ILDA es independiente.">
@@ -423,20 +391,7 @@ export default function Sincronizaciones({
                                         </Typography>
                                     </TableCell>
                                     <TableCell sx={{ verticalAlign: 'top' }}>
-                                        <Chip
-                                            label={labels[run.estado] || run.estado}
-                                            size="small"
-                                            variant="outlined"
-                                            color={
-                                                run.estado === 'completada'
-                                                    ? 'success'
-                                                    : run.estado === 'fallida'
-                                                      ? 'error'
-                                                      : run.estado === 'parcial'
-                                                        ? 'warning'
-                                                        : 'default'
-                                            }
-                                        />
+                                        <SyncState state={run.estado} />
                                     </TableCell>
                                     <TableCell>
                                         {Object.entries(run.resultado).map(([source, result]) => (
@@ -448,14 +403,14 @@ export default function Sincronizaciones({
                                             >
                                                 {catalogLabels[source] || source.toUpperCase()}:{' '}
                                                 {result.mensaje ||
-                                                    `${result.resumen?.unidades ?? result.resumen?.registros ?? 0} registros`}
+                                                    (processedCount(result) !== null ? `${processedCount(result)} registros` : 'Resultado sin recuento disponible')}
                                             </Typography>
                                         ))}
                                         {!Object.keys(run.resultado).length && (
                                             <Typography variant="body2" color="text.secondary">
                                                 {run.estado === 'pendiente'
                                                     ? 'Solicitud aceptada; inicio por confirmar'
-                                                    : 'Leyendo el origen'}
+                                                    : run.estado === 'ejecutando' ? 'Leyendo el origen' : 'Sin resultado disponible'}
                                             </Typography>
                                         )}
                                     </TableCell>

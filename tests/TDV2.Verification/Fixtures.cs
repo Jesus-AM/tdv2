@@ -52,6 +52,7 @@ internal sealed class MemoryForms : IFormStore
     internal bool Outage;
     public Task<IReadOnlyList<Unit>> Units(CancellationToken cancellation) => Outage
         ? throw new InvalidOperationException("SYNTHETIC_DATABASE_SECRET") : Task.FromResult<IReadOnlyList<Unit>>(Fixtures.Units);
+    internal void Seed(string unit, StoredForm value) { lock (gate) forms[unit] = value with { Content = value.Content.DeepClone().AsObject() }; }
     public Task<IReadOnlyList<Collaboration>> Collaborations(string email, CancellationToken cancellation) => Task.FromResult(Links);
     public Task<StoredForm?> Get(string unit, CancellationToken cancellation)
     {
@@ -85,6 +86,7 @@ internal sealed class Application : WebApplicationFactory<global::Program>
 {
     internal FakeNexo Nexo { get; } = new();
     internal MemoryForms Store { get; } = new();
+    internal MemoryCollaborationDirectory Collaborators { get; } = new();
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -96,6 +98,9 @@ internal sealed class Application : WebApplicationFactory<global::Program>
             services.RemoveAll<IFormStore>(); services.AddSingleton<IFormStore>(Store);
             services.AddSingleton<Tdv2.Synchronization.ILocalCatalog,EmptyLocalCatalog>();
             services.RemoveAll<INexoProfiles>(); services.AddSingleton<INexoProfiles>(Nexo);
+            services.RemoveAll<ICollaborationListingStore>(); services.AddSingleton<ICollaborationListingStore>(Collaborators);
+            services.RemoveAll<INexoCollaborationDirectory>(); services.AddSingleton<INexoCollaborationDirectory>(Collaborators);
+            services.RemoveAll<Tdv2.Services.ICollaboratorAccess>(); services.AddScoped<Tdv2.Services.ICollaboratorAccess, SyntheticCollaboratorAccess>();
             services.RemoveAll<ISessionIdentity>(); services.AddSingleton<ISessionIdentity, SyntheticIdentity>();
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
             services.AddAuthentication(options => { options.DefaultAuthenticateScheme = "Synthetic"; options.DefaultChallengeScheme = "Synthetic"; })

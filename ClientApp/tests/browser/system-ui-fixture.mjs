@@ -15,9 +15,10 @@ export async function systemFixture() {
     const clone = v => structuredClone(v);
     const block = key => { if (!blocks.has(key)) blocks.set(key, { key, version: 0, reserva: null }); return blocks.get(key); };
     const view = (b, tab) => ({ key: b.key, version: b.version, reserva: b.reserva ? { ...b.reserva, propia: b.tab === tab } : null });
-    const live = tab => ({ contenido: clone(content), version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, bloques: [...blocks.values()].map(b => view(b, tab)), editable: !fixture.submitted,
+    const live = tab => ({ contenido: clone(content), version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, bloques: [...blocks.values()].map(b => view(b, tab)), editable: !fixture.submitted && !fixture.readOnly,
         procedimientosDisponibles: content.identificacion.filter(p => ['V', 'A'].includes(p.validacion)).map(({ id, codigo, tramite }) => ({ id, codigo, tramite })),
-        puedeEnviar: false, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, revisionEnvio: null, revisionEtapa: null, seccion: 'contexto', servidorEn: new Date().toISOString(), actualizadoEn: null, actualizadoPor: null });
+        puedeEnviar: !!fixture.delivery && !fixture.submitted && !fixture.readOnly, entrega: fixture.delivery?.(), enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null,
+        revisionEnvio: fixture.delivery?.().revision || null, revisionEtapa: fixture.delivery?.().revision || null, seccion: 'contexto', servidorEn: new Date().toISOString(), actualizadoEn: fixture.savedAt || null, actualizadoPor: null });
     const notify = () => { for (const w of watches) w.socket.send(JSON.stringify({ type: 2, invocationId: w.id, item: live(w.tab) }) + '\x1e'); };
     fixture.broadcast = notify;
     fixture.webSockets = async context => context.routeWebSocket('**/form-events*', socket => {
@@ -34,6 +35,7 @@ export async function systemFixture() {
     const server = createServer(async (req, res) => {
         const url = new URL(req.url, 'http://127.0.0.1');
         const json = (value, status = 200) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(value)); };
+        if (fixture.handleRequest && await fixture.handleRequest(req, url, json)) return;
         if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/images/')) {
             const base = root;
             const file = path.resolve(base, '.' + url.pathname);
@@ -50,8 +52,18 @@ export async function systemFixture() {
         if (req.method === 'POST' || req.method === 'PATCH') {
             let data = ''; for await (const chunk of req) data += chunk; const body = JSON.parse(data || '{}');
             fixture.requests.push({ path: url.pathname, body: clone(body) });
+            if (url.pathname.endsWith('/ejecutar') && fixture.syncRequest) return json(await fixture.syncRequest(body));
+            if (url.pathname.endsWith('/bloques')) {
+                if (fixture.waitSave) await fixture.waitSave;
+                if (fixture.saveFault) return json({ message: 'No fue posible confirmar el guardado sintético.' }, 503);
+            }
             if (fixture.submitted) return json({ message: 'Enviado' }, 409);
+            if (fixture.readOnly) return json({ message: 'Solo consulta' }, 403);
             if (url.pathname.endsWith('/posicion')) return json({});
+            if (url.pathname.endsWith('/enviar')) {
+                if (fixture.waitSubmit) await fixture.waitSubmit;
+                fixture.submitted = true; fixture.version++; notify(); return json({ ...live(body.tabId), enviadoPor: 'persona@example.test' });
+            }
             const entries = body.blocks || [];
             if (entries.some(e => { const b = block(e.key); return b.version !== e.version || b.reserva && b.tab !== body.tabId; })) return json({ message: 'Reserva ajena o versión obsoleta' }, 409);
             for (const e of entries) {
@@ -63,7 +75,8 @@ export async function systemFixture() {
                 else if (url.pathname.endsWith('/bloques')) {
                     if (!b.reserva || b.reserva.id !== e.leaseId) return json({ message: 'Sin reserva' }, 409);
                     const [section, ...parts] = e.key.split(':'), id = parts.join(':');
-                    if (Array.isArray(content[section])) {
+                    if (section === 'medios') { content.medios = clone(e.value.medios); content.medioOtro = e.value.medioOtro; }
+                    else if (Array.isArray(content[section])) {
                         const index = content[section].findIndex(r => r.id === id);
                         if (e.value === null) { if (index >= 0) content[section].splice(index, 1); }
                         else { const value = clone(e.value); if (index >= 0) content[section][index] = value; else content[section].push(value); }
@@ -71,18 +84,20 @@ export async function systemFixture() {
                     b.version++; if (body.release || e.value === null) b.reserva = null;
                 }
             }
-            if (url.pathname.endsWith('/bloques')) fixture.version++;
+            if (url.pathname.endsWith('/bloques')) { fixture.version++; fixture.savedAt = new Date().toISOString(); }
             json({ ...live(body.tabId), bloques: entries.map(e => {
                 const [section, ...parts] = e.key.split(':');
-                const value = Array.isArray(content[section]) ? content[section].find(r => r.id === parts.join(':')) ?? null : content[section];
+                const value = section === 'medios' ? { medios: content.medios, medioOtro: content.medioOtro }
+                    : Array.isArray(content[section]) ? content[section].find(r => r.id === parts.join(':')) ?? null : content[section];
                 return { ...view(block(e.key), body.tabId), value: clone(value) };
             }) });
             setTimeout(notify, 10); return;
         }
+        if (req.headers['x-tdv2-page'] && fixture.pages?.[url.pathname]) return json(fixture.pages[url.pathname]());
         if (req.headers['x-tdv2-page']) return json({ component: 'FormatoUR', url: '/formatos/A', props: {
             name: 'TDV2', auth: { user: { id: 1, name: 'Persona sintética', email: 'persona@example.test' }, roles: [], modules: [], canPreview: false, canRepresent: false }, simulacion: null, representacion: null, contextoEdicion: 'own', csrfToken: 'synthetic', session: { lifetime_ms: 7200000 }, routes: { inicio: '/inicio', home: '/', connect: '/connect', logout: '/logout' },
             unidad: { id_ur: 'A', cve_ur: '100', desc_ur: 'Área sintética', nivel_ur: 2, ejercicio: 2026, id_ur_pertenece: null }, contenido: clone(content), plantilla: { ...clone(content), sistemas: [clone(blankSystem)] }, definicion: definition,
-            editable: !fixture.submitted, permisoEdicion: true, version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, seccionesPosteriores: false, puedeEnviar: false, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, actualizadoEn: null, actualizadoPor: null, guardarUrl: '/formatos/A',
+            editable: !fixture.submitted && !fixture.readOnly, entrega: fixture.delivery?.(), permisoEdicion: !fixture.readOnly, version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, seccionesPosteriores: false, puedeEnviar: !!fixture.delivery && !fixture.readOnly, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, actualizadoEn: null, actualizadoPor: null, guardarUrl: '/formatos/A',
         } });
         res.setHeader('content-type', 'text/html'); res.end(await readFile(path.join(root, 'index.html')));
     });

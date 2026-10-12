@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { router } from '@/lib/navigation';
+import { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { router, usePage } from '@/lib/navigation';
 import {
     Box,
     TextField,
@@ -17,10 +17,14 @@ import {
     useMediaQuery,
 } from '@mui/material';
 import { Search, ExpandMore, AccountTreeOutlined, SubdirectoryArrowRight, Clear } from '@mui/icons-material';
-import { buildAreaDirectory, filterAreaTree, expandableAreaIds, displayUnitCode } from '@/lib/area-directory';
+import { buildAreaDirectory, filterAreaTree, expandableAreaIds, displayUnitCode, averageProgress } from '@/lib/area-directory';
 import type { AreaFilter, AreaNode } from '@/lib/area-directory';
 import { defaultParticipation, type Participation } from '@/lib/area-directory';
 import type { Unit, FormRow } from '@/types/tdv2';
+// Sólo preferencias de vista en memoria; nunca permisos, respuestas o datos de página.
+type DirectoryView = { q: string; scope: 'todas' | 'mis'; filter: AreaFilter; page: number; open: string[]; scroll: number };
+let remembered: { context: string; view: DirectoryView } | undefined;
+router.on('identity-changing', () => { remembered = undefined; });
 export default function AreaDirectory({
     units,
     forms,
@@ -34,11 +38,23 @@ export default function AreaDirectory({
     ownRoot: string | null;
     participation?: Participation;
 }) {
-    const [q, setQ] = useState(''),
-        [scope, setScope] = useState<'todas' | 'mis'>('todas'),
-        [filter, setFilter] = useState<AreaFilter>('todos'),
-        [page, setPage] = useState(1),
-        [open, setOpen] = useState(new Set<string>());
+    const { props } = usePage();
+    const context = `${props.auth.user?.email || ''}:${props.contextoEdicion || 'own'}`;
+    const [initial] = useState(() => remembered?.context === context ? remembered.view : undefined);
+    const [q, setQ] = useState(initial?.q || ''),
+        [scope, setScope] = useState<'todas' | 'mis'>(initial?.scope || 'todas'),
+        [filter, setFilter] = useState<AreaFilter>(initial?.filter || 'todos'),
+        [page, setPage] = useState(initial?.page || 1),
+        [open, setOpen] = useState(new Set<string>(initial?.open));
+    const view = useRef<DirectoryView>({ q, scope, filter, page, open: [...open], scroll: initial?.scroll || 0 });
+    view.current = { ...view.current, q, scope, filter, page, open: [...open] };
+    useLayoutEffect(() => { if (initial) window.scrollTo({ top: initial.scroll, behavior: 'instant' }); }, [initial]);
+    useEffect(() => {
+        const remember = () => { view.current.scroll = window.scrollY; remembered = { context, view: { ...view.current } }; };
+        window.addEventListener('scroll', remember, { passive: true });
+        const off = router.on('before', remember);
+        return () => { off(); window.removeEventListener('scroll', remember); };
+    }, [context]);
     const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
     const visibleForms = useMemo(() => scope === 'mis' ? forms.filter((f) => f.propia ?? f.editable) : forms, [scope, forms]);
     const tree = useMemo(() => {
@@ -60,10 +76,13 @@ export default function AreaDirectory({
     }, [units, forms, visibleForms, scope, participation]);
     const roots = useMemo(() => filterAreaTree(tree.roots, q, filter), [tree, q, filter]),
         others = useMemo(() => filterAreaTree(tree.others, q, filter), [tree, q, filter]);
+    const criteria = `${scope}:${filter}:${q}`, previousCriteria = useRef(criteria);
     useEffect(() => {
-        setPage(1);
+        if (criteria === previousCriteria.current) return;
+        previousCriteria.current = criteria; setPage(1);
         setOpen(q || filter !== 'todos' ? new Set(expandableAreaIds([...roots, ...others])) : new Set());
-    }, [q, filter, roots, others]);
+    }, [criteria, q, filter, roots, others]);
+    useEffect(() => { setPage(p => Math.min(p, Math.max(1, Math.ceil(roots.length / 8)))); }, [roots.length]);
     const pageRoots = roots.slice((page - 1) * 8, page * 8);
     const toggle = (id: string) =>
         setOpen((prev) => {
@@ -80,32 +99,32 @@ export default function AreaDirectory({
                 className="area-format-row"
                 sx={{
                     display: 'grid',
-                    gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', sm: '18px minmax(0, 1fr) auto 100px auto' },
+                    gridTemplateColumns: { xs: 'minmax(0, 1fr) auto', md: '18px minmax(0, 1fr) 120px 100px 116px' },
                     gap: 1,
                     alignItems: 'center',
-                    minHeight: 76,
-                    py: 1,
+                    minHeight: 60,
+                    py: .75,
                     borderBottom: '1px solid',
                     borderColor: 'divider',
                     '&:last-child': { borderBottom: 0 },
                 }}
             >
-                <SubdirectoryArrowRight sx={{ fontSize: 18, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }} />
+                <SubdirectoryArrowRight sx={{ fontSize: 18, color: 'text.secondary', display: { xs: 'none', md: 'block' } }} />
                 <Box sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {main ? 'Formato del área principal' : node.unit.desc_ur}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                         {displayUnitCode(node.unit.cve_ur)} ·{' '}
-                        {node.form.porcentaje === 100
-                            ? 'Completo'
+                        {node.form.enviado_en ? 'Enviado' : node.form.porcentaje === 100
+                            ? 'Captura completa'
                             : node.form.porcentaje
                               ? 'En captura'
                               : 'Sin iniciar'}
                     </Typography>
                 </Box>
-                {!node.form.editable && <Chip label="Solo consulta" variant="outlined" sx={{ justifySelf: 'start', gridColumn: { xs: 1, sm: 3 }, gridRow: { xs: 2, sm: 1 } }} />}
-                <Box sx={{ width: { xs: 85, sm: 100 }, textAlign: 'right', justifySelf: 'end', gridColumn: { xs: 2, sm: 4 }, gridRow: 1 }}>
+                <Chip label={node.form.editable && !readOnly ? 'Puedes llenar' : 'Solo consulta'} variant="outlined" sx={{ justifySelf: 'start', gridColumn: { xs: 1, md: 3 }, gridRow: { xs: 2, md: 1 } }} />
+                <Box sx={{ width: { xs: 85, md: 100 }, textAlign: 'right', justifySelf: 'end', gridColumn: { xs: 2, md: 4 }, gridRow: 1 }}>
                     <Typography variant="caption" color="secondary" sx={{ fontWeight: 600 }}>
                         {node.form.porcentaje}%
                     </Typography>
@@ -120,9 +139,9 @@ export default function AreaDirectory({
                     variant={node.form.editable && !readOnly ? 'contained' : 'outlined'}
                     aria-label={`Abrir formato de ${node.unit.desc_ur}`}
                     onClick={() => router.visit(node.form!.url)}
-                    sx={{ gridColumn: { xs: 2, sm: 5 }, gridRow: { xs: 2, sm: 1 }, justifySelf: 'end' }}
+                    sx={{ gridColumn: { xs: 2, md: 5 }, gridRow: { xs: 2, md: 1 }, justifySelf: 'end', width: 116 }}
                 >
-                    {node.form.editable && !readOnly ? 'Continuar' : 'Ver formato'}
+                    Ver formato
                 </Button>
             </Box>
         );
@@ -134,41 +153,19 @@ export default function AreaDirectory({
             </Box>
         ));
     return (
-        <section aria-labelledby="directory-title">
+        <section aria-label="Directorio de áreas">
             <Tabs value={scope} onChange={(_, value) => setScope(value)} aria-label="Ámbito de consulta"
-                sx={{ mb: 1, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 1 } }}>
+                className="area-scope-tabs"
+                sx={{ mb: 2, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 1 }, '& .Mui-selected': { bgcolor: '#edf3fd', fontWeight: 700 } }}>
                 <Tab value="mis" label="Mis áreas" />
                 <Tab value="todas" label="Todas las áreas" />
             </Tabs>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-                <Box>
-                    <Typography id="directory-title" component="h2" variant="h2">
-                        {scope === 'mis' ? 'Mis áreas' : 'Áreas de la universidad'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        {q || filter !== 'todos' ? `${roots.length} de ` : ''}
-                        {tree.roots.length} áreas principales ·{' '}
-                        {visibleForms.length} áreas con formato
-                    </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                    <Button
-                        disabled={!roots.length && !others.length}
-                        onClick={() => setOpen(new Set(expandableAreaIds([...pageRoots, ...others])))}
-                    >
-                        Expandir visibles
-                    </Button>
-                    <Button disabled={!open.size} onClick={() => setOpen(new Set())}>
-                        Contraer
-                    </Button>
-                </Box>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5, mb: 1.5, pt: 0.5 }}>
+            <Box className="area-toolbar" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
                 <TextField
                     label="Buscar área o clave"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    sx={{ flex: 1, minWidth: 0 }}
+                    sx={{ flex: '1 1 260px', minWidth: 0 }}
                     slotProps={{
                         input: {
                             startAdornment: (
@@ -203,12 +200,15 @@ export default function AreaDirectory({
                         </MenuItem>
                     ))}
                 </TextField>
+                <Box sx={{ display: 'flex', gap: .5, flexWrap: 'wrap' }}>
+                    <Button disabled={!roots.length && !others.length}
+                        onClick={() => setOpen(new Set(expandableAreaIds([...pageRoots, ...others])))}>Expandir visibles</Button>
+                    <Button disabled={!open.size} onClick={() => setOpen(new Set())}>Contraer</Button>
+                </Box>
             </Box>
             <Box className="stack" sx={{ gap: '8px' }}>
                 {pageRoots.map((node) => {
-                    const avg = node.forms.length
-                        ? Math.round(node.forms.reduce((s, f) => s + Number(f.porcentaje), 0) / node.forms.length)
-                        : 0;
+                    const avg = averageProgress(node.forms);
                     return (
                         <Box
                             key={node.unit.id_ur}
@@ -235,8 +235,8 @@ export default function AreaDirectory({
                                     display: 'flex',
                                     alignItems: 'center',
                                     textAlign: 'left',
-                                    minHeight: 80,
-                                    py: 1.5,
+                                    minHeight: 64,
+                                    py: 1,
                                     px: { xs: 1.5, sm: 2 },
                                     gap: 1.5,
                                     cursor: 'pointer',
@@ -352,9 +352,6 @@ export default function AreaDirectory({
                     sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
                 />
             )}
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                El avance del conjunto promedia el formato principal y los de sus áreas dependientes.
-            </Typography>
         </section>
     );
 }

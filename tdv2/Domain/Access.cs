@@ -128,15 +128,16 @@ public sealed class FormAccess(UnitDirectory directory)
             var currentGrants = (grants ?? []).ToArray();
             // Sólo origen central explícito prueba una asignación administrativa. Los roles efectivos
             // también incluyen delegaciones: Has por sí solo nunca habilita esta vía.
-            if (ModuleAccess.Allows(profile, "procesos_operativos") && directory.Affiliation(profile.User) is { } affiliation)
-                foreach (var role in profile.Roles.Where(r => currentGrants.Any(g => g.Id > 0 && g.RoleId == r.Id && g.Origin == "central")))
+            foreach (var grant in currentGrants.Where(g => g.Origin == "central"))
+                if (CollaborationRules.Central(directory, profile, grant) is { } assigned)
                 {
                     // id_ur_acceso describe el otorgamiento histórico. El alcance central se recalcula
                     // con ID_UR vigente y sus padres institucionales, nunca con CVE_UR ni prefijos.
-                    if (role.Key == "colaborador_local" && directory.FormUnit(affiliation.Id) is { } local)
-                        valid.Add(("local", local));
-                    if (role.Key == "colaborador_dependencias" && directory.LevelTwo(affiliation.Id) is { } root)
+                    if (profile.Roles.Any(r => r.Id == grant.RoleId && r.Key == "colaborador_local"))
+                        valid.Add(("local", assigned));
+                    if (profile.Roles.Any(r => r.Id == grant.RoleId && r.Key == "colaborador_dependencias"))
                     {
+                        var root = assigned;
                         if (directory.Participates(root)) valid.Add(("local", root));
                         // Sólo participantes de esta rama institucional; otro nivel 2 anidado
                         // no amplía el permiso. La delegación conserva su contrato independiente.
@@ -148,18 +149,9 @@ public sealed class FormAccess(UnitDirectory directory)
             // empleado, adscripción, rol, alcance y otorgante para resistir revocaciones y traslados.
             foreach (var link in collaborations ?? [])
             {
-                var roleKey = link.Kind switch { "local" => "colaborador_local", "dependencias" => "colaborador_dependencias", _ => "" };
-                var role = profile.Roles.FirstOrDefault(r => r.Key == roleKey);
                 var grant = currentGrants.FirstOrDefault(g => g.Id == link.GrantId);
-                if (link.Revoked || link.Email != profile.User.Email || role is null || grant is null
-                    || role.Id != link.RoleId || grant.RoleId != link.RoleId || grant.Origin != "aplicacion"
-                    || grant.OriginUnit != link.Origin || directory.Affiliation(profile.User)?.Id != link.Origin
-                    || UnitDirectory.Employee(profile.User) != link.Employee
-                    || !directory.Within(link.Origin, link.Grantor) || !directory.Within(link.Scope, link.Grantor)
-                    || directory.Get(link.Scope) is not { } unit || !UnitDirectory.IsForm(unit) || !directory.Participates(unit)) continue;
-                if (link.Kind == "local" && directory.LocalCollaborationUnit(link.Origin, link.Grantor)?.Id == link.Scope
-                    || link.Kind == "dependencias" && unit.Level == 2 && link.Grantor == link.Scope)
-                    valid.Add((link.Kind, unit));
+                if (CollaborationRules.Delegated(directory, profile, link, grant))
+                    valid.Add((link.Kind, directory.Get(link.Scope)!));
             }
         }
         return Compose(profile, directory.Responsibilities(profile.User), valid);

@@ -8,7 +8,14 @@ using Tdv2.Web;
 namespace Tdv2.Services;
 
 /// <summary>Interseca responsabilidad local con delegación vigente de Nexo; el rol administrador no basta.</summary>
-public sealed class CollaboratorAccess(RequestAccess access, NexoOperations nexo)
+public interface ICollaboratorAccess
+{
+    Task<Dictionary<string, Unit>> Roots(HttpContext http);
+    Task<Unit> Root(HttpContext http, string unit);
+    Task<Dictionary<string, long>> Roles(CancellationToken ct);
+    Task<JsonArray> Call(HttpContext http, string operation, string unit, JsonObject data, object[] ownParameters);
+}
+public sealed class CollaboratorAccess(RequestAccess access, NexoOperations nexo) : ICollaboratorAccess
 {
     public async Task<Dictionary<string, Unit>> Roots(HttpContext http)
     {

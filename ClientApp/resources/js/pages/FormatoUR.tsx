@@ -48,6 +48,7 @@ import SystemField, { type ModuleCatalog } from '@/Components/SystemField';
 import IdentificationInstructions from '@/Components/IdentificationInstructions';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
 import FormSubmissionReview from '@/Components/FormSubmissionReview';
+import ProcedureSelect from '@/Components/ProcedureSelect';
 import RowEditingActions from '@/Components/RowEditingActions';
 import RowEditingPresence from '@/Components/RowEditingPresence';
 import { isScrollbarPointer, RecordEditingContext } from '@/lib/record-editing-context';
@@ -145,6 +146,8 @@ function Editor(props: Props) {
         [sending, setSending] = useState(false),
         [finishing, setFinishing] = useState(false);
     const modalBlocks = useRef<string[]>([]);
+    const explicitSave = useRef(false);
+    const reviewingSubmission = useRef(false);
     const editingContext = useRef<RecordEditingContext | null>(null);
     const removing = useRef(false);
     const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
@@ -393,18 +396,21 @@ function Editor(props: Props) {
                 .find(element => element.dataset.editBlock === pending.bloque);
             const field = block?.querySelector<HTMLElement>('[data-field="' + pending.campo + '"]');
             const focus = field?.matches('[tabindex="-1"]') ? field.parentElement?.querySelector<HTMLElement>('[role="combobox"]') : field;
-            (focus || block?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, [role="combobox"]') || panel)?.focus();
-            (block || panel)?.scrollIntoView({ block: 'center' });
+            const target = focus || block?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, [role="combobox"]')
+                || panel?.querySelector<HTMLElement>('[data-add-row]:not(:disabled)') || panel;
+            target?.focus();
+            target?.scrollIntoView({ block: 'center', inline: 'start' });
         }));
     }
     async function reviewForSubmission() {
-        if (sending) return;
+        if (sending || reviewingSubmission.current || explicitSave.current) return;
+        reviewingSubmission.current = true;
         setSending(true);
         try {
             if (await engine.flush(true) && await engine.refresh() && !engine.state.dirty && !engine.state.saving
                 && engine.state.canSubmit && engine.state.review?.listo && !Object.keys(engine.state.blocks).some(key => engine.busy(key)))
                 setConfirmSend({ version: engine.state.version, stage: engine.state.delivery?.etapa.id ?? 1 });
-        } finally { setSending(false); }
+        } finally { reviewingSubmission.current = false; setSending(false); }
     }
     function field(value: string, def: Field, label: string, onChange: (value: string) => void, blockKey?: string) {
         const readOnly = locked || !!blockKey && !engine.canEdit(blockKey);
@@ -465,6 +471,11 @@ function Editor(props: Props) {
             <>
                 <div className={section === 'sistemas' ? 'capture-scroll capture-row-scroll' : 'capture-scroll'} data-edit-scroll>
                     <Table size="small" className={section === 'sistemas' ? 'systems-table' : undefined} aria-label={tabs.find((t) => t[0] === section)?.[1]}>
+                        {section === 'sistemas' && <colgroup>
+                            <col style={{ width: 124 }} /><col style={{ width: 'clamp(280px, 22vw, 360px)' }} />
+                            <col style={{ width: 300 }} /><col style={{ width: 250 }} /><col style={{ width: 220 }} />
+                            <col /><col style={{ width: 76 }} />
+                        </colgroup>}
                         <TableHead>
                             <TableRow>
                                 {section === 'sistemas' && <TableCell className="row-editing-cell">Edición</TableCell>}
@@ -480,7 +491,13 @@ function Editor(props: Props) {
                                     {section === 'sistemas' && <RowEditingPresence engine={engine} state={state} blockKey={`${section}:${r.id}`} />}
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
-                                            {section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
+                                            {section === 'sistemas' && f.key === 'proceso'
+                                                ? <ProcedureSelect value={(r as SystemRow).proceso} options={procedureOptions} label={`Procedimiento ${i + 1}`}
+                                                    historicalLabel={c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)
+                                                        ? `${(r as SystemRow).proceso} · ${c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)?.tramite}` : undefined}
+                                                    error={state.validation[`sistemas:${r.id}`]?.proceso} events={selectEvents(`sistemas:${r.id}`, 'proceso')}
+                                                    onChange={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row.proceso = value; })} />
+                                                : section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
                                                 ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules}
                                                     errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
                                                     events={name => selectEvents(`sistemas:${r.id}`, name)}
@@ -515,7 +532,7 @@ function Editor(props: Props) {
                     </Table>
                 </div>
                 <Button
-
+                    data-add-row={section}
                     sx={{ mt: 2 }}
                     startIcon={<Add />}
                     disabled={locked || rows.length >= 200}
@@ -541,10 +558,17 @@ function Editor(props: Props) {
         { key: 'validacion', label: 'Validación', options: validation },
         { key: 'prioridad', label: 'Prioridad' },
     ];
+    const saveAction = <Button variant="outlined" startIcon={<SaveOutlined />} disabled={locked || sending}
+        aria-label="Guardar" title="Guardar los cambios sin enviar el formato" aria-busy={state.saving || finishing}
+        sx={{ minHeight: 40 }} onClick={async () => {
+            if (explicitSave.current || reviewingSubmission.current || sending) return;
+            explicitSave.current = true; setFinishing(true);
+            try { await engine.flush(true); } finally { explicitSave.current = false; setFinishing(false); }
+        }}>{state.saving || finishing ? 'Guardando…' : 'Guardar'}</Button>;
     const sections: Record<string, () => React.ReactNode> = {
         contexto: () => (
             <div className="stack">
-                <Typography variant="h2">Primera etapa</Typography>
+                <Typography variant="h2">Alcance de captura</Typography>
                 <Typography variant="body2">
                     Validar el inventario preliminar e identificar quién realiza cada trámite, servicio o actividad, a
                     quién atiende, qué resultado genera y qué observaciones deben considerarse.
@@ -564,7 +588,7 @@ function Editor(props: Props) {
                         <li key={t}>{t}</li>
                     ))}
                 </Box>
-                <Typography variant="body2" color="text.secondary">Los cambios se guardan como borrador. Completar esta etapa no envía ni bloquea el formato completo.</Typography>
+                <Typography variant="body2" color="text.secondary">Los cambios se guardan como borrador. Completar la captura no equivale a enviar el formato.</Typography>
             </div>
         ),
         identificacion: () => (
@@ -644,6 +668,7 @@ function Editor(props: Props) {
                 </div>
                 <Box className="row-actions" sx={{ mt: 2, justifyContent: 'space-between' }}>
                     <Button
+                        data-add-row="identificacion"
                         startIcon={<Add />}
                         disabled={locked || c.identificacion.length >= 200}
                         onClick={() => {
@@ -682,7 +707,8 @@ function Editor(props: Props) {
                 </Typography>
                 <Box component="fieldset" {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
                 {blockNotice('medios')}
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: .5,
+                    '& .MuiFormControlLabel-root': { m: 0, alignItems: 'center' } }}>
                     {Object.keys(c.medios).map((m) => (
                         <FormControlLabel
                             key={m}
@@ -707,7 +733,7 @@ function Editor(props: Props) {
                         })
                     }
                     slotProps={{ input: { readOnly: !engine.canEdit('medios') }, htmlInput: { 'data-field': 'medioOtro' } }}
-                    sx={{ mt: 1, minWidth: 250 }}
+                    sx={{ mt: 1, width: 'min(100%, 420px)' }}
                 />
                 </Box>
                 </Box>
@@ -715,7 +741,7 @@ function Editor(props: Props) {
         ),
         revision: () => <FormSubmissionReview delivery={delivery} area={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
             canSubmit={state.canSubmit} settled={settled} busy={otherEditing} autosave={autosave}
-            submitting={sending} onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
+            submitting={sending} saveAction={saveAction} onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
         datos: () => (
             <>
                 <Typography variant="h2" sx={{ mb: 2 }}>
@@ -929,7 +955,7 @@ function Editor(props: Props) {
                     actions={
                         <Box sx={{ minWidth: 135 }}>
                             <Typography variant="caption" color="text.secondary">
-                                {state.submitted || props.enviadoEn ? 'Avance guardado' : `Avance de la ${delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}`}
+                                {state.submitted || props.enviadoEn ? 'Avance guardado' : 'Avance de captura confirmado'}
                             </Typography>
                             <Typography variant="h2" color="primary" sx={{ my: 0.5 }}>
                                 {state.submitted || props.enviadoEn ? state.progress : state.initialized ? state.stageProgress : props.porcentajeEtapa}%
@@ -1031,18 +1057,7 @@ function Editor(props: Props) {
                     </Box>
                     <div className="row-actions">
                         {/* El blur puede iniciar autoguardado antes del clic. El editor serializa ambos sin deshabilitar el botón a mitad del gesto. */}
-                        <Button
-                            variant="contained"
-                            startIcon={<SaveOutlined />}
-                            disabled={locked}
-                            aria-busy={state.saving || finishing}
-                            onClick={async () => {
-                                setFinishing(true);
-                                try { await engine.flush(true); } finally { setFinishing(false); }
-                            }}
-                        >
-                            Guardar borrador
-                        </Button>
+                        {active !== 'revision' && saveAction}
                     </div>
                 </div>
                 {state.dirty && Object.keys(state.issues).length > 0 && <Button size="small" onClick={download} startIcon={<DownloadOutlined />}>Descargar cambios sin guardar</Button>}
@@ -1059,10 +1074,10 @@ function Editor(props: Props) {
                         for (const key of keys) void engine.endBlock(key);
                     }} onConfirm={() => void confirmRemoval()} />
                 <Dialog open={confirmSend !== null} onClose={() => !sending && setConfirmSend(null)} aria-labelledby="confirm-send-title">
-                    <DialogTitle id="confirm-send-title">Enviar {delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}</DialogTitle>
+                    <DialogTitle id="confirm-send-title">Enviar formato</DialogTitle>
                     <DialogContent>
                         <Typography sx={{ fontWeight: 600, mb: 2 }}>{displayUnitCode(props.unidad.cve_ur)} · {props.unidad.desc_ur}</Typography>
-                        <Typography>Al enviar la {delivery?.etapa.nombre.toLocaleLowerCase('es-MX') || 'primera etapa'}, sus respuestas quedarán disponibles para consulta y ya no podrán editarse.</Typography>
+                        <Typography>Al enviar el formato, sus respuestas quedarán disponibles para consulta y ya no podrán editarse.</Typography>
                         {confirmSend && (confirmSend.version !== state.version || confirmSend.stage !== delivery?.etapa.id) && <Typography role="status" sx={{ mt: 2 }}>Las respuestas o la etapa cambiaron. Cierra esta confirmación y revisa el estado actualizado antes de enviar.</Typography>}
                         {otherEditing && <Typography role="status" sx={{ mt: 2 }}>Otra sesión está editando. Espera a que termine antes de enviar.</Typography>}
                         {state.error && <Alert severity="error" sx={{ mt: 2 }}>{state.error}</Alert>}

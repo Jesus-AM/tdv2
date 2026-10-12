@@ -14,15 +14,15 @@ export default function PruebasAcceso({
     return (
         <AuthenticatedLayout>
             <Head title="Pruebas de acceso" />
-            <div className="page settings-page">
+            <div className="page settings-page access-page">
                 <PageHeading
                     breadcrumbs={[{ label: 'Configuración', href: '/configuracion' }]}
                     title="Pruebas de acceso"
                     description="Elige cómo quieres comprobar la experiencia y los permisos en la plataforma."
                 />
                 <Box className="settings-grid">
-                    <SettingsSection title="Rol y área" icon={<VisibilityOutlined />} className="settings-access"
-                        description="Simula un rol y una adscripción para revisar los formatos y el avance disponibles. No requiere seleccionar a una persona.">
+                    <SettingsSection title="Vista por rol y área" icon={<VisibilityOutlined />} className="settings-access"
+                        description="Consulta un escenario de rol y adscripción. No modifica asignaciones ni permite guardar respuestas.">
                         <Box>
                             <Chip label="Solo lectura" variant="outlined" />
                         </Box>

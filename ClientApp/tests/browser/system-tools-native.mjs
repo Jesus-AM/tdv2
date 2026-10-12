@@ -26,7 +26,7 @@ const row = page => page.locator('[data-edit-block="sistemas:inicial"]');
 const field = (page, label) => page.getByRole('combobox', { name: label + ' 1', exact: true });
 async function systems(page) { await page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
 async function select(page, label, value) { await field(page, label).click(); await page.getByRole('option', { name: value, exact: true }).click(); }
-async function finish(page) { await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
+async function finish(page) { await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
 try {
     const first = await session(), { page } = first;
     const control = async action => { assert.equal((await first.context.request.post(origin + '/__fixture/' + action, { headers: { 'X-Fixture-Key': key } })).status(), 200); };

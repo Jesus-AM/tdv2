@@ -49,7 +49,7 @@ try {
         await control('sync-hold');
         let release; holdAck = new Promise(resolve => { release = resolve; });
         const before = posts;
-        await page.getByRole('button', { name: 'Sincronizar SII e ILDA ahora', exact: true }).evaluate(button => { button.click(); button.click(); });
+        await page.getByRole('button', { name: 'Sincronizar ILDA', exact: true }).evaluate(button => { button.click(); button.click(); });
         await expect(page.getByRole('button', { name: 'Iniciando…', exact: true }).first()).toBeVisible();
         await expect(page.getByText('Sincronizando… ILDA', { exact: true })).toHaveCount(0);
         await expect.poll(() => posts).toBe(before + 1);
@@ -67,24 +67,23 @@ try {
         await page.close();
         page = await context.newPage(); observe(page); await page.goto(origin + syncPath); await running();
         await control('sync-worker-release'); await complete();
-        await expect(row()).toContainText('SII · Unidades responsables: 4 registros');
-        await expect(row()).toContainText('SII · Módulos de SIIv2: 5 registros');
         await expect(row()).toContainText('ILDA: 5 registros');
         assert.equal(posts, 1);
     });
     await check('fallo de módulos muestra Parcial, conserva resultados independientes y permite reintentar', async () => {
         await control('sync-fail-modules');
-        await page.getByRole('button', { name: 'Sincronizar SII e ILDA ahora', exact: true }).click();
+        await page.getByRole('button', { name: 'Sincronizar SQL Server', exact: true }).click();
         await expect(row()).toContainText('Parcial');
         await expect(row()).toContainText('No se pudo sincronizar el catálogo de módulos de SIIv2');
-        await expect(row()).toContainText('ILDA: 5 registros');
+        await expect(row()).toContainText('SII · Unidades responsables: 4 registros');
         await control('sync-restore-source');
-        await page.getByRole('button', { name: 'Sincronizar SII', exact: true }).click();
+        await page.getByRole('button', { name: 'Sincronizar SQL Server', exact: true }).click();
         await complete();
+        await expect(row()).toContainText('SII · Módulos de SIIv2: 5 registros');
     });
     await check('fallo al reclamar explica el motivo y el mismo trabajo se recupera sin duplicarse', async () => {
         await control('sync-claim-fail');
-        await page.getByRole('button', { name: 'Sincronizar SII', exact: true }).click();
+        await page.getByRole('button', { name: 'Sincronizar SQL Server', exact: true }).click();
         await expect(page.getByText(/No se pudo acceder a la cola local/)).toBeVisible();
         const before = (await (await control('sync-report')).json()).runs.length;
         await expect(page.getByRole('button', { name: 'Iniciando…', exact: true }).first()).toBeDisabled();
@@ -93,9 +92,9 @@ try {
     });
     await check('ACK y lectura perdidos conservan la solicitud y bloquean otro envío hasta confirmar', async () => {
         await control('sync-hold'); loseAck = true; failReads = true;
-        await page.getByRole('button', { name: 'Sincronizar SII e ILDA ahora', exact: true }).click();
+        await page.getByRole('button', { name: 'Sincronizar ILDA', exact: true }).click();
         await expect(page.getByText(/No se pudo confirmar el estado de la solicitud/)).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Sincronizar SII e ILDA ahora', exact: true })).toBeDisabled();
+        await expect(page.getByRole('button', { name: 'Sincronizar SQL Server', exact: true })).toBeDisabled();
         loseAck = false; failReads = false; await running();
         await control('sync-worker-release'); await complete();
     });

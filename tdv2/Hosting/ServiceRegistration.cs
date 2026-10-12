@@ -60,6 +60,8 @@ public static class ServiceRegistration
         builder.Services.AddScoped<OperationAudit>();
         builder.Services.AddScoped<NexoOperations>();
         builder.Services.AddScoped<CollaboratorAccess>();
+        builder.Services.AddScoped<ICollaboratorAccess>(services => services.GetRequiredService<CollaboratorAccess>());
+        builder.Services.AddScoped<INexoCollaborationDirectory>(services => services.GetRequiredService<NexoOperations>());
         builder.Services.AddHttpClient<MicrosoftClient>(client => client.Timeout = TimeSpan.FromSeconds(15))
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_600_000);
@@ -117,6 +119,7 @@ public static class ServiceRegistration
         builder.Services.AddScoped<MicrosoftLoginService>();
         builder.Services.AddScoped<SessionTerminationService>();
         builder.Services.AddScoped<PostgresCollaborationStore>();
+        builder.Services.AddScoped<ICollaborationListingStore>(services => services.GetRequiredService<PostgresCollaborationStore>());
         builder.Services.AddScoped<SynchronizationQueries>();
         builder.Services.AddScoped<CollaboratorService>();
         builder.Services.AddScoped<AccessToolService>();

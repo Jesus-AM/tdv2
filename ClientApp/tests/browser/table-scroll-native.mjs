@@ -29,7 +29,7 @@ async function session(who) {
 async function tab(page, name) { await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
 const row = (page, id) => page.locator(`[data-edit-block="${id}"]`);
 const input = (page, label) => page.getByLabel(label, { exact: true });
-async function finish(page) { await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
+async function finish(page) { await page.getByRole('button', { name: 'Guardar', exact: true }).click(); await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0); await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/); }
 async function stored() { return (await (await first.context.request.get(origin + '/__fixture/stored', { headers: { 'X-Fixture-Key': key } })).json()).contenido; }
 async function request(page, url, method = 'GET', body) {
     return page.evaluate(async ({ url, method, body }) => {

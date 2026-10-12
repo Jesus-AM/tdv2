@@ -1,5 +1,13 @@
 # Contratos y operación de sincronizaciones
 
+## Presentación vigente 2026-10-10: SQL Server junto e ILDA aparte
+
+Dos bloques: **SQL Server** y **ILDA**. El único botón **Sincronizar SQL Server** envía `fuentes=sii` al endpoint existente: `SyncCoordinator.Catalogs` ejecuta secuencialmente `sii` (UR con ejercicio) y `sii_modulos` (sin filtro de ejercicio), registra ambos resultados y continúa ante el fallo independiente de una fuente. No es sólo una agrupación visual. ILDA envía `fuentes=ilda` desde su propio botón, con estado y resultados independientes. El API `ambas` y la inclusión programada de ILDA conservan su compatibilidad.
+
+Cada catálogo muestra última sincronización correcta (metadatos locales), estado del intento con texto/icono, cantidad de la copia local y recuento confirmado del intento. SQL Server sólo aparece Completada cuando ambos resultados del mismo intento lo confirman; un éxito y un fallo aparecen como resultado Parcial, con detalle de qué catálogo falló. Iniciando… y Sincronizando… mantienen la confirmación y exclusión existentes. La cola sigue excluyendo ejecuciones incompatibles, aunque pertenezcan a bloques distintos. El botón permite un reintento controlado después de finalizar, sin duplicados ni activación de horarios.
+
+El estado y resultado se obtienen de la ejecución activa o del último intento correspondiente entre las 50 ejecuciones que devuelve el endpoint. Si faltan el intento o su resultado/recuento, se indica la ausencia; no se infiere éxito ni se utiliza cero como sustituto. La fecha de último éxito de cada catálogo procede de sus metadatos y no depende del historial. La fecha conjunta SQL Server sólo se obtiene de una ejecución donde ambos catálogos completaron: no se mezclan éxitos de intentos parciales distintos. Si esa ejecución ya no está en el historial disponible, se informa la limitación. Un fallo no reemplaza ninguna fecha correcta. No cambian cola, recuperación, permisos, programación ni configuración Windows/Ubuntu. [Fórmula, pruebas, archivos y límites actuales](AVANCE_Y_PRUEBAS_ACCESO.md).
+
 ## Actualización 2026-10-09: solicitudes manuales atendidas por ASP.NET
 
 La solicitud expresa de procesamiento manual desde el sitio sustituye la restricción anterior que exigía iniciar un procesador separado para toda sincronización. **La programación automática permanece bajo control explícito y no se activa por este cambio.** No hay migración nueva.

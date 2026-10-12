@@ -99,7 +99,7 @@ try {
         await page.getByRole('button', { name: /Encargada sintética.*encargada@uacj/ }).click();
         await page.getByLabel('Motivo de la representación').fill('Fotografía sintética');
         let held; await page.route('**/actuar-como-usuario', route => { held = route; });
-        await page.getByRole('button', { name: 'Actuar como Encargada sintética', exact: true }).click();
+        await page.getByRole('button', { name: 'Activar representación', exact: true }).click();
         await expect.poll(() => !!held).toBe(true); await expect(avatar()).toHaveCount(0);
         await held.continue(); await page.unroute('**/actuar-como-usuario');
         await page.waitForURL(origin + '/inicio');

@@ -37,8 +37,8 @@ const priority = page => page.getByRole('combobox', { name: 'Prioridad 1', exact
 const row = page => page.locator('[data-edit-block="identificacion:inicial"]');
 const option = (page, name) => page.getByRole('option', { name, exact: true });
 async function finish(page) {
-    await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Guardar borrador', exact: true })).toHaveAttribute('aria-busy', 'false');
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toHaveAttribute('aria-busy', 'false');
     await expect(page.locator('.form-actions [role=status]')).toHaveText(/^(Guardado|Sin cambios pendientes)$/);
     await expect(row(page)).toHaveAttribute('data-edit-state', 'idle');
 }

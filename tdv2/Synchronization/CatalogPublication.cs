@@ -1,4 +1,5 @@
 using Tdv2.Integrations.Catalogs;
+using Tdv2.Domain;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -68,7 +69,7 @@ public sealed class CatalogPublication(IOptions<SyncOptions> options)
                 if (CatalogSource.SiiModuleColumns.Any(c => !item.ContainsKey(c))) throw new SyncProblem("El catálogo de módulos está incompleto.");
                 var id = Text(item, "id_modulo", 40, true)!;
                 var description = Text(item, "desc_modulo", 4000, true)!;
-                if (!Regex.IsMatch(id, @"\A[0-9]{1,40}\z") || id.All(c => c == '0')) throw new SyncProblem("El catálogo de módulos contiene un ID inválido.");
+                if (!SystemAnswers.ValidModuleId(id)) throw new SyncProblem("El catálogo de módulos contiene un ID inválido.");
                 if (modules.TryGetValue(id, out var existing) && existing != description) throw new SyncProblem("El catálogo de módulos contiene IDs duplicados incompatibles.");
                 modules[id] = description;
             }
