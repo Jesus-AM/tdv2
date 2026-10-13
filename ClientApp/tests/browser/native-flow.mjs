@@ -413,7 +413,7 @@ try {
     await check('el diálogo conserva el ID elegido cuando otra pestaña elimina una fila anterior', async () => {
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
         for (const [number, label] of [[2, 'Proceso elegido'], [3, 'Proceso que permanece']]) {
-            await page.getByRole('button', { name: 'Agregar trámite o servicio', exact: true }).click();
+            await page.getByRole('button', { name: 'Agregar procedimiento', exact: true }).click();
             await savedAfter(() => page.getByLabel('Trámite / servicio ' + number, { exact: true }).fill(label));
             await finish();
         }

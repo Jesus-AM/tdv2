@@ -1,6 +1,6 @@
 import { Box, Checkbox, ListItemText, MenuItem, Select, Typography } from '@mui/material';
 
-export const usersServedOptions = ['Comunidad universitaria', 'Docentes', 'Estudiantes', 'Personal administrativo',
+export const usersServedOptions = ['Comunidad universitaria', 'Docentes', 'Estudiantes', 'Egresados', 'Personal administrativo',
     'Público en general', 'Instituciones públicas externas', 'Empresas y organizaciones privadas'] as const;
 
 export default function UsersServedSelect({ value, label, readOnly, onChange, open, onOpen, onClose }: {

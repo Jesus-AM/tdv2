@@ -1,4 +1,4 @@
-const auxiliaries = '[data-field-help], [data-participant-avatar], [data-field-help-dialog], [role="listbox"]';
+const auxiliaries = '[data-field-help], [data-participant-avatar], [data-field-help-dialog], [role="listbox"], .record-select-popup';
 const fields = 'input, textarea, label, [role="combobox"]';
 
 export function isScrollbarPointer(event: { target: EventTarget | null; clientX: number; clientY: number }) {
@@ -31,7 +31,9 @@ export class RecordEditingContext {
     private visit(target: EventTarget | null, focus = false) {
         if (!(target instanceof Element)) return;
         if (focus && (target === this.doc.body || target === this.doc.documentElement)) return;
-        if (target.closest(auxiliaries) || this.doc.querySelector('[data-field-help-dialog], [role="listbox"]')
+        // Un menú protege su propio contexto, pero no convierte el foco en otra fila en una interacción auxiliar.
+        const enteringField = target.closest('[data-edit-block]') && target.closest(fields);
+        if (target.closest(auxiliaries) || (!enteringField && this.doc.querySelector('[data-field-help-dialog], [role="listbox"], .record-select-popup'))
             || this.current && this.modal().includes(this.current)) return;
         // El navegador puede enfocar el contenedor desplazable al utilizar su barra.
         if (focus && target.matches('[data-edit-scroll]')) return;

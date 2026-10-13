@@ -160,9 +160,59 @@ a {
     line-height: 1.5;
 }
 .systems-table .MuiTableCell-head { font-weight: 700; white-space: normal; }
-.capture-scroll .systems-table { table-layout: fixed; width: 100%; min-width: 1590px; }
+.capture-scroll .systems-table { table-layout: fixed; width: 100%; min-width: 1626px; }
 .systems-table .MuiTableCell-root { overflow-wrap: anywhere; }
 .capture-scroll .systems-table .MuiTextField-root { min-width: 0; width: 100%; }
+/* La etiqueta y su notch deben usar la misma escala que el contenido compacto. */
+.systems-table .system-dependent-field .MuiInputLabel-root {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+}
+/* El nombre completo determina la altura; el input conserva foco y búsqueda.
+   Los botones tienen su propia columna, también cuando crecen sus áreas táctiles. */
+.systems-table .multiline-record-select .MuiAutocomplete-inputRoot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 4px;
+}
+.systems-table .multiline-record-select.MuiAutocomplete-root .MuiInputBase-root.MuiAutocomplete-inputRoot.MuiOutlinedInput-root {
+    /* Sustituye la reserva absoluta de MUI; la columna de botones ya aporta ese espacio. */
+    padding-right: 6px;
+}
+.systems-table .multiline-record-select .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
+    grid-area: 1 / 1;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+}
+.systems-table .record-selected-value {
+    grid-area: 1 / 1;
+    min-width: 0;
+    padding: 2.5px 4px 2.5px 8px;
+    font: inherit;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+.systems-table .multiline-record-select.has-selected-value .MuiAutocomplete-input {
+    height: 100%;
+    color: transparent;
+    caret-color: transparent;
+}
+.systems-table .multiline-record-select.has-selected-value .MuiAutocomplete-input::placeholder { opacity: 0; }
+.systems-table .multiline-record-select .MuiAutocomplete-endAdornment {
+    position: static;
+    transform: none;
+    grid-area: 1 / 2;
+    align-self: start;
+}
+/* Mantener el nombre al abrir evita que una fila alta se contraiga entre pointerdown
+   y pointerup. La búsqueda ocupa la siguiente línea dentro del mismo control MUI. */
+.systems-table .procedure-select.Mui-expanded .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
+    grid-area: 2 / 1 / auto / -1;
+}
 .systems-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
 .capture-scroll .MuiTextField-root {
     min-width: 150px;
@@ -181,10 +231,29 @@ a {
 :is(.identification-table, .systems-table) .MuiOutlinedInput-root .MuiInputBase-input:focus-visible { outline: none; }
 .row-editing-actions { width: 140px; min-height: 92px; display: flex; flex-direction: column; align-items: flex-start; }
 .row-editing-actions .row-presence { width: 140px; min-height: 52px; }
-/* Captura: la página desplaza verticalmente; sólo los campos largos tienen scroll propio. */
-.capture-row-scroll { max-height: none; overflow-x: auto; }
+/* Una sola región por tabla. Con pocas filas no fuerza altura; reserva espacio para
+   barra institucional, navegación y acciones. La rueda/tacto pueden continuar a la página. */
+.capture-row-scroll {
+    max-height: max(160px, calc(100dvh - 230px));
+    overflow: auto;
+    overscroll-behavior: auto;
+    scroll-padding-block: calc(var(--capture-head-height, 64px) + 8px) 8px;
+    scroll-padding-inline: 132px 8px;
+    scroll-margin-block: 84px 16px;
+}
+.capture-row-scroll .MuiTableCell-head { top: 0; z-index: 3; background: #f5f8fc; }
 .capture-row-scroll .MuiTableCell-root { vertical-align: top; }
 .capture-row-scroll .MuiTableCell-root:last-child { min-width: 76px; width: 76px; max-width: 76px; }
+.capture-row-scroll .systems-table .row-actions-cell {
+    box-sizing: border-box;
+    width: 112px;
+    min-width: 112px;
+    max-width: 112px;
+    padding-inline: 16px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    text-align: center;
+}
 .capture-row-scroll .row-editing-cell {
     position: sticky;
     left: 0;
@@ -196,7 +265,7 @@ a {
     background: #fff;
     box-shadow: 2px 0 0 #e4eaf2;
 }
-.capture-row-scroll th.row-editing-cell { z-index: 3; background: #f5f8fc; }
+.capture-row-scroll th.row-editing-cell { z-index: 4; background: #f5f8fc; }
 .capture-row-scroll :is([data-edit-state="owned"], [data-edit-state="occupied"]) .row-editing-cell {
     background: color-mix(in srgb, var(--participant-color) 7%, white);
     box-shadow: inset 2px 0 color-mix(in srgb, var(--participant-color) 50%, white), 2px 0 0 #e4eaf2;
@@ -206,7 +275,7 @@ a {
 .row-editing-cell .row-presence > [role="status"] > svg { display: none; }
 .row-editing-cell .row-presence > [role="status"] > span:last-child { overflow-wrap: normal; line-height: 1.3; }
 .row-editing-cell .row-presence > .MuiTypography-root { max-height: 6em; overflow-y: auto; }
-.capture-row-scroll :is(input, textarea, [role="combobox"]) { scroll-margin-inline-start: 124px; }
+.capture-row-scroll :is(.MuiFormControl-root, input, textarea, [role="combobox"]) { scroll-margin-block: 84px 8px; }
 .identification-table .wide-field { min-width: 280px; }
 .identification-table td:nth-child(2) { min-width: 110px; }
 .form-actions {

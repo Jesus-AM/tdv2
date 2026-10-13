@@ -19,13 +19,11 @@ export default function ProcedureFieldHelp({ field }: { field: string }) {
             <Typography>Elige la opción que mejor describe la herramienta hoy:</Typography>
             <Typography sx={{ whiteSpace: 'pre-line', mt: 1 }}>{'✓ Funciona bien\n! Funciona con fallas\n✕ No funciona\n– Ya no se usa'}</Typography>
         </>} example="Funciona con fallas" advice="Si eliges «con fallas» o «no funciona», descríbelo en la siguiente columna." />;
-        case 'fallas': return <FieldHelp title="Fallas o comentarios"
+        case 'fallas': return <FieldHelp title="Áreas de oportunidad"
             explanation="Escribe con tus palabras los problemas de la herramienta o cualquier comentario útil. Si funciona bien, puedes dejarlo vacío."
             example="Se cae en horas pico · No permite exportar a Excel" advice="Sé específico: cuándo pasa y qué consecuencia tiene." />;
-        case 'tramite': return <FieldHelp title="Trámite o servicio"
-            explanation="Escribe el nombre de una actividad o servicio que realiza tu área. Un solo trámite por fila."
-            example="Gestión y seguimiento de proyectos institucionales"
-            advice="Usa nombres cortos y claros, como los conocería cualquier persona de la UACJ." />;
+        case 'tramite': return <FieldHelp title="Procedimiento"
+            explanation="Identifica el procedimiento que realiza tu área para atender una necesidad o cumplir una función." />;
         case 'usuario': return <FieldHelp title="¿A quién atiende?"
             explanation={<>
                 <Typography>Selecciona quién recibe o solicita este servicio. Puedes elegir varias opciones</Typography>

@@ -44,6 +44,8 @@ import BlockEditingStatus from '@/Components/BlockEditingStatus';
 import { changedBlocks, splitBlocks } from '@/lib/form-blocks';
 import PrioritySelect from '@/Components/PrioritySelect';
 import ProcedureFieldHelp from '@/Components/ProcedureFieldHelp';
+import CaptureTableScroll from '@/Components/CaptureTableScroll';
+import { focusCaptureField } from '@/lib/capture-focus';
 import SystemField, { type ModuleCatalog } from '@/Components/SystemField';
 import IdentificationInstructions from '@/Components/IdentificationInstructions';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
@@ -59,6 +61,7 @@ import { displayUnitCode } from '@/lib/area-directory';
 import { PendingFieldInput } from '@/lib/pending-field-input';
 import { BlockEditor } from '@/lib/block-editor';
 import type { EditorState, LiveForm } from '@/lib/block-editor';
+import type { RecordAutocompleteEvents } from '@/lib/record-autocomplete';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import type { FormContent, Unit, ProcessRow, SystemRow } from '@/types/tdv2';
 type Definition = {
@@ -129,11 +132,7 @@ function Editor(props: Props) {
         setModules({ estado: 'cargando', modulos: [] });
         void axios.get(`${props.guardarUrl}/modulos-sii`, { signal: abort.signal, timeout: 15000 }).then(({ data }) => {
             const rows = data.modulos as { id: string; descripcion: string }[];
-            const counts = new Map<string, number>();
-            for (const row of rows) counts.set(row.descripcion, (counts.get(row.descripcion) || 0) + 1);
-            setModules({ estado: data.estado, modulos: rows.map(row => ({ ...row,
-                label: counts.get(row.descripcion)! > 1 ? `${row.descripcion} · ID ${row.id}` : row.descripcion,
-            })).sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id, 'es', { numeric: true })) });
+            setModules({ estado: data.estado, modulos: rows.sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id, 'es', { numeric: true })) });
         }).catch(() => { if (!abort.signal.aborted) setModules({ estado: 'error', modulos: [] }); });
         return () => abort.abort();
     }, [props.guardarUrl, shared.contextoEdicion]);
@@ -152,7 +151,13 @@ function Editor(props: Props) {
     const removing = useRef(false);
     const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
     const [failedRemovals, setFailedRemovals] = useState<Record<string, string>>({});
-    const [openSelect, setOpenSelect] = useState<{ key: string; field: string } | null>(null);
+    type SelectIntent = { key: string; field: string; immediate?: boolean; pending?: boolean };
+    const [openSelect, setOpenSelect] = useState<SelectIntent | null>(null);
+    const selectIntent = useRef<SelectIntent | null>(null);
+    function showSelect(intent: SelectIntent | null) { selectIntent.current = intent; setOpenSelect(intent); }
+    function closeSelect(key?: string, field?: string) {
+        if (!key || selectIntent.current?.key === key && (!field || selectIntent.current.field === field)) showSelect(null);
+    }
     const redraw = useRef<(s: EditorState) => void>(() => {});
     const [engine] = useState<BlockEditor>(
         () => {
@@ -192,9 +197,13 @@ function Editor(props: Props) {
         : state.dirty ? 'Cambios pendientes' : state.updatedAt ? 'Guardado' : 'Sin cambios pendientes';
     const initializedSection = useRef(false);
     useEffect(() => {
-        // Perder la reserva cierra el menú; una adquisición posterior no debe reabrir una intención antigua.
-        if (openSelect && !engine.canEdit(openSelect.key)) setOpenSelect(null);
+        // Autocomplete permanece visible durante la adquisición; sus opciones siguen sin autorización.
+        if (openSelect && !openSelect.immediate && !engine.canEdit(openSelect.key)) closeSelect(openSelect.key, openSelect.field);
     }, [engine, openSelect, state]);
+    useEffect(() => {
+        closeSelect();
+        return () => { selectIntent.current = null; };
+    }, [active]);
     useEffect(() => {
         if (state.initialized && !initializedSection.current) {
             initializedSection.current = true;
@@ -207,6 +216,7 @@ function Editor(props: Props) {
     }, [showingLater, active, engine]);
     useEffect(() => {
         const context = new RecordEditingContext(document, (key, stillOutside) => {
+            closeSelect(key);
             void firstInput.finish(key).then(() => { if (stillOutside()) return engine.endBlock(key); });
         }, () => modalBlocks.current);
         editingContext.current = context;
@@ -266,8 +276,32 @@ function Editor(props: Props) {
     }
     function selectEvents(key: string, field: string) {
         return { readOnly: choiceDisabled(key), open: openSelect?.key === key && openSelect.field === field && engine.canEdit(key),
-            onOpen: async () => { if (await engine.focus(key)) setOpenSelect({ key, field }); },
-            onClose: () => setOpenSelect(null) };
+            onOpen: async () => {
+                const intent = { key, field }; selectIntent.current = intent;
+                if (await engine.focus(key) && selectIntent.current === intent) showSelect(intent);
+            },
+            onClose: () => closeSelect(key, field) };
+    }
+    function autocompleteEvents(key: string, field: string): RecordAutocompleteEvents {
+        const current = openSelect?.key === key && openSelect.field === field ? openSelect : null;
+        const pending = !!current?.pending;
+        const selectionDisabled = pending || !engine.canEdit(key);
+        const lease = state.blocks[key]?.reserva;
+        const status = !selectionDisabled ? undefined : pending ? 'Preparando edición…'
+            : engine.busy(key) ? lease?.otraPestana ? 'Este registro está reservado en otra pestaña.'
+                : `Este registro está reservado por ${lease?.titular || 'otra persona'}.`
+            : state.issues[key] || state.error || 'No se pudo iniciar la edición. Cierra las opciones e inténtalo de nuevo.';
+        return { readOnly: locked, open: !!current, pending, selectionDisabled, status,
+            onOpen: async () => {
+                if (locked || selectIntent.current?.key === key && selectIntent.current.field === field) return;
+                const intent: SelectIntent = { key, field, immediate: true, pending: true };
+                showSelect(intent);
+                await engine.focus(key);
+                // El foco de la fila puede renovar la intención del motor durante el mismo clic.
+                // La autoridad procede de canEdit; sólo esta intención visual puede seguir abierta.
+                if (selectIntent.current === intent) showSelect({ ...intent, pending: false });
+            },
+            onClose: () => closeSelect(key, field) };
     }
     const coded = c.identificacion.filter((r) => r.codigo);
     const selectedCode = coded.some((r) => r.codigo === evalCode) ? evalCode : coded[0]?.codigo || '';
@@ -398,8 +432,17 @@ function Editor(props: Props) {
             const focus = field?.matches('[tabindex="-1"]') ? field.parentElement?.querySelector<HTMLElement>('[role="combobox"]') : field;
             const target = focus || block?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, [role="combobox"]')
                 || panel?.querySelector<HTMLElement>('[data-add-row]:not(:disabled)') || panel;
-            target?.focus();
-            target?.scrollIntoView({ block: 'center', inline: 'start' });
+            focusCaptureField(target);
+        }));
+    }
+    function revealAddedRow(section: string, rowId: string) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            const panel = document.getElementById('panel-' + section);
+            if (!panel || panel.hidden) return;
+            const row = Array.from(panel.querySelectorAll<HTMLElement>('[data-edit-block]'))
+                .find(element => element.dataset.editBlock === `${section}:${rowId}`);
+            row?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+            focusCaptureField(row?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, [role="combobox"]'));
         }));
     }
     async function reviewForSubmission() {
@@ -469,12 +512,12 @@ function Editor(props: Props) {
         const rows = c[section];
         return (
             <>
-                <div className={section === 'sistemas' ? 'capture-scroll capture-row-scroll' : 'capture-scroll'} data-edit-scroll>
+                <CaptureTableScroll label={tabs.find(t => t[0] === section)![1]} bounded={section === 'sistemas'}>
                     <Table size="small" className={section === 'sistemas' ? 'systems-table' : undefined} aria-label={tabs.find((t) => t[0] === section)?.[1]}>
                         {section === 'sistemas' && <colgroup>
                             <col style={{ width: 124 }} /><col style={{ width: 'clamp(280px, 22vw, 360px)' }} />
                             <col style={{ width: 300 }} /><col style={{ width: 250 }} /><col style={{ width: 220 }} />
-                            <col /><col style={{ width: 76 }} />
+                            <col /><col style={{ width: 112 }} />
                         </colgroup>}
                         <TableHead>
                             <TableRow>
@@ -482,12 +525,12 @@ function Editor(props: Props) {
                                 {fields.map((f) => (
                                     <TableCell key={f.key}>{f.label}{section === 'sistemas' && <ProcedureFieldHelp field={f.key} />}</TableCell>
                                 ))}
-                                <TableCell>Acciones</TableCell>
+                                <TableCell className={section === 'sistemas' ? 'row-actions-cell' : undefined}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {rows.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect.field : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
                                     {section === 'sistemas' && <RowEditingPresence engine={engine} state={state} blockKey={`${section}:${r.id}`} />}
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
@@ -495,12 +538,13 @@ function Editor(props: Props) {
                                                 ? <ProcedureSelect value={(r as SystemRow).proceso} options={procedureOptions} label={`Procedimiento ${i + 1}`}
                                                     historicalLabel={c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)
                                                         ? `${(r as SystemRow).proceso} · ${c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)?.tramite}` : undefined}
-                                                    error={state.validation[`sistemas:${r.id}`]?.proceso} events={selectEvents(`sistemas:${r.id}`, 'proceso')}
+                                                    error={state.validation[`sistemas:${r.id}`]?.proceso} events={autocompleteEvents(`sistemas:${r.id}`, 'proceso')}
                                                     onChange={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row.proceso = value; })} />
                                                 : section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
                                                 ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules}
                                                     errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
                                                     events={name => selectEvents(`sistemas:${r.id}`, name)}
+                                                    moduleEvents={autocompleteEvents(`sistemas:${r.id}`, 'moduloSiiId')}
                                                     change={(name, value) => engine.changeBlock<Record<string, string>>(`sistemas:${r.id}`, row => {
                                                         row[name] = value;
                                                         if (name === 'moduloSiiId') row.moduloSiiDescripcion = modules.modulos.find(m => m.id === value)?.descripcion || '';
@@ -530,7 +574,7 @@ function Editor(props: Props) {
                             ))}
                         </TableBody>
                     </Table>
-                </div>
+                </CaptureTableScroll>
                 <Button
                     data-add-row={section}
                     sx={{ mt: 2 }}
@@ -542,7 +586,7 @@ function Editor(props: Props) {
                             if (section === 'sistemas') d.sistemas.push(row as FormContent['sistemas'][0]);
                             else if (section === 'datos') d.datos.push(row as FormContent['datos'][0]);
                             else d.acuerdos.push(row as FormContent['acuerdos'][0]);
-                        });
+                        }).then(added => { if (added && section === 'sistemas') revealAddedRow(section, row.id); });
                     }}
                 >
                     Agregar fila
@@ -551,7 +595,7 @@ function Editor(props: Props) {
         );
     }
     const processFields: Field[] = [
-        { key: 'tramite', label: 'Trámite o servicio', wide: true },
+        { key: 'tramite', label: 'Procedimiento', wide: true },
         { key: 'usuario', label: '¿A quién atiende?' },
         { key: 'resultado', label: '¿Qué entrega?', wide: true },
         { key: 'responsable', label: 'Área responsable' },
@@ -581,7 +625,7 @@ function Editor(props: Props) {
                 <Box component="ol" sx={{ pl: 3, m: 0, color: 'text.secondary', fontSize: 14, lineHeight: 2 }}>
                     {[
                         'Revisa el inventario del área y confirma la vigencia de cada registro.',
-                        'Completa Trámite o servicio, ¿A quién atiende?, ¿Qué entrega? y Área responsable.',
+                        'Completa Procedimiento, ¿A quién atiende?, ¿Qué entrega? y Área responsable.',
                         'Asigna validación y prioridad a cada procedimiento.',
                         'Relaciona los procedimientos validados con sus sistemas y herramientas e indica los medios utilizados.',
                     ].map((t) => (
@@ -611,7 +655,7 @@ function Editor(props: Props) {
                         {props.editable ? ' Se guardarán al guardar el formato o completar una respuesta.' : ''}
                     </Typography>
                 )}
-                <div className="capture-scroll capture-row-scroll" data-edit-scroll>
+                <CaptureTableScroll label="Identificación general">
                     <Table size="small" className="identification-table" aria-label="Identificación general">
                         <TableHead>
                             <TableRow>
@@ -665,7 +709,7 @@ function Editor(props: Props) {
                             ))}
                         </TableBody>
                     </Table>
-                </div>
+                </CaptureTableScroll>
                 <Box className="row-actions" sx={{ mt: 2, justifyContent: 'space-between' }}>
                     <Button
                         data-add-row="identificacion"
@@ -673,10 +717,11 @@ function Editor(props: Props) {
                         disabled={locked || c.identificacion.length >= 200}
                         onClick={() => {
                             const row = { ...props.plantilla.identificacion[0], id: id() };
-                            void engine.edit(d => { d.identificacion.push(row); });
+                            void engine.edit(d => { d.identificacion.push(row); })
+                                .then(added => { if (added) revealAddedRow('identificacion', row.id); });
                         }}
                     >
-                        Agregar trámite o servicio
+                        Agregar procedimiento
                     </Button>
                 </Box>
             </>
@@ -699,7 +744,7 @@ function Editor(props: Props) {
                     { key: 'sistema', label: 'Sistema o herramienta' },
                     { key: 'uso', label: '¿Para qué se usa?' },
                     { key: 'estado', label: '¿Cómo funciona?' },
-                    { key: 'fallas', label: 'Fallas o comentarios' },
+                    { key: 'fallas', label: 'Áreas de oportunidad' },
                 ])}
                 <Box component="section" aria-labelledby="media-title" sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                 <Typography id="media-title" variant="h3" sx={{ mb: 1 }}>
@@ -994,7 +1039,8 @@ function Editor(props: Props) {
                         border: '1px solid',
                         borderColor: 'divider',
                         borderRadius: '12px',
-                        overflow: 'hidden',
+                        // Conserva el recorte de esquinas sin crear otro contenedor de desplazamiento.
+                        overflow: 'clip',
                     }}
                 >
                     <Tabs

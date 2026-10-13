@@ -5,6 +5,8 @@ namespace Tdv2.Domain;
 public static class SystemAnswers
 {
     public static readonly string[] Tools = ["sii_v2", "portal_cast", "excel", "correo", "formulario", "papel", "otra"];
+    // CAST sigue siendo una respuesta histórica válida; ya no permite nuevas asignaciones.
+    public static readonly string[] SelectableTools = Tools.Where(tool => tool != "portal_cast").ToArray();
     public static readonly string[] Uses = ["registrar", "agendar", "consultar", "seguimiento", "avisos", "reportes", "autorizar", "otro"];
     public static readonly string[] States = ["bien", "fallas", "no_funciona", "sin_uso"];
     public static readonly string[] Details = ["sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion"];
@@ -33,7 +35,7 @@ public static class SystemAnswers
     public static bool ValidModuleId(string? id) => id is not null && Regex.IsMatch(id, @"\A[0-9]{1,40}\z") && id.Any(c => c != '0');
     public static void Validate(JsonObject row, JsonNode? previous, string block)
     {
-        foreach (var (field, choices) in new[] { ("sistema", Tools), ("uso", Uses), ("estado", States) })
+        foreach (var (field, choices) in new[] { ("sistema", SelectableTools), ("uso", Uses), ("estado", States) })
         {
             var value = row[field]?.ToString() ?? "";
             if (value != "" && value != previous?[field]?.ToString() && !choices.Contains(value, StringComparer.Ordinal))

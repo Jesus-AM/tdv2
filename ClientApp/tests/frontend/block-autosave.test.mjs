@@ -13,6 +13,24 @@ const { BlockEditor } = await import(module('block-editor', { './form-editor': n
 const { PendingFieldInput } = await import(module('pending-field-input', { './form-blocks': blocks }));
 const { normalizeContent } = await import(normalizer);
 const { splitBlocks, applyBlocks } = await import(blocks);
+test('volver de A a B a A durante una adquisición descarta la reserva en cola de B', async () => {
+    let resume; const waiting = new Promise(resolve => { resume = resolve; }); const reserved = [];
+    const { editor } = create({ reserve: async body => {
+        reserved.push(...body.blocks.map(b => b.key));
+        if (body.blocks.some(b => b.key === 'contexto')) await waiting;
+        return { bloques: body.blocks.map(b => ({ ...b, value: splitBlocks(content())[b.key], reserva: lease() })), servidorEn: new Date().toISOString() };
+    } });
+    try {
+        const first = editor.focus('contexto'), leaveFirst = editor.endBlock('contexto');
+        const second = editor.focus('medios'), leaveSecond = editor.endBlock('medios');
+        const returnFirst = editor.focus('contexto'); resume();
+        const results = await Promise.all([first, second, returnFirst, leaveFirst, leaveSecond]);
+        assert.deepEqual(results.slice(0, 3), [false, false, true]);
+        assert.deepEqual(reserved, ['contexto']);
+        assert.equal(editor.canEdit('medios'), false); assert.equal(editor.canEdit('contexto'), true);
+    } finally { resume(); editor.dispose(); }
+});
+
 test('retiro directo no renueva y confirmación limpia foco/reserva; estado tardío no restaura fila', async () => {
     const seed=content(); seed.sistemas=[{id:'r',sistema:'Retirar'},{id:'other',sistema:'Conservar'}]; let renewals=0;
     const {editor,setLive}=create({reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:splitBlocks(seed)[b.key],reserva:lease()})),servidorEn:new Date().toISOString()}),

@@ -4,6 +4,10 @@ Backend ASP.NET con controladores, EF Core 10/Npgsql y PostgreSQL; frontend Reac
 
 La adaptación técnica no acredita todavía el acceso institucional real ni el despliegue Ubuntu. Implementado, probado y pendiente se registran por separado en [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
+Tablas de captura (2026-10-13): Identificación y Sistemas tienen desplazamiento propio en ambos ejes, altura adaptable, encabezados fijos y navegación a pendientes/nuevas filas. **Procedimiento** conserva la clave `tramite`. Portal del CAST deja de ofrecerse y el servidor rechaza nuevas asignaciones, conservando respuestas históricas. [Implementación, archivos, pruebas sintéticas y límites](docs/migracion/SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13). Sin migración nueva.
+
+Ajustes de captura (2026-10-12): Acciones dispone de 112 px sin comprimir otros campos; SIIv2 muestra el nombre del módulo y conserva su ID interno; **Egresados** es una opción válida de atención; **Áreas de oportunidad** conserva los comentarios existentes. [Cambios, archivos y pruebas sintéticas](docs/migracion/SISTEMAS_HERRAMIENTAS.md#ajustes-de-captura--2026-10-12). Sin migración nueva.
+
 Guardar, Colaboradores y Pruebas de acceso (2026-10-10): **Guardar** es secundario y no envía; **Enviar formato** conserva confirmación y versión vigente. Colaboradores integra concesiones centrales publicadas por Nexo y vínculos delegados, filtrando cada asignación por área/jerarquía y separando visibilidad de retiro. Las modalidades de acceso usan selección/resumen en dos columnas equilibradas, centradas y adaptables. [Reglas, límites de Nexo, archivos y comprobaciones](docs/migracion/COLABORADORES_VISIBILIDAD_ACCIONES.md).
 
 Distribución y claridad (2026-10-10): Inicio conserva su directorio jerárquico, con pestañas separadas, acciones alineadas y recuperación de filtros/expansión/desplazamiento. Procedimiento usa un buscador compacto con nombre completo accesible. Revisar y enviar ofrece **Ir al campo** y la acción final **Enviar formato**. [Ajuste inicial de distribución](docs/migracion/INTERFAZ_OPERATIVA.md).

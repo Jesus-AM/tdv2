@@ -64,7 +64,7 @@ try {
     });
     await check('Guardar secundario conserva la última captura sin enviar; doble clic no duplica el guardado', async () => {
         await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(fixture.origin + '/formatos/A'); await tab('Sistemas y herramientas');
-        const comments = page.getByRole('textbox', { name: 'Fallas o comentarios 1', exact: true });
+        const comments = page.getByRole('textbox', { name: 'Áreas de oportunidad 1', exact: true });
         let release; fixture.waitSave = new Promise(resolve => release = resolve);
         await comments.click(); await expect(comments).toBeEditable(); await comments.fill('Última captura sintética antes de enviar.');
         const save = page.getByRole('button', { name: 'Guardar', exact: true }); await expect(save).toHaveClass(/MuiButton-outlined/);

@@ -71,7 +71,7 @@ try {
     await a.setViewportSize({width:1100,height:1000});
     for(const p of [a,b]) {await p.goto(origin+'/formatos/A');await tab(p,'Identificación general');}
     await check('barra horizontal nativa conserva reserva, texto y selección; otra identidad sigue bloqueada',async()=>{
-        const f=input(a,'Trámite o servicio 1');await f.click();await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await f.fill('Texto antes de desplazar');
+        const f=input(a,'Procedimiento 1');await f.click();await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await f.fill('Texto antes de desplazar');
         await a.keyboard.press('Home');await a.keyboard.down('Shift');await a.keyboard.press('ArrowRight');await a.keyboard.press('ArrowRight');await a.keyboard.up('Shift');const before=await selection(f);
         await a.evaluate(()=>{window.scrollEvents=[];for(const name of ['focusout','focusin'])document.addEventListener(name,e=>window.scrollEvents.push({event:name,target:e.target.tagName,related:e.relatedTarget?.tagName||null}),true);});
         const beforeTraffic=leaseTraffic.filter(p=>!p.endsWith('/actividad')).length;
@@ -79,7 +79,7 @@ try {
         await expect.poll(async()=>(await stored()).identificacion[0].tramite).toBe('Texto antes de desplazar');
         assert.equal(leaseTraffic.filter(p=>!p.endsWith('/actividad')).length,beforeTraffic,'Scrolling does not release or reacquire');
         await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await expect(row(b,'identificacion:inicial')).toHaveAttribute('data-edit-state','occupied');
-        await expect(input(b,'Trámite o servicio 1')).toHaveJSProperty('readOnly',true);await expect(row(b,'identificacion:inicial').getByRole('button',{name:'Eliminar registro',exact:true})).toBeDisabled();
+        await expect(input(b,'Procedimiento 1')).toHaveJSProperty('readOnly',true);await expect(row(b,'identificacion:inicial').getByRole('button',{name:'Eliminar registro',exact:true})).toBeDisabled();
         await expect(row(b,'identificacion:inicial').getByRole('group',{name:/Eliminar registro.*Persona sintética/})).toBeVisible();
         const current=await live(b),value=(await stored()).identificacion[0],version=current.bloques.find(v=>v.key==='identificacion:inicial').version;
         const req=mutation('identificacion:inicial',version,{...value,tramite:'Escritura ajena'});
@@ -89,11 +89,11 @@ try {
         await f.focus();assert.deepEqual(await selection(f),before);await a.keyboard.type('TE');await expect(f).toHaveValue('TExto antes de desplazar');
     });
     await check('dos usuarios en filas distintas, presencia inicial estable y liberación al salir realmente',async()=>{
-        await input(b,'Trámite o servicio 2').click();await expect(row(b,'identificacion:segundo')).toHaveAttribute('data-edit-state','owned');await input(b,'Trámite o servicio 2').fill('Otra fila independiente');
+        await input(b,'Procedimiento 2').click();await expect(row(b,'identificacion:segundo')).toHaveAttribute('data-edit-state','owned');await input(b,'Procedimiento 2').fill('Otra fila independiente');
         await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await expect(row(a,'identificacion:segundo').locator('td').first().getByRole('img',{name:'Participante: Colaboradora sintética',exact:true})).toBeVisible();
         await layout(a,'identificacion:inicial');await finish(b);
-        await a.getByRole('tab',{name:'Identificación general',exact:true}).focus();await expect(row(b,'identificacion:inicial')).toHaveAttribute('data-edit-state','idle');await expect(input(b,'Trámite o servicio 1')).toHaveValue('TExto antes de desplazar');
-        await input(b,'Trámite o servicio 1').click();await expect(row(b,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await finish(b);
+        await a.getByRole('tab',{name:'Identificación general',exact:true}).focus();await expect(row(b,'identificacion:inicial')).toHaveAttribute('data-edit-state','idle');await expect(input(b,'Procedimiento 1')).toHaveValue('TExto antes de desplazar');
+        await input(b,'Procedimiento 1').click();await expect(row(b,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');await finish(b);
     });
     await check('pegado largo limitado a cuatro líneas y desplazamiento interno, rueda y barra vertical sin salida',async()=>{
         const f=input(a,'¿Qué entrega? 1');await first.context.grantPermissions(['clipboard-read','clipboard-write']);await a.evaluate(text=>navigator.clipboard.writeText(text),longText);
@@ -121,24 +121,24 @@ try {
         await finish(a);await a.reload();await tab(a,'Identificación general');await expect(input(a,'¿Qué entrega? 1')).toHaveValue(longText);await bounded(input(a,'¿Qué entrega? 1'));
     });
     await check('primera tecla, Tab y selección sobreviven a la confirmación; ayuda conserva contexto',async()=>{
-        const f=input(a,'Trámite o servicio 1');await f.focus();await a.keyboard.press('End');await a.keyboard.type(' teclado');await a.keyboard.press('Tab');
+        const f=input(a,'Procedimiento 1');await f.focus();await a.keyboard.press('End');await a.keyboard.type(' teclado');await a.keyboard.press('Tab');
         await expect.poll(async()=>(await stored()).identificacion[0].tramite).toContain('teclado');await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');
         const help=a.getByRole('button',{name:'Ayuda: ¿Qué entrega?',exact:true});await help.click();await a.keyboard.press('Escape');await expect(help).toBeFocused();await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','owned');
         await a.getByRole('heading',{name:'Identificación general',exact:true}).click();await expect(row(a,'identificacion:inicial')).toHaveAttribute('data-edit-state','idle');
     });
     await check('Sistemas comparte presencia y conserva contexto en barras, menús, SII y campos condicionales',async()=>{
         await control('systems-sync');for(const p of [a,b]) {await p.reload();await tab(p,'Sistemas y herramientas');}
-        await choose(a,'Sistema o herramienta','SIIv2');const module=input(a,'Módulo de SIIv2 1');await module.click();await module.fill('Consultas');await a.getByRole('option',{name:'Consultas · ID 3',exact:true}).click();
+        await choose(a,'Sistema o herramienta','SIIv2');const module=input(a,'Módulo de SIIv2 1');await module.click();await module.fill('Consultas');await a.getByRole('option',{name:'Consultas',exact:true}).nth(1).click();
         await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');await dragHorizontal(a,'.systems-table');await expect(row(b,'sistemas:inicial')).toHaveAttribute('data-edit-state','occupied');
         await choose(a,'Sistema o herramienta','Otra (escríbela)');await input(a,'Nombre de la herramienta 1').fill(longText);await bounded(input(a,'Nombre de la herramienta 1'));
-        await choose(a,'¿Para qué se usa?','Otro (escríbelo)');await input(a,'Describe el uso 1').fill(longText);await bounded(input(a,'Describe el uso 1'));await input(a,'Fallas o comentarios 1').fill(longText);await bounded(input(a,'Fallas o comentarios 1'));await layout(a,'sistemas:inicial');
+        await choose(a,'¿Para qué se usa?','Otro (escríbelo)');await input(a,'Describe el uso 1').fill(longText);await bounded(input(a,'Describe el uso 1'));await input(a,'Áreas de oportunidad 1').fill(longText);await bounded(input(a,'Áreas de oportunidad 1'));await layout(a,'sistemas:inicial');
         const help=a.getByRole('button',{name:'Ayuda: ¿Cómo funciona?',exact:true});await help.click();await a.getByRole('button',{name:'Cerrar ayuda',exact:true}).click();await expect(help).toBeFocused();await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');
         await row(b,'medios').getByRole('checkbox').first().click();await expect(row(b,'medios')).toHaveAttribute('data-edit-state','owned');await expect(row(b,'sistemas:inicial')).toHaveAttribute('data-edit-state','occupied');await finish(b);
         await finish(a);assert.equal((await stored()).sistemas[0].sistemaOtro,longText);assert.equal((await stored()).sistemas[0].usoOtro,longText);assert.equal((await stored()).sistemas[0].fallas,longText);
     });
     await check('un gesto iniciado sobre otra fila no la reserva; un toque completado sí cambia de registro',async()=>{
-        await a.bringToFront();await input(a,'Fallas o comentarios 1').click();await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');
-        const other=input(a,'Fallas o comentarios 2');await other.scrollIntoViewIfNeeded();const box=await other.boundingBox(),session=await first.context.newCDPSession(a);
+        await a.bringToFront();await input(a,'Áreas de oportunidad 1').click();await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');
+        const other=input(a,'Áreas de oportunidad 2');await other.scrollIntoViewIfNeeded();const box=await other.boundingBox(),session=await first.context.newCDPSession(a);
         const x=box.x+box.width/2,y=box.y+box.height/2;
         await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
         for(let i=1;i<=6;i++)await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y-i*16}]});
@@ -154,7 +154,7 @@ try {
     });
     await check('móvil: Edición pegada al inicio, avatar accesible con teclado y tacto, desplazamiento táctil emulado',async()=>{
         await a.setViewportSize({width:390,height:844});await b.setViewportSize({width:390,height:844});
-        const comments=input(a,'Fallas o comentarios 1');await comments.focus();await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');
+        const comments=input(a,'Áreas de oportunidad 1');await comments.focus();await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');
         await dragHorizontal(a,'.systems-table');await layout(a,'sistemas:inicial');
         const sticky=await row(a,'sistemas:inicial').locator('td').first().boundingBox(),container=await a.locator('.systems-table').locator('..').boundingBox();assert.ok(Math.abs(sticky.x-container.x)<=2);
         const avatar=row(b,'sistemas:inicial').getByRole('img',{name:'Participante: Persona sintética',exact:true});await avatar.focus();await expect(b.getByRole('tooltip')).toHaveText('Persona sintética');await avatar.tap();await expect(b.getByRole('tooltip')).toHaveText('Persona sintética');
@@ -165,7 +165,7 @@ try {
         assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await a.screenshot({path:path.join(artifacts,'tables-mobile.png'),fullPage:true});await session.detach();await finish(a);
     });
     await check('consulta enviada conserva íntegros los textos y permite recorrerlos; backend sigue rechazando escritura',async()=>{
-        await control('recipients-submitted');await a.reload();await tab(a,'Sistemas y herramientas');const f=input(a,'Fallas o comentarios 1');await expect(f).toHaveJSProperty('readOnly',true);await expect(f).toHaveValue(longText);await bounded(f);
+        await control('recipients-submitted');await a.reload();await tab(a,'Sistemas y herramientas');const f=input(a,'Áreas de oportunidad 1');await expect(f).toHaveJSProperty('readOnly',true);await expect(f).toHaveValue(longText);await bounded(f);
         await f.hover();await a.mouse.wheel(0,250);await expect.poll(()=>f.evaluate(e=>e.scrollTop)).toBeGreaterThan(0);await expect(row(a,'sistemas:inicial').getByRole('button',{name:'Eliminar registro',exact:true})).toBeDisabled();
         const current=await live(a),req=mutation('sistemas:inicial',current.bloques.find(v=>v.key==='sistemas:inicial').version,current.contenido.sistemas[0],crypto.randomUUID());assert.equal((await request(a,'/formatos/A/reservas','POST',req)).status,409);assert.equal((await request(a,'/formatos/A/bloques','PATCH',req)).status,409);
         await tab(a,'Identificación general');await expect(input(a,'¿Qué entrega? 1')).toHaveValue(longText);await bounded(input(a,'¿Qué entrega? 1'));

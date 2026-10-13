@@ -100,6 +100,29 @@ internal static class SystemCatalogTests
             row["moduloSiiId"] = "3"; row["moduloSiiDescripcion"] = "Consultas";
             Check(FormCapture.Progress(Validate(content)) > FormCapture.Progress(without));
         });
+        Test("CAST retirado rechaza nuevas asignaciones y conserva históricos, etiquetas y avance", () =>
+        {
+            var original = Blank(); original["sistemas"]![0]!["sistema"] = "portal_cast";
+            var edited = original.DeepClone().AsObject(); edited["sistemas"]![0]!["fallas"] = "Comentario actualizado";
+            var saved = Validate(edited, original);
+            Check(saved["sistemas"]![0]!["sistema"]!.ToString() == "portal_cast");
+            Check(SystemAnswers.ToolLabel(saved["sistemas"]![0]) == "Portal del CAST de uso de técnicos");
+            Check(SystemAnswers.Filled(saved["sistemas"]![0], "sistema"));
+            Check(FormCapture.Progress(saved) == FormCapture.Progress(original));
+            Reject(() => Validate(original));
+            var previous = original.DeepClone().AsObject(); previous["sistemas"]![0]!["sistema"] = "excel";
+            Reject(() => Validate(edited, previous));
+            edited["sistemas"]![0]!["sistema"] = "excel";
+            Check(Validate(edited, original)["sistemas"]![0]!["sistema"]!.ToString() == "excel");
+            Check(!SystemAnswers.SelectableTools.Contains("portal_cast"));
+        });
+        Test("pendientes usan Procedimiento sin cambiar la clave ni sus requisitos", () =>
+        {
+            var content = Blank(); content["identificacion"]![0]!["resultado"] = "Documento";
+            var pending = FormCapture.Review(content).pendientes.Single(p => p.seccion == "identificacion" && p.campo == "tramite");
+            Check(pending.mensaje.EndsWith("completa Procedimiento."));
+            Check(ProcedureEligibility.Required.Single(f => f.Key == "tramite").Label == "Procedimiento");
+        });
         Test("detalles estructurados sobreviven cambios accidentales y sólo cuentan si corresponden", () =>
         {
             var content = Blank(); var row = content["sistemas"]![0]!;

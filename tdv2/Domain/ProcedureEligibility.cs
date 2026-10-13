@@ -6,7 +6,7 @@ namespace Tdv2.Domain;
 public static class ProcedureEligibility
 {
     public static readonly (string Key, string Label)[] Required = [
-        ("tramite", "Trámite o servicio"), ("usuario", "¿A quién atiende?"), ("resultado", "¿Qué entrega?"),
+        ("tramite", "Procedimiento"), ("usuario", "¿A quién atiende?"), ("resultado", "¿Qué entrega?"),
         ("responsable", "Área responsable"), ("validacion", "validación"), ("prioridad", "prioridad"), ("codigo", "código mediante validación")];
     public static bool Valid(JsonNode? row, string field) => field switch
     {

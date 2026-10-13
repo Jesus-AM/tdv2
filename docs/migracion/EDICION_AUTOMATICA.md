@@ -2,6 +2,12 @@
 
 Esta entrega sustituye la recuperación manual descrita en las entregas anteriores. No existen Resolver, Resolver eliminación, comparaciones ni elección de versiones. No cambia participación de áreas, Nexo, autenticación, fotografías, permisos ni esquema.
 
+## Actualización 2026-10-13: apertura de Autocomplete y foco en cola
+
+Módulo SIIv2 y Procedimiento separan abrir el menú de autorizar una selección. El primer clic muestra la carga e inicia la reserva; sólo `canEdit` confirmado habilita opciones/limpiar. La apertura ya no depende del resultado de una intención de foco invalidada por el `focusin` posterior del mismo clic. Una referencia por apertura impide que respuestas tardías reabran menús después de cerrar/cambiar de registro o sección. Los estados de carga/error del popup conservan contexto y foco; el foco en otra fila sí finaliza el contexto anterior, aun con el menú abierto.
+
+`BlockEditor.focus` revalida su época después de esperar adquisiciones/liberaciones y antes de reservar. La regresión A → B → A con respuesta lenta demuestra que B no adquiere una reserva obsoleta. Se conservan comprobación de contenido/versiones, guardado anterior, permisos, expiración y renovaciones. No hay retrasos artificiales ni nuevos controles manuales de edición. Verificados tipos/Vite, 88 pruebas frontend y 22 recorridos de navegador con transporte simulado; sin bases ni validación institucional. [Causas, archivos, comandos y límites](SISTEMAS_HERRAMIENTAS.md#apertura-y-reserva-de-selectores--2026-10-13).
+
 ## Actualización 2026-10-09: entrega y presencia
 
 La entrega vigente termina en Sistemas y herramientas, incluidos Medios utilizados. `ProcedureEligibility` centraliza los campos obligatorios existentes de Identificación y la disponibilidad V/A; el estado y cada confirmación de guardado incluyen `procedimientosDisponibles`. SignalR provoca una nueva lectura autorizada y actualiza ambos usuarios al completar, invalidar o eliminar procedimientos. Una relación histórica que quede incompleta se conserva, permite guardar otros campos y genera un pendiente contextual que impide entregar.
@@ -10,9 +16,9 @@ Identificación y Sistemas comparten `RowEditingPresence`: la foto/iniciales y e
 
 El contexto de edición se sigue mediante `RecordEditingContext`: una pérdida de foco sin destino no es abandono. El foco en el contenedor desplazable, arrastrar sus barras, la rueda y los gestos táctiles conservan el registro; no se restaura el foco a la fuerza ni se renueva por desplazamiento. Otro destino de foco o un clic completado fuera del contexto termina la edición mediante el guardado y liberación existentes. Menús, ayudas y avatares conservan el contexto original. [Causa reproducida y verificación](DESPLAZAMIENTO_TABLAS.md).
 
-Eliminar ocupa una columna independiente de 76 px, alineada arriba, con icono rojo y área de 44 × 44 px. Los campos multilínea empiezan con dos líneas y crecen hasta cuatro; el resto se recorre dentro del campo también en consulta. Las tablas de captura ya no tienen el límite vertical de 65vh: la página desplaza verticalmente y la tabla horizontalmente.
+Eliminar ocupa una columna independiente (112 px en Sistemas), alineada arriba, con icono rojo y área de 44 × 44 px. Los campos de texto multilínea empiezan con dos líneas y crecen hasta cuatro; el resto se recorre dentro del campo también en consulta. Los nombres seleccionados de Procedimiento y Módulo se muestran completos sin límite de líneas. La actualización 2026-10-13 sustituye el desplazamiento vertical exclusivo de la página: ambas tablas usan una región por tabla con scroll en ambos ejes y máximo `max(160px, 100dvh - 230px)`, sin altura mínima para tablas cortas. Encabezados y presencia permanecen fijos con capas diferenciadas. Menús siguen en portales; Agregar y Medios están fuera. Ir al campo y nuevas filas ajustan foco/visibilidad tras el render, sin restablecer el desplazamiento durante presencia, escritura o guardado. [Pruebas y límites](SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13).
 
-Medios utilizados es una sección separada después de la tabla, con su propia reserva `medios`, guardado y liberación. No comparte la reserva de una herramienta. El campo vigente `Otro medio` no tiene ejemplo ni placeholder; «Portal del CAST de uso de técnicos» permanece en el catálogo de herramientas.
+Medios utilizados es una sección separada después de la tabla, con su propia reserva `medios`, guardado y liberación. No comparte la reserva de una herramienta. El campo vigente `Otro medio` no tiene ejemplo ni placeholder. Desde 2026-10-13, Portal del CAST sólo permanece como respuesta histórica legible; ya no se ofrece ni acepta en nuevas asignaciones.
 
 ## Causa reproducida antes de modificar la aplicación
 

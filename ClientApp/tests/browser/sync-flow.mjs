@@ -47,7 +47,7 @@ async function control(action) {
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
     await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-    return target.getByLabel('Trámite o servicio 1', { exact: true });
+    return target.getByLabel('Procedimiento 1', { exact: true });
 }
 async function savedAfter(work, status = 200, target = page) {
     const [response] = await Promise.all([target.waitForResponse(r => new URL(r.url()).pathname === '/formatos/A/bloques' && r.request().method() === 'PATCH'), work()]);
@@ -129,10 +129,10 @@ try {
         const before = await report();
         await page.goto(origin + '/formatos/A');
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-        assert.equal(await page.getByLabel('Trámite o servicio 1', { exact: true }).inputValue(), 'Constancias sintéticas');
-        await page.getByLabel('Trámite o servicio 1', { exact: true }).focus();
-        await expect(page.getByLabel('Trámite o servicio 1', { exact: true })).toHaveJSProperty('readOnly', false);
-        await savedAfter(() => page.getByLabel('Trámite o servicio 1', { exact: true }).fill('Respuesta conservada React'));
+        assert.equal(await page.getByLabel('Procedimiento 1', { exact: true }).inputValue(), 'Constancias sintéticas');
+        await page.getByLabel('Procedimiento 1', { exact: true }).focus();
+        await expect(page.getByLabel('Procedimiento 1', { exact: true })).toHaveJSProperty('readOnly', false);
+        await savedAfter(() => page.getByLabel('Procedimiento 1', { exact: true }).fill('Respuesta conservada React'));
         const after = await report();
         assert.equal(after.remoteCommands, before.remoteCommands);
         assert.equal(after.forms[0].contenido.identificacion[0].fuente, 'ILDA');
@@ -146,8 +146,8 @@ try {
         await queue('ilda'); await control('sync-tick'); await finished();
         await page.goto(origin + '/formatos/A');
         await page.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-        assert.equal(await page.getByLabel('Trámite o servicio 1', { exact: true }).inputValue(), 'Respuesta conservada React');
-        assert.equal(await page.getByLabel('Trámite o servicio 3', { exact: true }).inputValue(), 'Nuevo trámite ILDA');
+        assert.equal(await page.getByLabel('Procedimiento 1', { exact: true }).inputValue(), 'Respuesta conservada React');
+        assert.equal(await page.getByLabel('Procedimiento 3', { exact: true }).inputValue(), 'Nuevo trámite ILDA');
         const after = await report();
         assert.equal(after.forms[0].version, before.forms[0].version);
         assert.deepEqual(after.forms[0].contenido, before.forms[0].contenido);

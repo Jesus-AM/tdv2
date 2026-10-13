@@ -78,20 +78,20 @@ try {
         await expect(page.getByRole('combobox', { name: 'Mostrar', exact: true })).toHaveText('En captura');
         assert.ok(Math.abs((await page.evaluate(() => window.scrollY)) - before) < 3);
     });
-    await check('Procedimiento: ancho limitado, búsqueda por código/nombre, nombre completo y reserva durante menú/ayuda', async () => {
+    await check('Procedimiento: ancho limitado, búsqueda por código/nombre, nombre completo sin ayuda por fila y reserva durante menú', async () => {
         await page.goto(fixture.origin + '/formatos/A'); await tab('Sistemas y herramientas');
         const procedure = page.getByRole('combobox', { name: 'Procedimiento 1', exact: true });
         const cellWidth = await procedure.locator('xpath=ancestor::td').evaluate(el => el.getBoundingClientRect().width);
         assert.ok(cellWidth >= 280 && cellWidth <= 360);
         await procedure.click(); await procedure.fill('');
-        await expect(row().getByRole('button', { name: 'Ayuda: Procedimiento seleccionado · PO-01', exact: true })).toBeVisible();
+        await expect(row().getByRole('button', { name: /Ayuda: Procedimiento seleccionado/ })).toHaveCount(0);
         await procedure.fill('Beta'); await expect(row()).toHaveAttribute('data-edit-state', 'owned');
         fixture.broadcast(); await expect(procedure).toHaveValue('Beta');
         await expect(page.getByRole('option', { name: 'PO-02 · Adquisición especializada Beta', exact: true })).toBeVisible();
         await procedure.fill('PO-01'); const option = page.getByRole('option').first();
         assert.ok((await option.boundingBox()).height > 40); await option.click();
-        await row().getByRole('button', { name: 'Ayuda: Procedimiento seleccionado · PO-01', exact: true }).click();
-        await expect(page.getByRole('dialog')).toContainText(fixture.content.identificacion[0].tramite.trim()); await page.keyboard.press('Escape');
+        await expect(row().locator('.procedure-value')).toHaveText(`PO-01 · ${fixture.content.identificacion[0].tramite}`);
+        await expect(procedure).toHaveAccessibleDescription(`PO-01 · ${fixture.content.identificacion[0].tramite.trim()}`);
         await expect(row()).toHaveAttribute('data-edit-state', 'owned'); await finish();
         await picture('sistemas-escritorio');
     });
@@ -176,7 +176,7 @@ try {
         ] }, resumen: { ...delivery.resumen, procedimientos: 0, herramientas: 0 } });
         await page.goto(fixture.origin + '/formatos/A'); await tab('Revisar y enviar');
         await page.getByRole('button', { name: 'Ir al campo', exact: true }).first().click();
-        await expect(page.getByRole('button', { name: 'Agregar trámite o servicio', exact: true })).toBeFocused();
+        await expect(page.getByRole('button', { name: 'Agregar procedimiento', exact: true })).toBeFocused();
         await tab('Revisar y enviar'); await page.getByRole('button', { name: 'Ir al campo', exact: true }).last().click();
         await expect(page.getByRole('button', { name: 'Agregar fila', exact: true })).toBeFocused();
         Object.assign(fixture.content, previous); fixture.delivery = previousDelivery;

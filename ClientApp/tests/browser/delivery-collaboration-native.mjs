@@ -51,32 +51,32 @@ try {
         const statuses = []; let start, arrived = 0; const gate = new Promise(r => start = r);
         for (const p of [a, b]) await p.route('**/formatos/A/reservas', async route => { arrived++; await gate; const response = await route.fetch(); statuses.push(response.status()); await route.fulfill({ response }); });
         try {
-            await Promise.all([a, b].map(p => input(p, 'Trámite o servicio 1').focus())); await expect.poll(() => arrived).toBe(2); start();
+            await Promise.all([a, b].map(p => input(p, 'Procedimiento 1').focus())); await expect.poll(() => arrived).toBe(2); start();
             await expect.poll(() => statuses.length).toBe(2); assert.deepEqual([...statuses].sort(), [200, 409]);
-            const winner = await input(a, 'Trámite o servicio 1').evaluate(e => !e.readOnly) ? a : b, loser = winner === a ? b : a;
+            const winner = await input(a, 'Procedimiento 1').evaluate(e => !e.readOnly) ? a : b, loser = winner === a ? b : a;
             await expect(row(loser, 'identificacion:inicial')).toHaveAttribute('data-edit-state', 'occupied');
             const presence = row(loser, 'identificacion:inicial').locator('td').first();
             await expect(presence.getByText('Ocupado', { exact: true })).toBeVisible();
             await expect(presence.getByRole('img', { name: 'Participante: ' + (winner === a ? 'Persona sintética' : 'Colaboradora sintética'), exact: true })).toBeVisible();
             await expect(row(loser, 'identificacion:inicial').getByRole('button', { name: 'Eliminar registro' })).toBeDisabled();
-            await input(winner, 'Trámite o servicio 1').fill('Procedimiento compartido');
+            await input(winner, 'Procedimiento 1').fill('Procedimiento compartido');
             await winner.getByRole('tab', { name: 'Identificación general', exact: true }).focus();
-            await expect(row(loser, 'identificacion:inicial')).toHaveAttribute('data-edit-state', 'idle'); await expect(input(loser, 'Trámite o servicio 1')).toHaveValue('Procedimiento compartido');
+            await expect(row(loser, 'identificacion:inicial')).toHaveAttribute('data-edit-state', 'idle'); await expect(input(loser, 'Procedimiento 1')).toHaveValue('Procedimiento compartido');
         } finally { start?.(); for (const p of [a, b]) await p.unroute('**/formatos/A/reservas'); }
     });
     await check('filas distintas, fotografías, presencia fija y un único foco MUI', async () => {
         const before = await row(a, 'identificacion:inicial').locator('td').first().boundingBox();
-        await input(a, 'Trámite o servicio 1').click(); await input(b, 'Trámite o servicio 2').click();
+        await input(a, 'Procedimiento 1').click(); await input(b, 'Procedimiento 2').click();
         await expect(row(a, 'identificacion:inicial')).toHaveAttribute('data-edit-state', 'owned'); await expect(row(b, 'identificacion:segundo')).toHaveAttribute('data-edit-state', 'owned');
         await expect(row(a, 'identificacion:segundo').getByRole('img', { name: 'Participante: Colaboradora sintética', exact: true })).toBeVisible();
         const after = await row(a, 'identificacion:inicial').locator('td').first().boundingBox(); assert.equal(before.width, after.width); assert.equal(before.height, after.height);
-        const focus = await input(a, 'Trámite o servicio 1').evaluate(el => ({ outline: getComputedStyle(el).outlineStyle, border: getComputedStyle(el.closest('.MuiOutlinedInput-root').querySelector('fieldset')).borderWidth, size: getComputedStyle(el).fontSize, row: getComputedStyle(el.closest('tr')).outlineStyle }));
+        const focus = await input(a, 'Procedimiento 1').evaluate(el => ({ outline: getComputedStyle(el).outlineStyle, border: getComputedStyle(el.closest('.MuiOutlinedInput-root').querySelector('fieldset')).borderWidth, size: getComputedStyle(el).fontSize, row: getComputedStyle(el.closest('tr')).outlineStyle }));
         assert.equal(focus.outline, 'none'); assert.equal(focus.border, '2px'); assert.equal(focus.row, 'solid'); assert.notEqual(focus.size, '16px');
         await a.screenshot({ path: path.join(artifacts, 'delivery-desktop-focus.png'), fullPage: true });
         await finish(a); await finish(b);
     });
     await check('primera tecla, pegado y Tab se conservan al confirmar la reserva', async () => {
-        const f = input(a, 'Trámite o servicio 1'); await f.focus(); await a.keyboard.press('End'); await a.keyboard.type(' teclado'); await a.keyboard.press('Tab');
+        const f = input(a, 'Procedimiento 1'); await f.focus(); await a.keyboard.press('End'); await a.keyboard.type(' teclado'); await a.keyboard.press('Tab');
         await expect.poll(async () => (await stored()).identificacion[0].tramite).toContain('teclado'); await finish(a);
         await first.context.grantPermissions(['clipboard-read', 'clipboard-write']);
         await a.evaluate(() => navigator.clipboard.writeText(' pegado sintético'));
@@ -109,7 +109,7 @@ try {
     });
     await check('Medios es independiente, menús y ayudas mantienen reserva de herramientas', async () => {
         await tab(a, 'Sistemas y herramientas'); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'idle');
-        await input(a, 'Fallas o comentarios 1').click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
+        await input(a, 'Áreas de oportunidad 1').click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
         const media = row(b, 'medios'); await media.getByRole('checkbox').first().click(); await expect(media).toHaveAttribute('data-edit-state', 'owned');
         await expect(row(b, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'occupied'); await expect(media.locator('xpath=ancestor::table')).toHaveCount(0);
         await input(b, 'Otro medio').fill('Medio independiente'); await finish(b);
@@ -123,12 +123,12 @@ try {
     });
     await check('otra pestaña se distingue de otra persona y no adquiere la fila ocupada', async () => {
         const otherTab = await first.context.newPage(); await otherTab.goto(origin + '/formatos/A'); await tab(otherTab, 'Sistemas y herramientas');
-        await input(a, 'Fallas o comentarios 1').click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
+        await input(a, 'Áreas de oportunidad 1').click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
         await expect(row(otherTab, 'sistemas:inicial').getByText('Otra pestaña', { exact: true })).toBeVisible();
         await expect(row(b, 'sistemas:inicial').getByText('Ocupado', { exact: true })).toBeVisible(); await finish(a); await otherTab.close();
     });
     await check('backend rechaza eliminación ajena y renovación tardía tras retiro', async () => {
-        await input(a, 'Fallas o comentarios 2').click(); await expect(row(a, 'sistemas:segunda')).toHaveAttribute('data-edit-state', 'owned');
+        await input(a, 'Áreas de oportunidad 2').click(); await expect(row(a, 'sistemas:segunda')).toHaveAttribute('data-edit-state', 'owned');
         const state = await live(b), v = state.bloques.find(r => r.key === 'sistemas:segunda')?.version || 0;
         const req = mutation('sistemas:segunda', v, null); req.removal = { section: 'sistemas', id: 'segunda' };
         assert.equal((await request(b, '/formatos/A/reservas', 'POST', req)).status, 409);
@@ -140,7 +140,7 @@ try {
         await expect(row(a, 'sistemas:segunda')).toHaveCount(0);
     });
     await check('desconexión conserva propuesta; reconexión y vencimiento exigen reserva vigente', async () => {
-        const comments = input(a, 'Fallas o comentarios 1'); await comments.click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
+        const comments = input(a, 'Áreas de oportunidad 1'); await comments.click(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
         await comments.fill('Pendiente de red'); await first.context.setOffline(true);
         await expect.poll(async () => await comments.inputValue()).toBe('Pendiente de red');
         await first.context.setOffline(false); await finish(a); assert.equal((await stored()).sistemas[0].fallas, 'Pendiente de red');
@@ -153,7 +153,7 @@ try {
     });
     await check('móvil, teclado, tacto y posición compartida de presencia', async () => {
         await a.setViewportSize({ width: 360, height: 800 }); await b.setViewportSize({ width: 360, height: 800 });
-        await input(a, 'Fallas o comentarios 1').focus(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
+        await input(a, 'Áreas de oportunidad 1').focus(); await expect(row(a, 'sistemas:inicial')).toHaveAttribute('data-edit-state', 'owned');
         await expect(row(a, 'sistemas:inicial').locator('td').first().getByText('Estás editando')).toBeVisible();
         const avatar = row(b, 'sistemas:inicial').getByRole('img', { name: 'Participante: Persona sintética', exact: true });
         await avatar.focus(); await expect(b.getByRole('tooltip')).toHaveText('Persona sintética');
@@ -170,7 +170,7 @@ try {
         await expect(a.getByRole('heading', { name: 'Resumen del formato', exact: true })).toBeVisible();
         await expect(a.getByRole('button', { name: 'Enviar formato', exact: true })).toBeVisible(); await a.getByRole('button', { name: 'Enviar formato', exact: true }).click();
         await a.getByRole('dialog').getByRole('button', { name: 'Confirmar envío', exact: true }).click();
-        await expect(input(b, 'Fallas o comentarios 1')).toHaveJSProperty('readOnly', true);
+        await expect(input(b, 'Áreas de oportunidad 1')).toHaveJSProperty('readOnly', true);
         assert.deepEqual(later(await stored()), history);
         const state = await live(a), req = mutation('sistemas:inicial', state.bloques.find(r => r.key === 'sistemas:inicial').version, state.contenido.sistemas[0], crypto.randomUUID());
         assert.equal((await request(a, '/formatos/A/reservas', 'POST', req)).status, 409); assert.equal((await request(a, '/formatos/A/bloques', 'PATCH', req)).status, 409);

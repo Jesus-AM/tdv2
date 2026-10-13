@@ -10,7 +10,7 @@ public sealed class FormSchema
     private readonly JsonObject definition;
     public FormSchema(string json) => definition = JsonNode.Parse(json)!.AsObject();
     public JsonObject Definition() => (JsonObject)definition.DeepClone();
-    public static readonly string[] UserChoices = ["Comunidad universitaria", "Docentes", "Estudiantes", "Personal administrativo",
+    public static readonly string[] UserChoices = ["Comunidad universitaria", "Docentes", "Estudiantes", "Egresados", "Personal administrativo",
         "Público en general", "Instituciones públicas externas", "Empresas y organizaciones privadas"];
     public static bool HasRecipients(JsonNode? row) => HasUsers(row?["usuario"]);
     public static bool HasUsers(JsonNode? node) => node is JsonArray { Count: > 0 } users

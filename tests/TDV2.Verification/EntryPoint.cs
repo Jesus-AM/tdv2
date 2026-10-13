@@ -279,13 +279,14 @@ internal static class EntryPoint
             }
             await Verify(12, false); Check((await app.Store.Get("A", default))!.Progress == 100); // Cache anterior intacta en GET.
             var row = content["identificacion"]![0]!; row["codigo"] = "PO-01"; row["prioridad"] = "3"; row["validacion"] = "V";
-            row["usuario"] = new JsonArray("Docentes"); row["resultado"] = "Constancia"; row["responsable"] = "Área";
+            row["usuario"] = new JsonArray("Egresados"); row["resultado"] = "Constancia"; row["responsable"] = "Área";
             var tool = content["sistemas"]![0]!; tool["proceso"] = "PO-01"; tool["sistema"] = "otra"; tool["uso"] = "consultar"; tool["estado"] = "bien";
             await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(91, false);
             tool["sistemaOtro"] = "Propia"; await app.Store.Save("A", 2, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(100, true);
             app.Nexo.Current = Fixtures.Profile("consulta_institucional"); await Verify(100, true);
             var readOnly = (await Json(await client.GetAsync("/formatos/A")))["props"]!;
             Check(!readOnly["editable"]!.GetValue<bool>() && !readOnly["puedeEnviar"]!.GetValue<bool>());
+            Check(readOnly["contenido"]!["identificacion"]![0]!["usuario"]![0]!.ToString() == "Egresados");
         });
         Http("Catálogo de módulos exige sesión, UR y módulo vigentes; sin catálogo no crea formato", async (app, client) =>
         {

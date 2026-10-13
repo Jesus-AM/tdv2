@@ -39,6 +39,20 @@ internal static class CaptureProgressTests
             content["medioOtro"] = "Archivo"; content["sistemas"]![0]!["fallas"] = "Comentario";
             content["preguntas"]![0]!["respuesta"] = "Respuesta posterior"; Check(FormCapture.Progress(content) == 100);
         });
+        Test("Egresados valida solo y combinado, conserva captura al recargar y completa avance/revisión", () =>
+        {
+            foreach (var recipients in new[] { new JsonArray("Egresados"), new JsonArray("Docentes", "Estudiantes", "Egresados") })
+            {
+                var content = Complete(); content["identificacion"]![0]!["usuario"] = recipients;
+                var saved = schema.Validate(content, Fixtures.Units[0]);
+                var reloaded = JsonNode.Parse(saved.ToJsonString())!.AsObject();
+                Check(JsonNode.DeepEquals(reloaded["identificacion"]![0]!["usuario"], recipients));
+                Check(ProcedureEligibility.Available(reloaded["identificacion"]![0]));
+                Check(FormCapture.Progress(reloaded) == 100 && FormCapture.Review(reloaded).listo);
+            }
+            Check(!FormSchema.HasUsers(new JsonArray("Egresados", "Egresados")));
+            Check(!FormSchema.HasUsers(new JsonArray("Egresados", "Opción inventada")));
+        });
         Test("condicionales cuentan separados y desaparecen del cálculo al cambiar opción", () =>
         {
             var content = Complete(); var row = content["sistemas"]![0]!; row["sistema"] = "otra"; row["uso"] = "otro";

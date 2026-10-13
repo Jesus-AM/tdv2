@@ -40,17 +40,17 @@ try {
     await check('publicación real local, búsqueda de duplicados, ID y descripción autorizados persisten', async () => {
         await control('systems-sync'); await page.reload(); await systems(page);
         const module = field(page, 'Módulo de SIIv2'); await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
-        await module.fill('Consultas'); await expect(page.getByRole('option', { name: 'Consultas · ID 2', exact: true })).toBeVisible();
-        await page.getByRole('option', { name: 'Consultas · ID 3', exact: true }).click(); await finish(page);
+        await module.fill('Consultas'); await expect(page.getByRole('option', { name: 'Consultas', exact: true })).toHaveCount(2);
+        await page.getByRole('option', { name: 'Consultas', exact: true }).nth(1).click(); await finish(page);
         assert.equal((await stored()).sistemas[0].moduloSiiId, '3'); assert.equal((await stored()).sistemas[0].moduloSiiDescripcion, 'Consultas');
-        await page.reload(); await systems(page); await expect(field(page, 'Módulo de SIIv2')).toHaveValue('Consultas · ID 3');
+        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
     });
     await check('renombrar/retirar no cambia la respuesta; permite guardar comentarios históricos', async () => {
         const before = await stored(); await control('systems-rename'); assert.deepEqual(await stored(), before);
         await control('systems-remove'); assert.deepEqual(await stored(), before);
-        await page.reload(); await systems(page); await expect(field(page, 'Módulo de SIIv2')).toHaveValue('Consultas · ID 3');
+        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
         await expect(page.getByText('Módulo histórico · Ya no está disponible para nuevas selecciones.', { exact: true })).toBeVisible();
-        const comments = page.getByLabel('Fallas o comentarios 1', { exact: true }); await comments.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
+        const comments = page.getByLabel('Áreas de oportunidad 1', { exact: true }); await comments.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
         await comments.fill('Comentario con referencia histórica'); await finish(page); assert.equal((await stored()).sistemas[0].moduloSiiDescripcion, 'Consultas');
     });
     await check('Otra/Otro mantienen detalle al alternar controles y guardar en PostgreSQL', async () => {
@@ -82,7 +82,7 @@ try {
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await page.screenshot({ path: path.join(artifacts, 'systems-native-mobile.png'), fullPage: true });
         await control('recipients-submitted'); await page.reload(); await systems(page); await field(page, 'Sistema o herramienta').click(); await expect(page.getByRole('listbox')).toHaveCount(0);
-        await expect(page.getByLabel('Fallas o comentarios 1', { exact: true })).toHaveJSProperty('readOnly', true);
+        await expect(page.getByLabel('Áreas de oportunidad 1', { exact: true })).toHaveJSProperty('readOnly', true);
     });
     assert.deepEqual(report.errors, []); report.passed = true;
 } finally {

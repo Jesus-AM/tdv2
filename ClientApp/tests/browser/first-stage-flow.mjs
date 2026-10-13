@@ -60,14 +60,14 @@ try {
             await users(page).click();
             await expect(page.getByText('Preparando edición…', { exact: true })).toBeVisible();
             await expect(page.getByRole('listbox')).toHaveCount(0);
-            await expect(page.getByLabel('Trámite o servicio 1', { exact: true })).toHaveJSProperty('readOnly', true);
+            await expect(page.getByLabel('Procedimiento 1', { exact: true })).toHaveJSProperty('readOnly', true);
             grant(); await expect(page.getByRole('listbox')).toBeVisible();
             await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
         } finally { grant(); await page.unroute('**/formatos/A/reservas'); }
     });
     await check('marcar/desmarcar, scroll y autoguardado conservan menú, foco y reserva', async () => {
         const releases = requests.length;
-        await expect(page.getByRole('option')).toHaveCount(7);
+        await expect(page.getByRole('option')).toHaveCount(8);
         await option(page, 'Docentes').click(); await expect(option(page, 'Docentes')).toHaveAttribute('aria-selected', 'true');
         await option(page, 'Estudiantes').click(); await expect(option(page, 'Estudiantes')).toHaveAttribute('aria-selected', 'true');
         await option(page, 'Docentes').click(); await expect(option(page, 'Docentes')).toHaveAttribute('aria-selected', 'false');
@@ -144,9 +144,9 @@ try {
         await expect(page.getByRole('checkbox', { name: 'Mostrar secciones posteriores' })).toHaveCount(0);
         await expect(page.getByText('Avance de la primera etapa', { exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: /Resolver|Confirmar propuesta|Enviar formato/ })).toHaveCount(0);
-        const button = page.getByRole('button', { name: 'Ayuda: Trámite o servicio', exact: true });
+        const button = page.getByRole('button', { name: 'Ayuda: Procedimiento', exact: true });
         await button.tap(); await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Gestión y seguimiento de proyectos institucionales', { exact: true })).toBeVisible();
+        await expect(page.getByText('Identifica el procedimiento que realiza tu área para atender una necesidad o cumplir una función.', { exact: true })).toBeVisible();
         await expect(row(page)).toHaveAttribute('data-edit-state', 'idle');
         const bounds = await page.getByRole('dialog').boundingBox(); assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 360);
         await page.screenshot({ path: path.join(artifacts, 'etapa-ayuda-mobile.png'), fullPage: true });
@@ -168,7 +168,7 @@ try {
         await page.keyboard.press('Escape'); await expect(help).toBeFocused();
     });
     await check('primera escritura durante adquisición se conserva; Tab no libera y otra pestaña permanece bloqueada', async () => {
-        const field = page.getByLabel('Trámite o servicio 1', { exact: true });
+        const field = page.getByLabel('Procedimiento 1', { exact: true });
         let grant; const gate = new Promise(resolve => { grant = resolve; });
         await page.route('**/formatos/A/reservas', async route => { await gate; await route.continue(); });
         try {
@@ -190,7 +190,7 @@ try {
         } finally { await other.close(); }
     });
     await check('ayudas con teclado/Escape conservan reserva, foco de retorno y texto; prioridad usa paleta exacta', async () => {
-        const field = page.getByLabel('Trámite o servicio 1', { exact: true });
+        const field = page.getByLabel('Procedimiento 1', { exact: true });
         await field.focus(); await expect(field).toHaveJSProperty('readOnly', false); await field.fill('Trámite de prueba');
         const releases = requests.length, button = page.getByRole('button', { name: 'Ayuda: Prioridad', exact: true });
         await button.focus(); await page.keyboard.press('Enter'); await expect(page.getByRole('dialog')).toBeVisible();
@@ -212,7 +212,7 @@ try {
         await page.keyboard.press('Escape'); await finish(page);
     });
     await check('tabla compacta: tamaños del tema, encabezados 700, texto largo y scroll contenido en 1920/1366/768/360', async () => {
-        const field = page.getByLabel('Trámite o servicio 1', { exact: true });
+        const field = page.getByLabel('Procedimiento 1', { exact: true });
         const long = 'Gestión y seguimiento de procedimientos institucionales para todas las áreas académicas y administrativas de la Universidad. '.repeat(3);
         await field.focus(); await expect(field).toHaveJSProperty('readOnly', false); await field.fill(long); await finish(page);
         const table=page.getByRole('table',{name:'Identificación general',exact:true});
@@ -273,7 +273,7 @@ try {
         page.on('request',observe);
         await page.route('**/formatos/A/reservas/actividad',async route=>{const response=await route.fetch();waiting=true;await gate;await route.fulfill({response});});
         try {
-            const input=page.getByLabel('Trámite o servicio 1',{exact:true});await input.focus();await expect(input).toHaveJSProperty('readOnly',false);
+            const input=page.getByLabel('Procedimiento 1',{exact:true});await input.focus();await expect(input).toHaveJSProperty('readOnly',false);
             await input.fill('Retiro durante renovación');await expect.poll(()=>waiting).toBe(true);
             await expect.poll(async()=>(await stored()).tramite).toBe('Retiro durante renovación');
             const remove=page.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0);await remove.click();

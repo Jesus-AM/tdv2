@@ -358,6 +358,12 @@ export class BlockEditor {
         this.focusEpoch.set(key, epoch);
         // Un cambio de foco durante el guardado no debe pedir una reserva con la versión anterior.
         if (this.running) await this.running;
+        // La adquisición es compartida y puede dejar este foco en cola. Revalidar antes
+        // de reservar evita ocupar una fila ya abandonada (A → B → A con respuesta lenta).
+        while (this.acquiring || this.releasing.has(key)) {
+            await Promise.all([this.acquiring, this.releasing.get(key)].filter(Boolean).map(operation => operation!.catch(() => {})));
+            if (this.focusEpoch.get(key) !== epoch) return false;
+        }
         if (this.focusEpoch.get(key) !== epoch) return false;
         if (this.disposed || this.state.locked || !this.state.initialized || this.kinds.get(key) === 'incompatible' || this.busy(key)) return false;
         const ready = await this.prepare([key]);

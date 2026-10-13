@@ -1,3 +1,27 @@
+# Actualización 2026-10-13 — Catálogo histórico y desplazamiento de captura
+
+CAST retirado de selecciones nuevas, con conservación histórica y rechazo del backend; Procedimiento sustituye el nombre del campo `tramite` sin cambiar persistencia. Ambas tablas comparten scroll en dos ejes, altura adaptable y encabezados fijos, conservando Medios/Agregar fuera. Navegación a pendientes y filas nuevas revela/enfoca el control. Tipos/Vite, 104 dominio/HTTP con dobles, 88 frontend y 52 grupos Edge con transporte simulado; no bases ni pruebas institucionales. [Implementado, comprobaciones, archivos y límites](SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13).
+
+# Actualización 2026-10-13 — Procedimiento completo
+
+Procedimiento muestra código y nombre completos, altura automática y ancho compacto; sin ayuda por fila ni tooltip. El nombre se mantiene durante la búsqueda para conservar la apertura desde la primera interacción aun con filas largas. Tipos/Vite, 88 frontend y 40 grupos Edge correctos, con transporte simulado. PO-08/09 probados con nombres sintéticos; registros reales y dispositivos físicos pendientes. Sin acceso a bases. [Implementado, archivos, comandos y límites](SISTEMAS_HERRAMIENTAS.md#procedimiento-completo-y-sin-ayuda-por-registro--2026-10-13).
+
+# Actualización 2026-10-13 — Apertura de selectores y reservas
+
+Módulo y Procedimiento abren desde la primera interacción, con carga mientras se confirma la reserva y selección protegida. Se invalidan aperturas tardías y adquisiciones en cola de filas abandonadas; se conservan foco, nodos, valores, autoguardado y presentación. Tipos/Vite, 88 frontend y 22 recorridos Edge correctos, con transporte simulado y sin bases. [Causas reproducidas, archivos, pruebas y límites](SISTEMAS_HERRAMIENTAS.md#apertura-y-reserva-de-selectores--2026-10-13).
+
+# Actualización 2026-10-13 — Tipografía y nombre completo del módulo
+
+Dependientes con escala uniforme de 13 px y espacio para etiqueta flotante; módulo seleccionado completo/multilínea, buscador conservado y botones separados del texto. Tipos/Vite, 87 pruebas frontend y 13 recorridos Edge correctos; estados vacío/foco/completo/error, teclado, recarga sintética y móvil revisados. Sin bases. [Implementado, comprobaciones, límites y archivos](SISTEMAS_HERRAMIENTAS.md#tipografía-y-módulo-completo--2026-10-13).
+
+# Actualización 2026-10-13 — Agrupación de campos condicionales
+
+Los tres detalles de Sistemas comparten sangría moderada y línea azul suave dentro de su celda, sin cambiar condiciones ni lógica. Tipos/Vite, 87 pruebas frontend y 12 recorridos de navegador con transporte simulado correctos; foco, Tab, errores locales, nombres largos y escritorio/móvil revisados. Sin bases. [Archivos, implementación y límites](SISTEMAS_HERRAMIENTAS.md#campos-condicionales--2026-10-13).
+
+# Actualización 2026-10-12 — Ajustes de captura
+
+Acciones de Sistemas a 112 px con foco completo; módulos sin ID añadido al nombre, conservando la referencia interna; Egresados válido en frontend/backend; Áreas de oportunidad conserva `fallas`. Verificados tipos/compilaciones, 102 casos dominio/HTTP, 87 frontend y 15 recorridos de navegador con transporte simulado. Sin migraciones ni bases. [Cambios, archivos y límites](SISTEMAS_HERRAMIENTAS.md#ajustes-de-captura--2026-10-12).
+
 # Actualización 2026-10-11 — Etiqueta de origen en Colaboradores
 
 Presentación central como **Agregado por Administrador**, sin revelar el sistema de origen en etiquetas o ayudas de la lista. Origen interno, responsables, permisos y acciones conservados. TypeScript, Vite, ASP.NET Release y 4 recorridos de navegador con transporte simulado correctos; sin bases. [Detalle y límites](COLABORADORES_VISIBILIDAD_ACCIONES.md).
