@@ -44,7 +44,7 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
         return form is null ? null : Stored(form);
     }
 
-    private static StoredForm Stored(UnitForm form) => new(form.UnitId, JsonNode.Parse(form.Content)!.AsObject(),
+    private static StoredForm Stored(UnitForm form) => new(form.UnitId, FormDocument.Read(form.Content),
         form.Version, form.Progress, new DateTimeOffset(DateTime.SpecifyKind(form.UpdatedAt!.Value, DateTimeKind.Utc)), form.UpdatedBy,
         FormStages.Status(form).enviadoEn, form.SubmissionSnapshot ?? FormStages.Submission(form)?.Snapshot,
         form.Year, FormStages.Status(form).enviadoPor, FormStages.Status(form));

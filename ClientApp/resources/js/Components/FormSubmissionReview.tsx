@@ -3,7 +3,10 @@ import { CheckCircleOutlined, PendingOutlined, ArrowForward } from '@mui/icons-m
 import { useId, type ReactNode } from 'react';
 export type FormPending = { seccion: string; bloque: string; campo: string; mensaje: string };
 export type SubmissionReview = { listo: boolean; pendientes: FormPending[] };
+export type ProcedureCoverage = { id: string; codigo: string; nombre: string; aplicable: boolean; completa: boolean;
+    registros: number; validos: number; destino: FormPending };
 export type StageReview = {
+    cobertura?: ProcedureCoverage[];
     etapa: { id: number; nombre: string; habilitada: boolean; estado: string; ejercicio: number; enviadoEn: string | null; enviadoPor: string | null; enviadoNombre: string | null };
     revision: SubmissionReview;
     secciones: { id: string; nombre: string; completa: boolean }[];

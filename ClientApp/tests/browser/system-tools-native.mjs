@@ -36,22 +36,33 @@ try {
         await select(page, 'Sistema o herramienta', 'SIIv2'); await expect(page.getByText('El catálogo de módulos de SIIv2 aún no está disponible', { exact: true })).toBeVisible();
         await select(page, '¿Para qué se usa?', 'Consultar información'); await select(page, '¿Cómo funciona?', 'Funciona bien'); await finish(page);
         assert.equal((await stored()).sistemas[0].sistema, 'sii_v2'); assert.equal((await stored()).sistemas[0].moduloSiiId, '');
+        await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
+        const pending = page.locator('[data-pending-block="sistemas:inicial"][data-pending-field="modulosSii"]');
+        await expect(pending).toContainText('Módulos de SIIv2'); await pending.getByRole('button', { name: 'Ir al campo' }).click();
+        await expect(field(page, 'Módulos de SIIv2')).toBeFocused(); await finish(page);
     });
     await check('publicación real local, búsqueda de duplicados, ID y descripción autorizados persisten', async () => {
         await control('systems-sync'); await page.reload(); await systems(page);
-        const module = field(page, 'Módulo de SIIv2'); await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
+        const module = field(page, 'Módulos de SIIv2'); await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
         await module.fill('Consultas'); await expect(page.getByRole('option', { name: 'Consultas', exact: true })).toHaveCount(2);
-        await page.getByRole('option', { name: 'Consultas', exact: true }).nth(1).click(); await finish(page);
-        assert.equal((await stored()).sistemas[0].moduloSiiId, '3'); assert.equal((await stored()).sistemas[0].moduloSiiDescripcion, 'Consultas');
-        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
+        await page.getByRole('option', { name: 'Consultas', exact: true }).nth(1).click();
+        await expect(module).toHaveAttribute('aria-expanded', 'true');
+        await module.fill('Consultas'); await page.getByRole('option', { name: 'Consultas', exact: true }).nth(0).click();
+        await expect.poll(async () => (await stored()).sistemas[0].modulosSii?.map(m => m.id)).toEqual(['3', '2']);
+        await expect(module).toHaveAttribute('aria-expanded', 'true'); await expect(module).toBeFocused();
+        await finish(page);
+        assert.equal((await stored()).sistemas[0].modulosSii[0].id, '3'); assert.equal((await stored()).sistemas[0].modulosSii[0].descripcion, 'Consultas');
+        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText(['Consultas', 'Consultas']);
+        await page.getByRole('tab', { name: 'Revisar y enviar', exact: true }).click();
+        await expect(page.locator('[data-pending-field="modulosSii"]')).toHaveCount(0); await systems(page);
     });
     await check('renombrar/retirar no cambia la respuesta; permite guardar comentarios históricos', async () => {
         const before = await stored(); await control('systems-rename'); assert.deepEqual(await stored(), before);
         await control('systems-remove'); assert.deepEqual(await stored(), before);
-        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
-        await expect(page.getByText('Módulo histórico · Ya no está disponible para nuevas selecciones.', { exact: true })).toBeVisible();
+        await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText(['Consultas', 'Consultas']);
+        await expect(page.getByText('La selección incluye módulos históricos que ya no están disponibles para nuevas selecciones.', { exact: true })).toBeVisible();
         const comments = page.getByLabel('Áreas de oportunidad 1', { exact: true }); await comments.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
-        await comments.fill('Comentario con referencia histórica'); await finish(page); assert.equal((await stored()).sistemas[0].moduloSiiDescripcion, 'Consultas');
+        await comments.fill('Comentario con referencia histórica'); await finish(page); assert.equal((await stored()).sistemas[0].modulosSii[0].descripcion, 'Consultas');
     });
     await check('Otra/Otro mantienen detalle al alternar controles y guardar en PostgreSQL', async () => {
         await select(page, 'Sistema o herramienta', 'Otra (escríbela)'); await page.getByLabel('Nombre de la herramienta 1', { exact: true }).fill('Herramienta local');

@@ -1,3 +1,11 @@
+# Actualización 2026-10-14 — Cobertura y guardado
+
+Cobertura por procedimiento aplicable, herramientas completas, pendientes navegables y rechazo del envío API. Retiro informa cantidad y conserva respuestas para reasignación. Versión JSON compatible, sin backfill ni migración. Verificados 108 casos de dominio/HTTP, 88 frontend, 10 casos nativos distintos y 5 recorridos Edge con PostgreSQL real. [Implementación, fórmula, archivos y límites](COBERTURA_Y_GUARDADO.md). Los cambios locales anteriores se conservan.
+
+# Actualización 2026-10-14 — Módulos múltiples por herramienta
+
+Selección múltiple SIIv2 con casillas, eliminación individual y nombres completos; colección estructurada de IDs/instantáneas en el JSON del formato, sin nueva migración. Lectura compatible con la asociación única anterior y validación transaccional del catálogo local. Un requisito condicional por fila para avance/revisión, sin ponderar el número de módulos. [Implementación, pruebas y límites](SISTEMAS_HERRAMIENTAS.md#selección-múltiple-de-módulos--2026-10-14).
+
 # Actualización 2026-10-13 — Catálogo histórico y desplazamiento de captura
 
 CAST retirado de selecciones nuevas, con conservación histórica y rechazo del backend; Procedimiento sustituye el nombre del campo `tramite` sin cambiar persistencia. Ambas tablas comparten scroll en dos ejes, altura adaptable y encabezados fijos, conservando Medios/Agregar fuera. Navegación a pendientes y filas nuevas revela/enfoca el control. Tipos/Vite, 104 dominio/HTTP con dobles, 88 frontend y 52 grupos Edge con transporte simulado; no bases ni pruebas institucionales. [Implementado, comprobaciones, archivos y límites](SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13).

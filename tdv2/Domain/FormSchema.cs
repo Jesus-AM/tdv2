@@ -25,7 +25,7 @@ public sealed class FormSchema
     private static readonly Dictionary<string, string[]> Fields = new()
     {
         ["identificacion"] = ["id", "codigo", "prioridad", "fuente", "area", "tramite", "usuario", "resultado", "responsable", "validacion"],
-        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion"],
+        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion", SystemModules.Field],
         ["datos"] = ["id", "proceso", "dato", "fuente", "origen", "detalle"],
         ["acuerdos"] = ["id", "acuerdo", "responsable", "fecha"]
     };
@@ -33,6 +33,7 @@ public sealed class FormSchema
     {
         var result = new JsonObject
         {
+            [FormDocument.Field] = FormDocument.Current,
             ["encabezado"] = new JsonObject { ["fecha"] = "", ["area"] = "", ["responsable"] = "" },
             ["medioOtro"] = "",
             ["evaluaciones"] = new JsonObject(),
@@ -48,7 +49,7 @@ public sealed class FormSchema
         };
         foreach (var (section, fields) in Fields)
         {
-            var row = new JsonObject(fields.Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
+            var row = new JsonObject(fields.Where(f => f != SystemModules.Field).Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
             if (section == "identificacion") row["usuario"] = new JsonArray();
             result[section] = new JsonArray(row);
         }
@@ -87,6 +88,7 @@ public sealed class FormSchema
     }
     public JsonObject Validate(JsonObject input, Unit unit, IReadOnlySet<string>? changed = null, IReadOnlySet<string>? removedCodes = null, JsonObject? previous = null)
     {
+        FormDocument.Version(input);
         bool Includes(string key) => changed is null || changed.Contains(key);
         void Check(string block, string field, Action action) => At(block, field, () => { action(); return true; });
         if (Encoding.UTF8.GetByteCount(input.ToJsonString()) > 1_500_000) throw Invalid("El formato supera el tamaño permitido.");
@@ -111,9 +113,20 @@ public sealed class FormSchema
                 if (section == "identificacion" && row.ContainsKey("usuarioOtro"))
                     throw FieldError(key, "usuario", "El catálogo de ¿A quién atiende? cambió. Actualiza el formato antes de guardar.");
                 Object(row, fields);
-                foreach (var field in fields) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
+                foreach (var field in fields.Where(f => f != SystemModules.Field)) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
                     ? Users(row[field]) : section == "sistemas" && SystemAnswers.Details.Contains(field) && !row.ContainsKey(field)
                     ? JsonValue.Create("") : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000)));
+                if (section == "sistemas")
+                {
+                    var before = previous?[section]?.AsArray().FirstOrDefault(r => r?["id"]?.ToString() == id);
+                    if (row.ContainsKey(SystemModules.Field))
+                        clean[SystemModules.Field] = before is JsonObject oldRow && oldRow.ContainsKey(SystemModules.Field)
+                            && JsonNode.DeepEquals(row[SystemModules.Field], before[SystemModules.Field])
+                            ? row[SystemModules.Field]?.DeepClone() : SystemModules.Normalize(row[SystemModules.Field], key);
+                    // Un cliente antiguo no puede borrar la colección al guardar otro campo.
+                    else if (before is JsonObject prior && prior.ContainsKey(SystemModules.Field))
+                        clean[SystemModules.Field] = prior[SystemModules.Field]?.DeepClone();
+                }
                 normalized.Add(clean);
             }
             result[section] = normalized;

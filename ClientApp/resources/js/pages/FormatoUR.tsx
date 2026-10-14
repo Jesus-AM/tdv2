@@ -50,6 +50,7 @@ import SystemField, { type ModuleCatalog } from '@/Components/SystemField';
 import IdentificationInstructions from '@/Components/IdentificationInstructions';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
 import FormSubmissionReview from '@/Components/FormSubmissionReview';
+import ProcedureCoverageList from '@/Components/ProcedureCoverageList';
 import ProcedureSelect from '@/Components/ProcedureSelect';
 import RowEditingActions from '@/Components/RowEditingActions';
 import RowEditingPresence from '@/Components/RowEditingPresence';
@@ -149,6 +150,8 @@ function Editor(props: Props) {
     const reviewingSubmission = useRef(false);
     const editingContext = useRef<RecordEditingContext | null>(null);
     const removing = useRef(false);
+    const capturingProcedure = useRef(false);
+    const [preparingCapture, setPreparingCapture] = useState<string | null>(null);
     const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
     const [failedRemovals, setFailedRemovals] = useState<Record<string, string>>({});
     type SelectIntent = { key: string; field: string; immediate?: boolean; pending?: boolean };
@@ -189,7 +192,7 @@ function Editor(props: Props) {
     const visibleTabs = administrator && showLater ? tabs : tabs.slice(0, 4);
     const showingLater = administrator && showLater;
     const delivery = state.delivery || props.entrega || null;
-    const settled = state.initialized && !state.dirty && !state.saving && !finishing && !state.error && !state.conflict
+    const settled = state.initialized && !state.dirty && !state.saving && !finishing && !preparingCapture && !state.error && !state.conflict
         && !state.preparing.length && !Object.keys(state.issues).length && !Object.keys(state.unaccepted).length;
     const otherEditing = Object.keys(state.blocks).some(key => engine.busy(key));
     const autosave = locked ? 'Solo consulta' : state.saving || finishing ? 'Guardando…'
@@ -423,6 +426,14 @@ function Editor(props: Props) {
         if (!visibleTabs.some(([key]) => key === pending.seccion)) return;
         // Termina el guardado/liberación anterior antes de enfocar y reservar el destino.
         await engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
+        if (pending.bloque.startsWith('cobertura:')) {
+            const procedureId = pending.bloque.slice('cobertura:'.length);
+            const coverage = engine.state.delivery?.cobertura?.find(p => p.id === procedureId);
+            if (coverage && coverage.destino.bloque !== pending.bloque) return navigatePending(coverage.destino);
+            requestAnimationFrame(() => requestAnimationFrame(() => focusCaptureField(
+                Array.from(document.querySelectorAll<HTMLElement>('[data-coverage-action]')).find(e => e.dataset.coverageAction === procedureId))));
+            return;
+        }
         if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
         requestAnimationFrame(() => requestAnimationFrame(() => {
             const panel = document.getElementById('panel-' + pending.seccion);
@@ -434,6 +445,20 @@ function Editor(props: Props) {
                 || panel?.querySelector<HTMLElement>('[data-add-row]:not(:disabled)') || panel;
             focusCaptureField(target);
         }));
+    }
+    async function captureProcedure(procedureId: string) {
+        if (capturingProcedure.current || locked) return;
+        capturingProcedure.current = true; setPreparingCapture(procedureId);
+        try {
+            if (!await engine.flush(true) || !await engine.refresh()) return;
+            const procedure = engine.state.procedures.find(p => p.id === procedureId);
+            if (!procedure) return;
+            const existing = engine.state.content.sistemas.find(r => r.proceso === procedure.codigo);
+            if (existing) { await navigatePending({ seccion: 'sistemas', bloque: 'sistemas:' + existing.id, campo: 'sistema', mensaje: '' }); return; }
+            if (engine.state.content.sistemas.length >= 200) { setNotice('Se alcanzó el límite de registros. Revisa las herramientas existentes.'); return; }
+            const row = { ...props.plantilla.sistemas[0], id: id(), proceso: procedure.codigo };
+            if (await engine.edit(d => { d.sistemas.push(row); })) revealAddedRow('sistemas', row.id);
+        } finally { capturingProcedure.current = false; setPreparingCapture(null); }
     }
     function revealAddedRow(section: string, rowId: string) {
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -544,10 +569,13 @@ function Editor(props: Props) {
                                                 ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules}
                                                     errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
                                                     events={name => selectEvents(`sistemas:${r.id}`, name)}
-                                                    moduleEvents={autocompleteEvents(`sistemas:${r.id}`, 'moduloSiiId')}
-                                                    change={(name, value) => engine.changeBlock<Record<string, string>>(`sistemas:${r.id}`, row => {
+                                                    moduleEvents={autocompleteEvents(`sistemas:${r.id}`, 'modulosSii')}
+                                                    changeModules={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => {
+                                                        row.modulosSii = value;
+                                                        row.moduloSiiId = ''; row.moduloSiiDescripcion = '';
+                                                    })}
+                                                    change={(name, value) => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => {
                                                         row[name] = value;
-                                                        if (name === 'moduloSiiId') row.moduloSiiDescripcion = modules.modulos.find(m => m.id === value)?.descripcion || '';
                                                     })} />
                                                 : field(
                                                 String((r as unknown as Record<string, string>)[f.key] || ''),
@@ -562,6 +590,10 @@ function Editor(props: Props) {
                                                     <Typography variant="caption">El procedimiento relacionado está pendiente de completar o validar.</Typography>
                                                     <Button size="small" onClick={() => navigatePending({ seccion: 'identificacion', bloque: 'identificacion:' + (c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)?.id || ''), campo: 'tramite', mensaje: '' })}>Revisar Identificación general</Button>
                                                 </Box>}
+                                            {section === 'sistemas' && f.key === 'proceso' && !(r as SystemRow).proceso && (r.id !== 'inicial' || (r as SystemRow).sistema || (r as SystemRow).uso || (r as SystemRow).fallas) && <Box sx={{ mt: .5 }}>
+                                                <Typography variant="caption">Sin procedimiento asociado. Las respuestas se conservan; selecciona un procedimiento.</Typography>
+                                                {!locked && <Button size="small" onClick={() => navigatePending({ seccion: 'sistemas', bloque: 'sistemas:' + r.id, campo: 'proceso', mensaje: '' })}>Asignar procedimiento</Button>}
+                                            </Box>}
                                         </TableCell>
                                     ))}
                                     <TableCell className={section === 'sistemas' ? 'row-actions-cell' : undefined}>
@@ -602,7 +634,7 @@ function Editor(props: Props) {
         { key: 'validacion', label: 'Validación', options: validation },
         { key: 'prioridad', label: 'Prioridad' },
     ];
-    const saveAction = <Button variant="outlined" startIcon={<SaveOutlined />} disabled={locked || sending}
+    const saveAction = <Button variant="outlined" startIcon={<SaveOutlined />} disabled={locked || sending || preparingCapture !== null}
         aria-label="Guardar" title="Guardar los cambios sin enviar el formato" aria-busy={state.saving || finishing}
         sx={{ minHeight: 40 }} onClick={async () => {
             if (explicitSave.current || reviewingSubmission.current || sending) return;
@@ -739,6 +771,9 @@ function Editor(props: Props) {
                     Registra una herramienta por fila. Puedes agregar varias filas para el mismo procedimiento, cada una con su propio uso y funcionamiento.
                 </Typography>
                 {procedureOptions.length === 0 && <Typography variant="body2" sx={{ mb: 2 }}>Completa y valida los procedimientos en Identificación general para seleccionarlos aquí</Typography>}
+                <ProcedureCoverageList items={delivery?.cobertura || []} pendingSave={state.dirty || state.saving} readOnly={locked} preparing={preparingCapture}
+                    onCapture={id => void captureProcedure(id)} onNavigate={item => void navigatePending(locked && !item.registros
+                        ? { seccion: 'identificacion', bloque: 'identificacion:' + item.id, campo: 'tramite', mensaje: '' } : item.destino)} />
                 {table('sistemas', [
                     { key: 'proceso', label: 'Procedimiento', options: procedureOptions, wide: true },
                     { key: 'sistema', label: 'Sistema o herramienta' },
@@ -1111,6 +1146,7 @@ function Editor(props: Props) {
                     <Typography variant="body2" color="error.main">No se confirmó la eliminación de «{label}». Tu propuesta se conserva.</Typography>
                 </Box>)}
                 <RemoveRowDialog open={!!removal} label={removal?.label || ''}
+                    associations={removal ? removalBlocks(c, removal).filter(key => key.startsWith('sistemas:') || key.startsWith('datos:')).length : 0}
                     process={removal?.section === 'identificacion'} reason={!removingRow && removal ? removalReason(removal) : ''}
                     changed={!removingRow && !!removal && removal.snapshot !== removalSnapshot(c, removal, state.blocks)}
                     busy={removingRow} error={removalError}

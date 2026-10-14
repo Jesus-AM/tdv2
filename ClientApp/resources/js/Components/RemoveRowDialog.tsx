@@ -1,6 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
-export default function RemoveRowDialog({ open, label, process, reason, changed, busy, error, onCancel, onConfirm }: {
+export default function RemoveRowDialog({ open, label, process, associations = 0, reason, changed, busy, error, onCancel, onConfirm }: {
     open: boolean; label: string; process: boolean; reason: string; changed: boolean; busy: boolean; error: string;
+    associations?: number;
     onCancel: () => void; onConfirm: () => void;
 }) {
     return <Dialog open={open} onClose={() => !busy && onCancel()} fullWidth maxWidth="sm" aria-labelledby="remove-row-title" aria-describedby="remove-row-description">
@@ -8,7 +9,7 @@ export default function RemoveRowDialog({ open, label, process, reason, changed,
         <DialogContent id="remove-row-description">
             <Typography sx={{ fontWeight: 600, overflowWrap: 'anywhere', mb: 2 }}>{label}</Typography>
             <Typography>{process
-                ? 'Se eliminará este proceso y su evaluación. Los sistemas y datos asociados se conservarán, pero quedarán desvinculados del proceso.'
+                ? `Se eliminará este procedimiento y su evaluación. ${associations} ${associations === 1 ? 'registro de sistemas/herramientas o datos perderá' : 'registros de sistemas/herramientas o datos perderán'} su asociación. Las respuestas se conservarán y necesitarán otro procedimiento.`
                 : 'Se eliminará este registro del borrador compartido.'}</Typography>
             {changed && <Typography role="status" sx={{ mt: 2 }}>El registro o sus relaciones cambiaron. Cancela y revisa la versión vigente antes de volver a confirmar la eliminación.</Typography>}
             {reason && <Typography role="status" sx={{ mt: 2 }}>{reason}</Typography>}

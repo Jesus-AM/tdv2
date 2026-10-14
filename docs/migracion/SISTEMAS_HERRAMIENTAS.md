@@ -1,5 +1,76 @@
 # Sistemas y herramientas y módulos SIIv2 — 2026-10-09
 
+## Cobertura de procedimientos — 2026-10-14
+
+Cada procedimiento aplicable requiere al menos una herramienta completa. Todos los procedimientos reales se localizan en la lista de Sistemas, con código/nombre completo, estado y acciones de captura/revisión. Pendientes/avance/envío comparten la evaluación del servidor. Retirar un procedimiento informa cuántas asociaciones se pierden; conserva respuestas y permite reasignarlas. Modelo híbrido y módulos múltiples conservados; versión de estructura compatible sin migración. [Contrato, fórmula, pruebas nativas, archivos y actualización](COBERTURA_Y_GUARDADO.md).
+
+## Selección múltiple de módulos — 2026-10-14
+
+### Implementado
+
+- **Módulos de SIIv2** usa Autocomplete múltiple MUI: búsqueda por nombre, casillas, menú que continúa abierto al marcar/desmarcar y cierre con Escape/clic exterior. Las selecciones aparecen dentro del campo, con eliminación individual por ratón/teclado, nombres completos, salto de línea y ancho de columna constante. Se conserva la tipografía de 13 px, sangría/línea de agrupación, etiquetas flotantes y espacio propio para botones. Ayuda: «Selecciona uno o varios módulos utilizados para este procedimiento.»
+- Abrir sigue iniciando la reserva desde la primera interacción. Durante su confirmación no se habilitan opciones, borrado ni selección. La presencia y el ACK de autoguardado mantienen el control, menú, búsqueda y foco; las respuestas tardías no reabren otro registro. Los errores quedan asociados a `modulosSii` y conservan lo capturado. Procedimiento mantiene su nombre completo y comportamiento anterior.
+- Cada fila sigue representando una herramienta con procedimiento, uso, funcionamiento y áreas de oportunidad compartidos. Varias filas SIIv2 del mismo procedimiento continúan permitidas para respuestas diferentes; no se consolidan registros.
+
+### Contrato, persistencia y compatibilidad
+
+`SystemRow.modulosSii` es una colección de `{ id: string, descripcion: string }`. Los IDs institucionales son la asociación; nunca se concatenan nombres. El cliente remite la colección en el mismo parche de bloque con reserva/versión/operación existente. El backend rechaza IDs inválidos, elementos repetidos, estructuras incorrectas y selecciones nuevas que no estén disponibles en la réplica local. Valida **todos** los elementos antes de confirmar la escritura; un elemento inválido impide publicar parcialmente el registro. Las descripciones nuevas se obtienen del catálogo local bajo bloqueo compartido dentro de la transacción de guardado. No se consulta SII al capturar.
+
+`SystemModules` centraliza la lectura compatible, validez estructural y confirmación de instantáneas:
+
+- Si no existe la colección, lee `moduloSiiId`/`moduloSiiDescripcion` como una selección de un elemento. GET no migra ni reescribe contenido. Guardar otros campos de un registro escalar no fuerza su conversión.
+- Al cambiar explícitamente la selección desde la interfaz, guarda la colección y limpia los campos escalares de esa fila para evitar asociaciones contradictorias. Una colección vacía es autoritativa: no resucita el ID anterior.
+- Un cliente antiguo que omita la colección al guardar otro campo conserva la colección previamente confirmada. No borra selecciones múltiples por omisión.
+- Cada ID conservado mantiene su descripción guardada, aunque cambie o desaparezca de las opciones disponibles. El cliente no puede sustituir esa instantánea por otro texto. Una referencia retirada puede mantenerse o quitarse; incorporarla nuevamente exige disponibilidad. Dos IDs con igual descripción siguen siendo dos selecciones distintas, sin mostrar sus IDs en la interfaz.
+- Los detalles de una herramienta no activa no cuentan como respuestas ni bloquean la captura de campos ajenos. Al volver a SIIv2 se verifica nuevamente la disponibilidad. Los enviados e históricos bloqueados siguen inmutables.
+
+**Sin migración nueva:** `UnitForm.Content` ya se almacena en `formatos_ur.contenido` de tipo `json`; recibos e instantáneas también admiten el nuevo arreglo. No cambian entidades/columnas, códigos, relaciones de procedimientos ni migraciones aplicadas. No hay un comando EF adicional por este ajuste. El catálogo continúa requiriendo sus migraciones existentes, aplicadas sólo de manera explícita por el operador como documenta la sección de operación.
+
+### Avance y pendientes
+
+Se mantiene `floor(100 × requisitos válidos / requisitos aplicables)`, sin ponderación adicional. Para una fila SIIv2, **Módulos de SIIv2 cuenta una vez**, independientemente de cuántos se elijan: requiere al menos uno, todos los IDs válidos/no repetidos y sus descripciones confirmadas. Las referencias históricas autorizadas conservan validez aunque se retiren del catálogo. Vacío sigue siendo un borrador guardable y genera un pendiente `modulosSii`; al cambiar a otra herramienta ese requisito deja de aplicar. Inicio, captura y revisión reutilizan `FormRequirements`/`SystemAnswers`; los enlaces a pendientes enfocan el mismo campo plural.
+
+### Verificado
+
+- TypeScript, Vite y compilación .NET Release sin errores. **106/106 casos dominio/HTTP**: colección, compatibilidad, instantáneas, IDs inválidos/duplicados, estructuras y avance/revisión, además de regresiones de autorización. **88/88 pruebas frontend** de bloques, reservas, transporte y navegación.
+- **55 grupos Edge con transporte simulado**: `sii-multiple-ui.mjs` (12), `system-tools-ui.mjs` (13), `record-select-ui.mjs` (9), `capture-scroll-ui.mjs` (12), `procedure-select-ui.mjs` (9). Búsqueda/casillas, descripciones duplicadas, quitar con icono/Delete, vaciar/guardar/recargar, errores 422, valores históricos, nombres largos, tipografía, foco y ACK sin cerrar menú, reserva lenta/denegada, cambios rápidos, ratón/teclado/tacto emulado, tablas/menús y escritorio/móvil hasta 320 px. Capturas y reportes bajo `.artifacts/sii-multiple-ui` y las carpetas homónimas de cada suite; revisadas capturas de escritorio y móvil.
+- **3/3 casos HTTP con ASP.NET/EF Core y PostgreSQL 18 desechable** (`native-postgres-20261014-140747-4d26df2a`): persistencia/recarga de varios IDs, duplicados de descripción, asociación escalar previa, rechazo de elemento inválido sin cambios parciales, avance persistido, vaciado, retirada histórica, otras filas y permisos de catálogo/enviados. Los fallos iniciales detectaron un detalle histórico inactivo que se intentaba validar; se conservó el criterio anterior de validar módulos activos. También se ajustaron datos/SQL del escenario sintético; la repetición terminó correcta.
+- **7/7 recorridos Edge → ASP.NET → PostgreSQL**, con SignalR y guardado reales, proveedores institucionales sustituidos por dobles. Borrador sin catálogo, pendiente plural e Ir al campo con foco, selección de dos IDs con descripción igual, menú abierto durante guardado, recarga, desaparición del pendiente, descripciones conservadas al renombrar/retirar, Otros, sesiones separadas, varias filas por procedimiento y consulta de enviado. Corrida final correcta `native-postgres-20261014-141032-b76042b3`.
+- Los clústeres se crearon bajo `.artifacts/native-postgres-*`, en loopback/puerto aleatorio, con identidad comprobada por el arnés y cierre al terminar. El mensaje inicial de token restringido de `initdb` no impidió completar las corridas. Sólo se aplicaron migraciones existentes a esas bases desechables; no se accedió a bases reales/institucionales.
+
+Comandos desde la raíz (Node/npm disponibles en PATH):
+
+```powershell
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run build
+npm.cmd --prefix ClientApp run test:forms
+dotnet run --project tests/TDV2.Verification -c Release --no-restore -p:UseAppHost=false -p:NuGetAudit=false
+dotnet build tests/TDV2.NativeVerification -c Release --no-restore -p:UseAppHost=false -p:NuGetAudit=false
+Push-Location ClientApp
+node tests/browser/sii-multiple-ui.mjs
+node tests/browser/system-tools-ui.mjs
+node tests/browser/record-select-ui.mjs
+node tests/browser/capture-scroll-ui.mjs
+node tests/browser/procedure-select-ui.mjs
+Pop-Location
+$env:TDV2_TEST_CASE_PREFIX = 'Edición/módulos'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -EditingOnly -SkipBrowser -DirectStart
+Remove-Item Env:TDV2_TEST_CASE_PREFIX
+$env:TDV2_TEST_NODE = 'C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VisualStudio\NodeJs\node.exe'
+$env:TDV2_TEST_BROWSER_FLOW = 'systems'
+$env:TDV2_TEST_EPHEMERAL_TLS = 'true'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -BrowserOnly -DirectStart
+```
+
+### Archivos y límites
+
+- Interfaz: `ClientApp/resources/js/Components/SystemField.tsx`, `pages/FormatoUR.tsx`, `types/tdv2.ts`, `ClientApp/resources/css/app.css`.
+- Backend: `tdv2/Domain/SystemModules.cs` (nuevo), `SystemAnswers.cs`, `FormSchema.cs`, `FormRequirements.cs`, `FormReview.cs` y `tdv2/Services/FormEditingService.cs`.
+- Pruebas: `tests/TDV2.Verification/SystemCatalogTests.cs`, `CaptureProgressTests.cs`, `tests/TDV2.NativeVerification/SystemModuleTests.cs`; navegador `sii-multiple-ui.mjs` (nuevo), `system-tools-ui.mjs`, `record-select-ui.mjs`, `capture-scroll-ui.mjs`, `system-tools-native.mjs` y etiqueta plural de `table-scroll-native.mjs` (sintaxis comprobada; suite completa no ejecutada en este ajuste).
+- Documentación: este archivo, README, ESTADO_MIGRACION e INVENTARIO.
+
+**Pendiente:** aceptación institucional, dispositivos físicos y lector de pantalla. El móvil/tacto se emula y las dos sesiones del navegador nativo usan la misma identidad sintética; no se presenta como prueba entre dos personas diferentes. Fuentes SII/ILDA/Microsoft y autoridad Nexo son sintéticas, no acreditan servicios institucionales. No cambios de Nexo/Herd, credenciales reales, push ni despliegue.
+
 ## Catálogo histórico, Procedimiento y desplazamiento propio — 2026-10-13
 
 **Implementado:**
@@ -166,8 +237,8 @@ Las claves JSON nuevas se guardan estructuradas sin migrar las respuestas anteri
 |---|---|
 | `sistema` | `sii_v2`, `portal_cast`, `excel`, `correo`, `formulario`, `papel`, `otra` |
 | `sistemaOtro` | Nombre libre separado de la opción |
-| `moduloSiiId` | ID institucional estable |
-| `moduloSiiDescripcion` | Instantánea autorizada por el servidor al seleccionar el módulo |
+| `modulosSii` | Colección de `{ id, descripcion }`: ID institucional e instantánea autorizada por el servidor por módulo |
+| `moduloSiiId` / `moduloSiiDescripcion` | Asociación escalar anterior, conservada para lectura compatible cuando no hay colección |
 | `uso` | `registrar`, `agendar`, `consultar`, `seguimiento`, `avisos`, `reportes`, `autorizar`, `otro` |
 | `usoOtro` | Detalle libre separado del uso |
 | `estado` | `bien`, `fallas`, `no_funciona`, `sin_uso` |

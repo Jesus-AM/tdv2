@@ -21,7 +21,7 @@ public static class SystemAnswers
     {
         return field switch
         {
-            "sistema" when row?[field]?.ToString() == "sii_v2" => ValidModuleId(row?["moduloSiiId"]?.ToString()) && ValidText(row, "moduloSiiDescripcion"),
+            "sistema" when row?[field]?.ToString() == "sii_v2" => SystemModules.Complete(row),
             "sistema" when row?[field]?.ToString() == "otra" => ValidText(row, "sistemaOtro"),
             "uso" when row?[field]?.ToString() == "otro" => ValidText(row, "usoOtro"),
             "sistema" => Tools.Contains(row?[field]?.ToString()),

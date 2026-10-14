@@ -128,7 +128,7 @@ try {
     });
     await check('Sistemas comparte presencia y conserva contexto en barras, menús, SII y campos condicionales',async()=>{
         await control('systems-sync');for(const p of [a,b]) {await p.reload();await tab(p,'Sistemas y herramientas');}
-        await choose(a,'Sistema o herramienta','SIIv2');const module=input(a,'Módulo de SIIv2 1');await module.click();await module.fill('Consultas');await a.getByRole('option',{name:'Consultas',exact:true}).nth(1).click();
+        await choose(a,'Sistema o herramienta','SIIv2');const module=input(a,'Módulos de SIIv2 1');await module.click();await module.fill('Consultas');await a.getByRole('option',{name:'Consultas',exact:true}).nth(1).click();
         await expect(row(a,'sistemas:inicial')).toHaveAttribute('data-edit-state','owned');await dragHorizontal(a,'.systems-table');await expect(row(b,'sistemas:inicial')).toHaveAttribute('data-edit-state','occupied');
         await choose(a,'Sistema o herramienta','Otra (escríbela)');await input(a,'Nombre de la herramienta 1').fill(longText);await bounded(input(a,'Nombre de la herramienta 1'));
         await choose(a,'¿Para qué se usa?','Otro (escríbelo)');await input(a,'Describe el uso 1').fill(longText);await bounded(input(a,'Describe el uso 1'));await input(a,'Áreas de oportunidad 1').fill(longText);await bounded(input(a,'Áreas de oportunidad 1'));await layout(a,'sistemas:inicial');

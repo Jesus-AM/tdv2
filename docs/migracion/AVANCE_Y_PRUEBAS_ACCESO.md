@@ -1,5 +1,7 @@
 # Avance, SQL Server y Pruebas de acceso — 2026-10-10
 
+La fórmula siguiente incluye la actualización de cobertura del 2026-10-14. [Implementación, ejemplo completo, pruebas nativas y compatibilidad JSON](COBERTURA_Y_GUARDADO.md). Los resultados de verificación al final de este documento corresponden a la entrega original del 2026-10-10.
+
 Complementa la [distribución operativa](INTERFAZ_OPERATIVA.md) sobre los cambios locales existentes. Conserva MUI, barra blanca, tipografía, densidad, navegación, ámbitos de acceso, versiones, reservas, autoguardado e inmutabilidad. Sin dependencias, migraciones, cambios de configuración de despliegue o escrituras de bases durante este trabajo.
 
 ## Implementado y fórmula
@@ -12,17 +14,18 @@ Antes, avance y revisión recorrían los campos por separado. El detalle condici
 |---|---|
 | Procedimiento real | Los siete requisitos existentes de `ProcedureEligibility`: trámite, destinatarios válidos, resultado, responsable, validación V/A, prioridad 1–5 y código confirmado con formato válido |
 | Herramienta real | Cuatro: procedimiento completo/relacionable en el mismo formato, herramienta del catálogo de opciones, uso del catálogo y funcionamiento válido |
-| SIIv2 | Un requisito adicional: ID de módulo válido e instantánea de descripción confirmada |
+| SIIv2 | Un requisito adicional por fila: uno o varios módulos, todos con ID válido/único e instantánea de descripción confirmada |
+| Procedimiento aplicable | Una comprobación de cobertura: al menos una herramienta asociada con todos sus requisitos válidos, reutilizando la evaluación de sus campos |
 | Otra herramienta | Un requisito adicional: nombre de la herramienta, no sólo espacios y dentro del límite existente |
 | Otro uso | Un requisito adicional: descripción del uso con las mismas condiciones de texto |
-| Sección sin registros reales | Un requisito incumplido de agregar/completar al menos un registro, conservando el mínimo que ya exigía la revisión |
+| Sección sin registros reales | Un requisito incumplido de agregar/completar al menos un registro; en Sistemas lo sustituye la cobertura cuando hay procedimientos aplicables, sin duplicar ese mínimo |
 | Contexto, Medios, comentarios y campos posteriores | Opcionales/informativos o fuera de la captura activa; no penalizan ni añaden avance por visitarlos |
 
 Los detalles condicionales dejan de contar cuando su opción no está activa, sin borrarlos. Los nuevos módulos siguen validándose contra la réplica local dentro de la operación de escritura; comprobar su sintaxis en la evaluación no sustituye esa autorización. Referencias históricas conservan ID e instantánea aunque el módulo se retire de nuevas selecciones. Publicación del catálogo y evaluación comparten la misma comprobación de sintaxis de ID, sin cambiar la regla previa de publicación ni consultar SQL Server.
 
 Sólo la fila `inicial` intacta, sin respuestas (y con origen vacío/Nuevo para Identificación), es ayuda de captura. No cuenta en cantidades ni como una fila real incompleta. Las filas agregadas con ID propio, importadas o con código/respuestas son registros reales, aunque estén incompletas. No se borra nada para calcular. Al agregar o eliminar registros cambia el conjunto de requisitos aplicables y se vuelve a evaluar; no se asigna porcentaje fijo por crear filas.
 
-Ejemplos controlados: un procedimiento válido y una herramienta ordinaria válida suman 11/11 = 100 %. Esa misma herramienta con Otra y Otro, sin detalles, suma 11/13 = 84 %; con ambos detalles válidos vuelve a 100 %. Una herramienta SIIv2 con campos base completos pero sin módulo suma 11/12 = 91 %. Un campo pendiente entre cientos sigue mostrando como máximo 99 %.
+Ejemplos controlados: un procedimiento válido y una herramienta ordinaria válida suman 12/12 = 100 %, incluida su cobertura. Esa misma herramienta con Otra y Otro, sin detalles, suma 11/14 = 78 %: falta también una herramienta completa para cubrir el procedimiento. Con detalles válidos vuelve a 100 %. SIIv2 sin módulos suma 11/13 = 84 %. Dos procedimientos completos y una sola herramienta válida para uno suman 19/20 = 95 %, con envío rechazado. Un campo pendiente entre cientos sigue mostrando como máximo 99 %.
 
 D/N históricos y opciones de herramienta/uso/funcionamiento que ya no pertenecen al catálogo vigente permanecen legibles y sin conversión. Pueden conservarse al guardar campos ajenos conforme a las excepciones existentes, pero no cuentan como válidos para completar la captura editable. Los pendientes reutilizan los requisitos incumplidos; el mensaje identifica sección, registro, código/nombre y campo. Las comprobaciones de código y validación que llevan al mismo control producen un solo enlace, conservando ambas comprobaciones en el cálculo.
 

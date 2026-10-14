@@ -268,6 +268,16 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                 case "/sync-tick":
                     using (var scope=http.RequestServices.CreateScope()) await scope.ServiceProvider.GetRequiredService<SyncCoordinator>().Tick(http.RequestAborted);
                     break;
+                case "/coverage-seed":
+                    var coverageSeed = NativeTests.StageOnly(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    coverageSeed.Remove(Tdv2.Domain.FormDocument.Field);
+                    var coverageTool = coverageSeed["sistemas"]![0]!;
+                    coverageTool["sistema"] = "excel"; coverageTool["uso"] = "consultar"; coverageTool["estado"] = "bien";
+                    coverageTool["fallas"] = "Respuesta que se conserva al reasignar";
+                    var coverageProcedure = coverageSeed["identificacion"]![0]!.DeepClone(); coverageProcedure["id"] = "segundo"; coverageProcedure["codigo"] = "PO-02";
+                    coverageProcedure["tramite"] = "Atención y seguimiento de solicitudes institucionales con un nombre completo suficientemente largo para comprobar la distribución en dispositivos móviles";
+                    coverageSeed["identificacion"]!.AsArray().Add(coverageProcedure);
+                    await NativeTests.SeedStage(database, coverageSeed); break;
                 case "/systems-seed":
                     var systemsSeed = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
                     foreach (var field in new[] { "sistema", "uso", "estado", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion" }) systemsSeed["sistemas"]![0]![field] = "";

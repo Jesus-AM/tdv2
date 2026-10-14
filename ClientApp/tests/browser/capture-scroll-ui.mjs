@@ -152,7 +152,7 @@ try {
                 await procedure.click(); await expect(procedure).toHaveAttribute('aria-expanded', 'true');
                 assert.equal(await scroll().getByRole('listbox').count(), 0);
                 await procedure.fill('PO-30'); await expect(page.getByRole('option')).toHaveCount(1); await page.keyboard.press('Escape');
-                const module = last.getByRole('combobox', { name: 'Módulo de SIIv2 30', exact: true });
+                const module = last.getByRole('combobox', { name: 'Módulos de SIIv2 30', exact: true });
                 if (width < 600) await module.tap(); else await module.click();
                 await expect(module).toHaveAttribute('aria-expanded', 'true'); await expect(page.getByRole('option')).toHaveCount(1);
                 assert.equal(await scroll().getByRole('listbox').count(), 0); await page.keyboard.press('Escape');

@@ -10,7 +10,7 @@ public sealed record FormStageStatus(int id, string nombre, bool habilitada, str
 public sealed record FormSectionReview(string id, string nombre, bool completa);
 public sealed record FormStageSummary(int procedimientos, int herramientas, string[] medios);
 public sealed record FormStageReview(FormStageStatus etapa, FormReview revision,
-    FormSectionReview[] secciones, FormStageSummary resumen);
+    FormSectionReview[] secciones, FormStageSummary resumen, IReadOnlyList<ProcedureCoverage> cobertura);
 public sealed record FormStageDefinition(int Id, string Name, string[] ContentKeys, Func<string, bool> IncludesBlock,
     Func<JsonObject, FormReview> Review, Func<JsonObject, int> Progress,
     (string Id, string Name)[] Sections, Func<JsonObject, FormStageSummary> Summarize);
@@ -61,7 +61,8 @@ public static class FormStages
         var review = definition?.Review(content) ?? new FormReview(false, []);
         var sections = definition?.Sections
             .Select(s => new FormSectionReview(s.Id, s.Name, review.pendientes.All(p => p.seccion != s.Id))).ToArray() ?? [];
-        return new(stage, review, sections, definition?.Summarize(content) ?? new(0, 0, []));
+        return new(stage, review, sections, definition?.Summarize(content) ?? new(0, 0, []),
+            stage.id == First ? FormRequirements.Inspect(content).Coverage : []);
     }
     private static FormStageSummary FirstSummary(JsonObject content)
     {

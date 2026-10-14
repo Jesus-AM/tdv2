@@ -1,8 +1,8 @@
-import { useId, useMemo, type ReactNode } from 'react';
-import { Autocomplete, Box, MenuItem, TextField, Typography } from '@mui/material';
+import { useMemo, type ReactNode } from 'react';
+import { Autocomplete, Box, Checkbox, Chip, MenuItem, TextField, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { CheckCircleOutlined, WarningAmber, HighlightOff, RemoveCircleOutlined } from '@mui/icons-material';
-import type { SystemRow } from '@/types/tdv2';
+import { Cancel, CheckCircleOutlined, WarningAmber, HighlightOff, RemoveCircleOutlined } from '@mui/icons-material';
+import type { SiiModuleSelection, SystemRow } from '@/types/tdv2';
 import type { RecordAutocompleteEvents } from '@/lib/record-autocomplete';
 
 export const toolOptions = [
@@ -18,7 +18,7 @@ export const stateOptions = [
     ['bien', 'Funciona bien', 'success.main', CheckCircleOutlined], ['fallas', 'Funciona con fallas', 'warning.main', WarningAmber],
     ['no_funciona', 'No funciona', 'error.main', HighlightOff], ['sin_uso', 'Ya no se usa', 'text.secondary', RemoveCircleOutlined],
 ] as const;
-export type SiiModule = { id: string; descripcion: string };
+export type SiiModule = SiiModuleSelection;
 export type ModuleCatalog = { estado: 'cargando' | 'disponible' | 'pendiente' | 'error'; modulos: SiiModule[] };
 type SelectEvents = { readOnly: boolean; open: boolean; onOpen: () => Promise<void>; onClose: () => void };
 
@@ -30,9 +30,11 @@ function DependentField({ label, children }: { label: string; children: ReactNod
     </Box>;
 }
 
-export default function SystemField({ row, field, index, readOnly, events, moduleEvents, change, catalog, errors }: {
+export default function SystemField({ row, field, index, readOnly, events, moduleEvents, change, changeModules, catalog, errors }: {
     row: SystemRow; field: 'sistema' | 'uso' | 'estado'; index: number; readOnly: boolean;
-    events: (field: string) => SelectEvents; change: (field: keyof SystemRow, value: string) => void;
+    events: (field: string) => SelectEvents;
+    change: (field: 'sistema' | 'uso' | 'estado' | 'sistemaOtro' | 'usoOtro', value: string) => void;
+    changeModules: (modules: SiiModule[]) => void;
     catalog: ModuleCatalog; errors?: Record<string, string>;
     moduleEvents: RecordAutocompleteEvents;
 }) {
@@ -53,11 +55,11 @@ export default function SystemField({ row, field, index, readOnly, events, modul
     const detail = (key: 'sistemaOtro' | 'usoOtro', title: string) => <DependentField label={title}><TextField fullWidth label={title} value={row[key] || ''}
         multiline minRows={2} maxRows={4} onChange={e => change(key, e.target.value)} error={!!errors?.[key]} helperText={errors?.[key]}
         slotProps={{ input: { readOnly }, htmlInput: { 'data-field': key, 'aria-label': `${title} ${index + 1}` } }} /></DependentField>;
-    const selected = useMemo(() => row.moduloSiiId ? {
+    const selected = useMemo(() => row.modulosSii ?? (row.moduloSiiId ? [{
         id: row.moduloSiiId,
         descripcion: row.moduloSiiDescripcion || catalog.modulos.find(m => m.id === row.moduloSiiId)?.descripcion || 'Descripción no disponible',
-    } : null, [row.moduloSiiId, row.moduloSiiDescripcion, catalog.modulos]);
-    const moduleValueId = useId();
+    }] : []), [row.modulosSii, row.moduloSiiId, row.moduloSiiDescripcion, catalog.modulos]);
+    const moduleError = errors?.modulosSii || errors?.moduloSiiId;
     return <Box sx={{ display: 'grid', gap: 1, minWidth: 0 }}>
         <TextField fullWidth select value={value} onChange={e => change(field, e.target.value)}
             error={!!errors?.[field]} helperText={errors?.[field] || (historical ? 'Respuesta histórica' : undefined)}
@@ -74,36 +76,47 @@ export default function SystemField({ row, field, index, readOnly, events, modul
         </TextField>
         {field === 'sistema' && value === 'otra' && detail('sistemaOtro', 'Nombre de la herramienta')}
         {field === 'uso' && value === 'otro' && detail('usoOtro', 'Describe el uso')}
-        {field === 'sistema' && value === 'sii_v2' && <DependentField label="Módulo de SIIv2">
-            <Autocomplete options={moduleEvents.selectionDisabled ? [] : catalog.modulos} value={selected} getOptionLabel={o => o.descripcion} getOptionKey={o => o.id}
-                className={`sii-module-select multiline-record-select${selected && !moduleEvents.open ? ' has-selected-value' : ''}`}
+        {field === 'sistema' && value === 'sii_v2' && <DependentField label="Módulos de SIIv2">
+            <Autocomplete multiple disableCloseOnSelect options={moduleEvents.selectionDisabled ? [] : catalog.modulos} value={selected} getOptionLabel={o => o.descripcion} getOptionKey={o => o.id}
+                className="sii-module-select sii-modules-select"
                 isOptionEqualToValue={(a, b) => a.id === b.id} readOnly={moduleEvents.readOnly} open={moduleEvents.open}
                 onOpen={moduleEvents.onOpen} onClose={moduleEvents.onClose}
-                onChange={(_, module) => { if (!moduleEvents.selectionDisabled) change('moduloSiiId', module?.id || ''); }}
+                onChange={(_, modules) => {
+                    if (!moduleEvents.selectionDisabled) changeModules([...new Map(modules.map(m => [m.id, m])).values()]);
+                }}
                 getOptionDisabled={() => moduleEvents.selectionDisabled}
                 loading={moduleEvents.pending || catalog.estado === 'cargando'}
                 loadingText={moduleEvents.pending ? moduleEvents.status : 'Cargando módulos…'}
                 noOptionsText={moduleEvents.status || 'Sin módulos disponibles para esta búsqueda'}
-                renderValue={(module, _getItemProps, ownerState) => ownerState.popupOpen ? null
-                    : <span id={moduleValueId} className="sii-module-value record-selected-value">{module.descripcion}</span>}
+                renderValue={(modules, getItemProps) => <Box className="sii-modules-values">
+                    {modules.map((module, itemIndex) => {
+                        const { key, ...itemProps } = getItemProps({ index: itemIndex });
+                        return <Chip {...itemProps} key={module.id} className="sii-module-value" label={module.descripcion}
+                            disabled={moduleEvents.selectionDisabled && !moduleEvents.readOnly}
+                            onDelete={moduleEvents.readOnly || moduleEvents.selectionDisabled ? undefined : itemProps.onDelete}
+                            deleteIcon={<Cancel aria-label={`Quitar ${module.descripcion}`} />} />;
+                    })}
+                </Box>}
                 slotProps={{ clearIndicator: { disabled: moduleEvents.selectionDisabled }, paper: { sx: { fontSize: 13 } },
                     popper: { className: 'record-select-popup' },
                     status: { onMouseDown: event => event.preventDefault() },
                     listbox: { sx: { fontFamily: 'inherit', fontSize: 13, fontWeight: 400,
                     '& .MuiAutocomplete-option': { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', alignItems: 'flex-start' } } } }}
-                renderInput={params => <TextField {...params} label="Módulo de SIIv2" placeholder="Busca un módulo…"
-                    error={!!errors?.moduloSiiId} helperText={errors?.moduloSiiId}
+                renderInput={params => <TextField {...params} label="Módulos de SIIv2" placeholder="Busca módulos…"
+                    error={!!moduleError} helperText={moduleError || 'Selecciona uno o varios módulos utilizados para este procedimiento.'}
                     slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput,
                         'aria-busy': moduleEvents.pending,
-                        'aria-describedby': [selected && !moduleEvents.open ? moduleValueId : null,
-                            errors?.moduloSiiId ? `${params.id}-helper-text` : null].filter(Boolean).join(' ') || undefined,
-                        'data-catalog-search': true, 'data-field': 'moduloSiiId', 'aria-label': `Módulo de SIIv2 ${index + 1}` } }} />}
-                renderOption={(props, module) => <li {...props} key={module.id}>{module.descripcion}</li>} />
+                        'data-catalog-search': true, 'data-field': 'modulosSii', 'aria-label': `Módulos de SIIv2 ${index + 1}` } }} />}
+                renderOption={(props, module, { selected: checked }) => <li {...props} key={module.id}>
+                    <Checkbox checked={checked} tabIndex={-1} disableRipple aria-hidden="true" sx={{ p: .5, mr: .5, pointerEvents: 'none' }}
+                        slotProps={{ input: { tabIndex: -1 } }} />
+                    <span>{module.descripcion}</span>
+                </li>} />
             {catalog.estado !== 'disponible' && <Typography variant="caption" role="status" color={catalog.estado === 'error' ? 'error.main' : 'text.secondary'}>
                 {catalog.estado === 'cargando' ? 'Cargando catálogo local…' : catalog.estado === 'error' ? 'No fue posible consultar el catálogo local de módulos. Puedes continuar con el formulario.' : 'El catálogo de módulos de SIIv2 aún no está disponible'}
             </Typography>}
-            {selected && catalog.estado === 'disponible' && !catalog.modulos.some(m => m.id === selected.id)
-                && <Typography variant="caption">Módulo histórico · Ya no está disponible para nuevas selecciones.</Typography>}
+            {catalog.estado === 'disponible' && selected.some(s => !catalog.modulos.some(m => m.id === s.id))
+                && <Typography variant="caption">La selección incluye módulos históricos que ya no están disponibles para nuevas selecciones.</Typography>}
         </DependentField>}
     </Box>;
 }

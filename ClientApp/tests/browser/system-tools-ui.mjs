@@ -58,12 +58,12 @@ try {
         await expect(page.getByText(/No fue posible consultar el catálogo local de módulos/)).toBeVisible();
         fixture.catalog = { estado: 'disponible', modulos: [{ id: '1', descripcion: 'Solicitudes' }, { id: '2', descripcion: 'Consultas' }, { id: '3', descripcion: 'Consultas' }] }; fixture.delay = 1200;
         await page.reload(); await systems(page); await expect(page.getByText('Cargando catálogo local…')).toBeVisible(); fixture.delay = 0;
-        const module = choice(page, 'Módulo de SIIv2'); await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
+        const module = choice(page, 'Módulos de SIIv2'); await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
         await module.fill('Consultas'); await expect(page.getByRole('option', { name: 'Consultas', exact: true })).toHaveCount(2);
         await page.getByRole('option', { name: 'Consultas', exact: true }).nth(1).click(); await finish(page);
-        assert.equal(fixture.content.sistemas[0].moduloSiiId, '3'); await page.reload(); await systems(page);
+        assert.equal(fixture.content.sistemas[0].modulosSii[0].id, '3'); await page.reload(); await systems(page);
         await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
-        await expect(choice(page, 'Módulo de SIIv2')).toHaveAccessibleDescription('Consultas');
+        await expect(choice(page, 'Módulos de SIIv2')).toHaveAccessibleDescription('Selecciona uno o varios módulos utilizados para este procedimiento.');
         await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned'); await module.press('ArrowDown');
         await expect(page.getByRole('option', { name: 'Consultas', exact: true }).nth(0)).toHaveAttribute('aria-selected', 'false');
         await expect(page.getByRole('option', { name: 'Consultas', exact: true }).nth(1)).toHaveAttribute('aria-selected', 'true');
@@ -72,9 +72,9 @@ try {
         fixture.catalog.modulos.push({ id: '34', descripcion: 'Nombre legítimo · ID 34' });
         await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
         await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
-        await module.fill('Nombre legítimo');
+        await row(page).locator('.sii-module-select .MuiAutocomplete-clearIndicator').click(); await module.fill('Nombre legítimo');
         await page.getByRole('option', { name: 'Nombre legítimo · ID 34', exact: true }).click(); await finish(page);
-        assert.equal(fixture.content.sistemas[0].moduloSiiId, '34');
+        assert.equal(fixture.content.sistemas[0].modulosSii[0].id, '34');
         await page.reload(); await systems(page); await expect(row(page).locator('.sii-module-value')).toHaveText('Nombre legítimo · ID 34');
     });
     await check('Otra herramienta y Otro uso conservan detalles al cambiar selección sin liberar la fila', async () => {
@@ -191,7 +191,7 @@ try {
         fixture.catalog.modulos.push({ id: '77', descripcion: longModule }, { id: '78', descripcion: longModule + ' actualizado' });
         await page.reload(); await systems(page);
         const cases = [
-            { primary: 'Sistema o herramienta', option: 'SIIv2', title: 'Módulo de SIIv2', field: 'moduloSiiId' },
+            { primary: 'Sistema o herramienta', option: 'SIIv2', title: 'Módulos de SIIv2', field: 'modulosSii' },
             { primary: 'Sistema o herramienta', option: 'Otra (escríbela)', title: 'Nombre de la herramienta', field: 'sistemaOtro' },
             { primary: '¿Para qué se usa?', option: 'Otro (escríbelo)', title: 'Describe el uso', field: 'usoOtro' },
         ];
@@ -223,8 +223,8 @@ try {
                     validation: [{ block: 'sistemas:inicial', field: item.field, message }] }) });
                 await page.route('**/formatos/A/bloques', reject);
                 try {
-                    if (item.field === 'moduloSiiId') {
-                        await detail.fill('Administración'); await page.getByRole('option', { name: longModule, exact: true }).click();
+                    if (item.field === 'modulosSii') {
+                        await group.locator('.MuiAutocomplete-clearIndicator').click(); await detail.fill('Administración'); await page.getByRole('option', { name: longModule, exact: true }).click();
                         await expect(group.locator('.sii-module-value')).toHaveText(longModule);
                     } else await detail.fill('Herramienta o actividad institucional con nombre largo y detalle completo\nSegunda línea sin recortar.');
                     await page.getByRole('button', { name: 'Guardar', exact: true }).click();
@@ -232,7 +232,7 @@ try {
                     await expect(group.getByText(message, { exact: true })).toBeVisible();
                     await typography(group, true);
                     const description = await detail.getAttribute('aria-describedby'); assert.ok(description);
-                    await expect(detail).toHaveAccessibleDescription(item.field === 'moduloSiiId' ? `${longModule} ${message}` : message);
+                    await expect(detail).toHaveAccessibleDescription(message);
                     assert.equal(fixture.requests.filter(r => r.path.endsWith('/liberar')).length, releases);
                     await detail.focus();
                     // Mostrar el inicio del grupo junto a Edición durante la revisión visual del scroll.
@@ -243,12 +243,12 @@ try {
                     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
                     await page.screenshot({ path: path.join(artifacts, `dependent-${item.field}-${width}.png`), fullPage: true });
                 } finally { await page.unroute('**/formatos/A/bloques', reject); }
-                if (item.field === 'moduloSiiId') {
-                    await detail.fill('actualizado'); await page.getByRole('option', { name: longModule + ' actualizado', exact: true }).click();
+                if (item.field === 'modulosSii') {
+                    await group.locator('.MuiAutocomplete-clearIndicator').click(); await detail.fill('actualizado'); await page.getByRole('option', { name: longModule + ' actualizado', exact: true }).click();
                 } else await detail.fill('Detalle corregido que conserva el texto y sus saltos\nSegunda línea.');
                 await finish(page); await expect(detail).not.toHaveAttribute('aria-invalid', 'true');
-                const expected = item.field === 'moduloSiiId' ? '78' : 'Detalle corregido que conserva el texto y sus saltos\nSegunda línea.';
-                assert.equal(fixture.content.sistemas[0][item.field], expected);
+                const expected = item.field === 'modulosSii' ? '78' : 'Detalle corregido que conserva el texto y sus saltos\nSegunda línea.';
+                assert.equal(item.field === 'modulosSii' ? fixture.content.sistemas[0].modulosSii[0].id : fixture.content.sistemas[0][item.field], expected);
             }
             await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
         }
@@ -258,7 +258,7 @@ try {
         for (const width of [1366, 360]) {
             await page.setViewportSize({ width, height: 900 });
             const cases = [
-                { primary: 'Sistema o herramienta', option: 'SIIv2', title: 'Módulo de SIIv2', module: true },
+                { primary: 'Sistema o herramienta', option: 'SIIv2', title: 'Módulos de SIIv2', module: true },
                 { primary: 'Sistema o herramienta', option: 'Otra (escríbela)', title: 'Nombre de la herramienta' },
                 { primary: '¿Para qué se usa?', option: 'Otro (escríbelo)', title: 'Describe el uso' },
             ];
@@ -285,7 +285,7 @@ try {
                     assert.ok(optionLayout.content <= optionLayout.height + 1 && optionLayout.contentWidth <= optionLayout.width + 1);
                     await detail.press('ArrowDown'); await detail.press('Enter');
                     await expect(group.locator('.sii-module-value')).toHaveText(longModule); await expect(detail).toBeFocused();
-                    await expect(detail).toHaveAccessibleDescription(longModule);
+                    await expect(detail).toHaveAccessibleDescription('Selecciona uno o varios módulos utilizados para este procedimiento.');
                     const layout = await group.evaluate(el => {
                         const value = el.querySelector('.sii-module-value'), arrow = el.querySelector('.MuiAutocomplete-endAdornment');
                         const bounds = value.getBoundingClientRect(), control = el.querySelector('.MuiInputBase-root').getBoundingClientRect();
@@ -313,7 +313,7 @@ try {
                 await page.screenshot({ path: path.join(artifacts, `typography-${item.module ? 'module' : item.title}-${width}.png`), fullPage: true });
                 await finish(page);
                 if (item.module) {
-                    assert.equal(fixture.content.sistemas[0].moduloSiiId, '78');
+                    assert.equal(fixture.content.sistemas[0].modulosSii[0].id, '78');
                     await page.reload(); await systems(page);
                     await expect(row(page).locator('.sii-module-value')).toHaveText(longModule);
                 }
@@ -323,7 +323,7 @@ try {
         await select(page, 'Sistema o herramienta', 'SIIv2'); await finish(page);
         fixture.readOnly = true; await page.reload(); await systems(page);
         await expect(row(page).locator('.sii-module-value')).toHaveText(longModule);
-        await expect(choice(page, 'Módulo de SIIv2')).toHaveJSProperty('readOnly', true);
+        await expect(choice(page, 'Módulos de SIIv2')).toHaveJSProperty('readOnly', true);
         fixture.readOnly = false;
     });
     await check('históricos y enviados conservan valores y cierran la edición', async () => {

@@ -281,7 +281,7 @@ internal static class EntryPoint
             var row = content["identificacion"]![0]!; row["codigo"] = "PO-01"; row["prioridad"] = "3"; row["validacion"] = "V";
             row["usuario"] = new JsonArray("Egresados"); row["resultado"] = "Constancia"; row["responsable"] = "Área";
             var tool = content["sistemas"]![0]!; tool["proceso"] = "PO-01"; tool["sistema"] = "otra"; tool["uso"] = "consultar"; tool["estado"] = "bien";
-            await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(91, false);
+            await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(84, false);
             tool["sistemaOtro"] = "Propia"; await app.Store.Save("A", 2, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(100, true);
             app.Nexo.Current = Fixtures.Profile("consulta_institucional"); await Verify(100, true);
             var readOnly = (await Json(await client.GetAsync("/formatos/A")))["props"]!;

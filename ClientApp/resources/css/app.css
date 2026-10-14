@@ -213,6 +213,23 @@ a {
 .systems-table .procedure-select.Mui-expanded .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
     grid-area: 2 / 1 / auto / -1;
 }
+/* Colección de módulos: nombres completos y búsqueda estable incluso al abrir/cerrar.
+   Los botones mantienen su espacio propio sin estrechar las etiquetas seleccionadas. */
+.systems-table .sii-modules-select.MuiAutocomplete-root .MuiInputBase-root.MuiAutocomplete-inputRoot.MuiOutlinedInput-root {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px;
+    padding-right: 6px;
+}
+.systems-table .sii-modules-values { grid-area: 1 / 1; display: grid; gap: 4px; min-width: 0; }
+.systems-table .sii-modules-values .MuiChip-root { height: auto; min-height: 28px; width: 100%; max-width: 100%; justify-content: space-between; font: inherit; }
+.systems-table .sii-modules-values .MuiChip-label { white-space: pre-wrap; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; padding: 4px 8px; line-height: 1.5; }
+.systems-table .sii-modules-values .MuiChip-deleteIcon { flex-shrink: 0; }
+.systems-table .sii-modules-select .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
+    grid-area: 2 / 1 / auto / -1; width: 100%; min-width: 0; box-sizing: border-box;
+}
+.systems-table .sii-modules-select .MuiAutocomplete-inputRoot:not(:has(.sii-module-value)) .MuiAutocomplete-input { grid-area: 1 / 1; }
+.systems-table .sii-modules-select .MuiAutocomplete-endAdornment { position: static; transform: none; grid-area: 1 / 2; align-self: start; }
 .systems-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
 .capture-scroll .MuiTextField-root {
     min-width: 150px;

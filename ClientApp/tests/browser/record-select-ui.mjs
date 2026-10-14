@@ -10,7 +10,7 @@ const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const report = { syntheticTransport: true, realPostgreSql: false, checks: [], errors: [] };
 const gate = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const row = (page, id) => page.locator(`[data-edit-block="sistemas:${id}"]`);
-const module = (page, id) => row(page, id).locator('[data-field="moduloSiiId"]');
+const module = (page, id) => row(page, id).locator('[data-field="modulosSii"]');
 async function setup(width = 1366) {
     const fixture = await systemFixture();
     fixture.catalog = { estado: 'disponible', modulos: [
@@ -66,7 +66,7 @@ try {
             await page.getByRole('option', { name: 'Seguimiento de solicitudes', exact: true }).click();
             await page.getByRole('button', { name: 'Guardar', exact: true }).click();
             await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0);
-            assert.equal(fixture.content.sistemas[1].moduloSiiId, '22');
+            assert.deepEqual(fixture.content.sistemas[1].modulosSii.map(m => m.id), ['11', '22']);
             assert.equal(fixture.content.sistemas[0].fallas, 'Cambio que debe guardarse al salir');
         } finally { release.resolve(); }
     });
@@ -96,13 +96,15 @@ try {
                 });
                 assert.ok(searchLayout.input >= searchLayout.root - searchLayout.buttons - 17, JSON.stringify(searchLayout));
                 if (mode === 'táctil' && index === 2) await page.screenshot({ path: path.join(artifacts, 'touch-options.png'), fullPage: true });
-                await input.fill('Seguimiento'); await input.press('ArrowDown'); await input.press('Enter');
-                await expect(row(page, id).locator('.sii-module-value')).toHaveText('Seguimiento de solicitudes');
+                await input.fill('Seguimiento');
+                if (await page.getByRole('option', { name: 'Seguimiento de solicitudes', exact: true }).getAttribute('aria-selected') !== 'true') { await input.press('ArrowDown'); await input.press('Enter'); }
+                await input.press('Escape');
+                await expect(row(page, id).locator('.sii-module-value')).toHaveText(fixture.catalog.modulos.map(m => m.descripcion));
                 await expect(row(page, id)).toHaveAttribute('data-edit-state', 'owned');
             }
             await page.getByRole('button', { name: 'Guardar', exact: true }).click();
             await expect(page.locator('[data-edit-state="owned"]')).toHaveCount(0);
-            assert.deepEqual(fixture.content.sistemas.map(r => r.moduloSiiId), ['22', '22']);
+            assert.deepEqual(fixture.content.sistemas.map(r => r.modulosSii.map(m => m.id)), [['11', '22'], ['11', '22']]);
             assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
         }, mode === 'táctil' ? 390 : 1366);
     }

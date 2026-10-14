@@ -1,5 +1,7 @@
 # Edición automática por registro — 2026-10-08
 
+Actualización 2026-10-14: cobertura compartida por avance/revisión/envío, alta dirigida desde pendientes sin filas ficticias, cantidad de relaciones en confirmación de retiro y reasignación conservando respuestas. Versión de estructura independiente de concurrencia. Se verificaron bloqueos con conexiones PostgreSQL independientes, solicitudes atrasadas, recibos, rollback e históricos. [Contrato vigente, archivos, resultados y límites](COBERTURA_Y_GUARDADO.md).
+
 Esta entrega sustituye la recuperación manual descrita en las entregas anteriores. No existen Resolver, Resolver eliminación, comparaciones ni elección de versiones. No cambia participación de áreas, Nexo, autenticación, fotografías, permisos ni esquema.
 
 ## Actualización 2026-10-13: apertura de Autocomplete y foco en cola

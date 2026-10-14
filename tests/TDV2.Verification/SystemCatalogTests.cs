@@ -96,10 +96,37 @@ internal static class SystemCatalogTests
             var content = Blank(); Check(FormSchema.Progress(Validate(content)) == 0);
             var row = content["sistemas"]![0]!; row["sistema"] = "sii_v2"; row["uso"] = "consultar"; row["estado"] = "bien";
             var without = Validate(content); Check(!SystemAnswers.Filled(without["sistemas"]![0], "sistema"));
-            Check(FormCapture.Review(without).pendientes.Any(p => p.seccion == "sistemas" && p.campo == "moduloSiiId" && p.mensaje.Contains("Módulo de SIIv2")));
+            Check(FormCapture.Review(without).pendientes.Any(p => p.seccion == "sistemas" && p.campo == "modulosSii" && p.mensaje.Contains("Módulos de SIIv2")));
             row["moduloSiiId"] = "3"; row["moduloSiiDescripcion"] = "Consultas";
             Check(FormCapture.Progress(Validate(content)) > FormCapture.Progress(without));
         });
+        cases.Add(("Sistemas/múltiples módulos: IDs, snapshots, histórico, cliente antiguo y rechazo atómico", async () =>
+        {
+            JsonObject Module(string id, string description = "Texto del cliente") => new() { ["id"] = id, ["descripcion"] = description };
+            var content = Blank(); var row = content["sistemas"]![0]!.AsObject(); row["sistema"] = "sii_v2";
+            row["moduloSiiId"] = "1"; row["moduloSiiDescripcion"] = "Nombre histórico";
+            Check(SystemModules.Read(row).Count == 1 && SystemModules.Complete(row));
+            var previous = row.DeepClone(); row["modulosSii"] = new JsonArray(Module("1"), Module("2"), Module("3"));
+            var lookups = new List<string>();
+            Task<string?> Catalog(string id) { lookups.Add(id); return Task.FromResult<string?>(id is "2" or "3" ? "Descripción duplicada" : null); }
+            await SystemModules.Confirm(row, previous, Catalog);
+            Check(lookups.SequenceEqual(["2", "3"]) && row["moduloSiiId"]!.ToString() == "");
+            Check(row["modulosSii"]![0]!["descripcion"]!.ToString() == "Nombre histórico");
+            Check(SystemModules.Complete(JsonNode.Parse(row.ToJsonString())));
+            previous = row.DeepClone(); row["modulosSii"] = new JsonArray(Module("3"), Module("1"), Module("2"));
+            await SystemModules.Confirm(row, previous, _ => throw new Exception("No consultar instantáneas existentes"));
+            Check(row["modulosSii"]![1]!["descripcion"]!.ToString() == "Nombre histórico");
+            var priorContent = content.DeepClone().AsObject(); row.Remove("modulosSii"); row["fallas"] = "Otro campo";
+            Check(Validate(content, priorContent)["sistemas"]![0]!["modulosSii"]!.AsArray().Count == 3);
+            foreach (var invalid in new[] { new JsonArray(Module("2"), Module("2")), new JsonArray(Module("0")),
+                new JsonArray(Module("-1")), new JsonArray(Module("abc")), new JsonArray((JsonNode?)null) })
+            { row["modulosSii"] = invalid; Reject(() => Validate(content)); }
+            row["modulosSii"] = new JsonArray(Module("2"), Module("999")); var unconfirmed = row.DeepClone();
+            try { await SystemModules.Confirm(row, null, Catalog); throw new Exception("Debe rechazar cualquier ID desconocido"); }
+            catch (DomainProblem error) when (error.Status == 422) { Check(JsonNode.DeepEquals(row, unconfirmed)); }
+            row["modulosSii"] = new JsonArray(); await SystemModules.Confirm(row, previous, Catalog);
+            Check(SystemModules.Read(row).Count == 0 && !SystemModules.Complete(row));
+        }));
         Test("CAST retirado rechaza nuevas asignaciones y conserva históricos, etiquetas y avance", () =>
         {
             var original = Blank(); original["sistemas"]![0]!["sistema"] = "portal_cast";

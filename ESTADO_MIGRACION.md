@@ -1,6 +1,26 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-13**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-14**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+
+## 2026-10-14 — Cobertura, evolución del JSON y guardado colaborativo
+
+**Implementado:** evaluación central de cobertura por procedimiento aplicable, compartida por avance, revisión y envío API. Sistemas lista todos los procedimientos reales y permite capturar/localizar sin filas ficticias; retiro informa registros afectados y conserva respuestas para reasignación. Marca `versionEstructura: 1` independiente de concurrencia, compatible con ausencia anterior, sólo actualizada al guardar; snapshots enviados intactos. Conserva modelo híbrido, módulos múltiples, reservas, autoguardado y cambios locales.
+
+**Probado:** 108/108 dominio/HTTP con dobles, 88/88 frontend, TypeScript/Vite y compilación Release. PostgreSQL 18 aislado: 10 casos distintos de ASP.NET/HTTP (9/9 iniciales y repetición ampliada 6/6), incluyendo dos conexiones bloqueadas realmente, escrituras distintas, mismo bloque, caducidad, solicitudes atrasadas, recibos idénticos, cobertura/envío, retiros relacionados, módulos, rollback y enviados anteriores. Edge con ASP.NET/PostgreSQL: 5/5 recorridos, navegación/foco/alta, guardado/recarga, última herramienta, reasignación, nombres largos, envío/bloqueo y 1366/390/320 px. Regresión módulos con transporte simulado: 12/12. Capturas revisadas. [Fórmula, archivos, corridas y comandos](docs/migracion/COBERTURA_Y_GUARDADO.md).
+
+**Actualización:** ninguna migración nueva ni backfill. Actualizar conjuntamente backend y frontend en una publicación posterior autorizada; no hay nuevas claves de configuración. Borradores recalculan cobertura al consultar/guardar; enviados conservan porcentaje persistido y bloqueo.
+
+**Pendiente/límites:** sesiones independientes de la misma identidad sintética, sin afirmar dos identidades distintas; fuentes institucionales, dispositivos físicos, lector de pantalla y carga real no comprobados. Sin acceso a bases institucionales, Nexo/Herd, cambios de credenciales, push ni despliegue. Las bases nuevas de pruebas se crearon dentro de `.artifacts` y se detuvieron al terminar.
+
+## 2026-10-14 — Selección múltiple de módulos SIIv2
+
+**Implementado:** Módulos de SIIv2 permite uno o varios módulos por fila mediante búsqueda/casillas y etiquetas removibles con nombres completos. Conserva menú abierto al seleccionar, foco, reservas, agrupación y autoguardado. `modulosSii` guarda objetos con ID institucional e instantánea de descripción confirmada por servidor; lee el módulo único anterior sin reescribirlo al consultar. Rechaza repeticiones, IDs inválidos o nuevas referencias ausentes; conserva asociaciones históricas retiradas y detalles dormidos de otras herramientas. El conjunto aporta exactamente un requisito al avance y a los pendientes; una colección vacía no reutiliza el ID antiguo. No une filas ni cambia permisos, bloqueos o sincronizaciones.
+
+**Probado:** TypeScript/Vite, compilación Release y **106/106 dominio/HTTP**; **88/88 frontend**; **55 grupos Edge con transporte simulado** (12 selección múltiple, 13 Sistemas, 9 apertura/reservas, 12 scroll y 9 Procedimiento). PostgreSQL 18 aislado: **3/3 casos ASP.NET/HTTP** y **7/7 recorridos de navegador con ASP.NET, persistencia y SignalR reales**, fuentes/identidad sintéticas. Verificados IDs duplicados/inválidos, descripciones duplicadas, rechazo sin publicación parcial, compatibilidad escalar, retirada histórica, filas independientes, guardado/recarga, avance, menú abierto durante ACK, errores, lectura de enviados, escritorio, teclado y móvil emulado. Capturas revisadas.
+
+**Migraciones:** ninguna nueva. Se reutiliza `formatos_ur.contenido` (`json`) y los recibos/instantáneas existentes. Las migraciones normales ya existentes se aplicaron únicamente en clústeres desechables de pruebas; ningún arranque productivo ejecuta DDL.
+
+**Pendiente/límites:** aceptación institucional, lectores de pantalla y dispositivos físicos. La concurrencia de navegador usa sesiones separadas de una cuenta sintética; no acredita dos identidades distintas. No acceso a servicios o bases institucionales, Nexo/Herd, credenciales reales, push ni despliegue. [Contrato, archivos, comandos y evidencia](docs/migracion/SISTEMAS_HERRAMIENTAS.md#selección-múltiple-de-módulos--2026-10-14).
 
 ## 2026-10-13 — CAST histórico, etiqueta Procedimiento y scroll de captura
 

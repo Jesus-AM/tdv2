@@ -39,6 +39,7 @@ export interface ProcessRow {
     responsable: string;
     validacion: string;
 }
+export interface SiiModuleSelection { id: string; descripcion: string }
 export interface SystemRow {
     id: string;
     proceso: string;
@@ -50,6 +51,7 @@ export interface SystemRow {
     usoOtro?: string;
     moduloSiiId?: string;
     moduloSiiDescripcion?: string;
+    modulosSii?: SiiModuleSelection[];
     procesos?: string[];
 }
 export interface DataRow {
@@ -79,6 +81,7 @@ export interface Agreement {
     fecha: string;
 }
 export interface FormContent {
+    versionEstructura?: number;
     encabezado: { fecha: string; area: string; responsable: string };
     identificacion: ProcessRow[];
     sistemas: SystemRow[];

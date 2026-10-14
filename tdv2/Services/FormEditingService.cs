@@ -64,7 +64,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         {
             if (!FormStages.Status(form).Blocked && form.ActiveStage == FormStages.First && FormCapture.CurrentYear(form.Year, unit))
             {
-                var existing = JsonNode.Parse(form.Content)!.AsObject();
+                var existing = FormDocument.Read(form.Content);
                 LocalCatalog.Merge(existing, await catalogs.Inventory(unit, Ct));
                 if (!JsonNode.DeepEquals(existing, JsonNode.Parse(form.Content)))
                 { form.Content = existing.ToJsonString(); form.Version++; await db.SaveChangesAsync(Ct); }
@@ -86,7 +86,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, Ct);
         var now = await Now((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)transaction.GetDbTransaction());
         var form = await db.UnitForms.AsNoTracking().Include(f => f.StageSubmissions).SingleOrDefaultAsync(f => f.UnitId == ur, Ct);
-        var content = form is null ? schema.Blank(scope.Unit) : JsonNode.Parse(form.Content)!.AsObject();
+        var content = form is null ? schema.Blank(scope.Unit) : FormDocument.Read(form.Content);
         var availableProcedures = form is null ? [] : ProcedureEligibility.Options(content);
         var stage = FormStages.Status(form, scope.Unit.Year);
         var current = !stage.Blocked && FormCapture.CurrentYear(form?.Year, scope.Unit);
@@ -249,7 +249,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
                 || block.ExpiresAt <= now || block.Version != request.Version)
                 throw Conflict("La versión o la reserva del bloque cambió. Tu propuesta no se ha sobrescrito ni guardado.");
         var deadlines = input.Blocks.Select(b => all[b.Key].ExpiresAt!.Value).ToArray();
-        var old = JsonNode.Parse(form.Content)!.AsObject();
+        var old = FormDocument.Read(form.Content);
         var requested = input.Blocks.ToDictionary(b => b.Key, b => b.Value, StringComparer.Ordinal);
         if (input.Removal is { } removal)
         {
@@ -305,25 +305,20 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         foreach (var row in validated["sistemas"]!.AsArray().OfType<JsonObject>().Where(r => keys.Contains("sistemas:" + r["id"])))
         {
             var previous = old["sistemas"]!.AsArray().FirstOrDefault(r => r?["id"]?.ToString() == row["id"]?.ToString());
-            var moduleId = row["moduloSiiId"]?.ToString() ?? "";
-            // Las descripciones son instantáneas del servidor, jamás texto autorizado por el navegador.
-            row["moduloSiiDescripcion"] = previous?["moduloSiiDescripcion"]?.DeepClone() ?? JsonValue.Create("");
-            if (row["sistema"]?.ToString() == "sii_v2" && moduleId.Length > 0
-                && (previous?["sistema"]?.ToString() != "sii_v2" || previous?["moduloSiiId"]?.ToString() != moduleId))
+            await SystemModules.Confirm(row, previous, async moduleId =>
             {
                 // El bloqueo comparte la transacción del formato: una baja no puede intercalarse antes del commit.
                 if (await SiiCatalogSchema.Inspect(new(connection, pg), Ct) is not null)
-                    throw FormSchema.FieldError("sistemas:" + row["id"], "moduloSiiId", "El catálogo local de módulos requiere revisión del administrador en Configuración → Sincronizaciones.");
+                    throw FormSchema.FieldError("sistemas:" + row["id"], SystemModules.Field, "El catálogo local de módulos requiere revisión del administrador en Configuración → Sincronizaciones.");
                 var module = (await db.SiiModules.FromSqlInterpolated($"SELECT * FROM public.sii_modulos WHERE id_modulo={moduleId} AND presente FOR SHARE").AsNoTracking().ToListAsync(Ct)).SingleOrDefault();
-                if (module is null) throw FormSchema.FieldError("sistemas:" + row["id"], "moduloSiiId", "Selecciona un módulo disponible del catálogo local.");
-                row["moduloSiiDescripcion"] = module.Description;
-            }
-            else if (moduleId.Length == 0) row["moduloSiiDescripcion"] = "";
+                return module?.Description;
+            });
         }
         var canonical = FormBlocks.Split(validated);
         // Normaliza sólo los bloques de esta operación. Jamás sustituye otros bloques con una copia del cliente.
         var changes = keys.ToDictionary(k => k, k => canonical.GetValueOrDefault(k), StringComparer.Ordinal);
         var content = FormBlocks.Apply(old, changes);
+        FormDocument.Stamp(content); // Sólo un guardado confirmado actualiza la estructura; GET/reservas no migran documentos.
         form.Content = content.ToJsonString(); form.Year = scope.Unit.Year; form.Version++;
         form.Progress = checked((short)FormStages.Progress(form.ActiveStage, content)); form.UpdatedBy = context.Profile.User.Email;
         form.UpdatedAt = DateTime.SpecifyKind(now.UtcDateTime, DateTimeKind.Unspecified);
@@ -385,7 +380,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var blocks = await db.FormBlocks.Where(b => b.UnitId == ur).ToListAsync(Ct);
         if (blocks.Any(b => b.LeaseId is not null && b.ExpiresAt > now && (b.SessionHash != state.SessionHash || b.TabId != input.TabId || b.ContextRevision != Revision)))
             throw Conflict("Otra sesión mantiene una reserva de edición. Espera a que termine antes de enviar.");
-        var original = JsonNode.Parse(form.Content)!.AsObject();
+        var original = FormDocument.Read(form.Content);
         var definition = FormStages.Definition(input.Stage);
         var content = schema.Validate(original, scope.Unit,
             FormBlocks.Split(original).Keys.Where(definition.IncludesBlock).ToHashSet(StringComparer.Ordinal), previous: original);
@@ -394,7 +389,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         form.Progress = checked((short)definition.Progress(content));
         var submission = new FormStageSubmission { UnitId = ur, Stage = input.Stage, Year = form.Year, Version = form.Version + 1,
             OperationId = input.OperationId, SubmittedAt = now, Actor = Actor, Effective = context.Profile.User.Email, Name = context.Profile.User.Name,
-            Snapshot = JsonSerializer.Serialize(new { etapa = input.Stage, unidad = scope.Unit.Public(),
+            Snapshot = JsonSerializer.Serialize(new { etapa = input.Stage, versionEstructura = FormDocument.Version(original), unidad = scope.Unit.Public(),
                 contenido = FormStages.Capture(original, input.Stage), version = form.Version + 1 }) };
         form.StageSubmissions.Add(submission); form.Version++;
         foreach (var block in blocks) { block.LeaseId = null; block.ExpiresAt = null; }

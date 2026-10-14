@@ -121,6 +121,51 @@ internal static partial class NativeTests
             before = await Forms(); Check(Completed(await RunSync(app, "sii"))); Check(await Forms() == before);
             Check((await client.PostAsJsonAsync("/formatos/A/reservas", Edit(tab, new BlockRequest("sistemas:inicial", 0)))).StatusCode == HttpStatusCode.Conflict);
         });
+        Test("Edición/módulos múltiples: persistencia, legacy, validación y avance transaccional", async (app, client) =>
+        {
+            Check(Completed(await RunSync(app, "sii")));
+            var content = Complete(app); var initial = content["sistemas"]![0]!;
+            initial["sistema"] = "sii_v2"; initial["moduloSiiId"] = "1"; initial["moduloSiiDescripcion"] = "Nombre original";
+            initial["uso"] = "consultar"; initial["estado"] = "bien";
+            await SeedStage(db, content); await Login(app, client); await Csrf(client);
+            var tab = Guid.NewGuid();
+            async Task<HttpResponseMessage> Store(JsonNode row)
+            {
+                var live = await Live(client, tab); var key = "sistemas:" + row["id"];
+                var version = live["bloques"]!.AsArray().FirstOrDefault(b => b!["key"]!.ToString() == key)?["version"]?.GetValue<int>() ?? 0;
+                var lease = await Lease(client, tab, key, version);
+                return await Patch(client, Edit(tab, lease with { Value = row }) with { Release = true });
+            }
+            JsonObject Module(string id) => new() { ["id"] = id, ["descripcion"] = "Texto no autorizado" };
+            var row = (await Live(client, tab))["contenido"]!["sistemas"]![0]!.DeepClone();
+            Check(SystemModules.Read(row).Count == 1);
+            row["modulosSii"] = new JsonArray(Module("1"), Module("2"), Module("3"));
+            Check((await Store(row)).IsSuccessStatusCode);
+            row = (await Live(client, tab))["contenido"]!["sistemas"]![0]!.DeepClone();
+            Check(row["modulosSii"]!.AsArray().Count == 3 && row["moduloSiiId"]!.ToString() == "");
+            Check(row["modulosSii"]![0]!["descripcion"]!.ToString() == "Nombre original");
+            Check(row["modulosSii"]![1]!["descripcion"]!.ToString() == "Consultas" && row["modulosSii"]![2]!["descripcion"]!.ToString() == "Consultas");
+            Check(Convert.ToInt32(await db.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == 100);
+            var saved = await db.Scalar("SELECT contenido::text FROM formatos_ur WHERE id_ur='A'");
+            foreach (var invalid in new[] { new JsonArray(Module("2"), Module("999")), new JsonArray(Module("2"), Module("2")), new JsonArray(Module("-1")) })
+            {
+                var bad = row.DeepClone(); bad["modulosSii"] = invalid;
+                Check((await Store(bad)).StatusCode == HttpStatusCode.UnprocessableEntity);
+                Check(Equals(saved, await db.Scalar("SELECT contenido::text FROM formatos_ur WHERE id_ur='A'")));
+            }
+            app.Sources.Modules.Rows.RemoveAt(0); Check(Completed(await RunSync(app, "sii")));
+            row["fallas"] = "Se conserva el histórico"; Check((await Store(row)).IsSuccessStatusCode);
+            var extra = row.DeepClone(); extra["id"] = "otra-sii"; extra["modulosSii"] = new JsonArray(Module("2"));
+            Check((await Store(extra)).IsSuccessStatusCode);
+            row["modulosSii"] = new JsonArray(Module("1"), Module("3")); Check((await Store(row)).IsSuccessStatusCode);
+            Check((await Live(client, tab))["contenido"]!["sistemas"]![0]!["modulosSii"]![0]!["descripcion"]!.ToString() == "Nombre original");
+            row["modulosSii"] = new JsonArray(); Check((await Store(row)).IsSuccessStatusCode);
+            var liveEmpty = await Live(client, tab); var emptyContent = liveEmpty["contenido"]!.AsObject();
+            Check(!SystemModules.Complete(emptyContent["sistemas"]![0]));
+            Check(FormCapture.Review(emptyContent).pendientes.Any(p => p.campo == "modulosSii") && FormCapture.Progress(emptyContent) < 100);
+            Check(Convert.ToInt32(await db.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == FormCapture.Progress(emptyContent));
+            row["modulosSii"] = new JsonArray(Module("1")); Check((await Store(row)).StatusCode == HttpStatusCode.UnprocessableEntity);
+        });
         Test("Edición/módulos: filas independientes con mismo procedimiento, Otra/Otro y respuestas históricas", async (app, client) =>
         {
             var content = Complete(app); var original = content["sistemas"]![0]!;

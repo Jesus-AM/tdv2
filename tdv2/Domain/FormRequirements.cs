@@ -2,8 +2,11 @@ using System.Text.Json.Nodes;
 namespace Tdv2.Domain;
 
 public sealed record CaptureRequirement(string Section, string Block, string Field, string Message, bool Valid);
+public sealed record ProcedureCoverage(string id, string codigo, string nombre, bool aplicable, bool completa,
+    int registros, int validos, FormPending destino);
 public sealed record CaptureAssessment(IReadOnlyList<CaptureRequirement> Requirements)
 {
+    public IReadOnlyList<ProcedureCoverage> Coverage { get; init; } = [];
     public int Total => Requirements.Count;
     public int Complete => Requirements.Count(r => r.Valid);
     public int Percentage => Total == 0 ? 0 : (int)(100L * Complete / Total);
@@ -27,11 +30,15 @@ public static class FormRequirements
     public static CaptureAssessment Inspect(JsonObject content)
     {
         var requirements = new List<CaptureRequirement>();
+        var procedures = Rows(content, "identificacion");
+        var systems = Rows(content, "sistemas");
+        var applicable = procedures.Where(ProcedureEligibility.Available).ToArray();
         foreach (var section in new[] { "identificacion", "sistemas" })
         {
             var title = section == "identificacion" ? "Identificación general" : "Sistemas y herramientas";
             var rows = Rows(content, section);
-            if (rows.Length == 0)
+            // La cobertura por procedimiento sustituye la exigencia genérica de una herramienta.
+            if (rows.Length == 0 && (section != "sistemas" || applicable.Length == 0))
             {
                 var helper = (content[section] as JsonArray)?.FirstOrDefault();
                 requirements.Add(new(section, helper is null ? section : section + ":" + helper["id"],
@@ -58,12 +65,33 @@ public static class FormRequirements
                     Add("sistema", "Sistema o herramienta", SystemAnswers.Tools.Contains(row["sistema"]?.ToString()));
                     Add("uso", "¿Para qué se usa?", SystemAnswers.Uses.Contains(row["uso"]?.ToString()));
                     Add("estado", "¿Cómo funciona?", SystemAnswers.States.Contains(row["estado"]?.ToString()));
-                    if (row["sistema"]?.ToString() == "sii_v2") Add("moduloSiiId", "Módulo de SIIv2", SystemAnswers.Filled(row, "sistema"));
+                    if (row["sistema"]?.ToString() == "sii_v2") Add(SystemModules.Field, "Módulos de SIIv2", SystemAnswers.Filled(row, "sistema"));
                     if (row["sistema"]?.ToString() == "otra") Add("sistemaOtro", "Nombre de la herramienta", SystemAnswers.ValidText(row, "sistemaOtro"));
                     if (row["uso"]?.ToString() == "otro") Add("usoOtro", "Describe el uso", SystemAnswers.ValidText(row, "usoOtro"));
                 }
             }
         }
-        return new(requirements);
+        var coverage = new List<ProcedureCoverage>();
+        foreach (var procedure in procedures)
+        {
+            var id = procedure["id"]!.ToString(); var code = procedure["codigo"]?.ToString() ?? "";
+            var name = procedure["tramite"]?.ToString() ?? "";
+            var applies = ProcedureEligibility.Available(procedure);
+            var linked = systems.Where(r => code.Length > 0 && r["proceso"]?.ToString() == code).ToArray();
+            // Reutilizar exactamente los requisitos de las filas, incluidos sus condicionales.
+            bool Valid(JsonNode row) => requirements.Where(r => r.Block == "sistemas:" + row["id"]).All(r => r.Valid);
+            var valid = linked.Count(Valid);
+            var missing = requirements.FirstOrDefault(r => !r.Valid && (applies
+                ? linked.Any(row => r.Block == "sistemas:" + row["id"])
+                : r.Block == "identificacion:" + id));
+            var target = missing is not null ? new FormPending(missing.Section, missing.Block, missing.Field, missing.Message)
+                : new FormPending("sistemas", linked.Length > 0 ? "sistemas:" + linked[0]["id"] : "cobertura:" + id,
+                    linked.Length > 0 ? "sistema" : "captura", "");
+            coverage.Add(new(id, code, name, applies, applies && valid > 0, linked.Length, valid, target));
+        }
+        foreach (var item in coverage.Where(c => c.aplicable))
+            requirements.Add(new("sistemas", "cobertura:" + item.id, "captura",
+                $"Sistemas y herramientas · {item.codigo} · {item.nombre}: registra al menos una herramienta completa y válida para este procedimiento.", item.completa));
+        return new(requirements) { Coverage = coverage };
     }
 }
