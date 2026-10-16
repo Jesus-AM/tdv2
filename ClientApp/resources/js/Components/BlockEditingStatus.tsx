@@ -16,7 +16,7 @@ export default function BlockEditingStatus({ engine, state, blockKey, compact = 
         <Box role="status" aria-live="polite" sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minHeight: compact ? 40 : undefined,
             color: busy || own ? color : 'text.secondary', fontSize: '0.78rem' }}>
             {(busy || own) && <ParticipantAvatar name={name} color={color} url={lease?.foto} />}
-            {busy ? <><LockOutlined fontSize="inherit" /><span>{lease?.otraPestana ? (compact ? 'Otra pestaña' : 'Estás editando este registro en otra pestaña') : compact ? 'Ocupado' : `${lease?.titular || 'Otra persona'} está editando`}</span></>
+            {busy ? <><LockOutlined fontSize="inherit" /><span>{lease?.otraPestana ? (compact ? 'Estás editando en otra pestaña' : 'Estás editando este registro en otra pestaña') : `${name} está editando`}</span></>
                 : preparing ? <><CircularProgress size={13} /><span>Preparando edición…</span></>
                 : own ? <><EditOutlined fontSize="inherit" /><span>Estás editando</span></> : null}
         </Box>

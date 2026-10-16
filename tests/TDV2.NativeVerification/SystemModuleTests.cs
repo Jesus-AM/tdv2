@@ -104,7 +104,7 @@ internal static partial class NativeTests
                 var lease = await Lease(client, tab, key, version);
                 return await Patch(client, Edit(tab, lease with { Value = row }) with { Release = true });
             }
-            var row = (await Live(client, tab))["contenido"]!["sistemas"]![0]!.DeepClone(); row["sistema"] = "sii_v2";
+            var row = app.Services.GetRequiredService<FormSchema>().Blank(new("A", "100", "Área sintética A", 2, null, 2026))["sistemas"]![0]!.DeepClone(); row["sistema"] = "sii_v2";
             Check((await Store(row)).IsSuccessStatusCode); // Borrador sin módulo.
             row["moduloSiiId"] = "999"; Check((await Store(row)).StatusCode == HttpStatusCode.UnprocessableEntity);
             row["moduloSiiId"] = "1"; row["moduloSiiDescripcion"] = "Texto no autorizado";
@@ -156,6 +156,8 @@ internal static partial class NativeTests
             app.Sources.Modules.Rows.RemoveAt(0); Check(Completed(await RunSync(app, "sii")));
             row["fallas"] = "Se conserva el histórico"; Check((await Store(row)).IsSuccessStatusCode);
             var extra = row.DeepClone(); extra["id"] = "otra-sii"; extra["modulosSii"] = new JsonArray(Module("2"));
+            Check((await Store(extra)).StatusCode == HttpStatusCode.UnprocessableEntity);
+            extra["proceso"] = ""; // Sin asociación no se comparte una clave de procedimiento.
             Check((await Store(extra)).IsSuccessStatusCode);
             row["modulosSii"] = new JsonArray(Module("1"), Module("3")); Check((await Store(row)).IsSuccessStatusCode);
             Check((await Live(client, tab))["contenido"]!["sistemas"]![0]!["modulosSii"]![0]!["descripcion"]!.ToString() == "Nombre original");

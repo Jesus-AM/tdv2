@@ -71,7 +71,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
             }
             return form;
         }
-        var content = schema.Blank(unit);
+        var content = schema.New(unit);
         LocalCatalog.Merge(content, await catalogs.Inventory(unit, Ct));
         form = new UnitForm { UnitId = unit.Id, Year = unit.Year, Content = content.ToJsonString(), Version = 0,
             UpdatedBy = effective.User.Email, CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
@@ -86,7 +86,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, Ct);
         var now = await Now((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)transaction.GetDbTransaction());
         var form = await db.UnitForms.AsNoTracking().Include(f => f.StageSubmissions).SingleOrDefaultAsync(f => f.UnitId == ur, Ct);
-        var content = form is null ? schema.Blank(scope.Unit) : FormDocument.Read(form.Content);
+        var content = form is null ? schema.New(scope.Unit) : FormDocument.Read(form.Content);
         var availableProcedures = form is null ? [] : ProcedureEligibility.Options(content);
         var stage = FormStages.Status(form, scope.Unit.Year);
         var current = !stage.Blocked && FormCapture.CurrentYear(form?.Year, scope.Unit);
@@ -296,7 +296,7 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
         var generated = schema.CompleteProcesses(candidate, keys, all.Keys);
         // No tomar por implicación una reserva que otro editor obtuvo para una evaluación nueva.
         if (generated.Any(k => all.TryGetValue(k, out var existing) && existing.LeaseId is not null && existing.ExpiresAt > now))
-            throw Conflict("Otra sesión está editando la evaluación de este proceso.");
+            throw Conflict("Otra sesión está editando la evaluación de este procedimiento.");
         keys.UnionWith(generated);
         FormStages.RequireWritable(form, keys);
         var removedCodes = old["identificacion"]!.AsArray().Select(r => r!["codigo"]?.ToString() ?? "")

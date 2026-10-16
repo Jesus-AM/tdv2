@@ -73,7 +73,7 @@ internal static partial class NativeTests
             Check((await Configure(client, await Preview(client, 1, [2], ["N"]))).IsSuccessStatusCode);
             foreach (var path in new[] { "/formatos/A3", $"/formatos/A3/estado?tab={tab}" }) Check((await client.GetAsync(path)).StatusCode == HttpStatusCode.Forbidden);
             Check((await Patch(client, Edit(tab, lease with { Version = 1, Value = Header("No debe guardar") }), "A3")).StatusCode == HttpStatusCode.Forbidden);
-            Check((await client.PostAsJsonAsync("/formatos/A3/reservas", Edit(tab, new Tdv2.Services.BlockRequest("medios", 0)))).StatusCode == HttpStatusCode.Forbidden);
+            Check((await client.PostAsJsonAsync("/formatos/A3/reservas", Edit(tab, new Tdv2.Services.BlockRequest("identificacion:inicial", 0)))).StatusCode == HttpStatusCode.Forbidden);
             Check((await client.PostAsJsonAsync("/formatos/A3/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.Forbidden);
             Check((await Configure(client, await Preview(client, 2, [2,3], ["N"]))).IsSuccessStatusCode);
             Check((await client.GetAsync("/formatos/A3")).IsSuccessStatusCode);
@@ -150,7 +150,7 @@ internal static partial class NativeTests
         Test("Presencia/color consistente entre observadores y pestañas; no confunde titularidad", async (app, client) =>
         {
             await Login(app, client); await Csrf(client);
-            var a = Guid.NewGuid(); var b = Guid.NewGuid(); await Lease(client, a); await Lease(client, b, "medios");
+            var a = Guid.NewGuid(); var b = Guid.NewGuid(); await Lease(client, a); await Lease(client, b, "identificacion:inicial");
             var first = (await Live(client, a))["bloques"]!.AsArray(); var second = (await Live(client, b))["bloques"]!.AsArray();
             Check(first.Select(x => x!["reserva"]!["color"]!.GetValue<int>()).Distinct().Count() == 1);
             Check(first[0]!["reserva"]!["color"]!.ToString() == second[0]!["reserva"]!["color"]!.ToString());
@@ -168,7 +168,7 @@ internal static partial class NativeTests
             app.Microsoft.Email = "color24@uacj.mx"; app.Microsoft.Mail = "color24@uacj.mx"; app.Microsoft.Id = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
             using var other = app.Client(); await Login(app, other); await Csrf(other);
             var a = Guid.NewGuid(); var b = Guid.NewGuid();
-            await Task.WhenAll(Lease(client, a), Lease(other, b, "medios"));
+            await Task.WhenAll(Lease(client, a), Lease(other, b, "identificacion:inicial"));
             var blocks = (await Live(client, a))["bloques"]!.AsArray();
             Check(blocks.Select(x => x!["reserva"]!["color"]!.GetValue<int>()).Distinct().Count() == 2);
             var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A/reservas", Edit(a, new BlockRequest("preguntas:0", 0))),

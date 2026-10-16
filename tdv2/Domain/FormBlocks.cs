@@ -11,8 +11,7 @@ public static class FormBlocks
     {
         var blocks = new Dictionary<string, JsonNode?>(StringComparer.Ordinal)
         {
-            ["contexto"] = content["encabezado"]?.DeepClone(),
-            ["medios"] = new JsonObject { ["medios"] = content["medios"]?.DeepClone(), ["medioOtro"] = content["medioOtro"]?.DeepClone() }
+            ["contexto"] = content["encabezado"]?.DeepClone()
         };
         foreach (var table in Tables)
             foreach (var row in content[table]!.AsArray()) blocks[table + ":" + row!["id"]!.ToString()] = row.DeepClone();
@@ -22,21 +21,18 @@ public static class FormBlocks
                 for (var i = 0; i < rows!.AsArray().Count; i++) blocks[$"evaluaciones:{code}:{i}"] = rows[i]!.DeepClone();
         return blocks;
     }
-    public static bool ValidKey(string key) => key.Length <= 512 && (key is "contexto" or "medios"
+    public static bool ValidKey(string key) => key.Length <= 512 && (key is "contexto"
         || Tables.Any(t => key.StartsWith(t + ":", StringComparison.Ordinal) && key.Length > t.Length + 1 && key.Length <= t.Length + 65)
         || System.Text.RegularExpressions.Regex.IsMatch(key, @"\A(preguntas:(?:[0-9]|1[01])|evaluaciones:PO-[0-9]{2,6}:[0-8])\z"));
 
     public static JsonObject Apply(JsonObject original, IReadOnlyDictionary<string, JsonNode?> changes)
     {
         var result = original.DeepClone().AsObject();
+        result.Remove("medios"); result.Remove("medioOtro");
         foreach (var (key, value) in changes)
         {
             if (!ValidKey(key)) throw new DomainProblem(422, "El bloque solicitado no es válido.");
             if (key == "contexto") result["encabezado"] = value?.DeepClone();
-            else if (key == "medios")
-            {
-                result["medios"] = value?["medios"]?.DeepClone(); result["medioOtro"] = value?["medioOtro"]?.DeepClone();
-            }
             else if (key.StartsWith("preguntas:")) result["preguntas"]![int.Parse(key[10..])] = value?.DeepClone();
             else if (key.StartsWith("evaluaciones:"))
             {
@@ -58,7 +54,7 @@ public static class FormBlocks
                     if (value is not JsonObject || value["id"]?.ToString() != id) throw new DomainProblem(422, "El identificador del bloque cambió.");
                     if (table == "identificacion" && index >= 0 && rows[index]?["codigo"]?.ToString() is { Length: > 0 } assigned
                         && value["codigo"]?.ToString() != assigned)
-                        throw FormSchema.FieldError(key, "codigo", "El código confirmado del proceso no puede cambiarse.");
+                        throw FormSchema.FieldError(key, "codigo", "El código confirmado del procedimiento no puede cambiarse.");
                     if (table == "identificacion" && value["prioridad"]?.ToString() is { Length: > 0 } priority
                         && priority is not ("1" or "2" or "3" or "4" or "5")
                         && (index < 0 || rows[index]?["prioridad"]?.ToString() != priority))

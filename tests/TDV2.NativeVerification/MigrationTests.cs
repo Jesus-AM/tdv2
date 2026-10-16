@@ -66,7 +66,7 @@ internal static class MigrationTests
             await using var db = Context(cs);
             Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
             Check(db.Model.GetEntityTypes().Count() == 25 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 9, "25 entidades y nueve relaciones locales; sin esquemas institucionales");
-            Check(db.Database.GetMigrations().Count() == 12, "doce migraciones estándar descubiertas por EF");
+            Check(db.Database.GetMigrations().Count() == 13, "trece migraciones estándar descubiertas por EF");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
             await db.GetService<IMigrator>().MigrateAsync(db.Database.GetMigrations().ElementAt(7));
             await using (var diagnostic = new NpgsqlConnection(cs))
@@ -100,7 +100,7 @@ internal static class MigrationTests
                     await tx.RollbackAsync();
                 }
             }
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 12 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 13 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 26, "25 tablas y único historial __EFMigrationsHistory");
             Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
             Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
@@ -146,12 +146,12 @@ internal static class MigrationTests
                     && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
                 await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 12, "reanudación aplica sólo la pendiente");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 13, "reanudación aplica sólo la pendiente");
                 await partialDb.GetService<IMigrator>().MigrateAsync("0");
                 Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
                     "Down revierte únicamente las tablas EF en la base desechable");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 12, "Up después de Down recrea esquema y configuración pausada");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 13, "Up después de Down recrea esquema y configuración pausada");
             }
             var upgrade = await Fresh("upgrade");
             await using (var previous = Context(upgrade))
@@ -179,7 +179,7 @@ internal static class MigrationTests
                 await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
                 // Sólo los catálogos nuevos vacíos pueden retirarse; la protección de enviados impide bajar de StageSubmissions.
                 Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
-                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 10
+                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 13
                     && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
                     "Down rechaza retirar protección de formatos enviados y conserva contenido e historial");
             }
@@ -207,6 +207,7 @@ internal static class MigrationTests
                     && Equals(exclusion, await Sql(exclusionsUpgrade, "SELECT row_to_json(e)::text FROM formato_exclusiones_ilda e")),
                     "exclusiones: reversión rechazada para no hacer reaparecer inventario retirado");
             }
+            await RemoveUsedMediaMigrationTests.Run(await Fresh("remove_media"), Sql, Check);
             await CurrentRecipientsMigrationTests.Run(await Fresh("current_recipients"), database.Workspace, Sql, Check);
             var moduleConnection = await Fresh("sii_modules");
             await using (var modules = Context(moduleConnection))
@@ -239,7 +240,7 @@ internal static class MigrationTests
                     INSERT INTO unidades_responsables_poa(id_ur,ejercicio,cve_ur) VALUES('PHOTO',2026,'06000');
                     INSERT INTO formatos_ur(id_ur,contenido,version,porcentaje,actualizado_por,enviado_en,instantanea_envio)
                     VALUES('PHOTO','{"historico":"sintético"}',7,50,'synthetic@example.test',clock_timestamp(),'{"estable":true}');
-                    INSERT INTO formato_bloques(id_ur,bloque,version,revision_contexto,participante,color) VALUES('PHOTO','medios',3,0,'sintetico',5);
+                    INSERT INTO formato_bloques(id_ur,bloque,version,revision_contexto,participante,color) VALUES('PHOTO','contexto',3,0,'sintetico',5);
                     """);
                 Check(await Inspect(photographUpgrade), "verificador reconoce participación/presencia con fotografía pendiente");
                 var original = await Sql(photographUpgrade, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f");

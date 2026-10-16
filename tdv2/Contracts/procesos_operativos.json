@@ -89,15 +89,5 @@
       "tipo": "abierta",
       "texto": "¿Qué riesgos o puntos de control hacen falta en el proceso actual?"
     }
-  ],
-  "medios": [
-    "SIIv2",
-    "Otro sistema institucional",
-    "Hojas de cálculo",
-    "Formularios electrónicos",
-    "Correo electrónico",
-    "Documentos impresos",
-    "Base de datos local",
-    "Plataforma externa"
   ]
 }

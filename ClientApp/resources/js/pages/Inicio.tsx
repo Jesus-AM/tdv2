@@ -39,7 +39,7 @@ export default function Inicio({
                 <PageHeading
                     className="operational-heading"
                     title="Procedimientos Institucionales"
-                    description={administrador ? undefined : 'Consulta las áreas y da seguimiento al llenado de sus formatos'}
+                    description={administrador ? undefined : 'Consulta las áreas y da seguimiento al llenado de sus formatos.'}
                     actions={
                         <>
                             {puedeColaboradores && (

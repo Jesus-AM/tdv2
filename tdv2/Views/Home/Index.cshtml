@@ -10,18 +10,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@@500;600;700&family=IBM+Plex+Sans:wght@@400;500;600&family=IBM+Plex+Mono:wght@@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --azul:#0A3D62;
-    --azul-2:#114E8C;
-    --azul-3:#1D6FB8;
-    --turquesa:#12B3A6;
-    --verde:#2FA26B;
-    --gris:#EEF3F9;
-    --gris-2:#DCE6F0;
-    --tinta:#132330;
-    --tinta-2:#516373;
+    --azul:#213455;
+    --gris:#DADADA;
     --blanco:#FFFFFF;
+    /* Complementario reservado a hover: mantiene el contraste y distingue el estado. */
+    --azul-interactivo:#174187;
+    --acento:var(--azul);
+    --gris-2:var(--gris);
+    --tinta:var(--azul);
+    --tinta-2:var(--azul);
     --radio:14px;
-    --sombra:0 1px 2px rgba(19,35,48,.06), 0 12px 32px rgba(19,35,48,.06);
+    --sombra:0 1px 2px rgb(from var(--azul) r g b / .06), 0 12px 32px rgb(from var(--azul) r g b / .06);
     --ancho:1180px;
   }
 
@@ -42,7 +41,7 @@
     font-size:.72rem;
     letter-spacing:.18em;
     text-transform:uppercase;
-    color:var(--turquesa);
+    color:var(--acento);
     display:inline-flex;
     align-items:center;
     gap:.55rem;
@@ -50,7 +49,7 @@
   .eyebrow::before{
     content:"";
     width:22px;height:1px;
-    background:var(--turquesa);
+    background:var(--acento);
     display:inline-block;
   }
 
@@ -67,12 +66,12 @@
     transition:transform .15s ease, background .2s ease, border-color .2s ease;
   }
   .btn:hover{transform:translateY(-2px)}
-  .btn-primary{background:var(--turquesa);color:#04231f}
-  .btn-primary:hover{background:#15c9ba}
-  .btn-outline{background:transparent;color:var(--blanco);border-color:rgba(255,255,255,.4)}
-  .btn-outline:hover{border-color:var(--blanco);background:rgba(255,255,255,.08)}
+  .btn-primary{background:var(--blanco);color:var(--azul)}
+  .btn-primary:hover{background:var(--gris)}
+  .btn-outline{background:transparent;color:var(--blanco);border-color:rgb(from var(--blanco) r g b / .4)}
+  .btn-outline:hover{border-color:var(--blanco);background:rgb(from var(--blanco) r g b / .08)}
   .btn-dark{background:var(--azul);color:var(--blanco)}
-  .btn-dark:hover{background:var(--azul-2)}
+  .btn-dark:hover{background:var(--azul-interactivo)}
   .registration-cta{max-width:100%;text-align:left}
   .registration-cta>span:first-child{min-width:0}
   .registration-cta .ar{flex-shrink:0}
@@ -82,7 +81,7 @@
   /* ---------- Topbar ---------- */
   .topbar{
     position:sticky;top:0;z-index:50;
-    background:rgba(255,255,255,.88);
+    background:var(--blanco);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--gris-2);
   }
@@ -90,7 +89,7 @@
   .brand{display:flex;align-items:center;gap:.7rem}
   .brand .mark{
     width:38px;height:38px;border-radius:9px;
-    background:linear-gradient(135deg,var(--azul),var(--azul-3));
+    background:linear-gradient(135deg,var(--azul),var(--azul));
     display:grid;place-items:center;flex:0 0 auto;
   }
   .brand .name{line-height:1.15}
@@ -98,7 +97,7 @@
   .brand .name span{font-family:"IBM Plex Mono";font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta-2)}
   .nav{display:flex;align-items:center;gap:1.6rem}
   .nav a{font-size:.9rem;color:var(--tinta-2);font-weight:500;transition:color .18s}
-  .nav a:hover{color:var(--azul)}
+  .nav a:hover{color:var(--azul-interactivo)}
   .topbar .btn{padding:.55rem 1rem;font-size:.86rem}
 
   .session-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -118,47 +117,49 @@
     object-fit:contain;
   }
 
+  /* Los acentos claros conservan contraste sobre las superficies oscuras existentes. */
+  .hero, .dark-card, .m-center, .panel.contact, .net { --acento:var(--blanco); }
+
   /* ---------- Hero ---------- */
   .hero{
     position:relative;overflow:hidden;
     background:
-      linear-gradient(105deg, rgba(8,40,61,.94) 0%, rgba(10,61,98,.86) 45%, rgba(10,61,98,.55) 100%),
+      linear-gradient(105deg, rgb(from var(--azul) r g b / .94) 0%, rgb(from var(--azul) r g b / .86) 45%, rgb(from var(--azul) r g b / .86) 100%),
       url('https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70') center 28%/cover no-repeat;
     color:var(--blanco);
   }
   .hero .wrap{
     display:block;
-    padding-top:104px;padding-bottom:104px;
+    padding-top:96px;padding-bottom:96px;
   }
   .hero .hero-text{max-width:640px}
-  .hero h1{font-size:clamp(2.3rem,4.6vw,3.5rem);font-weight:700;margin:1.1rem 0 1.1rem}
-  .hero h1 em{font-style:normal;color:var(--turquesa)}
-  .hero .lead{font-size:1.08rem;color:#dbe8f2;max-width:46ch;margin-bottom:1.9rem}
+  .hero h1{font-size:clamp(1.5rem,3.8vw,2.375rem);font-weight:600;margin:0 0 1rem}
+  .hero h1 em{font-style:normal;color:var(--acento)}
+  .hero .lead{font-size:1.08rem;color:var(--blanco);max-width:46ch;margin-bottom:1.9rem}
   .hero-cta{display:flex;flex-wrap:wrap;gap:.7rem}
 
-  .identidad-institucional {
+  .hero .identidad-institucional {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 18px;
-    margin-bottom: 24px;
+    gap: 14px;
+    margin-bottom: 36px;
   }
 
-  .uacj-logo {
+  .hero .uacj-logo {
     display: block;
-    width: 440px;
+    width: 560px;
     max-width: 100%;
     height: auto;
+    /* El PNG original contiene 96 px transparentes a la izquierda de sus 2934 px. */
+    transform: translateX(-3.272%);
   }
 
-  .direccion-general {
+  .hero .direccion-general {
     margin: 0;
     line-height: 1.25;
-  }
-
-  .direccion-general {
-    font-size: clamp(1rem, 1.5vw, 1.35rem);
-    font-weight: 700;
+    font-size: clamp(1rem, 1.5vw, 1.125rem);
+    font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--blanco);
   }
@@ -166,22 +167,22 @@
   /* node network signature */
   .net{position:relative;width:100%;aspect-ratio:1/.92}
   .net svg{width:100%;height:100%;display:block;overflow:visible}
-  .net .edge{stroke:rgba(255,255,255,.18);stroke-width:1.2}
-  .net .edge.live{stroke:var(--turquesa);stroke-width:1.6;stroke-dasharray:5 7;animation:flow 3.4s linear infinite}
+  .net .edge{stroke:rgb(from var(--blanco) r g b / .18);stroke-width:1.2}
+  .net .edge.live{stroke:var(--acento);stroke-width:1.6;stroke-dasharray:5 7;animation:flow 3.4s linear infinite}
   @@keyframes flow{to{stroke-dashoffset:-24}}
-  .net .node circle{fill:#0d466f;stroke:rgba(255,255,255,.35);stroke-width:1.4}
-  .net .node.hub circle{fill:var(--turquesa);stroke:rgba(255,255,255,.6)}
-  .net .node.accent circle{fill:#0f5f52;stroke:var(--turquesa)}
-  .net .node text{font-family:"IBM Plex Mono";font-size:9.5px;fill:#dbeaf5;letter-spacing:.02em}
-  .net .pulse{fill:none;stroke:var(--turquesa);opacity:0;transform-origin:center;animation:pulse 3.4s ease-out infinite}
+  .net .node circle{fill:var(--azul);stroke:rgb(from var(--blanco) r g b / .35);stroke-width:1.4}
+  .net .node.hub circle{fill:var(--acento);stroke:rgb(from var(--blanco) r g b / .6)}
+  .net .node.accent circle{fill:var(--azul);stroke:var(--acento)}
+  .net .node text{font-family:"IBM Plex Mono";font-size:9.5px;fill:var(--blanco);letter-spacing:.02em}
+  .net .pulse{fill:none;stroke:var(--acento);opacity:0;transform-origin:center;animation:pulse 3.4s ease-out infinite}
   @@keyframes pulse{0%{opacity:.5;r:16}70%{opacity:0;r:46}100%{opacity:0}}
 
   /* thin metric strip under hero */
-  .strip{border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.14)}
+  .strip{border-top:1px solid rgb(from var(--blanco) r g b / .12);background:rgb(from var(--azul) r g b / .14)}
   .strip .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;padding:0}
   .strip .cell{padding:20px 24px}
-  .strip .cell b{font-family:"Space Grotesk";font-weight:600;font-size:.98rem;color:#fff;display:block}
-  .strip .cell span{font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#8fb0c9}
+  .strip .cell b{font-family:"Space Grotesk";font-weight:600;font-size:.98rem;color:var(--blanco);display:block}
+  .strip .cell span{font-family:"IBM Plex Mono";font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blanco)}
 
   /* ---------- Layout (main + aside) ---------- */
   .layout{display:grid;grid-template-columns:1fr 320px;gap:52px;padding:72px 0}
@@ -189,11 +190,11 @@
   section.block:last-child{margin-bottom:0}
   .block > h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:.7rem 0 .5rem}
   .block .sub{color:var(--tinta-2);max-width:62ch;margin-bottom:1.6rem;font-size:1.03rem}
-  .block p.body{color:#31434f;margin-bottom:1rem;max-width:64ch}
+  .block p.body{color:var(--tinta);margin-bottom:1rem;max-width:64ch}
 
   /* Qué es — highlight */
   .highlight{
-    border-left:3px solid var(--turquesa);
+    border-left:3px solid var(--acento);
     background:var(--gris);
     padding:1.1rem 1.3rem;border-radius:0 10px 10px 0;
     margin-top:.6rem;font-size:1.05rem;color:var(--azul);
@@ -203,8 +204,8 @@
   .model{
     position:relative;
     background:
-      radial-gradient(58% 52% at 50% 47%, rgba(18,179,166,.13) 0%, rgba(18,179,166,0) 70%),
-      linear-gradient(180deg,#f2f6fb 0%, #e9f0f8 100%);
+      radial-gradient(58% 52% at 50% 47%, rgb(from var(--azul) r g b / .13) 0%, rgb(from var(--azul) r g b / 0) 70%),
+      linear-gradient(180deg,var(--blanco) 0%, var(--gris) 100%);
     border:1px solid var(--gris-2);
     border-radius:20px;padding:34px 30px;
   }
@@ -217,16 +218,16 @@
       "control center personas";
   }
   .m-card{
-    background:rgba(255,255,255,.86);backdrop-filter:blur(4px);
-    border:1px solid rgba(255,255,255,.7);border-radius:12px;
+    background:rgb(from var(--blanco) r g b / .86);backdrop-filter:blur(4px);
+    border:1px solid rgb(from var(--blanco) r g b / .7);border-radius:12px;
     padding:18px 20px;text-align:center;
-    box-shadow:0 6px 18px rgba(19,35,48,.08);
+    box-shadow:0 6px 18px rgb(from var(--azul) r g b / .08);
     transition:transform .18s ease, box-shadow .18s ease;
   }
   .m-card:hover{transform:translateY(-3px);box-shadow:var(--sombra)}
   .m-cat{
     font-family:"IBM Plex Mono";font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--azul-2);background:var(--gris);border:1px solid var(--gris-2);
+    color:var(--azul);background:var(--gris);border:1px solid var(--gris-2);
     padding:.28rem .7rem;border-radius:999px;display:inline-block;margin-bottom:.6rem;
   }
   .m-card h3{font-family:"Space Grotesk";font-size:1.12rem;font-weight:600;margin-bottom:.2rem}
@@ -238,26 +239,26 @@
   .m-personas{grid-area:personas}
   .m-center{
     grid-area:center;
-    background:linear-gradient(150deg,var(--azul),#0b3a5c);
-    color:#fff;border:2px solid rgba(18,179,166,.55);
+    background:linear-gradient(150deg,var(--azul),var(--azul));
+    color:var(--blanco);border:2px solid rgb(from var(--azul) r g b / .55);
     border-radius:16px;padding:26px;text-align:center;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    box-shadow:0 10px 30px rgba(10,61,98,.25);
+    box-shadow:0 10px 30px rgb(from var(--azul) r g b / .25);
   }
-  .m-center h3{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.3rem,2.6vw,1.7rem);color:#fff;line-height:1.08}
-  .m-center span{font-family:"IBM Plex Mono";font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--turquesa);margin-top:.6rem}
+  .m-center h3{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.3rem,2.6vw,1.7rem);color:var(--blanco);line-height:1.08}
+  .m-center span{font-family:"IBM Plex Mono";font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--acento);margin-top:.6rem}
   .persp-bar{
     margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.1rem;
-    background:rgba(255,255,255,.9);backdrop-filter:blur(4px);
-    border:1px solid rgba(255,255,255,.7);border-left:4px solid var(--turquesa);
-    border-radius:12px;padding:16px 22px;box-shadow:0 6px 18px rgba(19,35,48,.08);
+    background:rgb(from var(--blanco) r g b / .9);backdrop-filter:blur(4px);
+    border:1px solid rgb(from var(--blanco) r g b / .7);border-left:4px solid var(--acento);
+    border-radius:12px;padding:16px 22px;box-shadow:0 6px 18px rgb(from var(--azul) r g b / .08);
   }
-  .persp-bar b{font-family:"IBM Plex Mono";font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--verde)}
+  .persp-bar b{font-family:"IBM Plex Mono";font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--acento)}
   .persp-bar span{font-size:1rem;color:var(--azul);font-weight:500}
 
   /* Ejes — tinted band + cards */
   .band{
-    background:linear-gradient(180deg,#f2f6fb 0%, #e9f0f8 100%);
+    background:linear-gradient(180deg,var(--blanco) 0%, var(--gris) 100%);
     border:1px solid var(--gris-2);
     border-radius:20px;padding:38px 34px;
   }
@@ -267,10 +268,10 @@
     border-radius:var(--radio);padding:22px;
     transition:transform .18s ease, box-shadow .18s ease, border-color .18s;
   }
-  .card:hover{transform:translateY(-4px);box-shadow:var(--sombra);border-color:#bcd2e6}
+  .card:hover{transform:translateY(-4px);box-shadow:var(--sombra);border-color:var(--azul)}
   .ico{
     width:42px;height:42px;border-radius:10px;display:grid;place-items:center;
-    background:var(--gris);color:var(--azul-3);margin-bottom:.85rem;
+    background:var(--gris);color:var(--azul);margin-bottom:.85rem;
   }
   .card h3{font-size:1.06rem;font-weight:600;margin-bottom:.4rem;font-family:"Space Grotesk"}
   .card p{font-size:.92rem;color:var(--tinta-2)}
@@ -282,7 +283,7 @@
   .step .num{
     position:absolute;left:-17px;top:0;
     width:32px;height:32px;border-radius:50%;
-    background:var(--azul);color:#fff;
+    background:var(--azul);color:var(--blanco);
     display:grid;place-items:center;
     font-family:"IBM Plex Mono";font-size:.82rem;font-weight:500;
     border:3px solid var(--blanco);
@@ -292,24 +293,24 @@
 
   /* Diagnóstico — dark card */
   .dark-card{
-    background:linear-gradient(150deg,var(--azul) 0%,#0b3a5c 100%);
-    color:#fff;border-radius:20px;padding:38px 34px;overflow:hidden;position:relative;
+    background:linear-gradient(150deg,var(--azul) 0%,var(--azul) 100%);
+    color:var(--blanco);border-radius:20px;padding:38px 34px;overflow:hidden;position:relative;
   }
-  .dark-card h2{color:#fff}
-  .dark-card .sub{color:#bcd4e6}
+  .dark-card h2{color:var(--blanco)}
+  .dark-card .sub{color:var(--blanco)}
   .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem 1.6rem;margin:1.3rem 0 1.7rem}
-  .checks li{list-style:none;display:flex;gap:.6rem;font-size:.94rem;color:#e3eef6;align-items:flex-start}
-  .checks svg{flex:0 0 auto;margin-top:3px;color:var(--turquesa)}
+  .checks li{list-style:none;display:flex;gap:.6rem;font-size:.94rem;color:var(--blanco);align-items:flex-start}
+  .checks svg{flex:0 0 auto;margin-top:3px;color:var(--acento)}
 
   /* Participa — register list */
   .reglist{columns:2;column-gap:2.4rem;margin:1.2rem 0 1.5rem}
-  .reglist li{list-style:none;padding:.5rem 0 .5rem 1.5rem;position:relative;font-size:.94rem;break-inside:avoid;color:#31434f;border-bottom:1px solid var(--gris-2)}
-  .reglist li::before{content:"→";position:absolute;left:0;color:var(--turquesa);font-family:"IBM Plex Mono"}
+  .reglist li{list-style:none;padding:.5rem 0 .5rem 1.5rem;position:relative;font-size:.94rem;break-inside:avoid;color:var(--tinta);border-bottom:1px solid var(--gris-2)}
+  .reglist li::before{content:"→";position:absolute;left:0;color:var(--acento);font-family:"IBM Plex Mono"}
 
   /* Beneficios */
   .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem 1.8rem;margin-top:1.3rem}
-  .benefits li{list-style:none;display:flex;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--gris-2);font-size:.96rem;color:#31434f;align-items:center}
-  .benefits svg{flex:0 0 auto;color:var(--verde)}
+  .benefits li{list-style:none;display:flex;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--gris-2);font-size:.96rem;color:var(--tinta);align-items:center}
+  .benefits svg{flex:0 0 auto;color:var(--acento)}
 
   /* ---------- Aside ---------- */
   aside.side{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:18px}
@@ -324,29 +325,29 @@
     padding:.6rem .7rem;border-radius:8px;font-size:.9rem;font-weight:500;color:var(--tinta);
     transition:background .15s,color .15s;
   }
-  .panel .qa a:hover{background:var(--gris);color:var(--azul)}
+  .panel .qa a:hover{background:var(--gris);color:var(--azul-interactivo)}
   .panel .qa a .ar{color:var(--tinta-2)}
-  .panel.contact{background:linear-gradient(160deg,var(--azul),#0b3a5c);border:none;color:#fff;padding:20px}
-  .panel.contact h4{color:#8fb8d6;padding:0 0 12px}
+  .panel.contact{background:linear-gradient(160deg,var(--azul),var(--azul));border:none;color:var(--blanco);padding:20px}
+  .panel.contact h4{color:var(--blanco);padding:0 0 12px}
   .contact-info{display:flex;flex-direction:column;gap:8px}
   .contact-info p{margin:0}
-  .contact-area{font-size:.9rem;font-weight:600;line-height:1.4;color:#dceaf4}
-  .contact-email{display:inline-flex;width:max-content;max-width:100%;font-size:.88rem;font-weight:600;color:var(--turquesa);overflow-wrap:anywhere;transition:color .15s ease}
-  .contact-email:hover{color:#fff}
-  .contact-meta{font-size:.84rem;line-height:1.45;color:#bcd4e6}
+  .contact-area{font-size:.9rem;font-weight:600;line-height:1.4;color:var(--blanco)}
+  .contact-email{display:inline-flex;width:max-content;max-width:100%;font-size:.88rem;font-weight:600;color:var(--acento);overflow-wrap:anywhere;transition:color .15s ease}
+  .contact-email:hover{color:var(--gris)}
+  .contact-meta{font-size:.84rem;line-height:1.45;color:var(--blanco)}
   .doclist a{display:flex;gap:.6rem;align-items:center;padding:.55rem .7rem;border-radius:8px;font-size:.88rem;color:var(--tinta);transition:background .15s}
-  .doclist a:hover{background:var(--gris);color:var(--azul)}
-  .doclist svg{color:var(--azul-3);flex:0 0 auto}
+  .doclist a:hover{background:var(--gris);color:var(--azul-interactivo)}
+  .doclist svg{color:var(--azul);flex:0 0 auto}
 
   /* ---------- Footer ---------- */
-  footer{background:#08283d;color:#a9c4d8;margin-top:20px}
+  footer{background:var(--azul);color:var(--blanco);margin-top:20px}
   footer .wrap{padding:16px 24px;font-size:.88rem;text-align:center}
 
   /* ---------- Responsive ---------- */
   @@media(max-width:960px){
     .layout{grid-template-columns:1fr;gap:40px}
     aside.side{position:static;order:2;flex-direction:column}
-    .hero .wrap{grid-template-columns:1fr;gap:36px;padding-top:56px;padding-bottom:56px}
+    .hero .wrap{grid-template-columns:1fr;gap:36px;padding-top:48px;padding-bottom:48px}
     .net{max-width:440px;margin:0 auto}
     .strip .wrap{grid-template-columns:repeat(2,1fr)}
   }
@@ -364,26 +365,26 @@
   @@media(prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   }
-  :focus-visible{outline:3px solid var(--turquesa);outline-offset:2px;border-radius:4px}
+  :focus-visible{outline:3px solid var(--acento);outline-offset:2px;border-radius:4px}
   /* Hero lema */
-  .hero .lema{font-family:"Space Grotesk";font-weight:600;font-size:clamp(1.15rem,2.2vw,1.5rem);color:var(--turquesa);line-height:1.25;margin:.2rem 0 1rem;max-width:34ch}
+  .hero .lema{font-family:"Space Grotesk";font-weight:600;font-size:clamp(1.15rem,2.2vw,1.5rem);color:var(--blanco);line-height:1.25;margin:.2rem 0 1rem;max-width:34ch}
 
   /* Preguntas frecuentes */
   .faq-section{padding:60px 0 8px}
   .faq-section .eyebrow{margin-bottom:.5rem}
   .faq-section h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:.4rem 0 1.4rem}
   .faq{max-width:860px}
-  .faq details{border:1px solid var(--gris-2);border-radius:12px;background:#fff;margin-bottom:10px;overflow:hidden}
+  .faq details{border:1px solid var(--gris-2);border-radius:12px;background:var(--blanco);margin-bottom:10px;overflow:hidden}
   .faq summary{list-style:none;cursor:pointer;padding:16px 20px;font-family:"Space Grotesk";font-weight:600;font-size:1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
   .faq summary::-webkit-details-marker{display:none}
   .faq summary .pm{flex:0 0 auto;width:22px;height:22px;position:relative}
-  .faq summary .pm::before,.faq summary .pm::after{content:"";position:absolute;background:var(--azul-3);border-radius:2px}
+  .faq summary .pm::before,.faq summary .pm::after{content:"";position:absolute;background:var(--azul);border-radius:2px}
   .faq summary .pm::before{top:10px;left:3px;right:3px;height:2px}
   .faq summary .pm::after{left:10px;top:3px;bottom:3px;width:2px;transition:opacity .2s}
   .faq details[open] summary .pm::after{opacity:0}
   .faq details p{padding:0 20px 18px;color:var(--tinta-2);font-size:.94rem}
   .model-img{margin:0}
-  .model-img img{width:100%;height:auto;display:block;border-radius:14px;border:1px solid rgba(255,255,255,.6);box-shadow:0 12px 32px rgba(19,35,48,.18)}
+  .model-img img{width:100%;height:auto;display:block;border-radius:14px;border:1px solid rgb(from var(--blanco) r g b / .6);box-shadow:0 12px 32px rgb(from var(--azul) r g b / .18)}
   .dgti-banner{width:100%;max-width:440px;height:auto;display:block;margin-bottom:22px}
   .dgti-foot{width:100%;max-width:300px;height:auto;display:block;margin-bottom:16px;opacity:.95}
   @@media(max-width:640px){.dgti-banner{max-width:320px;margin-bottom:16px}}
@@ -393,7 +394,7 @@
 </head>
 <body>
 @if (ViewData["Error"] is string) {
-  <div role="alert" class="wrap" style="padding:16px;margin-top:16px;background:#fff3cd;color:#664d03;border-radius:8px">
+  <div role="alert" class="wrap" style="padding:16px;margin-top:16px;background:var(--gris);color:var(--azul);border-radius:8px">
     @ViewData["Error"]
   </div>
 }
@@ -450,7 +451,7 @@
       </p>
 
       <p class="lead">
-        Optimizamos procesos, gobernamos los datos y usamos la tecnología
+        Optimizamos procedimientos, gobernamos los datos y usamos la tecnología
         de forma estratégica, ética y segura para mejorar los servicios
         universitarios.
       </p>
@@ -470,9 +471,9 @@
       <section class="block" id="que-es">
         <span class="eyebrow">El proyecto</span>
         <h2>¿Qué es la Transformación Digital UACJ?</h2>
-        <p class="body">La Transformación Digital en la UACJ se conceptualiza como el cambio institucional para mejorar de forma integral la manera en que operamos: simplificar, estandarizar y optimizar procesos para que sean más ágiles, confiables y medibles, mediante el uso correcto de las herramientas tecnológicas.</p>
-        <p class="body">Por ello, es un esfuerzo de toda la comunidad universitaria, porque los procesos están conectados y el resultado depende de cada eslabón; el punto de partida es el registro correcto, completo y oportuno de los datos.</p>
-        <p class="highlight">La transformación digital es trabajar con datos confiables y tecnología institucional, para generar eficiencia, transparencia y valor para la UACJ y su comunidad.</p>
+        <p class="body">La Transformación Digital en la UACJ se conceptualiza como el cambio institucional para mejorar de forma integral la manera en que operamos: simplificar, estandarizar y optimizar procedimientos para que sean más ágiles, confiables y medibles, mediante el uso correcto de las herramientas tecnológicas.</p>
+        <p class="body">Por ello, es un esfuerzo de toda la comunidad universitaria, porque los procedimientos están conectados y el resultado depende de cada eslabón; el punto de partida es el registro correcto, completo y oportuno de los datos.</p>
+        <p class="highlight">La transformación digital es trabajar con datos confiables y tecnología institucional para generar eficiencia, transparencia y valor para la UACJ y su comunidad.</p>
       </section>
 
       <!-- Modelo conceptual -->
@@ -489,7 +490,7 @@
             </div>
             <div class="m-card m-oper">
               <span class="m-cat">Operación</span>
-              <h3>Procesos</h3>
+              <h3>Procedimientos</h3>
               <p>Automatización y mejoras</p>
             </div>
             <div class="m-center">
@@ -528,8 +529,8 @@
           <div class="cards">
             <div class="card">
               <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/></svg></div>
-              <h3>Procesos institucionales</h3>
-              <p>Identificación, análisis, simplificación, estandarización y digitalización de procesos académicos y administrativos.</p>
+              <h3>Procedimientos institucionales</h3>
+              <p>Identificación, análisis, simplificación, estandarización y digitalización de procedimientos académicos y administrativos.</p>
             </div>
             <div class="card">
               <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div>
@@ -567,9 +568,9 @@
         <p class="sub">Un camino de ocho fases, del entendimiento inicial a la mejora continua. Cada fase produce entregables que alimentan la siguiente.</p>
         <div class="steps">
           <div class="step"><span class="num">1</span><h3>Contextualización</h3><p>Dar a conocer la visión, los objetivos y los beneficios del proyecto institucional.</p></div>
-          <div class="step"><span class="num">2</span><h3>Diagnóstico</h3><p>Evaluar la madurez digital de procesos, datos, infraestructura, seguridad, personas y sustentabilidad.</p></div>
-          <div class="step"><span class="num">3</span><h3>Sensibilización</h3><p>Capacitar al personal en Cultura Organizacional.</p></div>
-          <div class="step"><span class="num">4</span><h3>Registro de procesos</h3><p>Documentar los procesos operativos que desarrolla cada dependencia universitaria.</p></div>
+          <div class="step"><span class="num">2</span><h3>Diagnóstico</h3><p>Evaluar la madurez digital de procedimientos, datos, infraestructura, seguridad, personas y sustentabilidad.</p></div>
+          <div class="step"><span class="num">3</span><h3>Sensibilización</h3><p>Capacitar al personal en cultura organizacional.</p></div>
+          <div class="step"><span class="num">4</span><h3>Registro de procedimientos</h3><p>Documentar los procedimientos institucionales que desarrolla cada dependencia universitaria.</p></div>
           <div class="step"><span class="num">5</span><h3>Análisis y priorización</h3><p>Identificar problemas, duplicidades, riesgos, necesidades y oportunidades de mejora.</p></div>
           <div class="step"><span class="num">6</span><h3>Diseño de soluciones</h3><p>Definir mejoras, automatizaciones, integraciones y proyectos tecnológicos.</p></div>
           <div class="step"><span class="num">7</span><h3>Implementación</h3><p>Desarrollar y poner en operación las soluciones priorizadas.</p></div>
@@ -584,7 +585,7 @@
           <h2>Diagnóstico de madurez digital</h2>
           <p class="sub">Una fotografía honesta del punto de partida de tu área. Estos son los aspectos que evaluaremos:</p>
           <ul class="checks">
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Claridad y estandarización de los procesos</li>
+            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Claridad y estandarización de los procedimientos</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Nivel de digitalización y automatización</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Calidad, disponibilidad e integración de datos</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Infraestructura, conectividad y seguridad</li>
@@ -598,11 +599,11 @@
 
       <!-- 5. Participa -->
       <section class="block" id="participa">
-        <span class="eyebrow">Registro de procesos</span>
+        <span class="eyebrow">Registro de procedimientos</span>
         <h2>Participa desde tu área</h2>
         <p class="sub">Para avanzar necesitamos conocer cómo funcionan hoy las dependencias. Cada área podrá registrar:</p>
         <ul class="reglist">
-          <li>Nombre y objetivo del proceso</li>
+          <li>Nombre y objetivo del procedimiento</li>
           <li>Personas responsables y participantes</li>
           <li>Usuarios y áreas involucradas</li>
           <li>Actividades y flujo de trabajo</li>
@@ -622,7 +623,7 @@
         <h2>Beneficios para la comunidad</h2>
         <ul class="benefits">
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Servicios más ágiles y accesibles</li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Menos trámites y actividades repetitivas</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Menos pasos y actividades repetitivas</li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Información confiable y oportuna</li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Mejor coordinación entre dependencias</li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Mayor seguridad y protección de datos</li>
@@ -641,7 +642,7 @@
         <ul>
           <li><a href="#plan">Plan Institucional <span class="ar">→</span></a></li>
           <li><a href="#diagnostico">Diagnóstico de madurez <span class="ar">→</span></a></li>
-          <li><a href="#participa">Registro de procesos <span class="ar">→</span></a></li>
+          <li><a href="#participa">Registro de procedimientos <span class="ar">→</span></a></li>
           <li><a href="#docs">Documentos y lineamientos <span class="ar">→</span></a></li>
           <li><a href="#preguntas">Preguntas frecuentes <span class="ar">→</span></a></li>
         </ul>
@@ -678,11 +679,11 @@
     <span class="eyebrow">Preguntas frecuentes</span>
     <h2>Resolvemos tus dudas</h2>
     <div class="faq">
-      <details open><summary>¿Qué es la Transformación Digital UACJ?<span class="pm"></span></summary><p>Es un proceso institucional que integra personas, procesos, datos y tecnología para mejorar la forma en que la Universidad opera y presta sus servicios. No se trata solo de tecnología, sino de trabajar mejor con información confiable.</p></details>
-      <details><summary>¿Cómo me beneficia?<span class="pm"></span></summary><p>Según tu rol, obtendrás trámites más simples, información más clara y oportuna, y servicios más accesibles. El objetivo es facilitar la vida universitaria de estudiantes, docentes y personal.</p></details>
+      <details open><summary>¿Qué es la Transformación Digital UACJ?<span class="pm"></span></summary><p>Es un proceso institucional que integra personas, procedimientos, datos y tecnología para mejorar la forma en que la Universidad opera y presta sus servicios. No se trata solo de tecnología, sino de trabajar mejor con información confiable.</p></details>
+      <details><summary>¿Cómo me beneficia?<span class="pm"></span></summary><p>Según tu rol, obtendrás procedimientos más simples, información más clara y oportuna, y servicios más accesibles. El objetivo es facilitar la vida universitaria de estudiantes, docentes y personal.</p></details>
       <details><summary>¿Qué papel juegan mis datos en la transformación?<span class="pm"></span></summary><p>El punto de partida es el registro correcto, completo y oportuno de los datos. Con información confiable es posible generar eficiencia, transparencia y decisiones basadas en evidencia.</p></details>
       <details><summary>¿Cómo se protege la información?<span class="pm"></span></summary><p>Mediante lineamientos de gobernanza de datos, medidas de ciberseguridad y avisos de privacidad. La protección y la continuidad de los servicios son parte central del proyecto.</p></details>
-      <details><summary>¿Cómo puede participar mi área?<span class="pm"></span></summary><p>Cada dependencia puede registrar sus procesos operativos y participar en el diagnóstico de madurez digital. La transformación es un esfuerzo de toda la comunidad, porque los procesos están conectados.</p></details>
+      <details><summary>¿Cómo puede participar mi área?<span class="pm"></span></summary><p>Cada dependencia puede registrar sus procedimientos institucionales y participar en el diagnóstico de madurez digital. La transformación es un esfuerzo de toda la comunidad, porque los procedimientos están conectados.</p></details>
       <details><summary>¿Con quién puedo ponerme en contacto?<span class="pm"></span></summary><p>Utiliza los datos de contacto disponibles en la columna lateral.</p></details>
     </div>
   </div>

@@ -1,6 +1,8 @@
 # Avance, SQL Server y Pruebas de acceso — 2026-10-10
 
-La fórmula siguiente incluye la actualización de cobertura del 2026-10-14. [Implementación, ejemplo completo, pruebas nativas y compatibilidad JSON](COBERTURA_Y_GUARDADO.md). Los resultados de verificación al final de este documento corresponden a la entrega original del 2026-10-10.
+**Actualización vigente 2026-10-16 (catálogo):** herramientas opcionales por procedimiento, nuevas familias Microsoft 365/Adobe, opciones históricas conservadas y duplicados nuevos rechazados. Medios utilizados y Otro medio están retirados, incluida su persistencia específica. Requiere `20261016190000_RemoveUsedMedia`; el resto de los envíos permanece intacto. [Catálogo vigente, limpieza exacta, respaldo y actualización Windows/Ubuntu](CATALOGO_HERRAMIENTAS_Y_RETIRO_MEDIOS.md). Las verificaciones y decisiones anteriores de este documento son evidencia fechada, no instrucciones para reinstalar el catálogo ni Medios.
+
+La fórmula siguiente incorpora la captura opcional de herramientas del 2026-10-16, que sustituye la cobertura obligatoria del 2026-10-14. [Implementación, ejemplo completo, pruebas nativas y compatibilidad JSON](COBERTURA_Y_GUARDADO.md). Los resultados de verificación al final de este documento corresponden a la entrega original del 2026-10-10.
 
 Complementa la [distribución operativa](INTERFAZ_OPERATIVA.md) sobre los cambios locales existentes. Conserva MUI, barra blanca, tipografía, densidad, navegación, ámbitos de acceso, versiones, reservas, autoguardado e inmutabilidad. Sin dependencias, migraciones, cambios de configuración de despliegue o escrituras de bases durante este trabajo.
 
@@ -12,20 +14,22 @@ Antes, avance y revisión recorrían los campos por separado. El detalle condici
 
 | Registro o condición | Qué cuenta |
 |---|---|
-| Procedimiento real | Los siete requisitos existentes de `ProcedureEligibility`: trámite, destinatarios válidos, resultado, responsable, validación V/A, prioridad 1–5 y código confirmado con formato válido |
+| Procedimiento real | Los siete requisitos existentes de `ProcedureEligibility`: procedimiento, destinatarios válidos, resultado, responsable, validación V/A, prioridad 1–5 y código confirmado con formato válido |
 | Herramienta real | Cuatro: procedimiento completo/relacionable en el mismo formato, herramienta del catálogo de opciones, uso del catálogo y funcionamiento válido |
-| SIIv2 | Un requisito adicional por fila: uno o varios módulos, todos con ID válido/único e instantánea de descripción confirmada |
-| Procedimiento aplicable | Una comprobación de cobertura: al menos una herramienta asociada con todos sus requisitos válidos, reutilizando la evaluación de sus campos |
+| Sistema Integral de Información | Un requisito adicional por fila: uno o varios módulos, todos con ID válido/único e instantánea de descripción confirmada |
+| Procedimiento sin herramientas | No añade ningún requisito ni pendiente; se permiten cero, una o varias herramientas |
+| Aplicaciones móviles/web | Un requisito adicional por fila: al menos una selección válida, todos los IDs e instantáneas confirmados, sin sumar por aplicación |
+| Microsoft 365 / Adobe Creative Cloud | Un requisito adicional por fila: al menos una clave válida de su colección propia; no suma por producto |
 | Otra herramienta | Un requisito adicional: nombre de la herramienta, no sólo espacios y dentro del límite existente |
 | Otro uso | Un requisito adicional: descripción del uso con las mismas condiciones de texto |
-| Sección sin registros reales | Un requisito incumplido de agregar/completar al menos un registro; en Sistemas lo sustituye la cobertura cuando hay procedimientos aplicables, sin duplicar ese mínimo |
-| Contexto, Medios, comentarios y campos posteriores | Opcionales/informativos o fuera de la captura activa; no penalizan ni añaden avance por visitarlos |
+| Identificación sin registros reales | Un requisito incumplido de agregar/completar al menos un procedimiento; Sistemas sin registros no penaliza |
+| Contexto, comentarios y campos posteriores | Opcionales/informativos o fuera de la captura activa; no penalizan ni añaden avance por visitarlos |
 
 Los detalles condicionales dejan de contar cuando su opción no está activa, sin borrarlos. Los nuevos módulos siguen validándose contra la réplica local dentro de la operación de escritura; comprobar su sintaxis en la evaluación no sustituye esa autorización. Referencias históricas conservan ID e instantánea aunque el módulo se retire de nuevas selecciones. Publicación del catálogo y evaluación comparten la misma comprobación de sintaxis de ID, sin cambiar la regla previa de publicación ni consultar SQL Server.
 
 Sólo la fila `inicial` intacta, sin respuestas (y con origen vacío/Nuevo para Identificación), es ayuda de captura. No cuenta en cantidades ni como una fila real incompleta. Las filas agregadas con ID propio, importadas o con código/respuestas son registros reales, aunque estén incompletas. No se borra nada para calcular. Al agregar o eliminar registros cambia el conjunto de requisitos aplicables y se vuelve a evaluar; no se asigna porcentaje fijo por crear filas.
 
-Ejemplos controlados: un procedimiento válido y una herramienta ordinaria válida suman 12/12 = 100 %, incluida su cobertura. Esa misma herramienta con Otra y Otro, sin detalles, suma 11/14 = 78 %: falta también una herramienta completa para cubrir el procedimiento. Con detalles válidos vuelve a 100 %. SIIv2 sin módulos suma 11/13 = 84 %. Dos procedimientos completos y una sola herramienta válida para uno suman 19/20 = 95 %, con envío rechazado. Un campo pendiente entre cientos sigue mostrando como máximo 99 %.
+Ejemplos controlados: un procedimiento válido y una herramienta ordinaria válida suman 11/11 = 100 %. Esa misma herramienta con Otra y Otro, sin detalles, suma 11/13 = 84 %. Con detalles válidos vuelve a 100 %. SIIv2 sin módulos suma 11/12 = 91 %. Dos procedimientos completos y ninguna herramienta suman 14/14 = 100 %, con envío permitido si los restantes controles de autorización y concurrencia se cumplen. Una herramienta iniciada con sólo uso pendiente da 17/18 = 94 %. Un campo pendiente entre cientos sigue mostrando como máximo 99 %.
 
 D/N históricos y opciones de herramienta/uso/funcionamiento que ya no pertenecen al catálogo vigente permanecen legibles y sin conversión. Pueden conservarse al guardar campos ajenos conforme a las excepciones existentes, pero no cuentan como válidos para completar la captura editable. Los pendientes reutilizan los requisitos incumplidos; el mensaje identifica sección, registro, código/nombre y campo. Las comprobaciones de código y validación que llevan al mismo control producen un solo enlace, conservando ambas comprobaciones en el cálculo.
 
@@ -35,9 +39,9 @@ El promedio de Inicio y el avance del conjunto son `floor(sum(porcentajes indivi
 
 ## Revisión, Sistemas y herramientas
 
-La pestaña sigue siendo Revisar y enviar; su contenido usa **Resumen del formato**, **Pendientes** y **Enviar formato**, sin referencias visibles a primera etapa. La definición técnica mantiene únicamente Contexto, Identificación y Sistemas con Medios. Administradores no incorporan requisitos posteriores al mostrarlos. El diálogo conserva su comprobación concurrente y explica el bloqueo con la nueva redacción; sólo tras el ACK muestra **Formato enviado**, fecha y autor.
+La pestaña sigue siendo Revisar y enviar; su contenido usa **Resumen del formato**, **Pendientes** y **Enviar formato**, sin referencias visibles a primera etapa. La definición técnica mantiene únicamente Contexto, Identificación y Sistemas. Administradores no incorporan requisitos posteriores al mostrarlos. El diálogo conserva su comprobación concurrente y explica el bloqueo con la nueva redacción; sólo tras el ACK muestra **Formato enviado**, fecha y autor.
 
-**Ir al campo** espera el guardado anterior, abre la sección, localiza el registro y enfoca el control, respetando la columna fija Edición. Si faltan todos los registros de la sección, enfoca Agregar trámite o servicio / Agregar fila. En consulta, la alternativa es el panel enfocable; no habilita capturas. Se mantienen el selector buscable de Procedimiento de 280–360 px, nombres completos accesibles, reservas, varias herramientas por procedimiento, condicionales dentro de su celda y Medios independiente.
+**Ir al campo** espera el guardado anterior, abre la sección, localiza el registro y enfoca el control, respetando la columna fija Edición. Si faltan todos los registros de la sección, enfoca Agregar trámite o servicio / Agregar fila. En consulta, la alternativa es el panel enfocable; no habilita capturas. Se mantienen el selector buscable de Procedimiento de 280–360 px, nombres completos accesibles, reservas, varias herramientas por procedimiento, condicionales dentro de su celda.
 
 ## SQL Server e ILDA
 

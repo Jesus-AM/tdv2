@@ -1,5 +1,11 @@
 # Desplazamiento y presentación de tablas — 2026-10-09
 
+## Presentación vigente — 2026-10-16
+
+Revertido únicamente el último ajuste de delimitación. Edición y Acciones recuperan fondos opacos, sombras suaves anteriores, anchos 124/112 px y espaciado previo. Edición queda fija a la izquierda, salvo la excepción anterior en contenedores hasta 600 px; Acciones sigue fija a la derecha. Los grupos vuelven a una celda de ancho completo con nombre y botón de alta. Se retiran separadores interiores nuevos, laterales vacíos y adaptación de 68 px. Ocho colores funcionales, indicador de 4 px y tinte de 4 % se conservan. El gesto, foco, scroll, reservas y autoguardado mantienen sus mecanismos. Medios sigue retirado.
+
+[Pruebas y capturas de la reversión, archivos, límites y comandos](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md#reversión-parcial-vigente). Lo que sigue es evidencia histórica de la corrección de foco de octubre 9, con las dimensiones y apartados de aquella versión; no indica reinstalar esas decisiones visuales.
+
 ## Causa comprobada
 
 Se reprodujo sobre el bundle local anterior, con Edge, dos identidades sintéticas separadas, ASP.NET y PostgreSQL nativo desechable. Arrastrar la barra horizontal nativa produjo `pointerdown DIV`, `focusout TEXTAREA` con `relatedTarget=DIV`, `focusin DIV` y eventos `scroll`. La reserva pasó de propia a libre, aunque sólo se había desplazado la tabla. [Traza anterior](desplazamiento-tablas-20261009/reproduccion-anterior.json).

@@ -8,7 +8,7 @@ public sealed record FormStageStatus(int id, string nombre, bool habilitada, str
     public bool Blocked => !habilitada || estado is "enviada" or "historico";
 }
 public sealed record FormSectionReview(string id, string nombre, bool completa);
-public sealed record FormStageSummary(int procedimientos, int herramientas, string[] medios);
+public sealed record FormStageSummary(int procedimientos, int herramientas);
 public sealed record FormStageReview(FormStageStatus etapa, FormReview revision,
     FormSectionReview[] secciones, FormStageSummary resumen, IReadOnlyList<ProcedureCoverage> cobertura);
 public sealed record FormStageDefinition(int Id, string Name, string[] ContentKeys, Func<string, bool> IncludesBlock,
@@ -21,9 +21,9 @@ public static class FormStages
     public const int First = 1;
     private static readonly IReadOnlyDictionary<int, FormStageDefinition> Definitions = new Dictionary<int, FormStageDefinition>
     {
-        [First] = new(First, "Primera etapa", ["encabezado", "identificacion", "sistemas", "medios", "medioOtro"],
+        [First] = new(First, "Primera etapa", ["encabezado", "identificacion", "sistemas"],
             FormCapture.FirstStageBlock, FormCapture.Review, FormCapture.Progress,
-            [("contexto", "Contexto"), ("identificacion", "Identificación general"), ("sistemas", "Sistemas y herramientas, incluidos Medios utilizados")],
+            [("contexto", "Contexto"), ("identificacion", "Identificación general"), ("sistemas", "Sistemas y herramientas")],
             FirstSummary)
     };
     public static bool Enabled(int stage) => Definitions.ContainsKey(stage);
@@ -61,14 +61,11 @@ public static class FormStages
         var review = definition?.Review(content) ?? new FormReview(false, []);
         var sections = definition?.Sections
             .Select(s => new FormSectionReview(s.Id, s.Name, review.pendientes.All(p => p.seccion != s.Id))).ToArray() ?? [];
-        return new(stage, review, sections, definition?.Summarize(content) ?? new(0, 0, []),
+        return new(stage, review, sections, definition?.Summarize(content) ?? new(0, 0),
             stage.id == First ? FormRequirements.Inspect(content).Coverage : []);
     }
     private static FormStageSummary FirstSummary(JsonObject content)
     {
-        var media = (content["medios"] as JsonObject)?.Where(p => p.Value is JsonValue v && v.TryGetValue<bool>(out var selected) && selected)
-            .Select(p => p.Key).ToList() ?? [];
-        if (!string.IsNullOrWhiteSpace(content["medioOtro"]?.ToString())) media.Add(content["medioOtro"]!.ToString());
-        return new(FormRequirements.Rows(content, "identificacion").Length, FormRequirements.Rows(content, "sistemas").Length, media.ToArray());
+        return new(FormRequirements.Rows(content, "identificacion").Length, FormRequirements.Rows(content, "sistemas").Length);
     }
 }

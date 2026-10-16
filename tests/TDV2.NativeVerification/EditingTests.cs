@@ -75,7 +75,8 @@ internal static partial class NativeTests
             Check(codes.SequenceEqual(new[] { "PO-01", "PO-02" }));
             Check(codes.All(c => content["evaluaciones"]![c]!.AsArray().Count == 9));
             Check(live["bloques"]!.AsArray().Count(b => b!["key"]!.ToString().StartsWith("evaluaciones:") && b["version"]!.GetValue<int>() == 1) == 18);
-            var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = codes[0];
+            var system = Complete(app)["sistemas"]![0]!.DeepClone(); system["proceso"] = codes[0];
+            system["sistema"] = "excel"; system["uso"] = "consultar"; system["estado"] = "bien";
             var link = await Lease(client, first, "sistemas:inicial");
             Check((await Patch(client, Edit(first, link with { Value = system }))).IsSuccessStatusCode);
             // Un código confirmado no se renombra ni deja vínculos huérfanos.
@@ -355,7 +356,7 @@ internal static partial class NativeTests
             await FinalStage(database);
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 0))).StatusCode == HttpStatusCode.UnprocessableEntity);
-            await SeedEditing(database, Complete(app));
+            await SeedEditing(database, CoveredFixture(app));
             var lease = await Lease(client, Guid.NewGuid(), "contexto", 1);
             var submission = new SubmitRequest(tab, Guid.NewGuid(), 1);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", submission)).StatusCode == HttpStatusCode.Conflict);
@@ -369,14 +370,14 @@ internal static partial class NativeTests
         });
         Test("Edición/envío simultáneo con adquisición de reserva conserva una sola decisión", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
+            await Login(app, client); await Csrf(client); await SeedEditing(database, CoveredFixture(app));
             var results = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(Guid.NewGuid(), Guid.NewGuid(), 1)),
                 client.PostAsJsonAsync("/formatos/A/reservas", Edit(Guid.NewGuid(), new BlockRequest("contexto", 1))));
             Check(results.Count(r => r.IsSuccessStatusCode) == 1 && results.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1);
         });
         Test("Edición/envío y guardado simultáneos de la misma sesión no cruzan el cierre", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); await SeedEditing(database, Complete(app));
+            await Login(app, client); await Csrf(client); await SeedEditing(database, CoveredFixture(app));
             var tab = Guid.NewGuid(); var block = await Lease(client, tab, "contexto", 1);
             var responses = await Task.WhenAll(Patch(client, Edit(tab, block with { Value = Header("Último cambio") })),
                 client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1)));
@@ -406,9 +407,9 @@ internal static partial class NativeTests
             Check((await Patch(helper, Edit(tab, block with { Value = Header("Colaboradora") }), "A3")).IsSuccessStatusCode);
             var ownerTab = Guid.NewGuid();
             Check((await client.PostAsJsonAsync("/formatos/A3/reservas", Edit(ownerTab, new BlockRequest("contexto", 1)))).StatusCode == HttpStatusCode.Conflict);
-            var ownerBlock = await Lease(client, ownerTab, "medios", unit: "A3");
-            var medios = (await Live(client, ownerTab, "A3"))["contenido"]!["medios"]!.DeepClone();
-            Check((await Patch(client, Edit(ownerTab, ownerBlock with { Value = new JsonObject { ["medios"] = medios, ["medioOtro"] = "Otro usuario, otro bloque" } }), "A3")).IsSuccessStatusCode);
+            var ownerBlock = await Lease(client, ownerTab, "identificacion:inicial", unit: "A3");
+            var ownerRow = (await Live(client, ownerTab, "A3"))["contenido"]!["identificacion"]![0]!.DeepClone(); ownerRow["tramite"] = "Otro usuario, otro bloque";
+            Check((await Patch(client, Edit(ownerTab, ownerBlock with { Value = ownerRow }), "A3")).IsSuccessStatusCode);
             var holder = (await Live(client, ownerTab, "A3"))["bloques"]!.AsArray().Single(b => b!["key"]!.ToString() == "contexto")!["reserva"]!;
             Check(holder["titular"]!.ToString() == "Colaboradora sintética" && !holder["otraPestana"]!.GetValue<bool>());
             Check((await helper.PostAsJsonAsync("/formatos/A3/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.Forbidden);

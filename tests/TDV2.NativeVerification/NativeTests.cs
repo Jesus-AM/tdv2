@@ -368,6 +368,7 @@ internal static partial class NativeTests
         RegisterFirstStageCases(database, Test);
         RegisterProcedureValidationCases(database, Test);
         RegisterStageSubmissionCases(database, Test);
+        RegisterToolCatalogCases(database, Test);
         RegisterFormIntegrityCases(database, Test);
         RegisterSystemModuleCases(database, Test); RegisterDeliveryCases(database, Test);
         if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
@@ -414,7 +415,7 @@ internal static partial class NativeTests
     {
         var selectedFlow = Environment.GetEnvironmentVariable("TDV2_TEST_BROWSER_FLOW") ?? "all";
         if (selectedFlow == "visual-studio") { await VerifyDevelopmentStartup(database); return; }
-        Check(new[] { "all", "formats", "access", "scope", "sync", "sync-manual", "performance", "capture-matrix", "participants", "presentation", "users-served", "photos", "first-stage", "systems", "delivery", "table-scroll", "validation", "stage-review", "coverage" }.Contains(selectedFlow), "Unknown browser flow.");
+        Check(new[] { "all", "formats", "access", "scope", "sync", "sync-manual", "performance", "capture-matrix", "participants", "presentation", "users-served", "photos", "first-stage", "systems", "delivery", "table-scroll", "validation", "stage-review", "coverage", "system-groups", "tool-catalog" }.Contains(selectedFlow), "Unknown browser flow.");
         await database.Reset();
         if (selectedFlow is "photos" or "sync-manual") await SetupSync(database);
         if (selectedFlow == "presentation")
@@ -439,12 +440,14 @@ internal static partial class NativeTests
         start.Environment["TDV2_BROWSER_ARTIFACTS"] = database.Artifacts;
         // Browser runner needs no database credentials.
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
-        if (selectedFlow is "sync-manual" or "performance" or "capture-matrix" or "participants" or "presentation" or "users-served" or "photos" or "first-stage" or "systems" or "delivery" or "table-scroll" or "validation" or "stage-review" or "coverage")
+        if (selectedFlow is "sync-manual" or "performance" or "capture-matrix" or "participants" or "presentation" or "users-served" or "photos" or "first-stage" or "systems" or "delivery" or "table-scroll" or "validation" or "stage-review" or "coverage" or "system-groups" or "tool-catalog")
         {
             start.ArgumentList.Clear(); start.ArgumentList.Add(selectedFlow switch {
                 "sync-manual" => "tests/browser/sync-manual-native.mjs",
                 "systems" => "tests/browser/system-tools-native.mjs",
                 "coverage" => "tests/browser/procedure-coverage-native.mjs",
+                "tool-catalog" => "tests/browser/tool-catalog-native.mjs",
+                "system-groups" => "tests/browser/system-groups-native.mjs",
                 "delivery" => "tests/browser/delivery-collaboration-native.mjs",
                 "table-scroll" => "tests/browser/table-scroll-native.mjs",
                 "validation" => "tests/browser/procedure-validation-native.mjs",

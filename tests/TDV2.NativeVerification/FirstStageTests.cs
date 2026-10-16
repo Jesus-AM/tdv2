@@ -75,15 +75,15 @@ internal static partial class NativeTests
             await database.Sql("UPDATE fixture_modules SET ruta='/inicio',modulo_padre_id=50 WHERE id IN(9,19)");
             Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
         });
-        Test("Edición/etapa: captura limitada, medios incluidos y revocación de privilegio administrativo", async (app, client) =>
+        Test("Edición/etapa: captura limitada, medios retirados y revocación de privilegio administrativo", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             var form = await Form(client); Check(!form["seccionesPosteriores"]!.GetValue<bool>());
             foreach (var key in new[] { "datos:inicial", "preguntas:0", "evaluaciones:PO-01:0", "acuerdos:inicial" })
                 Check((await client.PostAsJsonAsync("/formatos/A/reservas", Edit(tab, new BlockRequest(key, 0)))).StatusCode == HttpStatusCode.Forbidden);
-            var media = await Lease(client, tab, "medios"); var values = FormBlocks.Split((await Live(client, tab))["contenido"]!.AsObject())["medios"]!;
-            values["medioOtro"] = "Medio sintético";
-            Check((await Patch(client, Edit(tab, media with { Value = values }))).IsSuccessStatusCode);
+            Check((await client.PostAsJsonAsync("/formatos/A/reservas", Edit(tab, new BlockRequest("medios", 0)))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            var headerLease = await Lease(client, tab);
+            Check((await Patch(client, Edit(tab, headerLease with { Value = Header("Texto") }))).IsSuccessStatusCode);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
             await database.Sql("UPDATE fixture_roles SET rol_clave='administrador'");
             Check((await Form(client))["seccionesPosteriores"]!.GetValue<bool>());
@@ -106,6 +106,7 @@ internal static partial class NativeTests
         Test("Edición/etapa: destinatarios vigentes, borrador vacío, rechazo de cliente anterior e historia intacta", async (app, client) =>
         {
             var initial = Complete(app); initial["preguntas"]![0]!["respuesta"] = "Historia oculta";
+            initial["sistemas"] = new JsonArray(); // La prueba de destinatarios no añade una herramienta histórica incompleta.
             initial["identificacion"]![0]!["prioridad"] = "4";
             await SeedStage(database, initial); await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             var block = await Lease(client, tab, "identificacion:inicial"); var row = initial["identificacion"]![0]!.DeepClone();
@@ -136,6 +137,7 @@ internal static partial class NativeTests
         Test("Edición/etapa: cien habilita revisión de entrega sin requisitos de pestañas posteriores ni sesión", async (app, client) =>
         {
             var content = Complete(app); var blank = app.Services.GetRequiredService<FormSchema>().Blank(new("A", "100", "A", 2, null, 2026));
+            content["sistemas"] = new JsonArray(); // Sin herramientas ni respuestas posteriores: captura válida.
             foreach (var section in new[] { "datos", "evaluaciones", "preguntas", "acuerdos" }) content[section] = blank[section]!.DeepClone();
             await SeedStage(database, content); await Login(app, client);
             var live = await Live(client, Guid.NewGuid());

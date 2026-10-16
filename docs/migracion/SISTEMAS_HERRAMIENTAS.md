@@ -1,6 +1,57 @@
 # Sistemas y herramientas y módulos SIIv2 — 2026-10-09
 
+**Presentación vigente 2026-10-16:** revertida sólo la última delimitación. Los grupos recuperan una celda de ancho completo para código/nombre y **Agregar sistema o herramienta**. Se retiran los laterales vacíos y separadores nuevos; vuelven fondos, espaciados y anchos previos. Las acciones de cada registro permanecen en Acciones fija a la derecha; Edición sigue fija salvo la excepción móvil anterior hasta 600 px. El botón de grupo conserva asociación, permisos y alta explícita; no crea filas automáticamente. [Alcance, pruebas, capturas y límites de la reversión](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md#reversión-parcial-vigente).
+
+**Actualización vigente 2026-10-16 (catálogo):** herramientas opcionales por procedimiento, nuevas familias Microsoft 365/Adobe, opciones históricas conservadas y duplicados nuevos rechazados. Medios utilizados y Otro medio están retirados, incluida su persistencia específica. Requiere `20261016190000_RemoveUsedMedia`; el resto de los envíos permanece intacto. [Catálogo vigente, limpieza exacta, respaldo y actualización Windows/Ubuntu](CATALOGO_HERRAMIENTAS_Y_RETIRO_MEDIOS.md). Las verificaciones y decisiones anteriores de este documento son evidencia fechada, no instrucciones para reinstalar el catálogo ni Medios.
+
+**Regla vigente 2026-10-16:** capturar herramientas por procedimiento es opcional (cero, una o varias). Las filas iniciadas conservan requisitos y condicionales; no tener herramientas no resta avance ni impide enviar. Los formatos nuevos comienzan sin filas automáticas. Revisar y enviar mantiene los pendientes reales con Ir al campo; se retira la cobertura obligatoria y su acción de alta. Se conserva la tabla compacta, multiselección, asociaciones, reservas y autoguardado. [Fórmula, textos y compatibilidad](COBERTURA_Y_GUARDADO.md). Las referencias a cobertura obligatoria en las entregas anteriores son históricas.
+
 **Actualización vigente 2026-10-15:** Aplicaciones móviles / Aplicaciones Web usan exclusivamente las listas versionadas de los Excel: 26 móviles y 207 web. PostgreSQL conserva IDs anteriores cuando la correspondencia exacta es inequívoca, UUID locales nuevos e instantáneas históricas. El importador no utiliza ACTIVA ni responsables. Los multiselectores mantienen cero/una/cantidad, búsqueda, casillas, nombres completos y reservas; una o más aplicaciones válidas cuentan como un requisito. SQL Server sólo sincroniza UR y módulos. Nueva migración **20261015165555_LocalApplicationLists** e importación explícita, sin alterar formatos enviados. [Contrato, correspondencias y comandos](APLICACIONES_LISTAS.md). Las referencias anteriores a aplicaciones sincronizadas desde SQL Server son históricas.
+
+## Agrupación dentro de la tabla y redacción — 2026-10-16
+
+**Implementado:** la tabla presenta un encabezado por procedimiento, con código y nombre completo y el botón **Agregar sistema o herramienta**. Sigue el orden de Identificación general; cada grupo conserva el orden relativo original de sus herramientas. El alta es explícita, usa el código confirmado por el servidor y conserva la comprobación de elegibilidad/reserva. Los procedimientos incompletos se identifican y no admiten asociaciones nuevas. Un procedimiento sin herramientas sólo muestra su encabezado y acción, no crea registros ni pendientes. **Agregar fila** continúa fuera del contenedor para capturar y elegir el procedimiento. Medios utilizados se retiró en la actualización vigente.
+
+La relación sigue siendo `sistemas[].proceso` → `identificacion[].codigo`, confirmada y estable en el servidor. `system-groups.ts` sólo proyecta los datos; no ordena ni modifica el JSON. Renombrar actualiza el encabezado; reasignar mueve la fila; vínculos vacíos o desconocidos quedan en **Sin procedimiento asignado**. Todos los registros se muestran inicialmente. Las filas React conservan claves por ID y son hermanas en un único cuerpo de tabla: mover un grupo no desmonta controles. `StableCaptureBody` conserva el punto de lectura, desplazamiento horizontal y, si el movimiento DOM lo pierde, el foco del mismo control con su selección; no fuerza foco durante scroll ni modifica reservas. El encabezado de grupo se adapta al ancho visible y acompaña el desplazamiento horizontal. Encabezados de columna, presencia fija, acciones, menús y navegación desde pendientes se conservan.
+
+**Textos:** revisadas Contexto, Identificación, Sistemas, Medios, Datos, Evaluación, Preguntas, Acuerdos y Revisión. Ayuda «Área responsable», explicación directa de prioridad, concordancia de cantidades ILDA/registros, confirmación de eliminación sin anunciar asociaciones cuando son cero y explicación de reasignación más precisa. Preguntas históricas se presentan con «procedimiento», trato de tú y redacción uniforme; opciones como «Ninguno o muy pocos» y «El conocimiento se comparte» mantienen sus valores originales. Los mapas son explícitos y sólo afectan etiquetas conocidas, nunca respuestas libres, identificadores, nombres de catálogos ni instantáneas. Mensajes del catálogo conservan la escritura oficial de SIIv2.
+
+**Compatibilidad:** ajuste frontend, sin migración ni actualización de datos. Conserva captura opcional, evaluador/avance/envío, multiselección, referencias históricas, reservas, autoguardado y bloqueo de enviados. No habilita secciones posteriores.
+
+**Verificado:** TypeScript/Vite/.NET; **91/91** pruebas frontend y **115/115** dominio/HTTP con dobles. **9 casos nativos** con PostgreSQL 18 desechable: opcionalidad y rechazo de filas incompletas, ausencia de altas automáticas, retiro transaccional/conflicto, conexiones independientes, reintentos, rollback, JSON/snapshots intactos, multiselección y referencias históricas. **9/9 recorridos nuevos Edge → ASP.NET → PostgreSQL**: orden intercalado, alta por grupo, Ir al campo, reasignación sin remount (identidad DOM comprobada), guardado/recarga, autoguardado conservando scroll y selección, reserva observada desde otra pestaña, renombrado, eliminación/reasignación, encabezados/acciones, teclado/tacto emulado y textos de las ocho secciones. Capturas a 1366/390/320 px; sin desbordamiento de página y botón de grupo dentro de su ancho. **11/11 recorridos nativos adicionales de catálogos**: SIIv2 y aplicaciones móviles/web, cero/una/varias selecciones, búsquedas, PostgreSQL, recarga, respuestas históricas, Otra/Otro, dos pestañas/SignalR, teclado/móvil de 360 px y enviado inmutable. Total: **20 recorridos de navegador con transporte real**. **9/9 casos adicionales de selectores con transporte simulado**, incluyendo reserva lenta/denegada/fallida, búsqueda, cambios rápidos e intención tardía; se distinguen de la prueba PostgreSQL.
+
+Evidencia: `.artifacts/grouped-tools-{types,frontend,vite,build,unit}.txt`, `.artifacts/native-postgres-20261016-161608-6fa565a3/{verification.json,system-groups-native-browser.json}` y capturas `system-groups-table-*.png` / `form-texts-*.png`; `.artifacts/native-postgres-20261016-161846-ea0c4d59/systems-native-browser.json` y `.artifacts/grouped-tools-catalogs.txt` para los 11 recorridos de catálogos; `.artifacts/record-select-ui/` para transporte simulado. El reporte nativo cuenta nueve casos de API y un ejecutor de navegador que contiene nueve recorridos (no son 18 pruebas de API). Durante la preparación del recorrido se corrigieron esperas de carga inicial, adquisición mediante foco antes de `fill`, y apertura con teclado después de Ir al campo; no se relajaron las reservas de producción para superar esos errores de prueba. Compilación conserva las dos advertencias NuGet preexistentes de `System.Security.Cryptography.Pkcs` 9.0.18.
+
+**Pendiente:** dispositivos táctiles físicos, lector de pantalla y aceptación institucional. Identidad y fuentes remotas sintéticas; las dos pestañas son sesiones de la misma cuenta de prueba. No equivalen a dos identidades institucionales ni a sincronizaciones reales. Los clústeres nuevos se detuvieron al finalizar; no se inspeccionaron ni modificaron bases existentes.
+
+**Archivos de esta entrega:**
+
+- `ClientApp/resources/js/pages/FormatoUR.tsx`, `lib/system-groups.ts`, `Components/StableCaptureBody.tsx`, `Components/CaptureTableScroll.tsx` y `ClientApp/resources/css/app.css`: grupos, altas, claves y posición/foco.
+- `lib/form-labels.ts`, `Components/ProcedureFieldHelp.tsx`, `Components/RemoveRowDialog.tsx`, `Components/FormSubmissionReview.tsx` y `Components/CatalogMultiSelect.tsx`: presentación de textos; los nombres de campos internos permanecen.
+- `ClientApp/tests/frontend/form-review.test.mjs`, `ClientApp/tests/browser/system-groups-native.mjs`, `tests/TDV2.NativeVerification/{NativeApplication,NativeTests}.cs`: proyección pura, fixture sintético y recorrido navegador real.
+- `README.md`, `ESTADO_MIGRACION.md`, `docs/migracion/INVENTARIO.md` y este documento. Los demás archivos ya modificados en Git se conservaron.
+
+Comandos de comprobación, con Node disponible:
+
+```powershell
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run test:forms
+npm.cmd --prefix ClientApp run build
+dotnet build tests/TDV2.Verification/TDV2.Verification.csproj -c Release --no-restore -p:UseAppHost=false
+dotnet tests/TDV2.Verification/bin/Release/net10.0/TDV2.Verification.dll
+$env:TDV2_TEST_EPHEMERAL_TLS='true'
+$env:TDV2_TEST_NODE='C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Microsoft/VisualStudio/NodeJs/node.exe'
+$env:TDV2_TEST_CASE_PREFIX='Edición/integridad:|Edición/módulos'
+$env:TDV2_TEST_BROWSER_FLOW='system-groups'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -DirectStart -EditingOnly
+# Regresión de catálogos/controles con transporte real y fuentes sintéticas:
+$env:TDV2_TEST_BROWSER_FLOW='systems'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -DirectStart -BrowserOnly
+# Reservas lentas/fallidas con transporte simulado:
+Push-Location ClientApp
+node tests/browser/record-select-ui.mjs
+Pop-Location
+```
 
 ## Resumen compacto y pendientes — 2026-10-14
 
@@ -269,7 +320,7 @@ Una herramienta por fila; varios registros pueden compartir procedimiento hasta 
 
 Las instrucciones son texto normal con título, pregunta destacada y descripción. Después de la tabla aparece Medios utilizados, como sección de la misma pestaña, con reserva/autoguardado independientes. El campo vigente `Otro medio` carece de placeholder; se conserva «Portal del CAST de uso de técnicos» en herramientas. Ambas tablas comparten la primera columna fija **Edición** y un único foco de campo MUI, distinto del contorno del registro ocupado. Acciones contiene Eliminar, alineado arriba y con área de 44 × 44 px. Comentarios y detalles Otra/Otro muestran dos a cuatro líneas, con desplazamiento interno sin recortar datos. Desplazar la tabla o la página conserva la reserva y el contexto de edición; [reglas y evidencia](DESPLAZAMIENTO_TABLAS.md).
 
-La revisión y el envío están en la pestaña siguiente, **Revisar y enviar**: comprenden Contexto (informativo), Identificación general y Sistemas y herramientas, incluidos Medios (con sus condiciones existentes, sin hacerlo obligatorio). Avance y validación del servidor usan exactamente esa etapa. Mostrar pestañas posteriores como administrador no amplía requisitos. Se conservan permisos intrínsecos de envío, reservas, versión, snapshot e inmutabilidad; los colaboradores siguen sin poder enviar. [Envíos por etapa y migración necesaria](REVISAR_ENVIO_ETAPAS.md).
+La revisión y el envío están en la pestaña siguiente, **Revisar y enviar**: comprenden Contexto (informativo), Identificación general y Sistemas y herramientas (con sus condiciones existentes, sin hacerlo obligatorio). Avance y validación del servidor usan exactamente esa etapa. Mostrar pestañas posteriores como administrador no amplía requisitos. Se conservan permisos intrínsecos de envío, reservas, versión, snapshot e inmutabilidad; los colaboradores siguen sin poder enviar. [Envíos por etapa y migración necesaria](REVISAR_ENVIO_ETAPAS.md).
 
 No cambian permisos, participación, primera etapa, enviados, fotografías, reservas automáticas, autoguardado independiente ni eliminación directa. Abrir menús/ayudas y cambiar controles mantiene la unidad de edición. Buscar no escribe un ID ni se trata como respuesta. La primera modificación requiere reserva confirmada.
 

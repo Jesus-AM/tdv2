@@ -73,7 +73,8 @@ export async function systemFixture() {
             for (const e of entries) {
                 const b = block(e.key);
                 if (url.pathname.endsWith('/reservas') || url.pathname.endsWith('/actividad')) {
-                    b.tab = body.tabId; b.reserva ||= { id: randomUUID(), titular: 'Persona sintética', color: 2, foto: null };
+                    b.tab = body.tabId; b.reserva ||= { id: randomUUID(), titular: 'Persona sintética', color: 2, foto: null,
+                        ...fixture.participantForRequest?.(req, body.tabId) };
                     b.reserva.venceEn = new Date(Date.now() + 45000).toISOString();
                 } else if (url.pathname.endsWith('/liberar')) b.reserva = null;
                 else if (url.pathname.endsWith('/bloques')) {
@@ -101,7 +102,7 @@ export async function systemFixture() {
         if (req.headers['x-tdv2-page']) return json({ component: 'FormatoUR', url: '/formatos/A', props: {
             name: 'TDV2', auth: { user: { id: 1, name: 'Persona sintética', email: 'persona@example.test' }, roles: [], modules: [], canPreview: false, canRepresent: false }, simulacion: null, representacion: null, contextoEdicion: 'own', csrfToken: 'synthetic', session: { lifetime_ms: 7200000 }, routes: { inicio: '/inicio', home: '/', connect: '/connect', logout: '/logout' },
             unidad: { id_ur: 'A', cve_ur: '100', desc_ur: 'Área sintética', nivel_ur: 2, ejercicio: 2026, id_ur_pertenece: null }, contenido: clone(content), plantilla: { ...clone(content), sistemas: [clone(blankSystem)] }, definicion: definition,
-            editable: !fixture.submitted && !fixture.readOnly, entrega: fixture.delivery?.(), permisoEdicion: !fixture.readOnly, version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, seccionesPosteriores: false, puedeEnviar: !!fixture.delivery && !fixture.readOnly, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, actualizadoEn: null, actualizadoPor: null, guardarUrl: '/formatos/A',
+            editable: !fixture.submitted && !fixture.readOnly, entrega: fixture.delivery?.(), permisoEdicion: !fixture.readOnly, version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, seccionesPosteriores: !!fixture.laterSections, puedeEnviar: !!fixture.delivery && !fixture.readOnly, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, actualizadoEn: null, actualizadoPor: null, guardarUrl: '/formatos/A',
         } });
         res.setHeader('content-type', 'text/html'); res.end(await readFile(path.join(root, 'index.html')));
     });

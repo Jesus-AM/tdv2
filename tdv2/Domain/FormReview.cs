@@ -8,7 +8,7 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
     public static FormReview Inspect(JsonObject content, bool firstStage = true)
     {
         if (firstStage) return FormRequirements.Inspect(content).Review;
-        var pending = new List<FormPending>();
+        var pending = FormRequirements.Inspect(content).Review.pendientes.ToList();
         void Rows(string section, string title, params (string Key, string Label)[] fields)
         {
             var rows = content[section]!.AsArray();
@@ -17,36 +17,15 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
             foreach (var row in rows)
             {
                 index++;
-                var missing = fields.Where(f => section == "identificacion" ? !ProcedureEligibility.Valid(row, f.Key) : !SystemAnswers.Filled(row, f.Key)).ToList();
-                if (section == "identificacion" && row?["validacion"]?.ToString() is "D" or "N")
-                    missing = missing.Select(f => f.Key == "validacion"
-                        ? (f.Key, "validación pendiente de actualizar (Vigente o Ajustar)") : f).ToList();
-                if (section == "sistemas") missing = missing.Select(f => f.Key switch {
-                    "sistema" when row?["sistema"]?.ToString() == "sii_v2" => (SystemModules.Field, "Módulos de SIIv2"),
-                    "sistema" when row?["sistema"]?.ToString() == "otra" => ("sistemaOtro", "Nombre de la herramienta"),
-                    "uso" when row?["uso"]?.ToString() == "otro" => ("usoOtro", "Describe el uso"),
-                    _ => f
-                }).ToList();
-                if (section == "identificacion" && row?["prioridad"]?.ToString() is not ("1" or "2" or "3" or "4" or "5")
-                    && missing.All(f => f.Key != "prioridad")) missing.Add(("prioridad", "prioridad vigente de 1 a 5"));
+                var missing = fields.Where(f => !SystemAnswers.Filled(row, f.Key)).ToList();
                 if (missing.Count == 0) continue;
-                var label = section == "sistemas" ? SystemAnswers.ToolLabel(row) : row?[fields[0].Key]?.ToString();
+                var label = row?[fields[0].Key]?.ToString();
                 if (string.IsNullOrWhiteSpace(label)) label = "Registro sin completar";
-                foreach (var field in missing.Where(f => f.Key != "codigo" || missing.All(m => m.Key != "validacion")))
-                    pending.Add(new(section, section + ":" + row!["id"], field.Key == "codigo" ? "validacion" : field.Key,
+                foreach (var field in missing)
+                    pending.Add(new(section, section + ":" + row!["id"], field.Key,
                         $"{title} · Registro {index}{(row?["codigo"]?.ToString() is { Length: > 0 } code ? " · " + code : "")} · {label}: completa {field.Label}."));
             }
         }
-        Rows("identificacion", "Identificación general", ProcedureEligibility.Required);
-        Rows("sistemas", "Sistemas", ("sistema", "Sistema o herramienta"), ("uso", "¿Para qué se usa?"), ("estado", "¿Cómo funciona?"));
-        var systemIndex = 0;
-        foreach (var row in content["sistemas"]!.AsArray())
-        {
-            systemIndex++;
-            if (!ProcedureEligibility.Contains(content, row?["proceso"]?.ToString()))
-                pending.Add(new("sistemas", "sistemas:" + row!["id"], "proceso", $"Sistemas · Registro {systemIndex} · {SystemAnswers.ToolLabel(row)}: completa y valida el procedimiento relacionado en Identificación general (Vigente o Ajustar)."));
-        }
-        if (firstStage) return new(pending.Count == 0, pending);
         Rows("datos", "Datos", ("dato", "dato"), ("fuente", "fuente"), ("origen", "origen"));
         foreach (var row in content["identificacion"]!.AsArray())
         {
@@ -61,7 +40,7 @@ public sealed record FormReview(bool listo, IReadOnlyList<FormPending> pendiente
         for (var i = 0; i < questions.Count; i++)
             if (string.IsNullOrWhiteSpace(questions[i]?["respuesta"]?.ToString()))
                 pending.Add(new("preguntas", $"preguntas:{i}", "respuesta", $"Preguntas · {i + 1}: {questions[i]?["pregunta"]}"));
-        Rows("acuerdos", "Acuerdos", ("acuerdo", "acuerdo"), ("responsable", "responsable"), ("fecha", "fecha compromiso"));
+        Rows("acuerdos", "Acuerdos", ("acuerdo", "acuerdo"), ("responsable", "responsable"), ("fecha", "fecha de compromiso"));
         return new(pending.Count == 0, pending);
     }
 }

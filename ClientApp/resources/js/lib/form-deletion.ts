@@ -8,7 +8,7 @@ export function targetRow(content: FormContent, target: RowTarget) {
 export function rowLabel(content: FormContent, target: RowTarget): string {
     const row = targetRow(content, target);
     if (!row) return 'El registro ya no está disponible';
-    if ('tramite' in row) return [row.codigo, row.tramite].filter(Boolean).join(' · ') || 'Trámite sin nombre';
+    if ('tramite' in row) return [row.codigo, row.tramite].filter(Boolean).join(' · ') || 'Procedimiento sin nombre';
     if ('sistema' in row) return row.sistema || 'Sistema sin nombre';
     if ('dato' in row) return row.dato || 'Dato sin nombre';
     return row.acuerdo || 'Acuerdo sin descripción';

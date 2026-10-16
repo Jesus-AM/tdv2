@@ -34,7 +34,7 @@ internal static class CurrentRecipientsMigrationTests
                 VALUES('SENT',2026,'{json}',10,100,'synthetic@example.test',clock_timestamp(),'{json}');
             INSERT INTO formato_bloques(id_ur,bloque,version,revision_contexto,reserva_id,vence_en) VALUES
                 ('DRAFT','identificacion:r0',4,0,gen_random_uuid(),clock_timestamp()+interval '1 hour'),
-                ('DRAFT','medios',2,0,gen_random_uuid(),clock_timestamp()+interval '1 hour');
+                ('DRAFT','contexto',2,0,gen_random_uuid(),clock_timestamp()+interval '1 hour');
             """);
         var before = await sql(connection, "SELECT row_to_json(f)::text FROM formatos_ur f WHERE id_ur='DRAFT'");
         var immutable = await sql(connection, "SELECT jsonb_agg(to_jsonb(f) ORDER BY id_ur)::text FROM formatos_ur f WHERE id_ur<>'DRAFT'");
@@ -65,7 +65,7 @@ internal static class CurrentRecipientsMigrationTests
             SELECT (SELECT version=8 FROM formatos_ur WHERE id_ur='DRAFT')
               AND (SELECT version=5 AND reserva_id IS NULL AND vence_en IS NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:r0')
               AND (SELECT version=1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:r4')
-              AND (SELECT version=2 AND reserva_id IS NOT NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='medios')
+              AND (SELECT version=2 AND reserva_id IS NOT NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='contexto')
               AND NOT EXISTS(SELECT 1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:r5')
             """))!, "destinatarios: invalida sólo versiones y reservas de filas limpiadas");
         await sql(connection, """UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,usuario}','["Público en general","Docentes"]')::json WHERE id_ur='DRAFT'""");

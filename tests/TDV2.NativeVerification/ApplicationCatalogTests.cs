@@ -49,7 +49,7 @@ internal static partial class NativeTests
             Check(Convert.ToInt32(await db.Scalar("SELECT count(*) FROM information_schema.columns WHERE table_name='aplicaciones_catalogo'")) == 5);
             await ImportLists(app);
             try { await migrator.MigrateAsync("20261014180408_SiiApplicationsCatalog"); Check(false); } catch (PostgresException) { }
-            Check((await context.Database.GetAppliedMigrationsAsync()).Last() == "20261015165555_LocalApplicationLists");
+            Check((await context.Database.GetAppliedMigrationsAsync()).Last() == "20261016190000_RemoveUsedMedia");
             Check(Equals(before, await db.Scalar("SELECT row_to_json(f)::text FROM formatos_ur f")));
         });
         Test("Sync/listas: 207 web y 26 móviles, primera importación, repetición y UUID estables", async (app, client) =>

@@ -5,7 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { systemFixture } from './system-ui-fixture.mjs';
 
-const artifacts = path.resolve('../.artifacts/record-select-ui'); await mkdir(artifacts, { recursive: true });
+const artifacts = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS ? path.join(process.env.TDV2_VISUAL_ARTIFACTS, 'record-select') : '../.artifacts/record-select-ui'); await mkdir(artifacts, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const report = { syntheticTransport: true, realPostgreSql: false, checks: [], errors: [] };
 const gate = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
@@ -55,7 +55,7 @@ try {
             await expect(page.locator('.MuiAutocomplete-popper')).toBeVisible();
             await expect(page.getByRole('option')).toHaveCount(0);
             const control = await module(page, 'segundo').elementHandle();
-            await expect(row(page, 'segundo').locator('.MuiAutocomplete-clearIndicator')).toBeDisabled();
+            await expect(row(page, 'segundo').getByRole('button', { name: 'Quitar selecciones', exact: true })).toBeDisabled();
             await module(page, 'segundo').press('ArrowDown'); await module(page, 'segundo').press('Enter');
             assert.equal(fixture.content.sistemas[1].moduloSiiId, '11');
             await page.screenshot({ path: path.join(artifacts, 'pending-reservation.png'), fullPage: true });
@@ -124,7 +124,7 @@ try {
             release.resolve(); await rejected;
             await expect(page.locator('.MuiAutocomplete-popper').getByRole('status')).toContainText('reservado por Persona sintética');
             await expect(page.getByRole('option')).toHaveCount(0);
-            await expect(row(page, 'segundo').locator('.MuiAutocomplete-clearIndicator')).toBeDisabled();
+            await expect(row(page, 'segundo').getByRole('button', { name: 'Quitar selecciones', exact: true })).toBeDisabled();
             await page.screenshot({ path: path.join(artifacts, 'reservation-denied.png'), fullPage: true });
             await module(page, 'segundo').press('ArrowDown'); await module(page, 'segundo').press('Enter');
             assert.equal(fixture.content.sistemas[1].moduloSiiId, '11');

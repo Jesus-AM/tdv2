@@ -198,7 +198,7 @@ try {
         await expect.poll(async () => (await stored()).tramite).toBe('Trámite de prueba');
         assert.equal(requests.length, releases);
         await expect(page.getByRole('dialog').getByText('Ejemplo', { exact: true })).toHaveCount(0);
-        await expect(page.getByRole('dialog').getByText('Qué tan urgente es mejorar o automatizar el trámite:', { exact: true })).toBeVisible();
+        await expect(page.getByRole('dialog').getByText('Qué tan urgente es mejorar o automatizar el procedimiento:', { exact: true })).toBeVisible();
         await page.keyboard.press('Escape'); await expect(button).toBeFocused();
         await expect(row(page)).toHaveAttribute('data-edit-state', 'owned');
         await priority(page).click();
@@ -258,7 +258,7 @@ try {
         const procedure = page.getByRole('combobox', { name: 'Procedimiento 1', exact: true });
         await procedure.click(); await expect(option(page, `${savedCode} · Trámite de prueba`)).toBeVisible();
         await option(page, `${savedCode} · Trámite de prueba`).click(); await finish(page);
-        const help = page.getByRole('button', { name: 'Ayuda: Actividad (lista)', exact: true });
+        const help = page.getByRole('button', { name: 'Ayuda: Procedimiento', exact: true });
         await help.click(); await expect(page.getByRole('dialog').getByText(/Solo aparecen las marcadas como Vigente o Ajustar/)).toBeVisible();
         await page.keyboard.press('Escape'); await expect(help).toBeFocused();
         await expect(page.getByRole('heading', { name: 'Revisión de la primera etapa', exact: true })).toBeVisible();

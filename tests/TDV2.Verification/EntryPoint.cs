@@ -24,8 +24,18 @@ internal static class EntryPoint
         client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", json["token"]!.GetValue<string>());
     }
-    public static async Task<int> Main()
+    public static async Task<int> Main(string[] args)
     {
+        // Exportación visual anónima del Razor real: dobles en memoria, sin PostgreSQL ni migraciones.
+        if (args is ["--export-public", var destination])
+        {
+            await using var app = new Application();
+            using var client = app.Client(authenticated: false);
+            var response = await client.GetAsync("/");
+            response.EnsureSuccessStatusCode();
+            await File.WriteAllTextAsync(destination, await response.Content.ReadAsStringAsync());
+            return 0;
+        }
         var directory = new UnitDirectory(Fixtures.Units);
         var access = new FormAccess(directory);
         var path = Path.Combine(AppContext.BaseDirectory, "Contracts", "procesos_operativos.json");
@@ -257,7 +267,7 @@ internal static class EntryPoint
             data["identificacion"]![0]!["codigo"] = "PO-01"; data["identificacion"]![0]!["prioridad"] = "1"; data["identificacion"]![0]!["validacion"] = "V";
             data["identificacion"]![0]!["usuario"] = new JsonArray("Docentes");
             data["sistemas"]![0]!["proceso"] = "PO-01"; data["sistemas"]![0]!["estado"] = "bien";
-            data["sistemas"]![0]!["sistema"] = "excel"; data["sistemas"]![0]!["uso"] = "consultar";
+            data["sistemas"]![0]!["sistema"] = "limesurvey"; data["sistemas"]![0]!["uso"] = "consultar";
             data["datos"]![0]!["proceso"] = "PO-01"; data["datos"]![0]!["origen"] = "Se origina en este proceso"; data["acuerdos"]![0]!["fecha"] = "2026-09-30";
             foreach (var q in data["preguntas"]!.AsArray()) q!["respuesta"] = q["opciones"] is JsonArray choices ? choices[0]!.DeepClone() : JsonValue.Create("Respuesta");
             data["evaluaciones"]!["PO-01"] = new JsonArray(Enumerable.Range(0, 9).Select(_ => (JsonNode)new JsonObject { ["criterio"] = "alterado", ["valor"] = "5", ["obs"] = "" }).ToArray());
@@ -293,11 +303,11 @@ internal static class EntryPoint
                 Check(form["porcentaje"]!.GetValue<int>() == expected && form["porcentajeEtapa"]!.GetValue<int>() == expected);
                 Check(form["entrega"]!["revision"]!["listo"]!.GetValue<bool>() == ready);
             }
-            await Verify(12, false); Check((await app.Store.Get("A", default))!.Progress == 100); // Cache anterior intacta en GET.
+            await Verify(14, false); Check((await app.Store.Get("A", default))!.Progress == 100); // Cache anterior intacta en GET.
             var row = content["identificacion"]![0]!; row["codigo"] = "PO-01"; row["prioridad"] = "3"; row["validacion"] = "V";
             row["usuario"] = new JsonArray("Egresados"); row["resultado"] = "Constancia"; row["responsable"] = "Área";
             var tool = content["sistemas"]![0]!; tool["proceso"] = "PO-01"; tool["sistema"] = "otra"; tool["uso"] = "consultar"; tool["estado"] = "bien";
-            await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(84, false);
+            await app.Store.Save("A", 1, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(91, false);
             tool["sistemaOtro"] = "Propia"; await app.Store.Save("A", 2, schema.Validate(content, Fixtures.Units[0]), "persona@example.test", default); await Verify(100, true);
             app.Nexo.Current = Fixtures.Profile("consulta_institucional"); await Verify(100, true);
             var readOnly = (await Json(await client.GetAsync("/formatos/A")))["props"]!;

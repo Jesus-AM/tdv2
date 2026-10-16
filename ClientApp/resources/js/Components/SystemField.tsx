@@ -5,12 +5,10 @@ import { CheckCircleOutlined, WarningAmber, HighlightOff, RemoveCircleOutlined }
 import type { ApplicationKind, ApplicationSelection, SiiModuleSelection, SystemRow } from '@/types/tdv2';
 import type { RecordAutocompleteEvents } from '@/lib/record-autocomplete';
 import CatalogMultiSelect, { type CatalogState } from './CatalogMultiSelect';
+import ToolSelect from './ToolSelect';
+import { historicalTools, suiteCatalog, toolCatalog, type SuiteField } from '@/lib/system-catalog';
 
-export const toolOptions = [
-    ['sii_v2', 'SIIv2'], ['excel', 'Hoja de cálculo (Excel)'],
-    ['aplicaciones_moviles', 'Aplicaciones móviles'], ['aplicaciones_web', 'Aplicaciones Web'],
-    ['correo', 'Correo electrónico institucional'], ['formulario', 'Formulario en línea'], ['papel', 'Formato impreso (papel)'], ['otra', 'Otra (escríbela)'],
-] as const;
+export const toolOptions = toolCatalog.map(o => [o.id, o.label] as const);
 export const useOptions = [
     ['registrar', 'Registrar solicitudes'], ['agendar', 'Agendar o programar'], ['consultar', 'Consultar información'],
     ['seguimiento', 'Dar seguimiento'], ['avisos', 'Enviar avisos o notificaciones'], ['reportes', 'Generar reportes'],
@@ -34,12 +32,13 @@ function DependentField({ label, children }: { label: string; children: ReactNod
     </Box>;
 }
 
-export default function SystemField({ row, field, index, readOnly, events, catalogEvents, change, changeModules, changeApplications, catalog, applications, errors }: {
+export default function SystemField({ row, field, index, readOnly, events, catalogEvents, change, changeModules, changeApplications, changeSuite, unavailable, catalog, applications, errors }: {
     row: SystemRow; field: 'sistema' | 'uso' | 'estado'; index: number; readOnly: boolean;
     events: (field: string) => SelectEvents;
     change: (field: 'sistema' | 'uso' | 'estado' | 'sistemaOtro' | 'usoOtro', value: string) => void;
     changeModules: (modules: SiiModule[]) => void;
     changeApplications: (kind: ApplicationKind, values: ApplicationSelection[]) => void;
+    changeSuite: (field: SuiteField, values: string[]) => void; unavailable: string[];
     catalog: ModuleCatalog; errors?: Record<string, string>;
     applications: Record<ApplicationKind, ApplicationCatalog>;
     catalogEvents: (field: string) => RecordAutocompleteEvents;
@@ -50,7 +49,7 @@ export default function SystemField({ row, field, index, readOnly, events, catal
     const historical = !!value && !options.some(o => o[0] === value);
     const optionLabel = (key: string) => {
         if (field !== 'estado') return options.find(o => o[0] === key)?.[1]
-            || (field === 'sistema' && key === 'portal_cast' ? 'Portal del CAST de uso de técnicos' : key);
+            || (field === 'sistema' ? historicalTools[key] || 'Respuesta histórica' : key);
         const option = stateOptions.find(o => o[0] === key);
         if (!option) return key;
         const Icon = option[3];
@@ -67,8 +66,13 @@ export default function SystemField({ row, field, index, readOnly, events, catal
     }] : []), [row.modulosSii, row.moduloSiiId, row.moduloSiiDescripcion, catalog.modulos]);
     const moduleError = errors?.modulosSii || errors?.moduloSiiId;
     const applicationKind = value === 'aplicaciones_moviles' ? 'moviles' : value === 'aplicaciones_web' ? 'web' : null;
+    const suite = suiteCatalog[value as keyof typeof suiteCatalog];
+    const suiteOptions = useMemo(() => suite?.options.map(([id, descripcion]) => ({ id, descripcion })) || [], [suite]);
+    const suiteSelected = useMemo(() => suite ? (row[suite.field] || []).map(id => suiteOptions.find(o => o.id === id)
+        || { id, descripcion: 'Respuesta histórica' }) : [], [suite, suiteOptions, row]);
     return <Box sx={{ display: 'grid', gap: 1, minWidth: 0 }}>
-        <TextField fullWidth select value={value} onChange={e => change(field, e.target.value)}
+        {field === 'sistema' ? <ToolSelect value={value} index={index} events={catalogEvents('sistema')} unavailable={unavailable}
+            error={errors?.sistema} onChange={value => change('sistema', value)} /> : <TextField fullWidth select value={value} onChange={e => change(field, e.target.value)}
             error={!!errors?.[field]} helperText={errors?.[field] || (historical ? 'Respuesta histórica' : undefined)}
             slotProps={{ select: { ...events(field), displayEmpty: true,
                 renderValue: v => v ? optionLabel(String(v)) : <Typography component="span" color="text.secondary" sx={{ fontSize: 'inherit' }}>Selecciona…</Typography>,
@@ -77,20 +81,25 @@ export default function SystemField({ row, field, index, readOnly, events, catal
             } }}>
             <MenuItem value="" disabled>Selecciona…</MenuItem>
             {options.map(o => <MenuItem key={o[0]} value={o[0]} sx={{ whiteSpace: 'normal', maxWidth: 420 }}>{optionLabel(o[0])}</MenuItem>)}
-            {historical && <MenuItem value={value} disabled sx={field === 'sistema' && value === 'portal_cast' ? { display: 'none' } : undefined}>
+            {historical && <MenuItem value={value} disabled>
                 {optionLabel(value)} · Respuesta histórica
             </MenuItem>}
-        </TextField>
+        </TextField>}
         {field === 'sistema' && value === 'otra' && detail('sistemaOtro', 'Nombre de la herramienta')}
         {field === 'uso' && value === 'otro' && detail('usoOtro', 'Describe el uso')}
-        {field === 'sistema' && value === 'sii_v2' && <DependentField label="Módulos de SIIv2">
-            <CatalogMultiSelect selected={selected} options={catalog.modulos} state={catalog.estado} label="Módulos de SIIv2"
+        {field === 'sistema' && value === 'sii_v2' && <DependentField label="Módulos del Sistema Integral de Información">
+            <CatalogMultiSelect selected={selected} options={catalog.modulos} state={catalog.estado} label="Módulos del Sistema Integral de Información"
                 field="modulosSii" noun="módulos" index={index} events={catalogEvents('modulosSii')} error={moduleError} onChange={changeModules} />
         </DependentField>}
-        {field === 'sistema' && applicationKind && <DependentField label={applicationKind === 'moviles' ? 'Aplicaciones móviles' : 'Aplicaciones Web'}>
+        {field === 'sistema' && suite && <DependentField label={suite.label}>
+            <CatalogMultiSelect key={suite.field} selected={suiteSelected} options={suiteOptions} state="disponible" label={suite.label}
+                field={suite.field} noun="aplicaciones" index={index} events={catalogEvents(suite.field)} error={errors?.[suite.field]}
+                onChange={values => changeSuite(suite.field, values.map(v => v.id))} />
+        </DependentField>}
+        {field === 'sistema' && applicationKind && <DependentField label={applicationKind === 'moviles' ? 'Aplicaciones móviles' : 'Aplicaciones web'}>
             <CatalogMultiSelect key={applicationKind} selected={row[applicationFields[applicationKind]] || []}
                 options={applications[applicationKind].aplicaciones} state={applications[applicationKind].estado}
-                label={applicationKind === 'moviles' ? 'Aplicaciones móviles' : 'Aplicaciones Web'} field={applicationFields[applicationKind]}
+                label={applicationKind === 'moviles' ? 'Aplicaciones móviles' : 'Aplicaciones web'} field={applicationFields[applicationKind]}
                 noun="aplicaciones" index={index} events={catalogEvents(applicationFields[applicationKind])}
                 error={errors?.[applicationFields[applicationKind]]} onChange={values => changeApplications(applicationKind, values)} />
         </DependentField>}

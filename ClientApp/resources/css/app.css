@@ -137,6 +137,8 @@ a {
     outline-offset: 3px;
 }
 .capture-scroll {
+    container-type: inline-size;
+    scroll-padding-inline: 8px calc(var(--capture-actions-width, 176px) + 8px);
     overflow: auto;
     max-height: 65vh;
     border: 1px solid #e4eaf2;
@@ -161,6 +163,27 @@ a {
 }
 .systems-table .MuiTableCell-head { font-weight: 700; white-space: normal; }
 .capture-scroll .systems-table { table-layout: fixed; width: 100%; min-width: 1626px; }
+.capture-row-scroll .systems-table .systems-group-row > .MuiTableCell-root {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    background: #edf3fb;
+    border-block: 1px solid #dce6f4;
+}
+.systems-group-content {
+    position: sticky;
+    left: 0;
+    box-sizing: border-box;
+    width: var(--capture-width, 100%);
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 8px 14px;
+}
+.systems-group-content .MuiButton-root { max-width: 100%; white-space: normal; text-align: left; }
 .systems-table .MuiTableCell-root { overflow-wrap: anywhere; }
 .capture-scroll .systems-table .MuiTextField-root { min-width: 0; width: 100%; }
 /* La etiqueta y su notch deben usar la misma escala que el contenido compacto. */
@@ -213,6 +236,22 @@ a {
 .systems-table .procedure-select.Mui-expanded .MuiAutocomplete-inputRoot .MuiAutocomplete-input {
     grid-area: 2 / 1 / auto / -1;
 }
+/* El resumen y la búsqueda nunca comparten la misma línea al abrir la herramienta. */
+.systems-table .tool-select.Mui-expanded .MuiAutocomplete-inputRoot:has(.record-selected-value) .MuiAutocomplete-input {
+    grid-area: 2 / 1 / auto / -1;
+}
+.record-select-popup .tool-catalog-group-title {
+    padding: 10px 16px;
+    margin-top: 6px;
+    font-size: inherit;
+    font-weight: 700;
+    line-height: 1.5;
+    color: #20314d;
+    background: #f1f3f6;
+    border-bottom: 1px solid #dce2ea;
+    opacity: 1;
+}
+.record-select-popup .MuiAutocomplete-option { font-weight: 400; }
 /* Un nombre completo o la cantidad seleccionada; la búsqueda ocupa otra línea al
    abrir, conservando la altura del resumen durante la interacción y el autoguardado. */
 .systems-table .sii-modules-select.MuiAutocomplete-root .MuiInputBase-root.MuiAutocomplete-inputRoot.MuiOutlinedInput-root {
@@ -246,26 +285,32 @@ a {
 /* Una sola región por tabla. Con pocas filas no fuerza altura; reserva espacio para
    barra institucional, navegación y acciones. La rueda/tacto pueden continuar a la página. */
 .capture-row-scroll {
+    --capture-actions-width: 112px;
     max-height: max(160px, calc(100dvh - 230px));
     overflow: auto;
     overscroll-behavior: auto;
     scroll-padding-block: calc(var(--capture-head-height, 64px) + 8px) 8px;
-    scroll-padding-inline: 132px 8px;
+    scroll-padding-inline: var(--capture-presence-width, 132px) calc(var(--capture-actions-width) + 8px);
     scroll-margin-block: 84px 16px;
 }
 .capture-row-scroll .MuiTableCell-head { top: 0; z-index: 3; background: #f5f8fc; }
 .capture-row-scroll .MuiTableCell-root { vertical-align: top; }
-.capture-row-scroll .MuiTableCell-root:last-child { min-width: 76px; width: 76px; max-width: 76px; }
-.capture-row-scroll .systems-table .row-actions-cell {
+.capture-scroll .row-actions-cell {
+    position: sticky;
+    right: 0;
+    z-index: 2;
     box-sizing: border-box;
-    width: 112px;
-    min-width: 112px;
-    max-width: 112px;
+    width: var(--capture-actions-width, 176px);
+    min-width: var(--capture-actions-width, 176px);
+    max-width: var(--capture-actions-width, 176px);
     padding-inline: 16px;
     white-space: nowrap;
     overflow-wrap: normal;
     text-align: center;
+    background: var(--capture-row-background, #fff);
+    box-shadow: -2px 0 0 #e4eaf2;
 }
+.capture-scroll th.row-actions-cell { z-index: 4; background: #f5f8fc; }
 .capture-row-scroll .row-editing-cell {
     position: sticky;
     left: 0;
@@ -278,9 +323,14 @@ a {
     box-shadow: 2px 0 0 #e4eaf2;
 }
 .capture-row-scroll th.row-editing-cell { z-index: 4; background: #f5f8fc; }
+/* Con poco espacio sólo Acciones queda anclada horizontalmente: la presencia
+   conserva avatar/texto en su columna, sin tapar los controles entre dos bordes. */
+@container (max-width: 600px) {
+    .capture-row-scroll .row-editing-cell { left: auto; }
+}
 .capture-row-scroll :is([data-edit-state="owned"], [data-edit-state="occupied"]) .row-editing-cell {
-    background: color-mix(in srgb, var(--participant-color) 7%, white);
-    box-shadow: inset 2px 0 color-mix(in srgb, var(--participant-color) 50%, white), 2px 0 0 #e4eaf2;
+    background: var(--capture-row-background, #fff);
+    box-shadow: inset 4px 0 var(--participant-color), 2px 0 0 #e4eaf2;
 }
 .row-editing-cell .row-presence { width: 108px; padding: 0; }
 .row-editing-cell .row-presence > [role="status"] { min-height: 44px; gap: 4px; }
@@ -350,11 +400,11 @@ a {
 [data-edit-block] {
     transition: background-color 180ms ease, box-shadow 180ms ease;
 }
-/* La doble condición conserva el contorno frente al outline: 0 de las filas MUI. */
+/* Color discreto y opaco; la identidad se comunica también con avatar y texto. */
 [data-edit-block][data-edit-state="occupied"], [data-edit-block][data-edit-state="owned"] {
-    background-color: color-mix(in srgb, var(--participant-color, #2459a6) 7%, white);
-    outline: 2px solid color-mix(in srgb, var(--participant-color, #2459a6) 50%, white);
-    outline-offset: -2px;
+    --capture-row-background: color-mix(in srgb, var(--participant-color, #713C91) 4%, white);
+    background-color: var(--capture-row-background);
+    box-shadow: inset 4px 0 var(--participant-color, #713C91);
 }
 @media (prefers-reduced-motion: reduce) {
     [data-edit-block] { transition: none; }

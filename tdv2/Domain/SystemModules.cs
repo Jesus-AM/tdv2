@@ -32,7 +32,7 @@ public static class SystemModules
         if (value is not JsonArray modules || !ValidIds(modules)
             || modules.Any(m => m!.AsObject().Any(p => p.Key is not ("id" or "descripcion"))
                 || m["descripcion"] is not JsonValue text || !text.TryGetValue<string>(out var label) || label.EnumerateRunes().Count() > 4000))
-            throw FormSchema.FieldError(block, Field, "Selecciona módulos de SIIv2 válidos, sin repeticiones.");
+            throw FormSchema.FieldError(block, Field, "Selecciona módulos del Sistema Integral de Información válidos, sin repeticiones.");
         return modules.DeepClone().AsArray();
     }
 
@@ -55,7 +55,7 @@ public static class SystemModules
             var description = kept is not null && previous?["sistema"]?.ToString() == "sii_v2"
                 ? kept["descripcion"]?.ToString() ?? "" : await availableDescription(id);
             if (description is null)
-                throw FormSchema.FieldError(block, Field, "Selecciona módulos disponibles del catálogo local de SIIv2. Se conservan los módulos históricos ya registrados.");
+                throw FormSchema.FieldError(block, Field, "Selecciona módulos disponibles del catálogo local del Sistema Integral de Información. Se conservan los módulos históricos ya registrados.");
             confirmed.Add(new JsonObject { ["id"] = id, ["descripcion"] = description });
         }
         if (row.ContainsKey(Field))

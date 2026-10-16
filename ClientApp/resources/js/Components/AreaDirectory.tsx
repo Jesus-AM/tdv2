@@ -1,3 +1,4 @@
+import { countLabel } from '@/lib/form-labels';
 import { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { router, usePage } from '@/lib/navigation';
 import {
@@ -275,7 +276,7 @@ export default function AreaDirectory({
                                     </Box>
                                     <Typography id={`area-summary-${node.unit.id_ur}`} variant="caption" color="text.secondary">
                                         {displayUnitCode(node.unit.cve_ur)} ·{' '}
-                                        {node.areaCount - 1} áreas dependientes ·{' '}
+                                        {countLabel(node.areaCount - 1, 'área dependiente', 'áreas dependientes')} ·{' '}
                                         {node.forms.filter((f) => Number(f.porcentaje) === 100).length}/
                                         {node.forms.length} completos
                                     </Typography>

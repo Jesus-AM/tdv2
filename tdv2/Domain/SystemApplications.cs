@@ -9,7 +9,7 @@ public sealed record ApplicationKind(string Key, string Tool, string Field, stri
 public static class SystemApplications
 {
     public static readonly ApplicationKind Mobile = new("moviles", "aplicaciones_moviles", "aplicacionesMoviles", "Aplicaciones móviles");
-    public static readonly ApplicationKind Web = new("web", "aplicaciones_web", "aplicacionesWeb", "Aplicaciones Web");
+    public static readonly ApplicationKind Web = new("web", "aplicaciones_web", "aplicacionesWeb", "Aplicaciones web");
     public static readonly ApplicationKind[] Kinds = [Mobile, Web];
     public static readonly string[] Fields = Kinds.Select(k => k.Field).ToArray();
     public static ApplicationKind? ForTool(string? tool) => Kinds.FirstOrDefault(k => k.Tool == tool);

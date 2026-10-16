@@ -43,6 +43,8 @@ El JSON conserva arrays separados `aplicacionesWeb` / `aplicacionesMoviles` con 
 
 ## Actualizar e importar posteriormente
 
+La actualización conjunta vigente incluye `20261016190000_RemoveUsedMedia`. Antes de operar, seguir el respaldo y orden de [Catálogo vigente, limpieza exacta, respaldo y actualización Windows/Ubuntu](CATALOGO_HERRAMIENTAS_Y_RETIRO_MEDIOS.md). La migración de listas sigue siendo aditiva; la posterior limpieza de Medios tiene su propio alcance autorizado. No es necesario reimportar listas ya confirmadas por esta mejora.
+
 Estos comandos se documentan para el operador; **no se ejecutaron contra una base institucional**. Revisar respaldo, destino y configuración existente antes de operar. No copiar ni imprimir secretos. La cuenta de migración necesita DDL local; la cuenta que importa necesita SELECT/INSERT/UPDATE en las dos tablas nuevas y escritura de auditoría conforme al mecanismo de permisos existente. El usuario web necesita consultar el catálogo. No se requieren nuevos permisos sobre tablas SQL Server de aplicaciones.
 
 Orden: preparar paquete → detener versiones/procesadores anteriores mediante el supervisor existente → aplicar EF → comprobar/importar desde el paquete nuevo con la configuración PostgreSQL del destino → revisar conteos/incidencias → iniciar todos los procesos con la nueva versión. No activar horarios automáticamente.
@@ -56,7 +58,7 @@ dotnet publish tdv2/tdv2.csproj -c Release -p:UseAppHost=false -o .artifacts/pub
 Windows, desde la raíz, con User Secrets existentes y destino previamente verificado:
 
 ```powershell
-dotnet ef database update 20261015165555_LocalApplicationLists --project tdv2 --startup-project tdv2 -- --environment Development
+dotnet ef database update 20261016190000_RemoveUsedMedia --project tdv2 --startup-project tdv2 -- --environment Development
 dotnet .artifacts/publish-application-lists/tdv2.dll --environment Development --check-applications
 dotnet .artifacts/publish-application-lists/tdv2.dll --environment Development --import-applications
 ```
@@ -66,7 +68,7 @@ EF aplica las migraciones pendientes en orden, incluida `20261014180408_SiiAppli
 Ubuntu: desde la raíz del código de esta versión con SDK/EF y la configuración privada PostgreSQL ya suministrada al proceso:
 
 ```bash
-dotnet ef database update 20261015165555_LocalApplicationLists --project tdv2 --startup-project tdv2 -- --environment Production
+dotnet ef database update 20261016190000_RemoveUsedMedia --project tdv2 --startup-project tdv2 -- --environment Production
 ```
 
 Después, **desde el directorio del paquete nuevo** (no desde un paquete anterior), con esa misma configuración externa:

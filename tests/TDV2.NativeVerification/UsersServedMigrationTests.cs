@@ -32,7 +32,7 @@ internal static class UsersServedMigrationTests
                 VALUES('HIST',2025,'{json}',5,100,'synthetic@example.test');
             INSERT INTO formato_bloques(id_ur,bloque,version,revision_contexto,reserva_id,vence_en) VALUES
                 ('DRAFT','identificacion:inicial',4,0,gen_random_uuid(),clock_timestamp()+interval '1 hour'),
-                ('DRAFT','medios',2,0,gen_random_uuid(),clock_timestamp()+interval '1 hour'),
+                ('DRAFT','contexto',2,0,gen_random_uuid(),clock_timestamp()+interval '1 hour'),
                 ('SENT','identificacion:inicial',3,0,gen_random_uuid(),clock_timestamp()+interval '1 hour');
             """);
         var submitted = await sql(connection, "SELECT (to_jsonb(f)-'etapa_activa')::text FROM formatos_ur f WHERE id_ur='SENT'");
@@ -63,7 +63,7 @@ internal static class UsersServedMigrationTests
         check((bool)(await sql(connection, """
             SELECT (SELECT version=5 AND reserva_id IS NULL AND vence_en IS NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:inicial')
               AND (SELECT version=1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:segunda')
-              AND (SELECT version=2 AND reserva_id IS NOT NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='medios')
+              AND (SELECT version=2 AND reserva_id IS NOT NULL FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='contexto')
               AND NOT EXISTS(SELECT 1 FROM formato_bloques WHERE id_ur='DRAFT' AND bloque='identificacion:nueva')
             """))!, "usuarios: invalida reserva/versiones antiguas únicamente de los bloques modificados");
         await sql(connection, """UPDATE formatos_ur SET contenido=jsonb_set(contenido::jsonb,'{identificacion,0,usuario}','["Otro","Comunidad universitaria"]')::json WHERE id_ur='DRAFT'""");

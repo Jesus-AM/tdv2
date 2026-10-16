@@ -25,7 +25,9 @@ internal static partial class NativeTests
             {
                 if (role == "colaborador_local") { await CentralCollaborator(db); await db.Sql("UPDATE fixture_users SET \"ID_UR\"='A'"); }
                 else await db.Sql("UPDATE fixture_roles SET rol_clave=$1", role);
-                await SeedStage(db, StageOnly(app.Services.GetRequiredService<FormSchema>())); await Login(app, client); await Csrf(client);
+                var content = StageOnly(app.Services.GetRequiredService<FormSchema>());
+                content["sistemas"] = new JsonArray(); // Captura completa sin herramientas, para los cuatro permisos.
+                await SeedStage(db, content); await Login(app, client); await Csrf(client);
                 var tab = Guid.NewGuid(); var live = await Live(client, tab); var allowed = role is "responsable_ur" or "administrador";
                 Check(live["entrega"]!["revision"]!["listo"]!.GetValue<bool>());
                 Check(live["puedeEnviar"]!.GetValue<bool>() == allowed);

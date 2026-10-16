@@ -25,7 +25,7 @@ public sealed class FormSchema
     private static readonly Dictionary<string, string[]> Fields = new()
     {
         ["identificacion"] = ["id", "codigo", "prioridad", "fuente", "area", "tramite", "usuario", "resultado", "responsable", "validacion"],
-        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion", SystemModules.Field, ..SystemApplications.Fields],
+        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion", SystemModules.Field, ..SystemApplications.Fields, ..SystemSuites.Fields],
         ["datos"] = ["id", "proceso", "dato", "fuente", "origen", "detalle"],
         ["acuerdos"] = ["id", "acuerdo", "responsable", "fecha"]
     };
@@ -35,9 +35,7 @@ public sealed class FormSchema
         {
             [FormDocument.Field] = FormDocument.Current,
             ["encabezado"] = new JsonObject { ["fecha"] = "", ["area"] = "", ["responsable"] = "" },
-            ["medioOtro"] = "",
             ["evaluaciones"] = new JsonObject(),
-            ["medios"] = new JsonObject(definition["medios"]!.AsArray().Select(x => KeyValuePair.Create<string, JsonNode?>(x!.GetValue<string>(), JsonValue.Create(false)))),
             ["preguntas"] = new JsonArray(definition["preguntas"]!.AsArray().Select(q => (JsonNode?)new JsonObject
             {
                 ["pregunta"] = q!["texto"]!.DeepClone(),
@@ -49,11 +47,18 @@ public sealed class FormSchema
         };
         foreach (var (section, fields) in Fields)
         {
-            var row = new JsonObject(fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f)).Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
+            var row = new JsonObject(fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f) && !SystemSuites.Fields.Contains(f)).Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
             if (section == "identificacion") row["usuario"] = new JsonArray();
             result[section] = new JsonArray(row);
         }
         return result;
+    }
+    // Blank también proporciona las plantillas de Agregar fila. Un formato nuevo no inicia herramientas.
+    public JsonObject New(Unit unit)
+    {
+        var content = Blank(unit);
+        content["sistemas"] = new JsonArray();
+        return content;
     }
     private static DomainProblem Invalid(string message = "El contenido del formato no es válido.") => new(422, message, new { errors = new { contenido = new[] { message } } });
     private static JsonObject Object(JsonNode? node, params string[] keys)
@@ -95,7 +100,6 @@ public sealed class FormSchema
         var result = Blank(unit);
         // Datos de sesión retirados: conservar su historia sin normalizarla ni exigir campos invisibles.
         if (input.ContainsKey("encabezado")) result["encabezado"] = input["encabezado"]?.DeepClone();
-        result["medioOtro"] = Includes("medios") ? JsonValue.Create(At("medios", "medioOtro", () => Text(input, "medioOtro", 500))) : input["medioOtro"]?.DeepClone();
         foreach (var (section, fields) in Fields)
         {
             if (changed is not null && !changed.Any(k => k.StartsWith(section + ":", StringComparison.Ordinal)))
@@ -113,7 +117,7 @@ public sealed class FormSchema
                 if (section == "identificacion" && row.ContainsKey("usuarioOtro"))
                     throw FieldError(key, "usuario", "El catálogo de ¿A quién atiende? cambió. Actualiza el formato antes de guardar.");
                 Object(row, fields);
-                foreach (var field in fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f))) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
+                foreach (var field in fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f) && !SystemSuites.Fields.Contains(f))) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
                     ? Users(row[field]) : section == "sistemas" && SystemAnswers.Details.Contains(field) && !row.ContainsKey(field)
                     ? JsonValue.Create("") : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000)));
                 if (section == "sistemas")
@@ -126,6 +130,12 @@ public sealed class FormSchema
                     // Un cliente antiguo no puede borrar la colección al guardar otro campo.
                     else if (before is JsonObject prior && prior.ContainsKey(SystemModules.Field))
                         clean[SystemModules.Field] = prior[SystemModules.Field]?.DeepClone();
+                    foreach (var suite in SystemSuites.All)
+                    {
+                        if (row.ContainsKey(suite.Field)) clean[suite.Field] = SystemSuites.Normalize(row[suite.Field], key, suite);
+                        else if (before is JsonObject priorSuite && priorSuite.ContainsKey(suite.Field))
+                            clean[suite.Field] = priorSuite[suite.Field]?.DeepClone();
+                    }
                     foreach (var kind in SystemApplications.Kinds)
                     {
                         if (row.ContainsKey(kind.Field)) clean[kind.Field] = before is JsonObject priorRow && priorRow.ContainsKey(kind.Field)
@@ -143,7 +153,7 @@ public sealed class FormSchema
         {
             var key = "identificacion:" + row["id"]; var code = Text(row, "codigo");
             if (code != "" && (!Regex.IsMatch(code, @"\APO-[0-9]{2,6}\z") || !codes.Add(code)))
-                throw FieldError(key, "codigo", "Código de proceso inválido o repetido.");
+                throw FieldError(key, "codigo", "Código de procedimiento inválido o repetido.");
             if (!Includes(key)) continue;
             var priority = Text(row, "prioridad");
             if (priority != "" && !Regex.IsMatch(priority, @"\A[1-9][0-9]{0,3}\z")) throw FieldError(key, "prioridad", "Prioridad inválida.");
@@ -160,7 +170,7 @@ public sealed class FormSchema
                 // Retirar un proceso obliga a validar también sus vínculos, aunque no vengan en el parche.
                 var unchangedLink = previous?[section]?.AsArray().Any(r => r?["id"]?.ToString() == row["id"]?.ToString() && r?["proceso"]?.ToString() == code) == true;
                 if (code.Length > 0 && !codes.Contains(code) && (Includes(key) && !unchangedLink || removedCodes?.Contains(code) == true))
-                    throw FieldError(key, "proceso", "El proceso seleccionado no pertenece al formato.");
+                    throw FieldError(key, "proceso", "El procedimiento seleccionado no pertenece al formato.");
                 if (section == "sistemas" && code.Length > 0 && Includes(key) && !unchangedLink
                     && !ProcedureEligibility.Contains(result, code))
                     throw FieldError(key, "proceso", "Selecciona un procedimiento completo y válido del formato, marcado como Vigente o Ajustar.");
@@ -170,9 +180,7 @@ public sealed class FormSchema
             }
         foreach (var row in result["acuerdos"]!.AsArray().Cast<JsonObject>())
             if (Includes("acuerdos:" + row["id"])) Check("acuerdos:" + row["id"], "fecha", () => Date(Text(row, "fecha")));
-        var media = Object(input["medios"]);
-        foreach (var (_, value) in media) Boolean(value);
-        foreach (var (key, _) in result["medios"]!.AsObject().ToArray()) result["medios"]![key] = media.TryGetPropertyValue(key, out var value) && Boolean(value);
+        SystemUniqueness.Validate(result, previous);
         // Laravel serializa un arreglo asociativo vacío como []; sólo se acepta esa forma heredada si está vacía.
         if (changed is not null && !changed.Any(k => k.StartsWith("evaluaciones:", StringComparison.Ordinal)))
             result["evaluaciones"] = input["evaluaciones"]?.DeepClone();
@@ -184,7 +192,7 @@ public sealed class FormSchema
             {
                 var rows = Array(entries, 9);
                 if (rows.Count != 9 || !codes.Contains(code) && (changed is null || removedCodes?.Contains(code) == true || changed.Any(k => k.StartsWith($"evaluaciones:{code}:"))))
-                    throw FieldError($"evaluaciones:{code}:0", "criterio", "La evaluación no corresponde a un proceso del formato.");
+                    throw FieldError($"evaluaciones:{code}:0", "criterio", "La evaluación no corresponde a un procedimiento del formato.");
                 var normalized = new JsonArray();
                 for (var i = 0; i < rows.Count; i++)
                 {
@@ -247,6 +255,6 @@ public sealed class FormSchema
     public static void RequireComplete(JsonObject content)
     {
         var review = FormReview.Inspect(content);
-        if (!review.listo) throw new DomainProblem(422, "Completa los pendientes de Revisión y envío antes de enviar.", new { revisionEnvio = review });
+        if (!review.listo) throw new DomainProblem(422, "Completa los pendientes de Revisar y enviar antes de enviar el formato.", new { revisionEnvio = review });
     }
 }

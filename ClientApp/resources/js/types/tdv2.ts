@@ -56,6 +56,8 @@ export interface SystemRow {
     modulosSii?: SiiModuleSelection[];
     aplicacionesMoviles?: ApplicationSelection[];
     aplicacionesWeb?: ApplicationSelection[];
+    aplicacionesMicrosoft365?: string[];
+    aplicacionesAdobe?: string[];
     procesos?: string[];
 }
 export interface DataRow {
@@ -90,8 +92,6 @@ export interface FormContent {
     identificacion: ProcessRow[];
     sistemas: SystemRow[];
     datos: DataRow[];
-    medios: Record<string, boolean>;
-    medioOtro: string;
     evaluaciones: Record<string, Evaluation[]>;
     preguntas: Question[];
     acuerdos: Agreement[];

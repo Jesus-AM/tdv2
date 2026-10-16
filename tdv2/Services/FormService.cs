@@ -28,7 +28,7 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
             if (current)
             {
                 // Recalcular sólo la proyección de consulta; un GET no modifica borradores ni instantáneas enviadas.
-                var draft = record?.Content.DeepClone().AsObject() ?? schema.Blank(scope.Unit);
+                var draft = record?.Content.DeepClone().AsObject() ?? schema.New(scope.Unit);
                 if ((record?.Stage?.id ?? FormStages.First) == FormStages.First) LocalCatalog.Merge(draft, inventories[scope.Unit.Id]);
                 progress = FormStages.Progress(record?.Stage?.id ?? FormStages.First, draft);
             }
@@ -74,7 +74,7 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         if (!context.Scopes.TryGetValue(ur, out var scope)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
         var record = await store.Get(ur, http.RequestAborted);
         var current = record?.SubmittedAt is null && record?.Stage?.Blocked != true && FormCapture.CurrentYear(record?.Year, scope.Unit);
-        var content = record?.Content.DeepClone() ?? schema.Blank(scope.Unit);
+        var content = record?.Content.DeepClone() ?? schema.New(scope.Unit);
         object inventory = current && (record?.Stage?.id ?? FormStages.First) == FormStages.First
             ? LocalCatalog.Merge(content.AsObject(), await catalogs.Inventory(scope.Unit, http.RequestAborted)).Status
             : new { estado = "enviado", nuevos = 0, total = content["identificacion"]!.AsArray().Count, aviso = (string?)null };

@@ -1,5 +1,7 @@
 # Documento histórico: origen SQL Server retirado el 2026-10-15
 
+**Referencia histórica:** no ejecutar instrucciones de sincronización de aplicaciones de esta entrega anterior. El origen vigente es [APLICACIONES_LISTAS.md](APLICACIONES_LISTAS.md); la actualización de captura y limpieza vigente se documenta en [Catálogo vigente, limpieza exacta, respaldo y actualización Windows/Ubuntu](CATALOGO_HERRAMIENTAS_Y_RETIRO_MEDIOS.md). SQL Server sólo incluye UR y módulos.
+
 **No utilizar los procedimientos de sincronización/publicación descritos abajo.** La operación vigente usa exclusivamente los Excel versionados, la migración aditiva `20261015165555_LocalApplicationLists` y los comandos `--check-applications` / `--import-applications`. [Instrucciones vigentes](APLICACIONES_LISTAS.md). Se conserva este documento como evidencia del esquema anterior, su migración y pruebas; las tablas e historial anteriores no se eliminan.
 
 # Aplicaciones móviles y web — 2026-10-14

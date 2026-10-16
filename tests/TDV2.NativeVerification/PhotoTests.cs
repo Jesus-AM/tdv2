@@ -142,7 +142,7 @@ internal static partial class NativeTests
             app.Microsoft.PhotoAvailable = true;
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             Check((await client.GetAsync(Url())).StatusCode == HttpStatusCode.NotFound);
-            await Lease(client, tab, "medios");
+            await Lease(client, tab, "contexto");
             var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => client.GetAsync(Url())));
             Check(responses.All(r => r.IsSuccessStatusCode) && app.Microsoft.PhotoRequests == 1);
             Check((await Json(responses[0]))["photo"]!.ToString().StartsWith("data:image/png;base64,"));
@@ -155,7 +155,7 @@ internal static partial class NativeTests
         });
         Test("Foto/no es directorio: UR ajena, participante ausente, sesión revocada y acceso suspendido", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); await Lease(client, Guid.NewGuid(), "medios");
+            await Login(app, client); await Csrf(client); await Lease(client, Guid.NewGuid(), "contexto");
             Check((await client.GetAsync(Url(unit: "B"))).StatusCode == HttpStatusCode.Forbidden);
             Check((await client.GetAsync(Url("ajena@uacj.mx"))).StatusCode == HttpStatusCode.NotFound);
             await database.Sql("DELETE FROM fixture_roles WHERE email='persona@uacj.mx'");
@@ -165,7 +165,7 @@ internal static partial class NativeTests
         });
         Test("Foto/iniciales ante Graph ausente, identidad no coincidente y vencimiento de reserva", async (app, client) =>
         {
-            await Login(app, client); await Csrf(client); await Lease(client, Guid.NewGuid(), "medios");
+            await Login(app, client); await Csrf(client); await Lease(client, Guid.NewGuid(), "contexto");
             Check((await Json(await client.GetAsync(Url())))["photo"] is null && app.Microsoft.PhotoRequests == 1);
             app.Clock.Offset = TimeSpan.FromMinutes(3); app.Microsoft.PhotoAvailable = true;
             // La cookie del solicitante sigue intacta; el vínculo solicitado debe acreditar otra cuenta real.
@@ -184,9 +184,9 @@ internal static partial class NativeTests
             using var target = app.Client(); app.Microsoft.Email = app.Microsoft.Mail = "encargada@uacj.mx";
             app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"; await Login(app, target); await Csrf(target);
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is not null && app.Microsoft.PhotoRequests == 2);
-            await Lease(client, Guid.NewGuid(), "medios");
+            await Lease(client, Guid.NewGuid(), "contexto");
             var live = await Live(target, Guid.NewGuid());
-            var lease = live["bloques"]!.AsArray().Single(b => b!["key"]!.ToString() == "medios")!["reserva"]!;
+            var lease = live["bloques"]!.AsArray().Single(b => b!["key"]!.ToString() == "contexto")!["reserva"]!;
             Check(lease["foto"]!.ToString() == Url("encargada@uacj.mx"));
             Check((await target.GetAsync(Url("encargada@uacj.mx"))).IsSuccessStatusCode && app.Microsoft.PhotoRequests == 2);
             Check((await target.GetAsync(Url())).StatusCode == HttpStatusCode.NotFound);

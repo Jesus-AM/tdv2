@@ -1,3 +1,4 @@
-// El índice lo arbitra PostgreSQL al reservar; el navegador sólo aplica esta paleta sin rojo.
-export const participantColors = ['#2459a6', '#6d469b', '#08756b', '#8a5a08', '#33658a', '#687016', '#4e587f', '#835028'];
+// El índice estable y la exclusión entre participantes activos los arbitra el servidor.
+// Paleta de identidad independiente del azul de tablas y de los estados rojo/ámbar/verde.
+export const participantColors = ['#713C91', '#006A73', '#A03D75', '#765448', '#51575D', '#574198', '#007C91', '#815472'];
 export const participantColor = (index = 0) => participantColors[index % participantColors.length] || participantColors[0];

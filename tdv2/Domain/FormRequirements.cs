@@ -32,13 +32,12 @@ public static class FormRequirements
         var requirements = new List<CaptureRequirement>();
         var procedures = Rows(content, "identificacion");
         var systems = Rows(content, "sistemas");
-        var applicable = procedures.Where(ProcedureEligibility.Available).ToArray();
         foreach (var section in new[] { "identificacion", "sistemas" })
         {
             var title = section == "identificacion" ? "Identificación general" : "Sistemas y herramientas";
             var rows = Rows(content, section);
-            // La cobertura por procedimiento sustituye la exigencia genérica de una herramienta.
-            if (rows.Length == 0 && (section != "sistemas" || applicable.Length == 0))
+            // Las herramientas son opcionales. Sólo las filas realmente iniciadas aportan requisitos.
+            if (rows.Length == 0 && section == "identificacion")
             {
                 var helper = (content[section] as JsonArray)?.FirstOrDefault();
                 requirements.Add(new(section, helper is null ? section : section + ":" + helper["id"],
@@ -65,7 +64,9 @@ public static class FormRequirements
                     Add("sistema", "Sistema o herramienta", SystemAnswers.Tools.Contains(row["sistema"]?.ToString()));
                     Add("uso", "¿Para qué se usa?", SystemAnswers.Uses.Contains(row["uso"]?.ToString()));
                     Add("estado", "¿Cómo funciona?", SystemAnswers.States.Contains(row["estado"]?.ToString()));
-                    if (row["sistema"]?.ToString() == "sii_v2") Add(SystemModules.Field, "Módulos de SIIv2", SystemAnswers.Filled(row, "sistema"));
+                    if (row["sistema"]?.ToString() == "sii_v2") Add(SystemModules.Field, "Módulos del Sistema Integral de Información", SystemAnswers.Filled(row, "sistema"));
+                    if (SystemSuites.ForTool(row["sistema"]?.ToString()) is { } suite)
+                        Add(suite.Field, suite.Label, SystemSuites.Complete(row, suite));
                     if (SystemApplications.ForTool(row["sistema"]?.ToString()) is { } applicationKind)
                         Add(applicationKind.Field, applicationKind.Label, SystemApplications.Complete(row, applicationKind));
                     if (row["sistema"]?.ToString() == "otra") Add("sistemaOtro", "Nombre de la herramienta", SystemAnswers.ValidText(row, "sistemaOtro"));
@@ -91,9 +92,7 @@ public static class FormRequirements
                     linked.Length > 0 ? "sistema" : "captura", "");
             coverage.Add(new(id, code, name, applies, applies && valid > 0, linked.Length, valid, target));
         }
-        foreach (var item in coverage.Where(c => c.aplicable))
-            requirements.Add(new("sistemas", "cobertura:" + item.id, "captura",
-                $"Sistemas y herramientas · {item.codigo} · {item.nombre}: registra al menos una herramienta completa y válida para este procedimiento.", item.completa));
+        // Se conserva el dato informativo del contrato anterior; no exige cobertura ni suma requisitos.
         return new(requirements) { Coverage = coverage };
     }
 }

@@ -3,10 +3,11 @@ import { useId, useMemo } from 'react';
 import type { RecordAutocompleteEvents } from '@/lib/record-autocomplete';
 
 type Option = { value: string; label: string };
-export default function ProcedureSelect({ value, options, historicalLabel, label, error, events, onChange }: {
+export default function ProcedureSelect({ value, options, historicalLabel, label, error, events, onChange, conflict }: {
     value: string; options: Option[]; historicalLabel?: string; label: string; error?: string;
     events: RecordAutocompleteEvents;
     onChange: (value: string) => void;
+    conflict?: (value: string) => boolean;
 }) {
     const selectedLabel = options.find(option => option.value === value)?.label || historicalLabel || value;
     // Una entrega de presencia no debe reiniciar el texto de búsqueda del Autocomplete.
@@ -22,7 +23,7 @@ export default function ProcedureSelect({ value, options, historicalLabel, label
                 if (!events.selectionDisabled && (reason !== 'clear' || event.type === 'click')) onChange(option?.value || '');
             }}
             openText="Buscar procedimiento" closeText="Cerrar opciones" clearText="Quitar selección"
-            getOptionDisabled={() => events.selectionDisabled}
+            getOptionDisabled={option => events.selectionDisabled || !!conflict?.(option.value)}
             loading={events.pending} loadingText={events.status}
             noOptionsText={events.status || 'No hay procedimientos disponibles para esta búsqueda'}
             sx={{ minWidth: 0 }}
@@ -32,7 +33,8 @@ export default function ProcedureSelect({ value, options, historicalLabel, label
                 popper: { className: 'record-select-popup', sx: { width: 'min(560px, calc(100vw - 24px)) !important' },
                 modifiers: [{ name: 'preventOverflow', options: { padding: 12, rootBoundary: 'viewport' } }] },
                 listbox: { sx: { '& .MuiAutocomplete-option': { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', alignItems: 'flex-start' } } } }}
-            renderOption={(props, option) => <li {...props} key={option.value}>{option.label}</li>}
+            renderOption={(props, option) => <li {...props} key={option.value}>{option.label}
+                {conflict?.(option.value) && ' · Ya agregado a este procedimiento. Las respuestas se conservan.'}</li>}
             renderInput={params => <TextField {...params} placeholder="Busca por código o nombre…" error={!!error} helperText={error}
                     slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput,
                         'aria-busy': events.pending,

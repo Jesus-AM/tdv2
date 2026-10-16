@@ -1,3 +1,7 @@
+import { toolCatalog, toolUsed, reassignmentConflict } from '@/lib/system-catalog';
+import StableCaptureBody from '@/Components/StableCaptureBody';
+import { groupSystems, type SystemGroup } from '@/lib/system-groups';
+import { questionLabel, questionOptionLabel, originLabel, countLabel } from '@/lib/form-labels';
 import { memo, useEffect, useRef, useState } from 'react';
 import { ParticipantPhotos } from '@/Components/ParticipantAvatar';
 import UsersServedSelect from '@/Components/UsersServedSelect';
@@ -66,7 +70,6 @@ import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import type { FormContent, Unit, ProcessRow, SystemRow } from '@/types/tdv2';
 type Definition = {
     criterios: string[];
-    medios: string[];
     preguntas: { texto: string; tipo: string; opciones?: string[] }[];
 };
 // El motor conserva las propuestas fuera de las pestañas. Una tecla sólo renderiza la fila afectada.
@@ -163,8 +166,8 @@ function Editor(props: Props) {
     const reviewingSubmission = useRef(false);
     const editingContext = useRef<RecordEditingContext | null>(null);
     const removing = useRef(false);
-    const capturingProcedure = useRef(false);
-    const [preparingCapture, setPreparingCapture] = useState<string | null>(null);
+    const addingSystem = useRef(false);
+    const [addingSystemFor, setAddingSystemFor] = useState<string | null>(null);
     const [removingRow, setRemovingRow] = useState(false), [removalError, setRemovalError] = useState('');
     const [failedRemovals, setFailedRemovals] = useState<Record<string, string>>({});
     type SelectIntent = { key: string; field: string; immediate?: boolean; pending?: boolean };
@@ -205,7 +208,7 @@ function Editor(props: Props) {
     const visibleTabs = administrator && showLater ? tabs : tabs.slice(0, 4);
     const showingLater = administrator && showLater;
     const delivery = state.delivery || props.entrega || null;
-    const settled = state.initialized && !state.dirty && !state.saving && !finishing && !preparingCapture && !state.error && !state.conflict
+    const settled = state.initialized && !state.dirty && !state.saving && !finishing && addingSystemFor === null && !state.error && !state.conflict
         && !state.preparing.length && !Object.keys(state.issues).length && !Object.keys(state.unaccepted).length;
     const otherEditing = Object.keys(state.blocks).some(key => engine.busy(key));
     const autosave = locked ? 'Solo consulta' : state.saving || finishing ? 'Guardando…'
@@ -440,12 +443,6 @@ function Editor(props: Props) {
         // Termina el guardado/liberación anterior antes de enfocar y reservar el destino.
         if (!await engine.flush(true)) return;
         setActive(pending.seccion); engine.setSection(pending.seccion);
-        if (pending.bloque.startsWith('cobertura:')) {
-            const procedureId = pending.bloque.slice('cobertura:'.length);
-            const coverage = engine.state.delivery?.cobertura?.find(p => p.id === procedureId);
-            if (coverage && coverage.destino.bloque !== pending.bloque) return navigatePending(coverage.destino);
-            return captureProcedure(procedureId);
-        }
         if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
         requestAnimationFrame(() => requestAnimationFrame(() => {
             const panel = document.getElementById('panel-' + pending.seccion);
@@ -458,24 +455,6 @@ function Editor(props: Props) {
             focusCaptureField(target);
         }));
     }
-    async function captureProcedure(procedureId: string) {
-        if (capturingProcedure.current || locked) return;
-        capturingProcedure.current = true; setPreparingCapture(procedureId);
-        try {
-            if (!await engine.flush(true) || !await engine.refresh()) return;
-            const procedure = engine.state.procedures.find(p => p.id === procedureId);
-            if (!procedure) {
-                // La disponibilidad puede cambiar mientras se consulta la revisión.
-                await navigatePending({ seccion: 'identificacion', bloque: 'identificacion:' + procedureId, campo: 'tramite', mensaje: '' });
-                return;
-            }
-            const existing = engine.state.content.sistemas.find(r => r.proceso === procedure.codigo);
-            if (existing) { await navigatePending({ seccion: 'sistemas', bloque: 'sistemas:' + existing.id, campo: 'sistema', mensaje: '' }); return; }
-            if (engine.state.content.sistemas.length >= 200) { setNotice('Se alcanzó el límite de registros. Revisa las herramientas existentes.'); return; }
-            const row = { ...props.plantilla.sistemas[0], id: id(), proceso: procedure.codigo };
-            if (await engine.edit(d => { d.sistemas.push(row); })) revealAddedRow('sistemas', row.id);
-        } finally { capturingProcedure.current = false; setPreparingCapture(null); }
-    }
     function revealAddedRow(section: string, rowId: string) {
         requestAnimationFrame(() => requestAnimationFrame(() => {
             const panel = document.getElementById('panel-' + section);
@@ -487,7 +466,7 @@ function Editor(props: Props) {
         }));
     }
     async function reviewForSubmission() {
-        if (sending || reviewingSubmission.current || explicitSave.current) return;
+        if (sending || reviewingSubmission.current || explicitSave.current || addingSystem.current) return;
         reviewingSubmission.current = true;
         setSending(true);
         try {
@@ -549,43 +528,67 @@ function Editor(props: Props) {
             </>
         );
     }
+    async function addSystem(procedureId?: string) {
+        if (addingSystem.current || locked || sending || engine.state.content.sistemas.length >= 200) return;
+        addingSystem.current = true; setAddingSystemFor(procedureId || 'unassigned');
+        try {
+            if (!await engine.flush(true)) return;
+            if (procedureId && !await engine.refresh()) return;
+            const procedure = procedureId ? engine.state.procedures.find(p => p.id === procedureId) : undefined;
+            if (procedureId && !procedure) {
+                setNotice('El procedimiento cambió o está incompleto. Revísalo en Identificación general antes de agregar una herramienta.');
+                return;
+            }
+            const row = { ...props.plantilla.sistemas[0], id: id(), proceso: procedure?.codigo || '' };
+            const available = () => !engine.state.locked && engine.state.content.sistemas.length < 200
+                && (!procedure || engine.state.procedures.some(p => p.id === procedure.id && p.codigo === procedure.codigo));
+            if (await engine.edit(d => { d.sistemas.push(row); }, available)) revealAddedRow('sistemas', row.id);
+        } finally { addingSystem.current = false; setAddingSystemFor(null); }
+    }
+    function systemGroupHeading(group: SystemGroup, columns: number) {
+        const procedure = group.procedure;
+        const available = procedure && state.procedures.some(p => p.id === procedure.id && p.codigo === procedure.codigo);
+        const title = procedure ? `${procedure.codigo || 'Sin código confirmado'} · ${procedure.tramite || 'Procedimiento sin nombre'}` : 'Sin procedimiento asignado';
+        const titleId = `system-group-${encodeURIComponent(group.key)}`;
+        return <TableRow key={`heading:${group.key}`} data-system-group-heading={group.key} className="systems-group-row">
+            <TableCell colSpan={columns}>
+                <Box className="systems-group-content">
+                    <Box sx={{ minWidth: 0, flex: '1 1 240px' }}>
+                        <Typography component="h3" variant="body2" id={titleId} sx={{ fontWeight: 700, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{title}</Typography>
+                        {procedure && !available && !locked && <Typography variant="caption">Completa y valida este procedimiento en Identificación general para agregar herramientas.</Typography>}
+                    </Box>
+                    <Button size="small" startIcon={<Add />} aria-describedby={titleId}
+                        loading={addingSystemFor === (procedure?.id || 'unassigned')}
+                        disabled={locked || addingSystemFor !== null || c.sistemas.length >= 200 || !!procedure && !available}
+                        onClick={() => void addSystem(procedure?.id)} sx={{ flexShrink: 0 }}>
+                        Agregar sistema o herramienta
+                    </Button>
+                </Box>
+            </TableCell>
+        </TableRow>;
+    }
     function table(section: 'sistemas' | 'datos' | 'acuerdos', fields: Field[]) {
         const rows = c[section];
-        return (
-            <>
-                <CaptureTableScroll label={tabs.find(t => t[0] === section)![1]} bounded={section === 'sistemas'}>
-                    <Table size="small" className={section === 'sistemas' ? 'systems-table' : undefined} aria-label={tabs.find((t) => t[0] === section)?.[1]}>
-                        {section === 'sistemas' && <colgroup>
-                            <col style={{ width: 124 }} /><col style={{ width: 'clamp(280px, 22vw, 360px)' }} />
-                            <col style={{ width: 300 }} /><col style={{ width: 250 }} /><col style={{ width: 220 }} />
-                            <col /><col style={{ width: 112 }} />
-                        </colgroup>}
-                        <TableHead>
-                            <TableRow>
-                                {section === 'sistemas' && <TableCell className="row-editing-cell">Edición</TableCell>}
-                                {fields.map((f) => (
-                                    <TableCell key={f.key}>{f.label}{section === 'sistemas' && <ProcedureFieldHelp field={f.key} />}</TableCell>
-                                ))}
-                                <TableCell className={section === 'sistemas' ? 'row-actions-cell' : undefined}>Acciones</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {rows.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, applications, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
+        const availability = JSON.stringify(c.sistemas.map(r => [r.id, r.proceso, r.sistema, r.sistemaOtro]));
+        const renderRow = (r: (typeof rows)[number], i: number, groupKey?: string) => (
+            <CaptureRow key={`row:${r.id}`} dependencies={[r, i, groupKey, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, applications, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect : null, c.identificacion, state.procedures, availability]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)} data-system-group={groupKey}
+                                    aria-describedby={groupKey ? `system-group-${encodeURIComponent(groupKey)}` : undefined}>
                                     {section === 'sistemas' && <RowEditingPresence engine={engine} state={state} blockKey={`${section}:${r.id}`} />}
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
                                             {section === 'sistemas' && f.key === 'proceso'
                                                 ? <ProcedureSelect value={(r as SystemRow).proceso} options={procedureOptions} label={`Procedimiento ${i + 1}`}
+                                                    conflict={code => reassignmentConflict(r as SystemRow, code, c.sistemas, c.identificacion)}
                                                     historicalLabel={c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)
                                                         ? `${(r as SystemRow).proceso} · ${c.identificacion.find(p => p.codigo === (r as SystemRow).proceso)?.tramite}` : undefined}
                                                     error={state.validation[`sistemas:${r.id}`]?.proceso} events={autocompleteEvents(`sistemas:${r.id}`, 'proceso')}
                                                     onChange={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row.proceso = value; })} />
                                                 : section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
-                                                ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules} applications={applications}
+                                                ? <SystemField unavailable={toolCatalog.filter(o => toolUsed(r as SystemRow, o.id, c.sistemas, c.identificacion)).map(o => o.id)} row={r as SystemRow} field={f.key} index={i} catalog={modules} applications={applications}
                                                     errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
                                                     events={name => selectEvents(`sistemas:${r.id}`, name)}
                                                     catalogEvents={field => autocompleteEvents(`sistemas:${r.id}`, field)}
+                                                    changeSuite={(field, values) => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row[field] = values; })}
                                                     changeApplications={(kind, values) => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row[applicationFields[kind]] = values; })}
                                                     changeModules={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => {
                                                         row.modulosSii = value;
@@ -613,29 +616,50 @@ function Editor(props: Props) {
                                             </Box>}
                                         </TableCell>
                                     ))}
-                                    <TableCell className={section === 'sistemas' ? 'row-actions-cell' : undefined}>
+                                    <TableCell className="row-actions-cell">
                                         {section === 'sistemas' ? removeButton({ section, id: r.id }) :
                                         <RowEditingActions engine={engine} state={state} blockKey={`${section}:${r.id}`}>
                                             {removeButton({ section, id: r.id })}
                                         </RowEditingActions>}
                                     </TableCell>
                                 </TableRow>} />
-                            ))}
-                        </TableBody>
+        );
+        return (
+            <>
+                <CaptureTableScroll label={tabs.find(t => t[0] === section)![1]} bounded={section === 'sistemas'}>
+                    <Table size="small" className={section === 'sistemas' ? 'systems-table' : undefined} aria-label={tabs.find((t) => t[0] === section)?.[1]}>
+                        {section === 'sistemas' && <colgroup>
+                            <col style={{ width: 124 }} /><col style={{ width: 'clamp(280px, 22vw, 360px)' }} />
+                            <col style={{ width: 300 }} /><col style={{ width: 250 }} /><col style={{ width: 220 }} />
+                            <col /><col style={{ width: 112 }} />
+                        </colgroup>}
+                        <TableHead>
+                            <TableRow>
+                                {section === 'sistemas' && <TableCell className="row-editing-cell">Edición</TableCell>}
+                                {fields.map((f) => (
+                                    <TableCell key={f.key}>{f.label}{section === 'sistemas' && <ProcedureFieldHelp field={f.key} />}</TableCell>
+                                ))}
+                                <TableCell className="row-actions-cell">Acciones</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        {section === 'sistemas'
+                            ? <StableCaptureBody>{groupSystems(c.identificacion, c.sistemas).flatMap(group => [systemGroupHeading(group, fields.length + 2),
+                                ...group.rows.map(({ row, index }) => renderRow(row, index, group.key))])}</StableCaptureBody>
+                            : <TableBody>{rows.map((row, index) => renderRow(row, index))}</TableBody>}
                     </Table>
                 </CaptureTableScroll>
                 <Button
                     data-add-row={section}
                     sx={{ mt: 2 }}
                     startIcon={<Add />}
-                    disabled={locked || rows.length >= 200}
+                    disabled={locked || rows.length >= 200 || section === 'sistemas' && addingSystemFor !== null}
                     onClick={() => {
+                        if (section === 'sistemas') { void addSystem(); return; }
                         const row = { ...props.plantilla[section][0], id: id() };
                         void engine.edit((d) => {
-                            if (section === 'sistemas') d.sistemas.push(row as FormContent['sistemas'][0]);
-                            else if (section === 'datos') d.datos.push(row as FormContent['datos'][0]);
+                            if (section === 'datos') d.datos.push(row as FormContent['datos'][0]);
                             else d.acuerdos.push(row as FormContent['acuerdos'][0]);
-                        }).then(added => { if (added && section === 'sistemas') revealAddedRow(section, row.id); });
+                        });
                     }}
                 >
                     Agregar fila
@@ -651,7 +675,7 @@ function Editor(props: Props) {
         { key: 'validacion', label: 'Validación', options: validation },
         { key: 'prioridad', label: 'Prioridad' },
     ];
-    const saveAction = <Button variant="outlined" startIcon={<SaveOutlined />} disabled={locked || sending || preparingCapture !== null}
+    const saveAction = <Button variant="outlined" startIcon={<SaveOutlined />} disabled={locked || sending}
         aria-label="Guardar" title="Guardar los cambios sin enviar el formato" aria-busy={state.saving || finishing}
         sx={{ minHeight: 40 }} onClick={async () => {
             if (explicitSave.current || reviewingSubmission.current || sending) return;
@@ -663,7 +687,7 @@ function Editor(props: Props) {
             <div className="stack">
                 <Typography variant="h2">Alcance de captura</Typography>
                 <Typography variant="body2">
-                    Validar el inventario preliminar e identificar quién realiza cada trámite, servicio o actividad, a
+                    Valida el inventario preliminar e identifica quién realiza cada procedimiento, a
                     quién atiende, qué resultado genera y qué observaciones deben considerarse.
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -676,7 +700,7 @@ function Editor(props: Props) {
                         'Revisa el inventario del área y confirma la vigencia de cada registro.',
                         'Completa Procedimiento, ¿A quién atiende?, ¿Qué entrega? y Área responsable.',
                         'Asigna validación y prioridad a cada procedimiento.',
-                        'Relaciona los procedimientos validados con sus sistemas y herramientas e indica los medios utilizados.',
+                        'Si deseas registrar sistemas o herramientas, asócialos con un procedimiento validado y completa cada fila.',
                     ].map((t) => (
                         <li key={t}>{t}</li>
                     ))}
@@ -690,7 +714,7 @@ function Editor(props: Props) {
                     <Typography variant="h2" component="h2">
                         Identificación general
                     </Typography>
-                    <Chip label={`${c.identificacion.length} registros`} variant="outlined" />
+                    <Chip label={countLabel(c.identificacion.length, 'registro')} variant="outlined" />
                 </Box>
                 <IdentificationInstructions />
                 {props.ilda?.aviso && (
@@ -700,7 +724,7 @@ function Editor(props: Props) {
                 )}
                 {!!props.ilda?.nuevos && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {props.ilda.nuevos} registros nuevos de ILDA se incorporaron al inventario de esta área.
+                        {props.ilda.nuevos === 1 ? 'Se incorporó 1 registro nuevo de ILDA' : `Se incorporaron ${props.ilda.nuevos} registros nuevos de ILDA`} al inventario de esta área.
                         {props.editable ? ' Se guardarán al guardar el formato o completar una respuesta.' : ''}
                     </Typography>
                 )}
@@ -713,7 +737,7 @@ function Editor(props: Props) {
                                 {processFields.map((f) => (
                                     <TableCell key={f.key}>{f.label}<ProcedureFieldHelp field={f.key} /></TableCell>
                                 ))}
-                                <TableCell>Acciones</TableCell>
+                                <TableCell className="row-actions-cell">Acciones</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -782,12 +806,12 @@ function Editor(props: Props) {
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 700, mb: 1 }}>¿Qué sistemas, programas o herramientas utiliza tu área?</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    Para cada procedimiento institucional registrado en el paso 2, indica qué sistemas, programas o herramientas utiliza tu área para realizarlo y cómo funcionan.
+                    La captura es opcional. Puedes dejar un procedimiento sin herramientas o registrar las que utiliza tu área y cómo funcionan.
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Registra una herramienta por fila. Puedes agregar varias filas para el mismo procedimiento, cada una con su propio uso y funcionamiento.
+                    Usa «Agregar sistema o herramienta» en el procedimiento correspondiente y completa los campos de cada fila. Cada herramienta se agrega una sola vez por procedimiento; selecciona sus aplicaciones o módulos en la misma fila.
                 </Typography>
-                {procedureOptions.length === 0 && <Typography variant="body2" sx={{ mb: 2 }}>Completa y valida los procedimientos en Identificación general para seleccionarlos aquí</Typography>}
+                {procedureOptions.length === 0 && <Typography variant="body2" sx={{ mb: 2 }}>Completa y valida los procedimientos en Identificación general para seleccionarlos aquí.</Typography>}
                 {table('sistemas', [
                     { key: 'proceso', label: 'Procedimiento', options: procedureOptions, wide: true },
                     { key: 'sistema', label: 'Sistema o herramienta' },
@@ -795,47 +819,11 @@ function Editor(props: Props) {
                     { key: 'estado', label: '¿Cómo funciona?' },
                     { key: 'fallas', label: 'Áreas de oportunidad' },
                 ])}
-                <Box component="section" aria-labelledby="media-title" sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                <Typography id="media-title" variant="h3" sx={{ mb: 1 }}>
-                    Medios utilizados
-                </Typography>
-                <Box component="fieldset" {...blockEvents('medios')} sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}>
-                {blockNotice('medios')}
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: .5,
-                    '& .MuiFormControlLabel-root': { m: 0, alignItems: 'center' } }}>
-                    {Object.keys(c.medios).map((m) => (
-                        <FormControlLabel
-                            key={m}
-                            control={
-                                <Checkbox
-                                    checked={c.medios[m]}
-                                    disabled={choiceDisabled('medios')}
-                                    onChange={(e) => { const checked = e.target.checked;
-                                        void changeChoice<Pick<FormContent, 'medios' | 'medioOtro'>>('medios', d => { d.medios[m] = checked; }); }}
-                                />
-                            }
-                            label={<Typography variant="body2">{m}</Typography>}
-                        />
-                    ))}
-                </Box>
-                <TextField
-                    label="Otro medio"
-                    value={c.medioOtro}
-                    onChange={(e) =>
-                        engine.changeBlock<Pick<FormContent, 'medios' | 'medioOtro'>>('medios', (d) => {
-                            d.medioOtro = e.target.value;
-                        })
-                    }
-                    slotProps={{ input: { readOnly: !engine.canEdit('medios') }, htmlInput: { 'data-field': 'medioOtro' } }}
-                    sx={{ mt: 1, width: 'min(100%, 420px)' }}
-                />
-                </Box>
-                </Box>
             </>
         ),
         revision: () => <FormSubmissionReview delivery={delivery} area={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
             canSubmit={state.canSubmit} settled={settled} busy={otherEditing} autosave={autosave}
-            submitting={sending} saveAction={saveAction} canCapture={!locked} preparingCapture={preparingCapture}
+            submitting={sending} saveAction={saveAction}
             onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
         datos: () => (
             <>
@@ -843,7 +831,7 @@ function Editor(props: Props) {
                     Datos e información
                 </Typography>
                 {table('datos', [
-                    { key: 'proceso', label: 'Proceso', options: processOptions, wide: true },
+                    { key: 'proceso', label: 'Procedimiento', options: processOptions, wide: true },
                     { key: 'dato', label: 'Dato o información' },
                     { key: 'fuente', label: 'Fuente' },
                     {
@@ -853,7 +841,7 @@ function Editor(props: Props) {
                             'Se origina en este proceso',
                             'Se origina en otro proceso',
                             'Se genera en otra instancia',
-                        ].map((v) => ({ value: v, label: v })),
+                        ].map((v) => ({ value: v, label: originLabel(v) })),
                     },
                     { key: 'detalle', label: 'Detalle del origen' },
                 ])}
@@ -862,21 +850,21 @@ function Editor(props: Props) {
         evaluacion: () => (
             <>
                 <Typography variant="h2" sx={{ mb: 1 }}>
-                    Evaluación por proceso
+                    Evaluación por procedimiento
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Valora cada criterio de 1 a 5. Registra observaciones que ayuden a mejorar el proceso.
+                    Valora cada criterio de 1 a 5. Registra observaciones que ayuden a mejorar el procedimiento.
                 </Typography>
                 {!coded.length ? (
                     <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                        Valida al menos un trámite en Identificación general para habilitar su evaluación.
+                        Valida al menos un procedimiento en Identificación general para habilitar su evaluación.
                     </Typography>
                 ) : (
                     <>
                         <TextField
 
                             select
-                            label="Proceso a evaluar"
+                            label="Procedimiento a evaluar"
                             value={selectedCode}
                             onChange={(e) => setEvalCode(e.target.value)}
                             fullWidth
@@ -973,7 +961,7 @@ function Editor(props: Props) {
                                 }}
                             >
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                    {i + 1}. {q.pregunta}
+                                    {i + 1}. {questionLabel(q.pregunta)}
                                 </Typography>
                                 <FormControlLabel
                                     control={
@@ -1008,7 +996,7 @@ function Editor(props: Props) {
                                     </MenuItem>,
                                     ...(q.opciones || []).map((o) => (
                                         <MenuItem value={o} key={o}>
-                                            {o}
+                                            {questionOptionLabel(o)}
                                         </MenuItem>
                                     )),
                                 ]}
@@ -1026,7 +1014,7 @@ function Editor(props: Props) {
                 {table('acuerdos', [
                     { key: 'acuerdo', label: 'Acuerdo', wide: true },
                     { key: 'responsable', label: 'Responsable' },
-                    { key: 'fecha', label: 'Fecha compromiso', type: 'date' },
+                    { key: 'fecha', label: 'Fecha de compromiso', type: 'date' },
                 ])}
 
             </>

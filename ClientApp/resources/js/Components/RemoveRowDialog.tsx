@@ -9,7 +9,7 @@ export default function RemoveRowDialog({ open, label, process, associations = 0
         <DialogContent id="remove-row-description">
             <Typography sx={{ fontWeight: 600, overflowWrap: 'anywhere', mb: 2 }}>{label}</Typography>
             <Typography>{process
-                ? `Se eliminará este procedimiento y su evaluación. ${associations} ${associations === 1 ? 'registro de sistemas/herramientas o datos perderá' : 'registros de sistemas/herramientas o datos perderán'} su asociación. Las respuestas se conservarán y necesitarán otro procedimiento.`
+                ? `Se eliminará este procedimiento y su evaluación.${associations > 0 ? ` ${associations} ${associations === 1 ? 'registro de sistemas/herramientas o datos perderá' : 'registros de sistemas/herramientas o datos perderán'} su asociación. Las respuestas se conservarán; deberás asignar otro procedimiento a ${associations === 1 ? 'ese registro' : 'esos registros'}.` : ''}`
                 : 'Se eliminará este registro del borrador compartido.'}</Typography>
             {changed && <Typography role="status" sx={{ mt: 2 }}>El registro o sus relaciones cambiaron. Cancela y revisa la versión vigente antes de volver a confirmar la eliminación.</Typography>}
             {reason && <Typography role="status" sx={{ mt: 2 }}>{reason}</Typography>}

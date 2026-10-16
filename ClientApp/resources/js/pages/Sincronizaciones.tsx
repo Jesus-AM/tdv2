@@ -45,7 +45,7 @@ type Status = {
     inicio_demorado?: boolean;
 };
 type Catalog = { registros: number | null; completada_en: string | null; error?: string };
-const catalogLabels: Record<string, string> = { ...catalogNames, sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos de SIIv2' };
+const catalogLabels: Record<string, string> = { ...catalogNames, sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos del Sistema Integral de Información' };
 const intervals = [
     [15, 'Cada 15 minutos'],
     [30, 'Cada 30 minutos'],

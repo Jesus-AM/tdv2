@@ -38,6 +38,18 @@ internal static class SystemCatalogTests
             foreach (var section in new[] { "datos", "evaluaciones", "preguntas", "acuerdos" }) Check(JsonNode.DeepEquals(result[section], original[section]));
             Check(FormReview.Inspect(result).pendientes.All(p => p.seccion is "identificacion" or "sistemas"));
         });
+        Test("Medios retirados no reaparecen en contrato, bloques ni guardado de clientes anteriores", () =>
+        {
+            var old = Blank(); old["medios"] = new JsonObject { ["Correo"] = true }; old["medioOtro"] = "Texto retirado";
+            old["encabezado"]!["medios"] = "Respuesta ajena anidada";
+            var saved = Validate(old);
+            Check(!schema.Definition().ContainsKey("medios") && !saved.ContainsKey("medios") && !saved.ContainsKey("medioOtro"));
+            Check(!FormBlocks.ValidKey("medios") && !FormBlocks.Split(old).ContainsKey("medios"));
+            var merged = FormBlocks.Apply(old, new Dictionary<string, JsonNode?> { ["contexto"] = old["encabezado"] });
+            Check(!merged.ContainsKey("medios") && !merged.ContainsKey("medioOtro"));
+            Check(JsonNode.DeepEquals(merged["encabezado"], old["encabezado"]));
+            Check(FormCapture.Progress(saved) == FormCapture.Progress(old));
+        });
         cases.Add(("Sistemas/lector real con ADO sintético: 1501 módulos, dos columnas y ninguna truncación ni filtro", async () =>
         {
             var sources = new SyntheticSources(); sources.Modules.Rows.Clear();
@@ -96,7 +108,7 @@ internal static class SystemCatalogTests
             var content = Blank(); Check(FormSchema.Progress(Validate(content)) == 0);
             var row = content["sistemas"]![0]!; row["sistema"] = "sii_v2"; row["uso"] = "consultar"; row["estado"] = "bien";
             var without = Validate(content); Check(!SystemAnswers.Filled(without["sistemas"]![0], "sistema"));
-            Check(FormCapture.Review(without).pendientes.Any(p => p.seccion == "sistemas" && p.campo == "modulosSii" && p.mensaje.Contains("Módulos de SIIv2")));
+            Check(FormCapture.Review(without).pendientes.Any(p => p.seccion == "sistemas" && p.campo == "modulosSii" && p.mensaje.Contains("Módulos del Sistema Integral de Información")));
             row["moduloSiiId"] = "3"; row["moduloSiiDescripcion"] = "Consultas";
             Check(FormCapture.Progress(Validate(content)) > FormCapture.Progress(without));
         });
@@ -137,10 +149,10 @@ internal static class SystemCatalogTests
             Check(SystemAnswers.Filled(saved["sistemas"]![0], "sistema"));
             Check(FormCapture.Progress(saved) == FormCapture.Progress(original));
             Reject(() => Validate(original));
-            var previous = original.DeepClone().AsObject(); previous["sistemas"]![0]!["sistema"] = "excel";
+            var previous = original.DeepClone().AsObject(); previous["sistemas"]![0]!["sistema"] = "limesurvey";
             Reject(() => Validate(edited, previous));
-            edited["sistemas"]![0]!["sistema"] = "excel";
-            Check(Validate(edited, original)["sistemas"]![0]!["sistema"]!.ToString() == "excel");
+            edited["sistemas"]![0]!["sistema"] = "limesurvey";
+            Check(Validate(edited, original)["sistemas"]![0]!["sistema"]!.ToString() == "limesurvey");
             Check(!SystemAnswers.SelectableTools.Contains("portal_cast"));
         });
         Test("pendientes usan Procedimiento sin cambiar la clave ni sus requisitos", () =>
@@ -169,7 +181,7 @@ internal static class SystemCatalogTests
             foreach (var field in new[] { "tramite", "resultado", "responsable" }) content["identificacion"]![0]![field] = "Respuesta completa";
             content["identificacion"]![0]!["usuario"] = new JsonArray("Docentes"); content["identificacion"]![0]!["prioridad"] = "3";
             var rows = content["sistemas"]!.AsArray(); rows.Clear();
-            foreach (var state in SystemAnswers.States) rows.Add(new JsonObject { ["id"] = state, ["proceso"] = "PO-01", ["sistema"] = "excel", ["uso"] = "consultar", ["estado"] = state, ["fallas"] = "" });
+            foreach (var state in SystemAnswers.States) rows.Add(new JsonObject { ["id"] = state, ["proceso"] = "PO-01", ["sistema"] = "otra", ["sistemaOtro"] = state, ["uso"] = "consultar", ["estado"] = state, ["fallas"] = "" });
             Check(Validate(content)["sistemas"]!.AsArray().Count == 4);
         });
         Test("históricos permanecen legibles y corregibles sin convertir valores ajenos", () =>
@@ -178,7 +190,7 @@ internal static class SystemCatalogTests
             var edited = original.DeepClone().AsObject(); edited["sistemas"]![0]!["fallas"] = "Comentario actualizado";
             var saved = Validate(edited, original)["sistemas"]![0]!;
             Check(saved["sistema"]!.ToString() == "Programa antiguo" && saved["estado"]!.ToString() == "Parcial");
-            edited["sistemas"]![0]!["sistema"] = "excel"; Check(Validate(edited, original)["sistemas"]![0]!["uso"]!.ToString() == "Uso anterior");
+            edited["sistemas"]![0]!["sistema"] = "limesurvey"; Check(Validate(edited, original)["sistemas"]![0]!["uso"]!.ToString() == "Uso anterior");
             edited["sistemas"]![0]!["uso"] = "Inventado"; Reject(() => Validate(edited, original));
         });
         Test("códigos y orígenes ILDA/norma/Nuevo permanecen sin renumeración", () =>

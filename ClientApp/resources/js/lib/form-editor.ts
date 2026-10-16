@@ -8,7 +8,8 @@ export function normalizeContent(input: FormContent): FormContent {
     c.sistemas = c.sistemas.map((row) => text({ ...row, proceso: row.proceso ?? row.procesos?.[0] ?? '' }));
     c.datos = c.datos.map(text);
     c.acuerdos = c.acuerdos.map(text);
-    c.medioOtro ||= '';
+    // Un cliente anterior no vuelve a enviar las propiedades retiradas.
+    Reflect.deleteProperty(c, 'medios'); Reflect.deleteProperty(c, 'medioOtro');
     c.evaluaciones = Object.fromEntries(
         Object.entries(c.evaluaciones || {}).map(([code, rows]) => [
             code,

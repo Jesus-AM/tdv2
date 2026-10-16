@@ -6,7 +6,7 @@ public static class FormCapture
 {
     public static bool CurrentYear(int? year, Unit unit) => year is null or 0 || year == unit.Year;
     public static bool LaterSections(Profile profile) => profile.Has("administrador");
-    public static bool FirstStageBlock(string key) => key is "contexto" or "medios"
+    public static bool FirstStageBlock(string key) => key is "contexto"
         || key.StartsWith("identificacion:", StringComparison.Ordinal) || key.StartsWith("sistemas:", StringComparison.Ordinal);
     public static string Section(Profile profile, string? section) => section is "contexto" or "identificacion" or "sistemas" or "revision"
         || LaterSections(profile) && FormBlocks.Sections.Contains(section) ? section! : "contexto";

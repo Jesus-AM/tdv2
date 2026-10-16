@@ -5,17 +5,20 @@ import type { SiiModuleSelection } from '@/types/tdv2';
 
 export type CatalogState = 'cargando' | 'disponible' | 'pendiente' | 'error';
 
-/** El mismo control conserva apertura, foco y resumen para los tres catálogos locales. */
+/** El mismo control conserva apertura, foco y resumen para todas las familias. */
 export default function CatalogMultiSelect<T extends SiiModuleSelection>({ selected, options, state, label, field, noun, index, events, error, onChange }: {
     selected: T[]; options: T[]; state: CatalogState; label: string; field: string; noun: 'módulos' | 'aplicaciones';
     index: number; events: RecordAutocompleteEvents; error?: string; onChange: (values: T[]) => void;
 }) {
     const selectedValueId = useId();
+    const controlId = useId();
+    const catalogLabel = label.charAt(0).toLowerCase() + label.slice(1);
     const [search, setSearch] = useState('');
     useEffect(() => { if (!events.open) setSearch(''); }, [events.open]);
     const available = useMemo(() => [...options, ...selected.filter(s => !options.some(o => o.id === s.id))], [options, selected]);
     return <>
-        <Autocomplete multiple disableCloseOnSelect options={events.selectionDisabled ? [] : available} value={selected}
+        <Typography component="label" htmlFor={controlId} variant="body2">{label}</Typography>
+        <Autocomplete id={controlId} multiple disableCloseOnSelect openOnFocus options={events.selectionDisabled ? [] : available} value={selected}
             getOptionLabel={o => o.descripcion} getOptionKey={o => o.id}
             className={`sii-module-select sii-modules-select multiline-record-select${selected.length && !events.open ? ' has-selected-value' : ''}`}
             inputValue={search} onInputChange={(_, text) => setSearch(text)}
@@ -33,7 +36,7 @@ export default function CatalogMultiSelect<T extends SiiModuleSelection>({ selec
                 popper: { className: 'record-select-popup' }, status: { onMouseDown: event => event.preventDefault() },
                 listbox: { sx: { fontFamily: 'inherit', fontSize: 13, fontWeight: 400,
                     '& .MuiAutocomplete-option': { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', alignItems: 'flex-start' } } } }}
-            renderInput={params => <TextField {...params} label={label} placeholder={selected.length ? `Busca ${noun}…` : `Selecciona ${noun}`}
+            renderInput={params => <TextField {...params} placeholder={selected.length ? `Busca ${noun}…` : `Selecciona ${noun}`}
                 error={!!error} helperText={error} slotProps={{ ...params.slotProps, inputLabel: { shrink: true }, htmlInput: { ...params.slotProps.htmlInput,
                     'aria-busy': events.pending, 'aria-describedby': [error ? `${params.id}-helper-text` : null,
                         selected.length ? selectedValueId : null].filter(Boolean).join(' ') || undefined,
@@ -44,8 +47,8 @@ export default function CatalogMultiSelect<T extends SiiModuleSelection>({ selec
             </li>} />
         {state !== 'disponible' && <Typography variant="caption" role="status" color={state === 'error' ? 'error.main' : 'text.secondary'}>
             {state === 'cargando' ? 'Cargando catálogo local…' : state === 'error'
-                ? `No fue posible consultar el catálogo local de ${label.toLowerCase()}. Puedes continuar con el formulario.`
-                : `El catálogo de ${label === 'Módulos de SIIv2' ? 'módulos de SIIv2' : label.toLowerCase()} aún no está disponible`}
+                ? `No fue posible consultar el catálogo local de ${catalogLabel}. Puedes continuar con el formulario.`
+                : `El catálogo de ${catalogLabel} aún no está disponible`}
         </Typography>}
         {state === 'disponible' && selected.some(s => !options.some(o => o.id === s.id))
             && <Typography variant="caption">La selección incluye {noun} históric{noun === 'módulos' ? 'os' : 'as'} que ya no están disponibles para nuevas selecciones.</Typography>}

@@ -16,34 +16,46 @@ internal static partial class NativeTests
     }
     private static void RegisterFormIntegrityCases(NativeDatabase db, Action<string, Func<NativeApplication, HttpClient, Task>> Test)
     {
-        Test("Edición/integridad: cobertura, envío API, última herramienta y avance confirmado", async (app, client) =>
+        Test("Edición/integridad: herramientas opcionales, filas incompletas, varias asociaciones y envío sin herramientas", async (app, client) =>
         {
             var content = CoveredFixture(app);
             var procedure = content["identificacion"]![0]!.DeepClone(); procedure["id"] = "segundo"; procedure["codigo"] = "PO-02";
             procedure["tramite"] = "Segundo procedimiento completo"; content["identificacion"]!.AsArray().Add(procedure);
             await SeedStage(db, content); await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             var live = await Live(client, tab);
-            Check(live["porcentaje"]!.GetValue<int>() == 95);
-            Check(live["entrega"]!["revision"]!["pendientes"]!.AsArray().Single()!["bloque"]!.ToString() == "cobertura:segundo");
+            Check(live["porcentaje"]!.GetValue<int>() == 100 && live["entrega"]!["revision"]!["listo"]!.GetValue<bool>());
             Check(live["contenido"]!["sistemas"]!.AsArray().Count == 1);
-            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), 0))).StatusCode == HttpStatusCode.UnprocessableEntity);
-            var tool = content["sistemas"]![0]!.DeepClone(); tool["id"] = "segunda"; tool["proceso"] = "PO-02";
+            // Otro registro del mismo procedimiento, iniciado pero incompleto.
+            var tool = content["sistemas"]![0]!.DeepClone(); tool["id"] = "segunda"; tool["sistema"] = "limesurvey"; tool["uso"] = "";
             var lease = await Lease(client, tab, "sistemas:segunda");
             Check((await Patch(client, Edit(tab, lease with { Value = tool }) with { Release = true })).IsSuccessStatusCode);
             live = await Live(client, tab);
-            Check(live["porcentaje"]!.GetValue<int>() == 100 && live["entrega"]!["revision"]!["listo"]!.GetValue<bool>());
-            Check(Convert.ToInt32(await db.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == 100);
-            Check((await Patch(client, await RemovalRequest(client, tab, new("sistemas", "segunda")))).IsSuccessStatusCode);
-            live = await Live(client, tab); Check(live["porcentaje"]!.GetValue<int>() == 95);
-            Check(Convert.ToInt32(await db.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == 95);
-            var index = (await Json(await client.GetAsync("/inicio")))["props"]!["formatos"]!.AsArray().Single(f => f!["id_ur"]!.ToString() == "A")!;
-            Check(index["porcentaje"]!.GetValue<int>() == 95);
+            Check(live["porcentaje"]!.GetValue<int>() == 95);
+            Check(live["entrega"]!["revision"]!["pendientes"]!.AsArray().Single()!["campo"]!.ToString() == "uso");
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), live["version"]!.GetValue<int>()))).StatusCode == HttpStatusCode.UnprocessableEntity);
-            tool["id"] = "reemplazo"; lease = await Lease(client, tab, "sistemas:reemplazo");
+            tool["uso"] = "consultar"; lease = await Lease(client, tab, "sistemas:segunda", 1);
             Check((await Patch(client, Edit(tab, lease with { Value = tool }) with { Release = true })).IsSuccessStatusCode);
             live = await Live(client, tab);
+            Check(live["porcentaje"]!.GetValue<int>() == 100 && live["contenido"]!["sistemas"]!.AsArray().All(r => r!["proceso"]!.ToString() == "PO-01"));
+            foreach (var id in new[] { "segunda", "inicial" })
+                Check((await Patch(client, await RemovalRequest(client, tab, new("sistemas", id)))).IsSuccessStatusCode);
+            live = await Live(client, tab);
+            Check(live["contenido"]!["sistemas"]!.AsArray().Count == 0 && live["porcentaje"]!.GetValue<int>() == 100);
+            Check(live["entrega"]!["revision"]!["pendientes"]!.AsArray().Count == 0);
+            Check(Convert.ToInt32(await db.Scalar("SELECT porcentaje FROM formatos_ur WHERE id_ur='A'")) == 100);
+            var index = (await Json(await client.GetAsync("/inicio")))["props"]!["formatos"]!.AsArray().Single(f => f!["id_ur"]!.ToString() == "A")!;
+            Check(index["porcentaje"]!.GetValue<int>() == 100);
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), live["version"]!.GetValue<int>()))).IsSuccessStatusCode);
             Check(!(await Live(client, tab))["editable"]!.GetValue<bool>());
+            Check(JsonNode.Parse((string)(await db.Scalar("SELECT instantanea::text FROM formato_envios_etapas"))!)!["contenido"]!["sistemas"]!.AsArray().Count == 0);
+        });
+        Test("Edición/integridad: nuevo formato no crea herramientas al leer ni reservar identificación", async (app, client) =>
+        {
+            await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
+            Check((await Live(client, tab))["contenido"]!["sistemas"]!.AsArray().Count == 0);
+            await Lease(client, tab, "identificacion:inicial");
+            Check((await Live(client, tab))["contenido"]!["sistemas"]!.AsArray().Count == 0);
+            Check(Convert.ToInt32(await db.Scalar("SELECT json_array_length(contenido->'sistemas') FROM formatos_ur WHERE id_ur='A'")) == 0);
         });
         Test("Edición/integridad: retiro relacionado atómico, conflicto, renombre y respuestas conservadas", async (app, client) =>
         {

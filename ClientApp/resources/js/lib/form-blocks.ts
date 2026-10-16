@@ -3,7 +3,6 @@ export type BlockValue = unknown;
 export function splitBlocks(content: FormContent): Record<string, BlockValue> {
     const blocks: Record<string, BlockValue> = {
         contexto: content.encabezado,
-        medios: { medios: content.medios, medioOtro: content.medioOtro },
     };
     for (const table of ['identificacion', 'sistemas', 'datos', 'acuerdos'] as const)
         for (const row of content[table]) blocks[`${table}:${row.id}`] = row;
@@ -15,7 +14,6 @@ export function splitBlocks(content: FormContent): Record<string, BlockValue> {
 export const sameBlock = (a: unknown, b: unknown) => a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 export function blockValue(content: FormContent, key: string): unknown {
     if (key === 'contexto') return content.encabezado;
-    if (key === 'medios') return { medios: content.medios, medioOtro: content.medioOtro };
     const [table, id, index] = key.split(':');
     if (table === 'preguntas') return content.preguntas[Number(id)];
     if (table === 'evaluaciones') return content.evaluaciones[id]?.[Number(index)];
@@ -25,7 +23,6 @@ export function changedBlocks(base: FormContent, next: FormContent): string[] {
     if (base === next) return [];
     const keys: string[] = [];
     if (!sameBlock(base.encabezado, next.encabezado)) keys.push('contexto');
-    if (!sameBlock(base.medios, next.medios) || base.medioOtro !== next.medioOtro) keys.push('medios');
     for (const table of ['identificacion', 'sistemas', 'datos', 'acuerdos'] as const) {
         if (base[table] === next[table]) continue;
         const before = new Map<string, unknown>(base[table].map(row => [row.id, row]));
@@ -47,7 +44,6 @@ export function applyBlocks(original: FormContent, changes: Record<string, Block
         if (sameBlock(blockValue(original, key), value)) continue;
         if (result === original) result = { ...original };
         if (key === 'contexto') result.encabezado = structuredClone(value) as FormContent['encabezado'];
-        else if (key === 'medios') Object.assign(result, structuredClone(value));
         else if (key.startsWith('preguntas:')) {
             if (result.preguntas === original.preguntas) result.preguntas = [...original.preguntas];
             result.preguntas[Number(key.slice(10))] = structuredClone(value) as FormContent['preguntas'][0];

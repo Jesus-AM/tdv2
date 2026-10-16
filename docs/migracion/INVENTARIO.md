@@ -1,3 +1,35 @@
+# Actualización 2026-10-16 — Reversión visual de columnas
+
+Restaurada la apariencia anterior a la delimitación: fondos, sombras suaves, anchos, espaciado y grupos de una celda completa. Se conservan Edición/Acciones fijas con la excepción móvil previa para Edición, la acción de alta dentro del grupo y las acciones por registro. Portada, jerarquía y alineación UACJ sin cambios. Sólo tres archivos productivos internos, ajuste de pruebas y documentación; sin contratos, datos ni migraciones. [Estado vigente, verificación y alcance](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md#reversión-parcial-vigente).
+
+# Entrega anterior 2026-10-16 — Columnas fijas, grupos y alineación UACJ
+
+La delimitación interna siguiente fue revertida; su evidencia se conserva como histórica. La alineación del logotipo continúa vigente.
+
+Separadores de 1 px continuos, fondos opacos, filas de grupo con laterales vacíos y franja/alta sólo centrales. Edición y Acciones fijas también en móvil; controles adaptados sin reducir fuente. UACJ sólo se desplaza horizontalmente para compensar el margen transparente original. Tipos/Vite/Release, 94 frontend, 25 comprobaciones nuevas, 24 regresiones internas y 9 de selectores correctos; público comparado en seis tamaños, sólo cambia x del logotipo. Sin contratos, datos o migraciones. Evidencia `.artifacts/fixed-columns-logo-20261016/`; transportes internos simulados y Razor real en host de pruebas sin base. [Estado vigente, archivos, capturas, límites y comandos](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md). Sustituye la decisión visual anterior de liberar Edición en móvil; conserva las demás mejoras.
+
+# Actualización 2026-10-16 — Jerarquía institucional del bloque principal
+
+Sólo CSS de `.hero`: UACJ 560 px proporcional/adaptable, Dirección 16–18 px/600 inmediatamente debajo, proyecto h1 24–38 px/600 con separación mayor. Textos blancos, archivos/URLs, contenido, fondo y resto de la portada intactos; sin cambios internos, contratos o migraciones. Build Release y Edge antes/después en seis tamaños correctos; 297 elementos exteriores conservan diseño. Evidencia nueva `.artifacts/hero-hierarchy-20261016/`. Recursos externos inaccesibles en ambos pases; desbordamiento previo exterior de 13 px a 1024 px documentado fuera del alcance. [Medidas, pruebas y límites vigentes](AJUSTES_VISUALES_Y_PALETA_PUBLICA.md#revisión-vigente-jerarquía-institucional-del-bloque-principal). Las verificaciones siguientes pertenecen a entregas anteriores; la restricción de sólo colores queda sustituida exclusivamente dentro del bloque principal.
+
+# Actualización 2026-10-16 — Paleta primaria y blancos en la portada
+
+Releído el manual local actual de seis páginas. La vista pública utiliza principalmente #213455/#DADADA/#FFFFFF y únicamente #174187 para hover; los cuatro textos principales son blancos opacos, navegación y El proyecto permanecen blancos. Sólo se modifican colores de `Views/Home/Index.cshtml`; los ajustes internos existentes pasan nuevamente 24 recorridos más nueve de selectores. Tipos/Vite/Release, 94 frontend y 116 dominio/HTTP correctos; 306 elementos sin cambios geométricos en tres tamaños, contraste público mínimo 8.05:1. Evidencia nueva `.artifacts/visual-primary-20261016/`. Sin migraciones ni bases; externos, dispositivos físicos e institucional siguen pendientes. [Estado, archivos, evidencia y límites](AJUSTES_VISUALES_Y_PALETA_PUBLICA.md).
+
+# Actualización 2026-10-16 — Presentación interna y paleta pública
+
+Presencia con ocho colores funcionales y nombre visible, catálogo con títulos 700, resumen/búsqueda sin superposición y Acciones fija a la derecha. Portada sólo recoloreada con el manual local: geometría y contenido idénticos en tres tamaños, sin amarillo. Sin contratos/esquema/migraciones ejecutadas; `RemoveUsedMedia` permanece intacta. Tipos/Vite/Release, 94 frontend, 116 dominio/HTTP, 24 recorridos internos y 9 de selectores. Transportes internos simulados; Razor público real en host de pruebas sin base. [Capturas, archivos, contrastes, límites y comandos](AJUSTES_VISUALES_Y_PALETA_PUBLICA.md).
+
+# Actualización 2026-10-16 — Herramientas agrupadas y revisión de textos
+
+**Actualización vigente 2026-10-16 (catálogo):** herramientas opcionales por procedimiento, nuevas familias Microsoft 365/Adobe, opciones históricas conservadas y duplicados nuevos rechazados. Medios utilizados y Otro medio están retirados, incluida su persistencia específica. Requiere `20261016190000_RemoveUsedMedia`; el resto de los envíos permanece intacto. [Catálogo vigente, limpieza exacta, respaldo y actualización Windows/Ubuntu](CATALOGO_HERRAMIENTAS_Y_RETIRO_MEDIOS.md). Las verificaciones y decisiones anteriores de este documento son evidencia fechada, no instrucciones para reinstalar el catálogo ni Medios.
+
+Sistemas agrupa por la relación estable con el procedimiento dentro de la tabla existente, con alta explícita por grupo y grupo sin asociación. No reordena el JSON ni exige cobertura. Filas React estables, conservación de foco/desplazamiento, mismos controles y permisos. Revisados los textos de todas las secciones; etiquetas históricas conocidas cambian sólo su presentación. Sin migración. [Archivos, pruebas nativas/simuladas y límites](SISTEMAS_HERRAMIENTAS.md#agrupación-dentro-de-la-tabla-y-redacción--2026-10-16).
+
+# Actualización 2026-10-16 — Terminología y herramientas opcionales
+
+Portal y Procedimientos usan terminología uniforme y correcciones de puntuación/concordancia sin modificar datos capturados ni nombres oficiales. Backend compartido permite cero herramientas por procedimiento; las filas iniciadas mantienen requisitos, condicionales y enlaces a pendientes. Nuevos formatos sin filas automáticas; formatos existentes y enviados intactos. Sin migración. La cobertura obligatoria descrita en entradas anteriores queda sustituida. [Fórmula, compatibilidad y operación](COBERTURA_Y_GUARDADO.md); [resultados de esta entrega](../../ESTADO_MIGRACION.md#2026-10-16--terminología-y-herramientas-opcionales).
+
 # Actualización 2026-10-15 — Aplicaciones desde listas versionadas
 
 Origen exclusivo Excel (207 web/26 móviles), manifiesto versionado, importación PostgreSQL explícita e idempotente, correspondencias exactas y UUID estables. Migración **20261015165555_LocalApplicationLists**, sin modificar anteriores ni formatos. SQL Server sólo UR/módulos; auditoría histórica retenida, ILDA independiente. Selectores y validación existentes conservados. [Implementación, pruebas y operación](APLICACIONES_LISTAS.md); [evidencia vigente](../../ESTADO_MIGRACION.md). Las entradas anteriores de aplicaciones SQL Server describen una implementación retirada.
@@ -20,7 +52,7 @@ Selección múltiple SIIv2 con casillas, eliminación individual y nombres compl
 
 # Actualización 2026-10-13 — Catálogo histórico y desplazamiento de captura
 
-CAST retirado de selecciones nuevas, con conservación histórica y rechazo del backend; Procedimiento sustituye el nombre del campo `tramite` sin cambiar persistencia. Ambas tablas comparten scroll en dos ejes, altura adaptable y encabezados fijos, conservando Medios/Agregar fuera. Navegación a pendientes y filas nuevas revela/enfoca el control. Tipos/Vite, 104 dominio/HTTP con dobles, 88 frontend y 52 grupos Edge con transporte simulado; no bases ni pruebas institucionales. [Implementado, comprobaciones, archivos y límites](SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13).
+CAST retirado de selecciones nuevas, con conservación histórica y rechazo del backend; Procedimiento sustituye el nombre del campo `tramite` sin cambiar persistencia. Ambas tablas comparten scroll en dos ejes, altura adaptable y encabezados fijos, conservando Agregar fuera. Navegación a pendientes y filas nuevas revela/enfoca el control. Tipos/Vite, 104 dominio/HTTP con dobles, 88 frontend y 52 grupos Edge con transporte simulado; no bases ni pruebas institucionales. [Implementado, comprobaciones, archivos y límites](SISTEMAS_HERRAMIENTAS.md#catálogo-histórico-procedimiento-y-desplazamiento-propio--2026-10-13).
 
 # Actualización 2026-10-13 — Procedimiento completo
 
@@ -72,7 +104,7 @@ La vista `Views/Home/Index.cshtml` retira Proyectos estratégicos, Indicadores d
 
 # Actualización 2026-10-09 — Sistemas y módulos SII
 
-Ajuste posterior: entrega únicamente Contexto/Identificación/Sistemas con Medios, reglas de elegibilidad compartidas en backend, presencia en la primera columna fija Edición y foco MUI único en tablas. Edición sustituye la posición anterior en Acciones; Eliminar queda arriba y separado. Desplazar conserva contexto/reserva y los textos muestran de dos a cuatro líneas con scroll interno. [Interacción vigente y evidencia](DESPLAZAMIENTO_TABLAS.md). Medios conserva reserva independiente. Diagnóstico local de tabla/migración/esquema para `42P01`; ninguna migración nueva. [Contrato vigente y operación](SISTEMAS_HERRAMIENTAS.md), [edición automática](EDICION_AUTOMATICA.md). Este alcance de envío sustituye la restricción anterior de sólo borrador para la primera etapa; conserva la política de quién puede enviar y la inmutabilidad posterior.
+Ajuste posterior: entrega únicamente Contexto/Identificación/Sistemas, reglas de elegibilidad compartidas en backend, presencia en la primera columna fija Edición y foco MUI único en tablas. Edición sustituye la posición anterior en Acciones; Eliminar queda arriba y separado. Desplazar conserva contexto/reserva y los textos muestran de dos a cuatro líneas con scroll interno. [Interacción vigente y evidencia](DESPLAZAMIENTO_TABLAS.md). Diagnóstico local de tabla/migración/esquema para `42P01`; ninguna migración nueva. [Contrato vigente y operación](SISTEMAS_HERRAMIENTAS.md), [edición automática](EDICION_AUTOMATICA.md). Este alcance de envío sustituye la restricción anterior de sólo borrador para la primera etapa; conserva la política de quién puede enviar y la inmutabilidad posterior.
 
 Nueva réplica EF local `sii_modulos` (`id_modulo`, `desc_modulo`, `presente`, `sincronizado_en`), migración `20261009080533_SiiModulesCatalog`. La fuente adicional es exclusivamente `DesarrolloSII.sii.MODULOS_SII`, dos columnas, misma `ConnectionStrings:Sii`. SII manual/automática incluye UR y módulos; ILDA es independiente. Nuevo GET autorizado `/formatos/{ur}/modulos-sii`, sólo PostgreSQL local.
 

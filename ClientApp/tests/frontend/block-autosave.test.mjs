@@ -22,12 +22,12 @@ test('volver de A a B a A durante una adquisición descarta la reserva en cola d
     } });
     try {
         const first = editor.focus('contexto'), leaveFirst = editor.endBlock('contexto');
-        const second = editor.focus('medios'), leaveSecond = editor.endBlock('medios');
+        const second = editor.focus('datos:aux'), leaveSecond = editor.endBlock('datos:aux');
         const returnFirst = editor.focus('contexto'); resume();
         const results = await Promise.all([first, second, returnFirst, leaveFirst, leaveSecond]);
         assert.deepEqual(results.slice(0, 3), [false, false, true]);
         assert.deepEqual(reserved, ['contexto']);
-        assert.equal(editor.canEdit('medios'), false); assert.equal(editor.canEdit('contexto'), true);
+        assert.equal(editor.canEdit('datos:aux'), false); assert.equal(editor.canEdit('contexto'), true);
     } finally { resume(); editor.dispose(); }
 });
 
@@ -52,10 +52,10 @@ test('retiro espera actividad anterior en vuelo y conserva pendiente independien
     let prepared=false;const preparing=editor.prepareRemoval(['sistemas:r'],{section:'sistemas',id:'r'}).then(ok=>{prepared=ok;});
     await Promise.resolve();assert.equal(prepared,false);completeRenewal();await preparing;assert.equal(prepared,true);
     await editor.flush(false,['sistemas:r']);
-    await editor.focus('medios');editor.changeBlock('medios',r=>{r.medioOtro='Texto independiente';});
+    await editor.focus('datos:aux');editor.changeBlock('datos:aux',r=>{r.detalle='Texto independiente';});
     await editor.prepareRemoval(['sistemas:r'],{section:'sistemas',id:'r'});
     await editor.edit(c=>{c.sistemas=[];});assert.equal(await editor.flush(true,['sistemas:r']),true);
-    assert.equal(editor.state.content.medioOtro,'Texto independiente');assert.equal(editor.state.dirty,true);
+    assert.equal(editor.state.content.datos[0].detalle,'Texto independiente');assert.equal(editor.state.dirty,true);
     assert.equal(renewals,2); assert.equal(reserves,2);completeRenewal();editor.dispose();
 });
 test('regresión: un 422 localizado permite corregir y no impide guardar otro registro', async () => {
@@ -66,53 +66,53 @@ test('regresión: un 422 localizado permite corregir y no impide guardar otro re
             data:{ message:'Revisa responsable', validation:[{block:'contexto',field:'responsable',message:'Revisa responsable'}] } } };
         return saved(body);
     } });
-    await editor.focus('contexto'); await editor.focus('medios');
-    editor.change(c=>{c.encabezado.responsable='Inválido';c.medioOtro='Independiente';});
+    await editor.focus('contexto'); await editor.focus('datos:aux');
+    editor.change(c=>{c.encabezado.responsable='Inválido';c.datos[0].detalle='Independiente';});
     assert.equal(await editor.flush(),false);
     assert.deepEqual(Object.keys(editor.state.issues),['contexto']);
-    assert.equal(editor.canEdit('contexto'),true); assert.equal(editor.proposalBase().medioOtro,'Independiente');
+    assert.equal(editor.canEdit('contexto'),true); assert.equal(editor.proposalBase().datos[0].detalle,'Independiente');
     editor.changeBlock('contexto',b=>{b.responsable='Corregido';});
     assert.equal(await editor.flush(),true); assert.equal(editor.state.dirty,false); editor.dispose();
 });
 test('primeras teclas, pegado y Tab durante reserva se aplican sólo con contenido confirmado', async () => {
     let grant;
     const { editor } = create({reserve:body=>new Promise(resolve=>{grant=()=>resolve({bloques:body.blocks.map(b=>({...b,value:splitBlocks(content())[b.key],reserva:lease()})),servidorEn:new Date().toISOString()});})});
-    class Input { value=''; type='text'; dataset={field:'medioOtro'}; selectionStart=0; selectionEnd=0; readOnly=false; isConnected=true;
+    class Input { value=''; type='text'; dataset={field:'detalle'}; selectionStart=0; selectionEnd=0; readOnly=false; isConnected=true;
         setSelectionRange(start,end){this.selectionStart=start;this.selectionEnd=end;} }
     globalThis.HTMLInputElement=Input; globalThis.HTMLTextAreaElement=class {};
     const input=new Input(); globalThis.document={activeElement:input}; globalThis.requestAnimationFrame=fn=>fn();
     const pending=new PendingFieldInput(editor); let prevented=0;
     try {
-        pending.key('medios',{target:input,key:'A',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>prevented++});
-        pending.paste('medios',{target:input,clipboardData:{getData:()=> ' pegado'},preventDefault:()=>prevented++});
-        const tab=editor.focus('medios'); // Tab hacia otro campo dentro del mismo registro.
-        assert.equal(editor.state.content.medioOtro,''); assert.equal(editor.canEdit('medios'),false);
-        grant(); await tab; await pending.finish('medios');
-        assert.equal(editor.state.content.medioOtro,'A pegado'); assert.equal(prevented,2);
+        pending.key('datos:aux',{target:input,key:'A',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>prevented++});
+        pending.paste('datos:aux',{target:input,clipboardData:{getData:()=> ' pegado'},preventDefault:()=>prevented++});
+        const tab=editor.focus('datos:aux'); // Tab hacia otro campo dentro del mismo registro.
+        assert.equal(editor.state.content.datos[0].detalle,''); assert.equal(editor.canEdit('datos:aux'),false);
+        grant(); await tab; await pending.finish('datos:aux');
+        assert.equal(editor.state.content.datos[0].detalle,'A pegado'); assert.equal(prevented,2);
         assert.deepEqual(editor.state.unaccepted,{}); assert.equal(input.selectionStart,8);
     } finally { editor.dispose(); delete globalThis.HTMLInputElement; delete globalThis.HTMLTextAreaElement; delete globalThis.document; delete globalThis.requestAnimationFrame; }
 });
 test('primera escritura con base diferente queda accesible sin modificar el contenido confirmado', async () => {
-    const {editor}=create({reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:{medios:{},medioOtro:'Nueva compartida'},reserva:lease()})),servidorEn:new Date().toISOString()})});
-    class Input { value=''; type='text'; dataset={field:'medioOtro'}; selectionStart=0; selectionEnd=0; }
+    const {editor}=create({reserve:async body=>({bloques:body.blocks.map(b=>({...b,value:{id:'aux',detalle:'Nueva compartida'},reserva:lease()})),servidorEn:new Date().toISOString()})});
+    class Input { value=''; type='text'; dataset={field:'detalle'}; selectionStart=0; selectionEnd=0; }
     globalThis.HTMLInputElement=Input; globalThis.HTMLTextAreaElement=class {};
     try {
         const pending=new PendingFieldInput(editor);
-        pending.key('medios',{target:new Input(),key:'X',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>{}});
-        await pending.finish('medios');
-        assert.equal(editor.state.content.medioOtro,'Nueva compartida'); assert.equal(editor.state.unaccepted.medios.medioOtro,'X');
+        pending.key('datos:aux',{target:new Input(),key:'X',ctrlKey:false,metaKey:false,altKey:false,preventDefault:()=>{}});
+        await pending.finish('datos:aux');
+        assert.equal(editor.state.content.datos[0].detalle,'Nueva compartida'); assert.equal(editor.state.unaccepted['datos:aux'].detalle,'X');
         assert.equal(editor.state.dirty,true); assert.equal(await editor.flush(),false);
     } finally {editor.dispose();delete globalThis.HTMLInputElement;delete globalThis.HTMLTextAreaElement;}
 });
 test('una operación relacionada confirmada no agrupa futuras escrituras independientes', async () => {
-    const {editor,writes}=create(); await editor.focus('contexto'); await editor.focus('medios');
-    await editor.edit(c=>{c.encabezado.responsable='Uno';c.medioOtro='Dos';});
+    const {editor,writes}=create(); await editor.focus('contexto'); await editor.focus('datos:aux');
+    await editor.edit(c=>{c.encabezado.responsable='Uno';c.datos[0].detalle='Dos';});
     assert.equal(await editor.flush(),true); assert.equal(writes[0].blocks.length,2);
-    assert.deepEqual(editor.proposalKeys('medios'),['medios']);
-    editor.change(c=>{c.encabezado.responsable='Tres';c.medioOtro='Cuatro';}); await editor.flush();
+    assert.deepEqual(editor.proposalKeys('datos:aux'),['datos:aux']);
+    editor.change(c=>{c.encabezado.responsable='Tres';c.datos[0].detalle='Cuatro';}); await editor.flush();
     assert.deepEqual(writes.slice(1).map(w=>w.blocks.length),[1,1]); editor.dispose();
 });
-const content = () => ({ encabezado: { area: 'Área', fecha: '', responsable: '' }, identificacion: [], sistemas: [], datos: [], medios: {}, medioOtro: '', evaluaciones: {}, preguntas: [], acuerdos: [] });
+const content = () => ({ encabezado: { area: 'Área', fecha: '', responsable: '' }, identificacion: [], sistemas: [], datos: [{ id: 'aux', detalle: '' }], evaluaciones: {}, preguntas: [], acuerdos: [] });
 const live = (changes = {}) => ({ contenido: content(), version: 0, porcentaje: 0, bloques: [], editable: true, puedeEnviar: true, enviadoEn: null, seccion: 'contexto', actualizadoEn: null, actualizadoPor: null, servidorEn: new Date().toISOString(), ...changes });
 const lease = () => ({ id: crypto.randomUUID(), propia: true, titular: 'Persona sintética', venceEn: new Date(Date.now() + 45000).toISOString() });
 const saved = body => ({ version: 1, porcentaje: 5, actualizadoEn: new Date().toISOString(), actualizadoPor: 'Persona sintética', bloques: body.blocks.map(block => ({ ...block, version: block.version + 1, reserva: body.release ? null : { ...lease(), id:block.leaseId } })) });
@@ -139,19 +139,19 @@ test('normaliza nulos y evaluaciones heredadas sin perder respuestas', () => {
 });
 
 test('editar un bloque conserva referencias ajenas y volver al valor original retira el pendiente', async () => {
-    const { editor, writes } = create(); await editor.focus('medios');
+    const { editor, writes } = create(); await editor.focus('datos:aux');
     const original = editor.state.content, questions = original.preguntas, processes = original.identificacion;
-    assert.equal(editor.changeBlock('medios', value => { value.medioOtro = 'Propuesta'; }), true);
+    assert.equal(editor.changeBlock('datos:aux', value => { value.detalle = 'Propuesta'; }), true);
     assert.equal(editor.state.dirty, true); assert.equal(editor.state.content.preguntas, questions);
-    assert.equal(editor.state.content.identificacion, processes); assert.equal(original.medioOtro, '');
-    editor.changeBlock('medios', value => { value.medioOtro = ''; });
+    assert.equal(editor.state.content.identificacion, processes); assert.equal(original.datos[0].detalle, '');
+    editor.changeBlock('datos:aux', value => { value.detalle = ''; });
     assert.equal(editor.state.dirty, false); assert.equal(await editor.flush(), true); assert.equal(writes.length, 0); editor.dispose();
 });
 
 test('estado remoto equivalente conserva las referencias del contenido y la reserva no concede escritura', () => {
     const { editor } = create(); const previous = editor.state.content;
     editor.receive(live()); assert.equal(editor.state.content, previous);
-    assert.equal(editor.changeBlock('medios', value => { value.medioOtro = 'Sin reserva'; }), false);
+    assert.equal(editor.changeBlock('datos:aux', value => { value.detalle = 'Sin reserva'; }), false);
     assert.equal(editor.state.dirty, false); editor.dispose();
 });
 
@@ -161,8 +161,8 @@ test('latidos equivalentes no notifican React; una revocación o cambio de reser
     editor.receive(live()); const first = renders;
     editor.receive(live()); editor.receive(live());
     assert.equal(renders, first);
-    editor.receive(live({ bloques: [{ key: 'medios', version: 0, reserva: { ...lease(), propia: false } }] }));
-    assert.equal(renders, first + 1); assert.equal(editor.busy('medios'), true);
+    editor.receive(live({ bloques: [{ key: 'datos:aux', version: 0, reserva: { ...lease(), propia: false } }] }));
+    assert.equal(renders, first + 1); assert.equal(editor.busy('datos:aux'), true);
     editor.receive(live({ editable: false })); assert.equal(editor.state.locked, true); assert.equal(renders, first + 2);
     editor.dispose();
 });
@@ -171,12 +171,12 @@ test('revalida la confirmación destructiva después de esperar la reserva sin m
     let grant;
     const { editor, writes } = create({ reserve: body => new Promise(resolve => {
         grant = () => resolve({ bloques: body.blocks.map(block => ({ ...block, version: 1,
-            value: { medios: {}, medioOtro: 'Versión posterior' }, reserva: lease() })), servidorEn: new Date().toISOString() });
+            value: { id: 'aux', detalle: 'Versión posterior' }, reserva: lease() })), servidorEn: new Date().toISOString() });
     }) });
-    const confirmed = editor.state.content.medioOtro;
-    const actual = editor.edit(data => { data.medioOtro = 'Cambio confirmado'; }, () => editor.state.content.medioOtro === confirmed);
+    const confirmed = editor.state.content.datos[0].detalle;
+    const actual = editor.edit(data => { data.datos[0].detalle = 'Cambio confirmado'; }, () => editor.state.content.datos[0].detalle === confirmed);
     grant(); assert.equal(await actual, false);
-    assert.equal(editor.state.content.medioOtro, 'Versión posterior');
+    assert.equal(editor.state.content.datos[0].detalle, 'Versión posterior');
     assert.equal(editor.state.dirty, false); assert.equal(writes.length, 0);
     editor.dispose();
 });
@@ -186,27 +186,27 @@ test('una intención de selección pendiente no escribe si el usuario ya salió 
     const { editor } = create({ reserve: body => new Promise(resolve => {
         grant = () => resolve({ bloques: body.blocks.map(block => ({ ...block, value: splitBlocks(content())[block.key], reserva: lease() })), servidorEn: new Date().toISOString() });
     }) });
-    const entering = editor.focus('medios');
-    const leaving = editor.endBlock('medios');
+    const entering = editor.focus('datos:aux');
+    const leaving = editor.endBlock('datos:aux');
     grant(); assert.equal(await entering, false); await leaving;
-    assert.equal(editor.canEdit('medios'), false); assert.equal(editor.state.dirty, false);
+    assert.equal(editor.canEdit('datos:aux'), false); assert.equal(editor.state.dirty, false);
     editor.dispose();
 });
 
 test('SignalR libera una fila ajena; la siguiente interacción confirma contenido y permite editar sin recarga', async () => {
     let reserves = 0;
-    const current = content(); current.medioOtro = 'Confirmado por otra sesión';
+    const current = content(); current.datos[0].detalle = 'Confirmado por otra sesión';
     const { editor } = create({ reserve: async body => {
         reserves++;
         return { bloques: body.blocks.map(block => ({ ...block, version: 2, value: splitBlocks(current)[block.key], reserva: lease() })), servidorEn: new Date().toISOString() };
     } });
-    editor.receive(live({ bloques: [{ key: 'medios', version: 1, reserva: { ...lease(), propia: false, id: null } }] }));
-    assert.equal(await editor.focus('medios'), false); assert.equal(reserves, 0);
-    editor.receive(live({ version: 2, contenido: current, bloques: [{ key: 'medios', version: 2, reserva: null }] }));
-    assert.equal(editor.state.content.medioOtro, 'Confirmado por otra sesión');
-    assert.equal(editor.busy('medios'), false); assert.equal(reserves, 0);
-    assert.equal(await editor.focus('medios'), true); assert.equal(reserves, 1);
-    assert.equal(editor.change(c => { c.medioOtro = 'Nueva propuesta'; }), true);
+    editor.receive(live({ bloques: [{ key: 'datos:aux', version: 1, reserva: { ...lease(), propia: false, id: null } }] }));
+    assert.equal(await editor.focus('datos:aux'), false); assert.equal(reserves, 0);
+    editor.receive(live({ version: 2, contenido: current, bloques: [{ key: 'datos:aux', version: 2, reserva: null }] }));
+    assert.equal(editor.state.content.datos[0].detalle, 'Confirmado por otra sesión');
+    assert.equal(editor.busy('datos:aux'), false); assert.equal(reserves, 0);
+    assert.equal(await editor.focus('datos:aux'), true); assert.equal(reserves, 1);
+    assert.equal(editor.change(c => { c.datos[0].detalle = 'Nueva propuesta'; }), true);
     editor.dispose();
 });
 
@@ -281,13 +281,13 @@ test('salir del bloque cancela un foco pendiente de guardado; no adquiere una re
         reserve: async body => { reserves.push(body); return { bloques: body.blocks.map(block => ({ ...block, value: splitBlocks(content())[block.key] ?? null, reserva: lease() })), servidorEn: new Date().toISOString() }; },
         save: body => new Promise(resolve => { confirm = () => resolve(saved(body)); }),
     });
-    await editor.focus('medios'); editor.change(c => { c.medioOtro = 'Propuesta'; });
+    await editor.focus('datos:aux'); editor.change(c => { c.datos[0].detalle = 'Propuesta'; });
     const saving = editor.flush();
     while (!confirm) await new Promise(resolve => setTimeout(resolve, 0));
     const focus = editor.focus('contexto');
     await editor.endBlock('contexto');
     confirm(); await saving; await focus;
-    assert.deepEqual(reserves.map(body => body.blocks.map(block => block.key)), [['medios']]);
+    assert.deepEqual(reserves.map(body => body.blocks.map(block => block.key)), [['datos:aux']]);
     editor.dispose();
 });
 
@@ -396,8 +396,8 @@ test('un recibo incierto no paraliza otra fila y volver al valor original se gua
 });
 test('remoto combina bloques limpios y conserva el pendiente', async () => {
     const { editor } = create(); await editor.focus('contexto'); editor.change(c => { c.encabezado.responsable = 'Mi propuesta'; });
-    const other = content(); other.medioOtro = 'Otra sesión'; editor.receive(live({ contenido: other, version: 1, bloques: [{ key: 'medios', version: 1, reserva: null }] }));
-    assert.equal(editor.state.content.encabezado.responsable, 'Mi propuesta'); assert.equal(editor.state.content.medioOtro, 'Otra sesión'); editor.dispose();
+    const other = content(); other.datos[0].detalle = 'Otra sesión'; editor.receive(live({ contenido: other, version: 1, bloques: [{ key: 'datos:aux', version: 1, reserva: null }] }));
+    assert.equal(editor.state.content.encabezado.responsable, 'Mi propuesta'); assert.equal(editor.state.content.datos[0].detalle, 'Otra sesión'); editor.dispose();
 });
 test('interrupción incompatible conserva texto, no escribe ni pide resolución y permite otro registro', async () => {
     const { editor,writes,setLive }=create(); await editor.focus('contexto');
@@ -407,8 +407,8 @@ test('interrupción incompatible conserva texto, no escribe ni pide resolución 
     setLive(remote); editor.receive(remote); assert.equal(await editor.flush(),false);
     assert.equal(editor.state.content.encabezado.responsable,'Mi texto'); assert.equal(writes.length,0);
     assert.equal(editor.canEdit('contexto'),false);
-    await editor.focus('medios'); editor.changeBlock('medios',b=>{b.medioOtro='Independiente';}); await editor.flush();
-    assert.deepEqual(writes.map(r=>r.blocks.map(b=>b.key)),[['medios']]);
+    await editor.focus('datos:aux'); editor.changeBlock('datos:aux',b=>{b.detalle='Independiente';}); await editor.flush();
+    assert.deepEqual(writes.map(r=>r.blocks.map(b=>b.key)),[['datos:aux']]);
     assert.equal(typeof editor.recover,'undefined'); assert.equal(typeof editor.discard,'undefined'); editor.dispose();
 });
 test('respuesta fuera de orden no reemplaza la versión reciente', () => {
@@ -460,8 +460,8 @@ test('desconexión congela cambios; reconectar con titular distinto conserva la 
     editor.connectionLost(); assert.equal(editor.canEdit('contexto'), false);
     setLive(live({ bloques: [{ key: 'contexto', version: 0, reserva: { ...lease(), id: null, propia: false } }] })); await editor.refresh();
     assert.equal(editor.canEdit('contexto'), false); assert.equal(editor.state.content.encabezado.responsable, 'Mi propuesta');
-    await editor.focus('medios'); editor.change(c => { c.medioOtro = 'Otro bloque'; }); await editor.flush();
-    assert.deepEqual(writes[0].blocks.map(b => b.key), ['medios']); assert.equal(editor.state.dirty, true); editor.dispose();
+    await editor.focus('datos:aux'); editor.change(c => { c.datos[0].detalle = 'Otro bloque'; }); await editor.flush();
+    assert.deepEqual(writes[0].blocks.map(b => b.key), ['datos:aux']); assert.equal(editor.state.dirty, true); editor.dispose();
 });
 
 test('cambiar de campo del registro no renueva ni vuelve a adquirir su reserva', async () => {

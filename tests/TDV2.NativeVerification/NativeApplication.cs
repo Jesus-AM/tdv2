@@ -268,6 +268,27 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                 case "/sync-tick":
                     using (var scope=http.RequestServices.CreateScope()) await scope.ServiceProvider.GetRequiredService<SyncCoordinator>().Tick(http.RequestAborted);
                     break;
+                case "/system-groups-seed":
+                    var groupSeed = NativeTests.StageOnly(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    var groupProcedure = groupSeed["identificacion"]![0]!.DeepClone();
+                    groupSeed["identificacion"] = new System.Text.Json.Nodes.JsonArray();
+                    foreach (var number in new[] { 8, 9, 10 })
+                    {
+                        var procedure = groupProcedure.DeepClone(); procedure["id"] = "p" + number; procedure["codigo"] = $"PO-{number:00}";
+                        procedure["tramite"] = $"Procedimiento sintético {number}: atención y seguimiento de solicitudes institucionales con un nombre completo suficientemente largo para comprobar la distribución en dispositivos móviles";
+                        groupSeed["identificacion"]!.AsArray().Add(procedure);
+                    }
+                    var groupTool = groupSeed["sistemas"]![0]!.DeepClone();
+                    groupTool["sistema"] = "excel"; groupTool["uso"] = "consultar"; groupTool["estado"] = "bien";
+                    groupSeed["sistemas"] = new System.Text.Json.Nodes.JsonArray();
+                    foreach (var (rowId, code) in new[] { ("b1", "PO-09"), ("a1", "PO-08"), ("b2", "PO-09"), ("orphan", "") })
+                    {
+                        var tool = groupTool.DeepClone(); tool["id"] = rowId; tool["proceso"] = code;
+                        if (rowId == "a1") tool["sistema"] = "limesurvey";
+                        tool["fallas"] = "Respuesta histórica conservada: " + rowId;
+                        groupSeed["sistemas"]!.AsArray().Add(tool);
+                    }
+                    await NativeTests.SeedStage(database, groupSeed); break;
                 case "/coverage-seed":
                     var coverageSeed = NativeTests.StageOnly(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
                     coverageSeed.Remove(Tdv2.Domain.FormDocument.Field);
@@ -278,6 +299,12 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                     coverageProcedure["tramite"] = "Atención y seguimiento de solicitudes institucionales con un nombre completo suficientemente largo para comprobar la distribución en dispositivos móviles";
                     coverageSeed["identificacion"]!.AsArray().Add(coverageProcedure);
                     await NativeTests.SeedStage(database, coverageSeed); break;
+                case "/tool-catalog-seed":
+                    var toolSeed = NativeTests.StageOnly(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
+                    toolSeed["sistemas"] = new System.Text.Json.Nodes.JsonArray();
+                    var toolProcedure = toolSeed["identificacion"]![0]!.DeepClone(); toolProcedure["id"] = "segundo"; toolProcedure["codigo"] = "PO-02";
+                    toolProcedure["tramite"] = "Segundo procedimiento de prueba"; toolSeed["identificacion"]!.AsArray().Add(toolProcedure);
+                    await NativeTests.SeedStage(database, toolSeed); break;
                 case "/systems-seed":
                     var systemsSeed = NativeTests.Complete(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
                     foreach (var field in new[] { "sistema", "uso", "estado", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion" }) systemsSeed["sistemas"]![0]![field] = "";
