@@ -1,14 +1,56 @@
 # Sistemas y herramientas y módulos SIIv2 — 2026-10-09
 
+**Actualización vigente 2026-10-15:** Aplicaciones móviles / Aplicaciones Web usan exclusivamente las listas versionadas de los Excel: 26 móviles y 207 web. PostgreSQL conserva IDs anteriores cuando la correspondencia exacta es inequívoca, UUID locales nuevos e instantáneas históricas. El importador no utiliza ACTIVA ni responsables. Los multiselectores mantienen cero/una/cantidad, búsqueda, casillas, nombres completos y reservas; una o más aplicaciones válidas cuentan como un requisito. SQL Server sólo sincroniza UR y módulos. Nueva migración **20261015165555_LocalApplicationLists** e importación explícita, sin alterar formatos enviados. [Contrato, correspondencias y comandos](APLICACIONES_LISTAS.md). Las referencias anteriores a aplicaciones sincronizadas desde SQL Server son históricas.
+
+## Resumen compacto y pendientes — 2026-10-14
+
+### Implementado
+
+- Sistemas ya no muestra el bloque «Procedimientos y captura de herramientas», sus contadores/lista/acciones. Conserva la tabla con su scroll, Agregar fila y Medios debajo. Cobertura, requisitos, porcentaje y bloqueo del envío siguen siendo los del backend, sin modificaciones.
+- Revisar y enviar conserva **Ir al campo** para enfocar el control incompleto y **Agregar registro** para abrir Sistemas y preparar la fila con procedimiento confirmado. Si ya existe captura, la localiza; no duplica registros para mostrar pendientes. Espera el guardado y conserva reservas/permisos.
+- Módulos muestra **Selecciona módulos** cuando está vacío, **nombre completo** si hay uno, o **N módulos seleccionados** cuando hay varios. Sin IDs añadidos, chips ni lista de nombres dentro del campo. Un nombre largo se distribuye en varias líneas. Mantiene ancho, fuente de 13 px, sangría/línea y espacio de etiqueta flotante. Sólo errores o problemas reales del catálogo tienen texto debajo.
+- El menú conserva búsqueda y nombres completos con casillas, selección múltiple y cierre con Escape/clic exterior. El resumen permanece durante la búsqueda para conservar el control/foco durante presencia y ACK. Las referencias históricas seleccionadas retiradas del catálogo también pueden desmarcarse; una vez retiradas dejan de ofrecerse. Los IDs, instantáneas, validaciones y persistencia no cambian.
+
+### Verificado en este ajuste
+
+- TypeScript, Vite y **88/88 pruebas frontend** existentes.
+- **46 grupos Edge con transporte simulado**: módulos (12), apertura/reservas (9), Sistemas (13) y scroll (12). Cero/uno/varios con guardado/recarga; búsqueda, descripciones duplicadas, desmarcar hasta cero, historial, errores junto al campo, consulta bloqueada, primer clic, reserva lenta/denegada, cambio rápido entre filas, foco/teclado/tacto emulado y scroll. Tablas cortas/largas, menús, nombres completos y pantallas 1366/390/360/320 px según la suite. Se actualizaron las expectativas de accesibilidad y etiqueta flotante para la nueva presentación.
+- **12 recorridos Edge → ASP.NET → PostgreSQL 18 aislado**: revisión/cobertura (5) en `.artifacts/native-postgres-20261014-160500-b8e82bf5`; Sistemas (7) en `.artifacts/native-postgres-20261014-160634-f0bf4a95`. Identidad/fuentes sintéticas; guardado, recarga, SignalR y reservas reales. Tres estados del selector persistidos, revisión/foco/alta, pendiente de última herramienta eliminada, recuperación sin duplicados, reasignación, ayuda, dos sesiones, envío y bloqueo. No equivalen a dos identidades institucionales.
+- Capturas revisadas: `.artifacts/sii-multiple-ui/{empty,single,multiple}-*.png` y capturas nativas. Dispositivos físicos, lector de pantalla y aceptación institucional pendientes.
+
+Comandos desde la raíz, con Node/npm en PATH:
+
+```powershell
+npm.cmd --prefix ClientApp run types:check
+npm.cmd --prefix ClientApp run test:forms
+npm.cmd --prefix ClientApp run build
+Push-Location ClientApp
+node tests/browser/sii-multiple-ui.mjs
+node tests/browser/record-select-ui.mjs
+node tests/browser/system-tools-ui.mjs
+node tests/browser/capture-scroll-ui.mjs
+Pop-Location
+$env:TDV2_TEST_EPHEMERAL_TLS='true'
+$env:TDV2_TEST_NODE='C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Microsoft/VisualStudio/NodeJs/node.exe'
+$env:TDV2_TEST_BROWSER_FLOW='coverage'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -DirectStart -BrowserOnly
+$env:TDV2_TEST_BROWSER_FLOW='systems'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.ps1 -DirectStart -BrowserOnly
+```
+
+**Archivos:** `Components/SystemField.tsx`, `FormSubmissionReview.tsx`, `pages/FormatoUR.tsx`, `resources/css/app.css`; retirado `Components/ProcedureCoverageList.tsx`. Pruebas: `sii-multiple-ui.mjs`, `record-select-ui.mjs`, `system-tools-ui.mjs`, `system-tools-native.mjs`, `procedure-coverage-native.mjs`. Documentación: README, ESTADO_MIGRACION, INVENTARIO, este documento y COBERTURA_Y_GUARDADO.
+
+**Actualización:** sólo frontend; ninguna migración, configuración ni modificación de backend. Clústeres sintéticos nuevos detenidos al terminar. Sin acceso a bases existentes/institucionales, Nexo/Herd, credenciales reales, push o despliegue.
+
 ## Cobertura de procedimientos — 2026-10-14
 
-Cada procedimiento aplicable requiere al menos una herramienta completa. Todos los procedimientos reales se localizan en la lista de Sistemas, con código/nombre completo, estado y acciones de captura/revisión. Pendientes/avance/envío comparten la evaluación del servidor. Retirar un procedimiento informa cuántas asociaciones se pierden; conserva respuestas y permite reasignarlas. Modelo híbrido y módulos múltiples conservados; versión de estructura compatible sin migración. [Contrato, fórmula, pruebas nativas, archivos y actualización](COBERTURA_Y_GUARDADO.md).
+Cada procedimiento aplicable requiere al menos una herramienta completa. Sus pendientes se localizan en Revisar y enviar, con código/nombre completo y acciones de captura/revisión. Pendientes/avance/envío comparten la evaluación del servidor. Retirar un procedimiento informa cuántas asociaciones se pierden; conserva respuestas y permite reasignarlas. Modelo híbrido y módulos múltiples conservados; versión de estructura compatible sin migración. [Contrato, fórmula, pruebas nativas, archivos y actualización](COBERTURA_Y_GUARDADO.md).
 
 ## Selección múltiple de módulos — 2026-10-14
 
 ### Implementado
 
-- **Módulos de SIIv2** usa Autocomplete múltiple MUI: búsqueda por nombre, casillas, menú que continúa abierto al marcar/desmarcar y cierre con Escape/clic exterior. Las selecciones aparecen dentro del campo, con eliminación individual por ratón/teclado, nombres completos, salto de línea y ancho de columna constante. Se conserva la tipografía de 13 px, sangría/línea de agrupación, etiquetas flotantes y espacio propio para botones. Ayuda: «Selecciona uno o varios módulos utilizados para este procedimiento.»
+- **Módulos de SIIv2** usa Autocomplete múltiple MUI: búsqueda por nombre, casillas, menú que continúa abierto al marcar/desmarcar y cierre con Escape/clic exterior. La primera implementación usaba etiquetas removibles y ayuda bajo el campo; el ajuste compacto descrito arriba sustituye esa presentación. Conserva selección individual por ratón/teclado, nombres completos en opciones, fuente de 13 px, sangría/línea de agrupación, etiquetas flotantes y espacio propio para botones.
 - Abrir sigue iniciando la reserva desde la primera interacción. Durante su confirmación no se habilitan opciones, borrado ni selección. La presencia y el ACK de autoguardado mantienen el control, menú, búsqueda y foco; las respuestas tardías no reabren otro registro. Los errores quedan asociados a `modulosSii` y conservan lo capturado. Procedimiento mantiene su nombre completo y comportamiento anterior.
 - Cada fila sigue representando una herramienta con procedimiento, uso, funcionamiento y áreas de oportunidad compartidos. Varias filas SIIv2 del mismo procedimiento continúan permitidas para respuestas diferentes; no se consolidan registros.
 

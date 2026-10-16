@@ -31,6 +31,22 @@ internal static class EntryPoint
         var path = Path.Combine(AppContext.BaseDirectory, "Contracts", "procesos_operativos.json");
         var schema = new FormSchema(File.ReadAllText(path));
         SystemCatalogTests.Register(Cases, schema);
+        ApplicationSelectionTests.Register(Cases, schema);
+        Http("Catálogos de aplicaciones sólo aceptan catálogos conocidos y el alcance autorizado", async (app, client) =>
+        {
+            await Csrf(client);
+            foreach (var kind in new[] { "moviles", "web" })
+            {
+                var response = await client.GetAsync("/formatos/A/aplicaciones/" + kind);
+                Check(response.IsSuccessStatusCode);
+                var catalog = await Json(response); Check(catalog["estado"]!.ToString() == "pendiente" && catalog["aplicaciones"]!.AsArray().Count == 0);
+                Check((await client.GetAsync("/formatos/B/aplicaciones/" + kind)).StatusCode == HttpStatusCode.Forbidden);
+            }
+            Check((await client.GetAsync("/formatos/A/aplicaciones/ajeno")).StatusCode == HttpStatusCode.NotFound);
+            app.Nexo.Current = Fixtures.Profile();
+            app.Nexo.Outage = true;
+            Check(!(await client.GetAsync("/formatos/A/aplicaciones/moviles")).IsSuccessStatusCode);
+        });
         CaptureProgressTests.Register(Cases, schema);
         CollaborationVisibilityTests.Register(Cases);
         Http("Colaboradores GET filtra asignaciones centrales/delegadas por rama; visibilidad no concede retiro", async (app, client) =>

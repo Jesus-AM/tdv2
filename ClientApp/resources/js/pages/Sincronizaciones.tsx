@@ -25,7 +25,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeading from '@/Components/PageHeading';
 import SettingsSection from '@/Components/SettingsSection';
 import SyncState from '@/Components/SyncState';
-import { catalogAttempt, catalogNames, processedCount, sqlServerAttempt, type CatalogId, type SyncRun as Run } from '@/lib/sync-presentation';
+import { catalogAttempt, catalogNames, processedCount, sqlCatalogs, sqlServerAttempt, type CatalogId, type SyncRun as Run } from '@/lib/sync-presentation';
 import { errorResponse, errorText } from '@/lib/http';
 type Settings = {
     version: number;
@@ -45,7 +45,7 @@ type Status = {
     inicio_demorado?: boolean;
 };
 type Catalog = { registros: number | null; completada_en: string | null; error?: string };
-const catalogLabels: Record<string, string> = { sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos de SIIv2', ilda: 'ILDA' };
+const catalogLabels: Record<string, string> = { ...catalogNames, sii: 'SII · Unidades responsables', sii_modulos: 'SII · Módulos de SIIv2' };
 const intervals = [
     [15, 'Cada 15 minutos'],
     [30, 'Cada 30 minutos'],
@@ -62,7 +62,7 @@ export default function Sincronizaciones({
 }: {
     configuracion: Settings;
     estado: Status;
-    catalogos: { sii: Catalog; sii_modulos: Catalog; ilda: Catalog };
+    catalogos: Record<CatalogId, Catalog>;
     historial: Run[];
 }) {
     const requesting = useRef(false);
@@ -160,15 +160,16 @@ export default function Sincronizaciones({
     const ilda = catalogAttempt('ilda', historial, estado.ejecucion_activa);
     const catalogDetail = (catalog: CatalogId) => {
         const attempt = catalogAttempt(catalog, historial, estado.ejecucion_activa), count = processedCount(attempt.result);
-        return <Box data-catalog={catalog} sx={{ minWidth: 0, display: 'grid', alignContent: 'start', gap: 1 }}>
+        const local = catalogos[catalog];
+        return <Box key={catalog} data-catalog={catalog} sx={{ minWidth: 0, display: 'grid', alignContent: 'start', gap: 1 }}>
             {catalog !== 'ilda' && <Typography component="h3" variant="h3">{catalogNames[catalog]}</Typography>}
-            <Box role="status"><SyncState state={catalogos[catalog].error ? 'no_disponible' : attempt.state} /></Box>
+            <Box role="status"><SyncState state={!local || local.error ? 'no_disponible' : attempt.state} /></Box>
             <Box><Typography variant="body2" sx={{ fontWeight: 600 }}>Última sincronización correcta</Typography>
-                <Typography variant="body2" data-last-success>{date(catalogos[catalog].completada_en)}</Typography></Box>
-            <Typography variant="body2">Copia local: {catalogos[catalog].registros?.toLocaleString('es-MX') ?? 'No disponible'} registros</Typography>
+                <Typography variant="body2" data-last-success>{date(local?.completada_en ?? null)}</Typography></Box>
+            <Typography variant="body2">Copia local: {local?.registros?.toLocaleString('es-MX') ?? 'No disponible'} registros</Typography>
             <Box><Typography variant="caption" color="text.secondary">{attempt.run ? `Intento: ${date(attempt.run.solicitada_en)}` : 'Sin intento en el historial disponible.'}</Typography>
                 <Typography variant="body2">{count !== null ? `${count.toLocaleString('es-MX')} registros procesados` : 'Recuento del intento no disponible.'}</Typography></Box>
-            {(catalogos[catalog].error || attempt.result?.mensaje) && <Alert severity="error">{catalogos[catalog].error || attempt.result?.mensaje}</Alert>}
+            {(local?.error || attempt.result?.mensaje) && <Alert severity="error">{local?.error || attempt.result?.mensaje}</Alert>}
         </Box>;
     };
     return (
@@ -220,12 +221,12 @@ export default function Sincronizaciones({
                     </Box>
                 )}
                 <Box className="sync-sources" sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', lg: 'minmax(0,2fr) minmax(0,1fr)' }, alignItems: 'start', gap: 2, mb: 2 }}>
-                    <SettingsSection title="SQL Server" icon={<StorageOutlined />} description="Unidades responsables y Módulos SII se sincronizan juntos, en ese orden.">
+                    <SettingsSection title="SQL Server" icon={<StorageOutlined />} description="Sincroniza Unidades responsables y Módulos SII, en ese orden.">
                         <Box data-sync-source="sii">
                             <Box role="status" sx={{ mb: 1 }}><SyncState state={sql.state} /></Box>
                             <Typography variant="body2" sx={{ mb: 2 }}>Última ejecución correcta de ambos catálogos: {sql.lastSuccess ? date(sql.lastSuccess) : 'No disponible en el historial recibido.'}</Typography>
                             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0,1fr)', sm: 'repeat(2,minmax(0,1fr))' }, gap: 2 }}>
-                                {catalogDetail('sii')}{catalogDetail('sii_modulos')}
+                                {sqlCatalogs.map(catalogDetail)}
                             </Box>
                             <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
                                 {sql.state === 'parcial' && <Typography variant="body2" sx={{ mb: 1 }}>El resultado es parcial. Revisa el catálogo marcado como fallido.</Typography>}
@@ -248,7 +249,7 @@ export default function Sincronizaciones({
                     </SettingsSection>
                 </Box>
                 <SettingsSection title="Programación automática" icon={<ScheduleOutlined />}
-                    description="Todas las ejecuciones automáticas de SII incluyen unidades responsables y módulos de SIIv2. Incluir ILDA es independiente.">
+                    description="Todas las ejecuciones automáticas de SQL Server incluyen UR y módulos SII. Incluir ILDA es independiente.">
                     <Box
                         component="form"
                         onSubmit={(e) => {
@@ -394,7 +395,7 @@ export default function Sincronizaciones({
                                         <SyncState state={run.estado} />
                                     </TableCell>
                                     <TableCell>
-                                        {Object.entries(run.resultado).map(([source, result]) => (
+                                        {Object.entries(run.resultado).filter(([source]) => source in catalogNames || source === 'interrupcion').map(([source, result]) => (
                                             <Typography
                                                 key={source}
                                                 variant="body2"

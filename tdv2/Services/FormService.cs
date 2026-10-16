@@ -112,4 +112,13 @@ public sealed class FormService(RequestAccess access, IFormStore store, FormSche
         return await catalogs.SiiModules(http.RequestAborted);
     }
 
+    public async Task<LocalApplications> Applications(string ur, string catalog)
+    {
+        var context = await access.Resolve(http);
+        if (!context.Scopes.ContainsKey(ur)) throw new DomainProblem(403, "No tienes acceso al formato de esta UR.");
+        var kind = SystemApplications.Kinds.FirstOrDefault(k => k.Key == catalog)
+            ?? throw new DomainProblem(404, "El catálogo solicitado no existe.");
+        return await catalogs.Applications(kind, http.RequestAborted);
+    }
+
 }

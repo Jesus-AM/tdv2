@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using Tdv2.Synchronization;
+using Tdv2.Domain;
 namespace Tdv2.NativeVerification;
 
 // Synthetic ADO.NET peer: production SELECT/mapping/limits run, no SQL Server/MySQL is contacted.
@@ -20,6 +21,7 @@ internal sealed class SyntheticSources : ISourceConnections
     internal TaskCompletionSource Continue = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Func<Task>? OnRead = null;
     internal int FailAfter = -1;
+    internal string? FailAfterSource = null;
     public DbConnection Create(string source) => new SyntheticConnection(this,source);
     internal static DataTable Table(string[] columns, params object?[][] rows)
     {
@@ -77,8 +79,8 @@ internal sealed class SyntheticSources : ISourceConnections
             if (owner.Failure == name) throw new IOException("password=SYNTHETIC_SOURCE_SECRET; source contents must never escape");
             if (owner.OnRead is not null) await owner.OnRead();
             if (owner.Block == name) { owner.Entered.TrySetResult(); await owner.Continue.Task.WaitAsync(ct); }
-            var data = name == "sii" ? owner.Sii : name == "sii_modulos" ? owner.Modules : owner.Ilda;
-            return new InterruptibleReader(data.CreateDataReader(),owner.FailAfter);
+            var data = name switch { "sii" => owner.Sii, "sii_modulos" => owner.Modules, _ => owner.Ilda };
+            return new InterruptibleReader(data.CreateDataReader(),owner.FailAfterSource is null || owner.FailAfterSource == name ? owner.FailAfter : -1);
         }
     }
     private sealed class InterruptibleReader(DbDataReader inner,int failAfter) : DbDataReader

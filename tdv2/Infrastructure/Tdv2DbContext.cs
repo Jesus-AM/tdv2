@@ -25,6 +25,10 @@ public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbC
     public DbSet<CatalogSynchronization> CatalogSynchronizations => Set<CatalogSynchronization>();
     public DbSet<IldaAreaInformation> IldaAreaInformations => Set<IldaAreaInformation>();
     public DbSet<SiiModule> SiiModules => Set<SiiModule>();
+    public DbSet<SiiMobileApplication> SiiMobileApplications => Set<SiiMobileApplication>();
+    public DbSet<SiiWebApplication> SiiWebApplications => Set<SiiWebApplication>();
+    public DbSet<ApplicationCatalogEntry> ApplicationCatalogEntries => Set<ApplicationCatalogEntry>();
+    public DbSet<ApplicationCatalogImport> ApplicationCatalogImports => Set<ApplicationCatalogImport>();
     public DbSet<SynchronizationRun> SynchronizationRuns => Set<SynchronizationRun>();
     public DbSet<SynchronizationSettings> SynchronizationSettings => Set<SynchronizationSettings>();
 

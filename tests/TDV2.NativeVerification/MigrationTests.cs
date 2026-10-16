@@ -65,8 +65,8 @@ internal static class MigrationTests
             var cs = await Fresh("baseline");
             await using var db = Context(cs);
             Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
-            Check(db.Model.GetEntityTypes().Count() == 21 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 9, "21 entidades y nueve relaciones locales; sin esquemas institucionales");
-            Check(db.Database.GetMigrations().Count() == 10, "diez migraciones estándar descubiertas por EF");
+            Check(db.Model.GetEntityTypes().Count() == 25 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 9, "25 entidades y nueve relaciones locales; sin esquemas institucionales");
+            Check(db.Database.GetMigrations().Count() == 12, "doce migraciones estándar descubiertas por EF");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
             await db.GetService<IMigrator>().MigrateAsync(db.Database.GetMigrations().ElementAt(7));
             await using (var diagnostic = new NpgsqlConnection(cs))
@@ -100,8 +100,8 @@ internal static class MigrationTests
                     await tx.RollbackAsync();
                 }
             }
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 10 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
-            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 22, "21 tablas y único historial __EFMigrationsHistory");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 12 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 26, "25 tablas y único historial __EFMigrationsHistory");
             Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
             Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
             var columns = (string)(await Sql(cs, DatabaseInspection.ColumnsSql))!;
@@ -146,12 +146,12 @@ internal static class MigrationTests
                     && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
                 await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 10, "reanudación aplica sólo la pendiente");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 12, "reanudación aplica sólo la pendiente");
                 await partialDb.GetService<IMigrator>().MigrateAsync("0");
                 Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
                     "Down revierte únicamente las tablas EF en la base desechable");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 10, "Up después de Down recrea esquema y configuración pausada");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 12, "Up después de Down recrea esquema y configuración pausada");
             }
             var upgrade = await Fresh("upgrade");
             await using (var previous = Context(upgrade))
@@ -177,6 +177,7 @@ internal static class MigrationTests
                     && (bool)(await Sql(upgrade, "SELECT ejercicio=2025 AND version=7 AND porcentaje=25 AND enviado_en IS NULL FROM formatos_ur"))!,
                     "actualización conserva JSON, prioridad antigua, versión e historia tipo 0; completa ejercicio sin enviar");
                 await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
+                // Sólo los catálogos nuevos vacíos pueden retirarse; la protección de enviados impide bajar de StageSubmissions.
                 Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
                     && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 10
                     && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
@@ -222,6 +223,14 @@ internal static class MigrationTests
                     "repetir migración conserva IDs distintos con descripción igual");
             }
             await UsersServedMigrationTests.Run(await Fresh("users_served"), database.Workspace, Sql, Check);
+            var applicationsUpgrade = await Fresh("applications");
+            await using (var applications = Context(applicationsUpgrade))
+            {
+                await applications.GetService<IMigrator>().MigrateAsync("20261009171656_StageSubmissions");
+                Check(await Inspect(applicationsUpgrade), "verificador reconoce diez migraciones con catálogos de aplicaciones pendientes");
+                await applications.Database.MigrateAsync();
+                Check(await Inspect(applicationsUpgrade), "verificador reconoce doce migraciones con aplicaciones y ninguna identidad local adicional");
+            }
             var photographUpgrade = await Fresh("photos");
             await using (var existing = Context(photographUpgrade))
             {

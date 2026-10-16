@@ -309,6 +309,13 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                     microsoft.Id = helperIdentity ? "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" : FakeMicrosoft.ObjectId;
                     break;
                 case "/systems-rename": sources.Modules.Rows[2]["DESC_MODULO"] = "Descripción posterior"; goto case "/systems-sync";
+                case "/applications-names":
+                    var lists = await ApplicationLists.Load(http.RequestAborted);
+                    lists = lists with { Catalogs = lists.Catalogs.Select(c => c with { Items = c.Items.Select((i, n) => n switch {
+                        0 => i with { Name = "Aplicación para atención, consulta y seguimiento de solicitudes institucionales con un nombre completo suficientemente largo para comprobar varias líneas sin truncamiento" },
+                        1 => i with { Name = "Aplicación de reportes" }, _ => i }).ToArray() }).ToArray() };
+                    await http.RequestServices.GetRequiredService<ApplicationListImport>().Run(lists, false, http.RequestAborted);
+                    break;
                 case "/systems-remove": sources.Modules.Rows.RemoveAt(2); goto case "/systems-sync";
                 case "/systems-sync":
                     using (var scope = http.RequestServices.CreateScope())

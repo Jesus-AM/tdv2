@@ -1,8 +1,10 @@
 export type CatalogId = 'sii' | 'sii_modulos' | 'ilda';
+export const sqlCatalogs: CatalogId[] = ['sii', 'sii_modulos'];
 export type SyncResult = { estado: string; mensaje?: string; completada_en?: string; resumen?: { unidades?: number; registros?: number; columnas?: number; ejercicio?: number } };
 export type SyncRun = { id: string; fuentes: string; origen: string; solicitado_por: string; estado: string; etapa: string | null;
     solicitada_en: string; iniciada_en: string | null; terminada_en: string | null; resultado: Record<string, SyncResult> };
-export const catalogNames: Record<CatalogId, string> = { sii: 'Unidades responsables', sii_modulos: 'Módulos SII', ilda: 'ILDA' };
+export const catalogNames: Record<CatalogId, string> = { sii: 'Unidades responsables', sii_modulos: 'Módulos SII',
+    ilda: 'ILDA' };
 export function catalogAttempt(catalog: CatalogId, history: SyncRun[], activeId: string | null) {
     const source = catalog === 'ilda' ? 'ilda' : 'sii';
     const includes = (run: SyncRun) => run.fuentes === source || run.fuentes === 'ambas';
@@ -22,13 +24,13 @@ export function processedCount(result?: SyncResult) {
 }
 
 export function sqlServerAttempt(history: SyncRun[], activeId: string | null) {
-    const units = catalogAttempt('sii', history, activeId), modules = catalogAttempt('sii_modulos', history, activeId);
-    const states = [units.state, modules.state];
-    const complete = (run: SyncRun) => run.resultado.sii?.estado === 'completada' && run.resultado.sii_modulos?.estado === 'completada';
+    const units = catalogAttempt('sii', history, activeId);
+    const states = sqlCatalogs.map(catalog => catalogAttempt(catalog, history, activeId).state);
+    const complete = (run: SyncRun) => sqlCatalogs.every(catalog => run.resultado[catalog]?.estado === 'completada');
     const success = history.find(complete);
     const state = states.every(s => s === 'completada') ? 'completada'
         : units.run?.estado === 'ejecutando' ? 'ejecutando' : units.run?.estado === 'pendiente' ? 'pendiente'
         : states.every(s => s === 'fallida') ? 'fallida' : states.includes('fallida') && states.includes('completada') ? 'parcial'
         : units.run ? 'sin_resultado' : 'sin_intento';
-    return { state, lastSuccess: success?.resultado.sii_modulos.completada_en || success?.terminada_en || null };
+    return { state, lastSuccess: success?.terminada_en || success?.resultado.sii_modulos?.completada_en || null };
 }

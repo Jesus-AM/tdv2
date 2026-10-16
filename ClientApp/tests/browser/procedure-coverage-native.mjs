@@ -30,30 +30,36 @@ try {
     await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio'); await control('coverage-seed');
     await page.goto(origin + '/formatos/A');
     await check('dos procedimientos y una herramienta: pendiente real, revisión y navegación sin filas ficticias', async () => {
-        await systems(); await expect(page.locator('[data-coverage-id]')).toHaveCount(2);
-        await expect(page.locator('[data-coverage-id="segundo"]')).toContainText('Captura pendiente');
+        await systems(); await expect(page.getByText('Procedimientos y captura de herramientas', { exact: true })).toHaveCount(0);
+        await expect(page.getByRole('region', { name: 'Cobertura de procedimientos', exact: true })).toHaveCount(0);
         assert.equal((await stored()).sistemas.length, 1); assert.equal((await stored()).versionEstructura, undefined);
         await review(); await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toBeDisabled();
-        await page.locator('[data-pending-block="cobertura:segundo"]').getByRole('button', { name: 'Ir al campo' }).click();
-        await expect(page.locator('[data-coverage-action="segundo"]')).toBeFocused();
-        await page.keyboard.press('Enter'); await expect(page.locator('[data-edit-block^="sistemas:"]')).toHaveCount(2);
+        const add = page.locator('[data-pending-block="cobertura:segundo"]').getByRole('button', { name: 'Agregar registro' });
+        await add.focus(); await page.keyboard.press('Enter');
+        await expect(page.getByRole('tab', { name: 'Sistemas y herramientas', exact: true })).toHaveAttribute('aria-selected', 'true');
+        await expect(page.locator('[data-edit-block^="sistemas:"]')).toHaveCount(2);
+        await expect(page.getByRole('combobox', { name: 'Procedimiento 2', exact: true })).toBeFocused();
         await finish(); assert.equal((await stored()).sistemas[1].proceso, 'PO-02');
     });
     await check('captura dirigida conserva pendiente de campos, completa cobertura y persiste al recargar', async () => {
         await select('Sistema o herramienta 2', 'Hoja de cálculo (Excel)');
         await select('¿Para qué se usa? 2', 'Consultar información'); await select('¿Cómo funciona? 2', 'Funciona bien');
-        await finish(); await expect(page.locator('[data-coverage-id="segundo"]')).toContainText('Captura cubierta');
+        await finish(); await review(); await expect(page.locator('[data-pending-block="cobertura:segundo"]')).toHaveCount(0);
         assert.equal((await stored()).versionEstructura, 1);
-        await page.reload(); await systems(); await expect(page.locator('[data-coverage-id="segundo"]')).toContainText('Captura cubierta');
+        await page.reload(); await systems(); await expect(page.getByRole('combobox', { name: 'Sistema o herramienta 2', exact: true })).toHaveText('Hoja de cálculo (Excel)');
         await review(); await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toBeEnabled();
     });
     await check('última herramienta eliminada restaura pendiente y capturar de nuevo no duplica filas existentes', async () => {
         await systems(); const rows = page.locator('[data-edit-block^="sistemas:"]');
         await rows.nth(1).getByRole('button', { name: 'Eliminar registro', exact: true }).click();
         await page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
-        await expect(rows).toHaveCount(1); await expect(page.locator('[data-coverage-id="segundo"]')).toContainText('Captura pendiente');
-        await page.locator('[data-coverage-action="segundo"]').click(); await expect(rows).toHaveCount(2); await finish();
-        await page.locator('[data-coverage-action="segundo"]').click(); await finish();
+        await expect(rows).toHaveCount(1); await review();
+        await expect(page.getByRole('button', { name: 'Enviar formato', exact: true })).toBeDisabled();
+        await page.locator('[data-pending-block="cobertura:segundo"]').getByRole('button', { name: 'Agregar registro' }).click();
+        await expect(rows).toHaveCount(2); await finish(); await review();
+        await page.locator('[data-pending-block="cobertura:segundo"]').getByRole('button', { name: 'Ir al campo' }).click();
+        await expect(page.getByRole('combobox', { name: 'Sistema o herramienta 2', exact: true })).toBeFocused();
+        await finish();
         assert.equal((await stored()).sistemas.length, 2);
         await select('Sistema o herramienta 2', 'Hoja de cálculo (Excel)');
         await select('¿Para qué se usa? 2', 'Consultar información'); await select('¿Cómo funciona? 2', 'Funciona bien'); await finish();
@@ -76,10 +82,12 @@ try {
     await check('nombres completos, móvil emulado, teclado y consulta sin permiso de edición', async () => {
         for (const width of [1366, 390, 320]) {
             await page.setViewportSize({ width, height: 900 });
-            const list = page.getByRole('region', { name: 'Cobertura de procedimientos', exact: true });
-            await expect(list).toContainText('comprobar la distribución en dispositivos móviles');
+            const table = page.locator('.systems-table');
+            await expect(table.locator('.procedure-value').first()).toContainText('comprobar la distribución en dispositivos móviles');
+            await expect(page.getByText('Procedimientos y captura de herramientas', { exact: true })).toHaveCount(0);
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-            await list.scrollIntoViewIfNeeded(); await page.screenshot({ path: path.join(artifacts, `coverage-${width}.png`), fullPage: true });
+            await table.locator('.procedure-value').first().scrollIntoViewIfNeeded();
+            await page.screenshot({ path: path.join(artifacts, `coverage-${width}.png`), fullPage: true });
         }
         await review(); await page.getByRole('button', { name: 'Enviar formato', exact: true }).click();
         await expect(page.getByRole('dialog')).toBeVisible();

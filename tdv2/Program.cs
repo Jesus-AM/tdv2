@@ -14,6 +14,13 @@ if (args.Any(a => a is "--sync-worker" or "--sync-once" || a.StartsWith("--sync-
     return;
 }
 
+if (args.Contains("--import-applications") || args.Contains("--check-applications"))
+{
+    Environment.ExitCode = await ApplicationListCommands.Run(app.Services, args.Contains("--check-applications"));
+    await app.DisposeAsync();
+    return;
+}
+
 app.UseTdv2();
 app.Run();
 

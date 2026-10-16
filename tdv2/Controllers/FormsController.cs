@@ -36,6 +36,9 @@ public sealed class FormsController(FormService service) : ControllerBase
     [HttpGet("/formatos/{ur}/modulos-sii")]
     public async Task<IResult> Modules(string ur) => Results.Json(await service.Modules(ur));
 
+    [HttpGet("/formatos/{ur}/aplicaciones/{catalog}")]
+    public async Task<IResult> Applications(string ur, string catalog) => Results.Json(await service.Applications(ur, catalog));
+
     [HttpPost("/formatos/{ur}/reservas")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Reserve(string ur, [FromBody] EditRequest input, [FromServices] FormEditingService editing) => EditingResult(await editing.Reserve(ur, input));

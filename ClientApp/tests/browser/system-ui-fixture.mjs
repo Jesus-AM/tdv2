@@ -48,6 +48,10 @@ export async function systemFixture() {
             if (fixture.delay) await new Promise(resolve => setTimeout(resolve, fixture.delay));
             return json(fixture.catalog);
         }
+        if (url.pathname.includes('/aplicaciones/')) {
+            const kind = url.pathname.split('/').at(-1);
+            return json(fixture.applications?.[kind] || { estado: 'pendiente', aplicaciones: [] });
+        }
         if (url.pathname.endsWith('/estado')) return json(live(url.searchParams.get('tab')));
         if (req.method === 'POST' || req.method === 'PATCH') {
             let data = ''; for await (const chunk of req) data += chunk; const body = JSON.parse(data || '{}');

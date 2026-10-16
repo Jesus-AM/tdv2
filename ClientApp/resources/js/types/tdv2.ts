@@ -40,6 +40,8 @@ export interface ProcessRow {
     validacion: string;
 }
 export interface SiiModuleSelection { id: string; descripcion: string }
+export type ApplicationKind = 'moviles' | 'web';
+export interface ApplicationSelection extends SiiModuleSelection { catalogo: ApplicationKind }
 export interface SystemRow {
     id: string;
     proceso: string;
@@ -52,6 +54,8 @@ export interface SystemRow {
     moduloSiiId?: string;
     moduloSiiDescripcion?: string;
     modulosSii?: SiiModuleSelection[];
+    aplicacionesMoviles?: ApplicationSelection[];
+    aplicacionesWeb?: ApplicationSelection[];
     procesos?: string[];
 }
 export interface DataRow {

@@ -44,6 +44,16 @@ const running = () => expect(page.getByText('Sincronizando… ILDA', { exact: tr
 const complete = () => expect(row()).toContainText('Completada');
 try {
     await page.goto(origin + '/connect'); await page.goto(origin + syncPath);
+    await check('SQL Server muestra únicamente UR y módulos; aplicaciones fuera de operación e ILDA independiente', async () => {
+        await expect(page.locator('[data-catalog]')).toHaveCount(3);
+        await expect(page.locator('[data-catalog="sii"]')).toBeVisible();
+        await expect(page.locator('[data-catalog="sii_modulos"]')).toBeVisible();
+        await expect(page.locator('[data-catalog="ilda"]')).toBeVisible();
+        await expect(page.getByText('Aplicaciones móviles', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Aplicaciones Web', { exact: true })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Sincronizar SQL Server', exact: true })).toHaveCount(1);
+        await expect(page.getByRole('button', { name: 'Sincronizar ILDA', exact: true })).toHaveCount(1);
+    });
     await check('inicio desde el web con horarios pausados; ACK real demorado y doble clic', async () => {
         await expect(page.getByLabel('Activar sincronización automática')).not.toBeChecked();
         await control('sync-hold');

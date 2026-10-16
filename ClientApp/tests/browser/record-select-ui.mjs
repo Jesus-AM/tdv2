@@ -99,7 +99,7 @@ try {
                 await input.fill('Seguimiento');
                 if (await page.getByRole('option', { name: 'Seguimiento de solicitudes', exact: true }).getAttribute('aria-selected') !== 'true') { await input.press('ArrowDown'); await input.press('Enter'); }
                 await input.press('Escape');
-                await expect(row(page, id).locator('.sii-module-value')).toHaveText(fixture.catalog.modulos.map(m => m.descripcion));
+                await expect(row(page, id).locator('.sii-module-value')).toHaveText('2 módulos seleccionados');
                 await expect(row(page, id)).toHaveAttribute('data-edit-state', 'owned');
             }
             await page.getByRole('button', { name: 'Guardar', exact: true }).click();

@@ -313,6 +313,17 @@ public sealed class FormEditingService(Tdv2DbContext db, PostgresFormStore store
                 var module = (await db.SiiModules.FromSqlInterpolated($"SELECT * FROM public.sii_modulos WHERE id_modulo={moduleId} AND presente FOR SHARE").AsNoTracking().ToListAsync(Ct)).SingleOrDefault();
                 return module?.Description;
             });
+            foreach (var kind in SystemApplications.Kinds)
+                await SystemApplications.Confirm(row, previous, kind, async applicationId =>
+                {
+                    var sql = new SyncSql(connection, pg);
+                    if (await ApplicationCatalogSchema.Inspect(sql, kind, Ct) is not null)
+                        throw FormSchema.FieldError("sistemas:" + row["id"], kind.Field,
+                            "El catálogo local de aplicaciones requiere que el administrador aplique las migraciones e importe las listas publicadas.");
+                    // Lectura compartida en la transacción de captura: una retirada espera al commit.
+                    return (await sql.Scalar("SELECT nombre FROM public.aplicaciones_catalogo WHERE categoria=$1 AND id=$2 AND disponible FOR SHARE", Ct,
+                        kind.Key, applicationId)) as string;
+                });
         }
         var canonical = FormBlocks.Split(validated);
         // Normaliza sólo los bloques de esta operación. Jamás sustituye otros bloques con una copia del cliente.

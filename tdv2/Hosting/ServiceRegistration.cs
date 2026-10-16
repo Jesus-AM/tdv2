@@ -39,6 +39,7 @@ public static class ServiceRegistration
         builder.Services.AddSingleton<ManualSyncDispatcher>();
         builder.Services.AddHostedService<ManualSyncWorker>();
         builder.Services.AddScoped<ILocalCatalog, LocalCatalog>();
+        builder.Services.AddScoped<ApplicationListImport>();
         builder.Services.Configure<MicrosoftSettings>(builder.Configuration.GetSection("Microsoft"));
         // User Secrets sólo es configuración de desarrollo. Estas llaves protegen sesiones/tokens
         // del servidor y necesitan un directorio persistente propio al publicar en Ubuntu.

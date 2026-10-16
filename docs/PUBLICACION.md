@@ -46,6 +46,10 @@ Las cookies son Secure y el CSRF exige cabecera y cookie del mismo origen. El re
 
 Para captura colaborativa, reenviar también `/form-events` y su negociación, habilitando WebSocket y un timeout superior al keepalive de SignalR. TDV2 valida Origin contra `Microsoft:PublicOrigin`, incluso cuando el proxy termina TLS. Cada entrega vuelve a comprobar ticket, Nexo y UR; PostgreSQL arbitra todas las escrituras. En varias instancias, el aviso inmediato es local y las otras recuperan cambios mediante comprobación autorizada cada 15 segundos. Probar WebSocket/reconexión con el proxy institucional antes de operar.
 
+## Catálogos de aplicaciones desde listas
+
+Desde 2026-10-15 el paquete incluye `Contracts/aplicaciones-2026-10-14.json` (207 web/26 móviles). Aplicar **20261015165555_LocalApplicationLists**, comprobar con `dotnet tdv2.dll --environment Production --check-applications` e importar con `dotnet tdv2.dll --environment Production --import-applications` antes de reabrir con todos los procesos actualizados. No requiere Excel/Python ni nuevas credenciales. No conservar procesadores anteriores que todavía consulten aplicaciones SQL Server. [Orden, compatibilidad y comandos completos](migracion/APLICACIONES_LISTAS.md).
+
 ## Base y procesador
 
 EF Core es el único mecanismo de migraciones. Desde la raíz del código, con la configuración externa del destino y una cuenta de migración, ejecutar explícitamente `dotnet ef database update --project tdv2 -- --environment Production`. Revisar antes `dotnet ef migrations script --idempotent --project tdv2 --output .artifacts/tdv2-migrations.sql` y el destino/permisos. El primer bootstrap exige una base vacía y un solo operador. La cuenta del sitio no necesita DDL; el arranque no invoca EF Migrate ni EnsureCreated.

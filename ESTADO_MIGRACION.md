@@ -1,6 +1,52 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-14**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-15**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+
+## 2026-10-15 — Aplicaciones exclusivamente desde listas Excel
+
+**Implementado:** extracción de Sheet1/Aplicación a `Contracts/aplicaciones-2026-10-14.json`, 207 web y 26 móviles, sin duplicados ni filas inválidas; UUID versionados, sin valores institucionales inventados. Nueva migración **20261015165555_LocalApplicationLists** añade catálogo local por categoría/ID y metadatos; copia IDs/nombres anteriores sin activarlos, no altera respuestas ni instantáneas. Importación explícita de ambas listas en una transacción con auditoría y bloqueo; comprobación previa, correspondencia exacta inequívoca, ambigüedades reportadas con selección local independiente, bajas conservadas como historia. Retirados lectores/SELECT/publicaciones y controles de aplicaciones SQL Server; quedan UR/módulos e ILDA independiente. Selectores múltiples, apertura inicial, guardado/recarga, autorizaciones y requisito único conservados.
+
+**Probado:** extracción real repetida produce los mismos bytes e IDs; **4/4** pruebas XLSX sintéticas. Tipos TypeScript, compilación .NET/Vite, **88/88** frontend y **114/114** dominio/HTTP con dobles. **55 casos PostgreSQL nativos distintos correctos**: 51 de sincronización/importación y 4 de edición de aplicaciones; incluyen migración con enviado histórico, 233 entradas, repetición/simultaneidad, ambigüedad, rollback y guardado/concurrencia. El pase amplio fue 49/50 porque una expectativa todavía contaba cuatro catálogos; se corrigió a UR/módulos y ese caso pasó al repetirlo. No se oculta ese resultado intermedio. **59/59** comprobaciones EF; **11/11** recorridos Edge → ASP.NET → PostgreSQL de sistemas/aplicaciones y **7/7** de sincronizaciones, a 1366/1440 y 360 px, teclado y toque emulado, sin errores JavaScript. Capturas inspeccionadas; transporte real, fuentes/autenticación sintéticas. No sustituyen aceptación institucional o pruebas táctiles físicas.
+
+Paquete local `.artifacts/publish-application-lists` construido con el target normal; catálogo incluido e idéntico por SHA-256. Los comandos **reales del paquete** `--environment Production --check-applications` y `--import-applications` pasaron como procesos independientes contra PostgreSQL aislado, sin conexiones institucionales ni consumidor de cola. El build inicial informó advertencias NuGet preexistentes sobre `System.Security.Cryptography.Pkcs`; no se cambiaron dependencias.
+
+Evidencia de esta actualización:
+
+- `.artifacts/application-lists-native-evidence.json`: consolida resultados por nombre, sin contar repeticiones como casos nuevos.
+- `.artifacts/native-postgres-20261015-165938-940df949/verification.json`: 10/10 focalizados.
+- `.artifacts/native-postgres-20261015-170228-6540b180/verification.json`: regresión 49/50 y diagnóstico de la expectativa anterior.
+- `.artifacts/native-postgres-20261015-170719-14ee7393/verification.json`: caso corregido y manejador del comando, 2/2.
+- `.artifacts/native-postgres-20261015-171354-5924bd96/verification.json`: proceso CLI real del paquete, 1/1.
+- `.artifacts/native-postgres-20261015-172100-0ca9bf86/verification.json`: repetición de catálogo/IDs y lectura de `public` con `search_path=pg_catalog`, 1/1.
+- `.artifacts/native-postgres-20261015-170829-c488c05f/ef-migrations.json`: 59 comprobaciones.
+- `.artifacts/native-postgres-20261015-171112-21eb1266/systems-native-browser.json` y sus PNG: 11 recorridos.
+- `.artifacts/native-postgres-20261015-171500-0669e54a/browser-sync-manual.json` y sus PNG: 7 recorridos.
+
+Comandos reproducibles: `npm --prefix ClientApp run types:check`, `npm --prefix ClientApp run test:forms`, `npm --prefix ClientApp run build`, `dotnet build tdv2.slnx -c Release -p:UseAppHost=false`, `dotnet run --project tests/TDV2.Verification -c Release -p:UseAppHost=false`; `python -B scripts/test_application_extraction.py`. Pruebas nativas: `scripts/Test-NativePostgres.ps1 -DirectStart -SyncOnly`, `-MigrationsOnly`, o `-SkipBrowser` con `TDV2_TEST_CASE_PREFIX='Sync/listas|Edición/aplicaciones'`. Navegador: `-BrowserOnly` con `TDV2_TEST_EPHEMERAL_TLS=true`, `TDV2_TEST_NODE` apuntando al Node disponible y `TDV2_TEST_BROWSER_FLOW=systems` / `sync-manual`. Todas crean clústeres desechables bajo `.artifacts`, nunca usan una conexión institucional.
+
+**Pendiente:** actualización e importación institucional por el operador, correspondencias contra la réplica real (no inspeccionada), ejecución en Ubuntu y dispositivos físicos. No se modificaron bases existentes/institucionales, secretos, Nexo ni Herd; sin push/despliegue. La migración es aditiva, pero el binario anterior no debe seguir operando después de importar/guardar UUID. [Criterio de IDs, archivos, pruebas y orden/comandos exactos](docs/migracion/APLICACIONES_LISTAS.md).
+
+## 2026-10-14 — Aplicaciones móviles y web: implementación anterior de SQL Server
+
+Origen retirado por la actualización del 15 de octubre. Se conserva esta evidencia histórica; sus instrucciones de sincronización no son las vigentes.
+
+**Implementado:** tipos/nulabilidad confirmados por el usuario, entidades/configuraciones EF y migración aditiva **20261014180408_SiiApplicationsCatalog**. IDs int32 originales sin identidad local, nulos/textos preservados y padre web sin FK. SELECT explícitos con ACTIVA=1, publicación transaccional por catálogo con rollback de metadatos/resultado/auditoría y retirada lógica sólo tras lectura completa. SQL Server ejecuta UR, módulos, móviles y web; ILDA independiente. Selectores compartidos cero/nombre/cantidad, JSON separado con nombres confirmados y referencias históricas, un requisito condicional, permisos/reservas/autoguardado/avance conservados. Sin cambios de instantáneas enviadas ni reintroducción del bloque de cobertura.
+
+**Probado:** TypeScript/Vite y 88/88 frontend; dominio/HTTP con dobles. PostgreSQL 18 nativo: 9/9 casos iniciales de aplicaciones, ampliados en **52/52 casos de sincronización** (manual web sin CLI, doble solicitud/dos administradores, CLI/web simultáneos, programación/ILDA, reinicio, errores y resultados parciales). Verificados 1501 activas por catálogo, repetición/update/IDs/nulos/longitudes 200/8000/500, padres ausentes, EOF interrumpido, duplicados incompatibles, retiradas y rollback al auditar. **11/11 recorridos Edge con ASP.NET/PostgreSQL reales**: aplicaciones cero/una/varias, guardado/recarga, nombres completos, búsqueda, teclado/tacto emulado, pendientes/foco; regresiones SIIv2, reservas, SignalR y enviados. Capturas 1366/360 px revisadas. Fuentes SQL Server/MySQL e identidades siempre sintéticas; las pruebas anteriores con transporte simulado se distinguen de esta evidencia nativa.
+
+**Cierre de comprobaciones:** **114/114** dominio/HTTP con dobles, **88/88** frontend, **52/52** sincronización y **12/12** edición/concurrencia ASP.NET/PostgreSQL, **59/59** comprobaciones EF nativas, **11/11** recorridos Edge nativos y **12/12** grupos adicionales con transporte simulado. Incluye rechazo de nuevas selecciones frente a retirada concurrente con conexiones independientes, preservación de históricos enviados, cobertura y guardados en filas distintas. Compilación final Release: 0 avisos/errores; tipos/Vite correctos. La generación EF había informado advertencias NuGet preexistentes de Pkcs 9.0.18; sin cambios de dependencias. Corridas/artefactos y correcciones del fixture/verificador documentados en el detalle.
+
+**Actualización pendiente del operador:** aplicar explícitamente **20261014180408_SiiApplicationsCatalog** y publicar backend/frontend/procesadores de la misma versión. Migración compatible con el esquema anterior del repositorio; no se inspeccionó el servidor publicado. Un binario antiguo puede no admitir las nuevas claves JSON una vez capturadas. No hay configuración nueva ni DDL al iniciar. Se necesita SELECT sobre las columnas solicitadas de las dos tablas SQL Server; no se concedieron permisos. [Contrato, archivos, pruebas y comandos exactos Windows/Ubuntu](docs/migracion/APLICACIONES_SQL_SERVER.md).
+
+**Límites:** no acceso a fuentes/bases institucionales, Nexo, Herd ni credenciales; sin push/despliegue. Migraciones sólo en clústeres nuevos dentro de .artifacts, detenidos al terminar. Dispositivos físicos, lector de pantalla y aceptación institucional pendientes. La colaboración de navegador usa dos sesiones de la misma identidad sintética; la prueba de solicitudes simultáneas de sincronización sí utiliza dos administradores sintéticos distintos.
+
+## 2026-10-14 — Sistemas compacto y pendientes en la revisión
+
+**Implementado:** se retira el bloque «Procedimientos y captura de herramientas»; la tabla conserva acciones/scroll. Revisar y enviar mantiene pendientes con Ir al campo o Agregar registro, confirmando el procedimiento y evitando duplicaciones. Módulos de SIIv2 muestra «Selecciona módulos», un nombre completo o la cantidad seleccionada; sin chips ni ayuda repetida. Conserva búsqueda/casillas, agrupación, errores, nombres largos, apertura inmediata, reservas y autoguardado. Sin cambios de backend, cobertura, avance o envío.
+
+**Probado:** TypeScript/Vite, 88/88 frontend; 46 grupos Edge con transporte simulado y 12 recorridos Edge con ASP.NET/PostgreSQL 18 aislado. Estados cero/uno/varios, guardar/recargar, teclado/tacto emulado, reserva lenta/denegada, cambios rápidos, scroll, pendientes/foco/alta, eliminación de última herramienta y envío/bloqueo. Capturas de escritorio/móvil revisadas. [Archivos, comandos y evidencia](docs/migracion/SISTEMAS_HERRAMIENTAS.md#resumen-compacto-y-pendientes--2026-10-14).
+
+**Actualización y pendiente:** sólo frontend; sin migración/configuración nueva. No se consultaron bases existentes ni fuentes institucionales; clústeres sintéticos detenidos al terminar. Dispositivos físicos y lectores de pantalla no comprobados. Dos sesiones sintéticas no acreditan dos identidades institucionales. Sin push/despliegue.
 
 ## 2026-10-14 — Cobertura, evolución del JSON y guardado colaborativo
 

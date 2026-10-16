@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.Options;
 using Tdv2.Infrastructure;
+using Tdv2.Domain;
 namespace Tdv2.Synchronization;
 
 /// <summary>Lee configuración, historial y contadores de una sola instantánea PostgreSQL.</summary>
@@ -24,7 +25,7 @@ public sealed class SynchronizationQueries(DatabaseConnections connections, IOpt
                   'ilda',json_build_object('registros',(SELECT count(*) FROM ilda_informacion_area WHERE presente=true),'completada_en',(SELECT completada_en FROM sincronizacion_catalogos WHERE fuente='ilda')))::text
                 """, ct);
         if (schemaIssue is not null) catalogs["sii_modulos"]!["error"] = schemaIssue.mensaje;
-        foreach (var c in new[] { "sii", "sii_modulos", "ilda" }) catalogs[c]!["completada_en"] = SyncSql.Iso(catalogs[c]!["completada_en"]);
+        foreach (var c in catalogs.Select(p => p.Key).ToArray()) catalogs[c]!["completada_en"] = SyncSql.Iso(catalogs[c]!["completada_en"]);
         await transaction.CommitAsync(ct);
         return new Dictionary<string, object?>()
         {

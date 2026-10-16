@@ -123,6 +123,74 @@ namespace Tdv2.Migrations
                     b.ToTable("activity_logs", "public");
                 });
 
+            modelBuilder.Entity("Tdv2.Domain.Entities.ApplicationCatalogEntry", b =>
+                {
+                    b.Property<string>("Category")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("categoria");
+
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Available")
+                        .HasColumnType("boolean")
+                        .HasColumnName("disponible");
+
+                    b.Property<string>("ListKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("clave_lista");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("nombre");
+
+                    b.HasKey("Category", "Id");
+
+                    b.HasIndex("Category", "ListKey")
+                        .IsUnique();
+
+                    b.ToTable("aplicaciones_catalogo", "public");
+                });
+
+            modelBuilder.Entity("Tdv2.Domain.Entities.ApplicationCatalogImport", b =>
+                {
+                    b.Property<string>("Category")
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("categoria");
+
+                    b.Property<string>("Edition")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("edicion");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("sha256");
+
+                    b.Property<DateTime>("ImportedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("importado_en");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("resultado");
+
+                    b.HasKey("Category");
+
+                    b.ToTable("aplicaciones_importaciones", "public");
+                });
+
             modelBuilder.Entity("Tdv2.Domain.Entities.CatalogSynchronization", b =>
                 {
                     b.Property<string>("Id")
@@ -674,6 +742,57 @@ namespace Tdv2.Migrations
                     b.ToTable("tdv2_sessions", "public");
                 });
 
+            modelBuilder.Entity("Tdv2.Domain.Entities.SiiMobileApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_aplicacion_movil");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activa");
+
+                    b.Property<string>("Definition")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("definicion");
+
+                    b.Property<int?>("EmployeeResponsible")
+                        .HasColumnType("integer")
+                        .HasColumnName("emp_responsable");
+
+                    b.Property<int?>("GeneralDirectorEmployee")
+                        .HasColumnType("integer")
+                        .HasColumnName("num_empleado_dir_gral");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<bool>("Present")
+                        .HasColumnType("boolean")
+                        .HasColumnName("presente");
+
+                    b.Property<int?>("ProgrammerResponsible")
+                        .HasColumnType("integer")
+                        .HasColumnName("prog_responsable");
+
+                    b.Property<DateTime>("SynchronizedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("sincronizado_en");
+
+                    b.Property<int>("UnitId")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_ur");
+
+                    b.HasKey("Id")
+                        .HasName("sii_aplicaciones_moviles_pkey");
+
+                    b.ToTable("sii_aplicaciones_moviles", "public");
+                });
+
             modelBuilder.Entity("Tdv2.Domain.Entities.SiiModule", b =>
                 {
                     b.Property<string>("Id")
@@ -698,6 +817,62 @@ namespace Tdv2.Migrations
                         .HasName("sii_modulos_pkey");
 
                     b.ToTable("sii_modulos", "public");
+                });
+
+            modelBuilder.Entity("Tdv2.Domain.Entities.SiiWebApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_aplicacion_web");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activa");
+
+                    b.Property<string>("Definition")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)")
+                        .HasColumnName("definicion");
+
+                    b.Property<int?>("EmployeeResponsible")
+                        .HasColumnType("integer")
+                        .HasColumnName("emp_responsable");
+
+                    b.Property<int?>("GeneralDirectorEmployee")
+                        .HasColumnType("integer")
+                        .HasColumnName("num_empleado_dir_gral");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<int?>("ParentApplicationId")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_aplicacion_web_pertenece");
+
+                    b.Property<bool>("Present")
+                        .HasColumnType("boolean")
+                        .HasColumnName("presente");
+
+                    b.Property<int?>("ProgrammerResponsible")
+                        .HasColumnType("integer")
+                        .HasColumnName("prog_responsable");
+
+                    b.Property<DateTime>("SynchronizedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("sincronizado_en");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("sii_aplicaciones_web_pkey");
+
+                    b.ToTable("sii_aplicaciones_web", "public");
                 });
 
             modelBuilder.Entity("Tdv2.Domain.Entities.SynchronizationRun", b =>

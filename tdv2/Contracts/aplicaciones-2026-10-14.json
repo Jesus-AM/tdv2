@@ -1,0 +1,970 @@
+{
+  "version": 1,
+  "edicion": "2026-10-14",
+  "catalogos": [
+    {
+      "categoria": "web",
+      "archivo": "Aplicaciones Web 141026.xlsx",
+      "sha256": "24cccdf1546c5afb0df987e33d4e55611e287709cca7565ccdc810e369102973",
+      "esperadas": 207,
+      "aplicaciones": [
+        {
+          "id": "local:a8fa6b7e-8482-4cf9-89ae-1384f953b650",
+          "nombre": "Administración Carta Recomendación Posgrados"
+        },
+        {
+          "id": "local:dd527a38-96f0-4bb0-b6b6-4feb5ae66b86",
+          "nombre": "Administración de proyectos UNAM - UACJ"
+        },
+        {
+          "id": "local:696fadb1-74a2-49dd-a470-e95e95bc935f",
+          "nombre": "Administrador de cuentas de invitado para red Inalámbrica"
+        },
+        {
+          "id": "local:8059f180-1fb1-4bb0-94ae-e20864a1eb6b",
+          "nombre": "Admision"
+        },
+        {
+          "id": "local:8187f89f-572b-4ef5-8873-3b75492b04df",
+          "nombre": "Admision Portal Administrativo"
+        },
+        {
+          "id": "local:bf533317-90de-4db0-9280-28d01270067b",
+          "nombre": "Alertas UACJ"
+        },
+        {
+          "id": "local:a9810bad-c6da-4189-8427-e457119dfe56",
+          "nombre": "Apelación proceso de estímulos"
+        },
+        {
+          "id": "local:37a98b34-b239-425a-b692-060ffc8ce3a2",
+          "nombre": "Archivo Histórico"
+        },
+        {
+          "id": "local:01178f71-48cf-42d9-bb7a-dd58d8774b3e",
+          "nombre": "Artes y Oficios - Impresión de Constancias"
+        },
+        {
+          "id": "local:40bb15f1-a8c4-44ba-aad8-b461b9bcd831",
+          "nombre": "Artes y Oficios - Inscripción"
+        },
+        {
+          "id": "local:249123d9-c605-45a5-b89a-a06f006594e6",
+          "nombre": "Artes y Oficios - Validación de curso aprobado"
+        },
+        {
+          "id": "local:686585db-6bfa-4ca9-aa7d-492c3a548486",
+          "nombre": "Asesoria Psicologica"
+        },
+        {
+          "id": "local:42e5bd6b-7c7c-4a44-9695-b4398baed421",
+          "nombre": "Asistencia Ceremonia"
+        },
+        {
+          "id": "local:067162c7-aacf-45be-a675-8788d7450b2a",
+          "nombre": "Autenticación alumno(a) y exalumno(a)"
+        },
+        {
+          "id": "local:2fadbddf-82e9-4c8c-990c-c1e859d94542",
+          "nombre": "Autenticación de docentes"
+        },
+        {
+          "id": "local:3e0742c2-e5cf-4df2-8640-5e5319782333",
+          "nombre": "Autoevaluación estímulos"
+        },
+        {
+          "id": "local:b1b90915-9f9f-4949-bfaf-a36309a11e9e",
+          "nombre": "Becas COBE"
+        },
+        {
+          "id": "local:64596eaa-94e7-4f1c-a155-f9cb94436384",
+          "nombre": "Bellas Artes - Inscripción"
+        },
+        {
+          "id": "local:8477c3db-32c3-4b21-90ed-1ab949f6b155",
+          "nombre": "Bellas Artes -Impresion de constancias"
+        },
+        {
+          "id": "local:1b98bf63-6078-4222-8d19-d8707f1086e8",
+          "nombre": "Bolsa de Trabajo - Alumnos"
+        },
+        {
+          "id": "local:0784e67a-de09-4cef-9721-0836deab4173",
+          "nombre": "Bolsa de trabajo"
+        },
+        {
+          "id": "local:525836ae-61cd-4a96-87fa-3e25a0b7ce07",
+          "nombre": "Bolsa de trabajo - Empresas"
+        },
+        {
+          "id": "local:9549e148-a9a8-41c0-9370-18d1ca407617",
+          "nombre": "CAST"
+        },
+        {
+          "id": "local:b1022f81-b837-4500-bb20-8fd99fb160f4",
+          "nombre": "CENEVAL Administración Encuestas"
+        },
+        {
+          "id": "local:a696549c-7563-4299-bf2c-33a5232c76de",
+          "nombre": "CFDI (Verificación)"
+        },
+        {
+          "id": "local:3157a5f2-0149-4244-99a2-81f28178b9a6",
+          "nombre": "CFDI Honorarios"
+        },
+        {
+          "id": "local:87e6ea7e-4797-4fe7-9cd8-4e5b697782ec",
+          "nombre": "CFDI Recuperación por empleados"
+        },
+        {
+          "id": "local:1234b2d7-db2c-403f-b1b1-99236692308f",
+          "nombre": "Cambio de Contraseña Alumnos"
+        },
+        {
+          "id": "local:1a10e4d7-055b-4450-a978-2b3e12dbf7bc",
+          "nombre": "Captura de Calificaciones"
+        },
+        {
+          "id": "local:5f3f78c8-f7b1-4b3d-91aa-4fa202ac4f22",
+          "nombre": "Carnet Universitario"
+        },
+        {
+          "id": "local:b4726e41-6a16-4856-bd84-7122b83fc0be",
+          "nombre": "Carrera UACJ"
+        },
+        {
+          "id": "local:3e3d422e-938a-4f81-860e-8167e5979160",
+          "nombre": "Carta de recomendación a Posgrados ICB"
+        },
+        {
+          "id": "local:6e6e0c91-9119-4d5f-b71d-e9555b1583a0",
+          "nombre": "Centro Acuatico Universitario - Impresion de Ordenes de Ingreso"
+        },
+        {
+          "id": "local:8780ad35-3f87-42a5-a79c-36769f99f476",
+          "nombre": "Centro Acuático -  Monitor de turnos."
+        },
+        {
+          "id": "local:16223ecf-c290-48a1-bfda-c39e083b767c",
+          "nombre": "Centro Acuático Universitario - Inscripción"
+        },
+        {
+          "id": "local:ebc7cae0-1215-469a-95ce-5fa6a5000947",
+          "nombre": "Centro de Bienestar Universitario - CBU"
+        },
+        {
+          "id": "local:116e539a-695d-4c0a-ae80-7bb59970d17e",
+          "nombre": "Centro de Lenguaje y Aprendizaje"
+        },
+        {
+          "id": "local:9680d1ae-b966-4ce8-aa51-041782621cbe",
+          "nombre": "Centro de Lenguaje y Aprendizaje / Aeropuerto"
+        },
+        {
+          "id": "local:8dc3ce13-1d53-4a67-bf37-9d6410b87cc4",
+          "nombre": "Centro de Prácticas para el Aprendizaje y el Lenguaje"
+        },
+        {
+          "id": "local:11f0aa12-e50d-4e2d-9a06-b4fd8e535ae0",
+          "nombre": "CitaTitulacion Egresados"
+        },
+        {
+          "id": "local:cfc6832e-8c59-43bc-9206-6dc6a92d9ac8",
+          "nombre": "Clima"
+        },
+        {
+          "id": "local:42737bbd-82f1-43c5-86f5-d35289571fbb",
+          "nombre": "Comprobación de gastos via web"
+        },
+        {
+          "id": "local:56e8686c-fa06-428a-8f47-469e6234e4fc",
+          "nombre": "Congreso ANFECA_UACJ"
+        },
+        {
+          "id": "local:2a13fb18-fd75-4e25-a891-4c3ce6c99b13",
+          "nombre": "Congreso Contraloria General"
+        },
+        {
+          "id": "local:fdef0133-aece-4f80-ace7-967e3ef268fa",
+          "nombre": "Congreso Int. Ciencias Ambientales"
+        },
+        {
+          "id": "local:30f10193-7ea8-4394-8ec4-408597a6aecd",
+          "nombre": "Consejo Universitario / Consulta de Sesion"
+        },
+        {
+          "id": "local:68be52da-2d6d-4503-8b9f-760264a7e859",
+          "nombre": "Consejo Universitario / Registro de Sesion"
+        },
+        {
+          "id": "local:704f7dcc-b820-4f52-bd9f-2aa69fc2c11c",
+          "nombre": "Consulta Alumno(a)"
+        },
+        {
+          "id": "local:4922eb2e-7652-4b16-bcd3-9ce1238aa21b",
+          "nombre": "Consulta docentes"
+        },
+        {
+          "id": "local:8d9c9e7f-ba45-44b1-914a-7172531e4e4c",
+          "nombre": "Control Escolar Altas y Bajas"
+        },
+        {
+          "id": "local:ceb7bdd0-0bae-408f-8fbe-52c95a5ed033",
+          "nombre": "Control de Deportes - Entrenadores"
+        },
+        {
+          "id": "local:691bebce-40c4-4cfa-8af0-e3635334b9a3",
+          "nombre": "Convocatoria PROMEP -Administración"
+        },
+        {
+          "id": "local:8da05f2e-0e3f-4d3e-bfb0-f3b5280ac54f",
+          "nombre": "Cursos FAI"
+        },
+        {
+          "id": "local:ed93d8eb-a511-4de3-8f35-072e147d002a",
+          "nombre": "Cursos PIME"
+        },
+        {
+          "id": "local:6761dae2-66a3-4134-bfe5-270c27cc6647",
+          "nombre": "Dictamen de evaluación de estímulos"
+        },
+        {
+          "id": "local:7fed73bb-61cd-4f4b-9855-164f46c7e269",
+          "nombre": "Dirección de tesis de Posgrados- Usuarios Externos"
+        },
+        {
+          "id": "local:0184e9f3-4e44-4204-a8f7-657a403884cf",
+          "nombre": "Diseño Curricular  (Administrador)"
+        },
+        {
+          "id": "local:1f88312a-345d-4e9d-bdc9-a8ed5d913fdc",
+          "nombre": "Diseño Curricular (Consultor)"
+        },
+        {
+          "id": "local:65970206-f4a0-43a9-85ea-904361e5513d",
+          "nombre": "Docentes en Línea (Concentrador)"
+        },
+        {
+          "id": "local:a64cf4f3-a3d2-4dd0-ac76-55b382f21145",
+          "nombre": "Docentes en Línea/ Constancia de materias impartidas"
+        },
+        {
+          "id": "local:98803c60-cb70-452e-8568-998b575b0a45",
+          "nombre": "Docentes en Línea/ Cursos FAI"
+        },
+        {
+          "id": "local:26ae72f0-74fa-4104-8005-ec7ac552c32c",
+          "nombre": "Docentes en Línea/ Evaluación docente"
+        },
+        {
+          "id": "local:8714d0ad-fb2a-4540-9fd7-1eb6b01fd0bc",
+          "nombre": "Docentes en Línea/ Firma exclusividad docente"
+        },
+        {
+          "id": "local:b87b382e-8d3d-462c-9aac-6e9f9fb0105e",
+          "nombre": "Docentes en Línea/ Opinión docente"
+        },
+        {
+          "id": "local:d189d32d-2012-419b-825d-21517581572e",
+          "nombre": "Docentes en Línea/ Resultados estímulos"
+        },
+        {
+          "id": "local:75375753-de60-4cef-8c60-0e714ce8401f",
+          "nombre": "Docentes en Línea/Autorización servicio social"
+        },
+        {
+          "id": "local:839e008a-36ad-4441-a091-74e92b505b6c",
+          "nombre": "Docentes en Línea/CACEI"
+        },
+        {
+          "id": "local:11a995a4-a19a-488c-8544-07715197c0f0",
+          "nombre": "Docentes en Línea/CATHI-  Produccion docente"
+        },
+        {
+          "id": "local:1a6b84e9-e5c3-410f-9c9a-e91289d95690",
+          "nombre": "Docentes en Línea/Carrera Docente"
+        },
+        {
+          "id": "local:9c7727e2-f13e-45a2-86de-d1f40d9e4471",
+          "nombre": "Docentes en Línea/Dirección de tesis de Posgrados -Docente"
+        },
+        {
+          "id": "local:af3d0be6-fa40-4847-905c-593a5adf6617",
+          "nombre": "Docentes en Línea/ORCID"
+        },
+        {
+          "id": "local:750cc3cd-ebb1-4022-afbc-8a8cbb8707ca",
+          "nombre": "Docentes en línea / Seguimiento Movilidad Docente UACJ"
+        },
+        {
+          "id": "local:93fdaa3c-182c-41b0-a124-517885af4e05",
+          "nombre": "Docentes en línea/Registro de resultado de acreditación de examen único y proyecto"
+        },
+        {
+          "id": "local:2b70b2a4-e6b1-4045-aca6-0498a1107356",
+          "nombre": "EXANI III - Registro de aspirantes a posgrados"
+        },
+        {
+          "id": "local:53cb9e23-a8b6-44b0-8e5b-e82e32c73cc5",
+          "nombre": "Encuesta Aspirante"
+        },
+        {
+          "id": "local:9a6c0067-224e-4cbd-b29e-7e20992e24fb",
+          "nombre": "Encuesta Egresados"
+        },
+        {
+          "id": "local:b1eecf52-5c69-4923-b459-6436628f021b",
+          "nombre": "Encuesta Seguimiento Posgrado"
+        },
+        {
+          "id": "local:92d30ad9-1396-4546-ab3e-be2bb2597927",
+          "nombre": "Encuesta Tutorías Docente"
+        },
+        {
+          "id": "local:94c86b60-bac2-4c07-9c1a-51e2ba89fe26",
+          "nombre": "Encuesta de Curso de Inducción nuevo ingreso"
+        },
+        {
+          "id": "local:0d809160-7bc6-4aca-8551-4ca2523eabba",
+          "nombre": "Encuesta de Unidad de Transparencia"
+        },
+        {
+          "id": "local:363ed4cc-8fb9-45b0-a326-ed4fe3960c07",
+          "nombre": "Encuesta de satisfacción DIDES"
+        },
+        {
+          "id": "local:e85e7f67-9465-4b62-a2ec-a54f927522cf",
+          "nombre": "Encuestas Alumnos(as) SPCOA"
+        },
+        {
+          "id": "local:883dd37f-0e4b-4b93-9ff8-16d6f09836bd",
+          "nombre": "Encuestas Contraloría"
+        },
+        {
+          "id": "local:048511f6-c7c8-44a2-8c1e-ca97f6f4a964",
+          "nombre": "Encuestas Docentes SPCOA"
+        },
+        {
+          "id": "local:2cf023ba-edb8-4f6d-9f0d-f7616429e777",
+          "nombre": "Encuestas Médicas - Administrador"
+        },
+        {
+          "id": "local:c0b0117e-9e68-4e24-aab0-7416c4530586",
+          "nombre": "Encuestas Médicas - Alumnos"
+        },
+        {
+          "id": "local:837d5dcd-c2f9-425e-a027-9580def51656",
+          "nombre": "Encuestas SPCOA"
+        },
+        {
+          "id": "local:ee94ecfe-4dd6-4292-83c8-20cbf6184383",
+          "nombre": "Encuestas dinámicas (Concentrador)"
+        },
+        {
+          "id": "local:3ee69244-f8d1-4bad-9d7a-6cf260f09d94",
+          "nombre": "Encuestas dinámicas - Administrador (Concentrador)"
+        },
+        {
+          "id": "local:1ca6fcba-506c-49b2-9bee-048836cfadff",
+          "nombre": "Encuestas generales Alumno(a)  (Concentrador)"
+        },
+        {
+          "id": "local:a70eed59-ff87-4d08-adfa-cbea76b53168",
+          "nombre": "Encuestas personal administrativo SPCOA"
+        },
+        {
+          "id": "local:f0944a53-2336-4f75-9dcd-f239a540d263",
+          "nombre": "Entrega Recepción Contraloría General"
+        },
+        {
+          "id": "local:36b86365-ee39-4b56-89e3-88c4fa8c24b4",
+          "nombre": "Escuelas Incorporadas"
+        },
+        {
+          "id": "local:501fb3ef-3525-43fa-8ba3-0cb4b72f6c47",
+          "nombre": "Estructura Organizacional"
+        },
+        {
+          "id": "local:e084488e-bf57-4037-888e-d4cfb304bb92",
+          "nombre": "Estímulos"
+        },
+        {
+          "id": "local:250ed0ab-9eb8-403b-a3ff-676878deb2cd",
+          "nombre": "Estímulos Consulta Contraloría General"
+        },
+        {
+          "id": "local:564e1416-7cbd-4503-816f-2856c0334817",
+          "nombre": "Evaluacion programa de Trabajo Social"
+        },
+        {
+          "id": "local:0213177f-5e1d-4701-8f3c-da507dc3769c",
+          "nombre": "Evaluación Estímulos Empleados"
+        },
+        {
+          "id": "local:e39cf7ad-7fdd-4988-b831-7f76d200e4f2",
+          "nombre": "Evaluación FAI"
+        },
+        {
+          "id": "local:31edad4c-fbff-4dec-8d14-21a8bb5c4cd7",
+          "nombre": "Evento Anual de la AAPT-MX"
+        },
+        {
+          "id": "local:5ac7aa50-451f-497a-8e0c-b55d88b4643f",
+          "nombre": "Evento Los Ángeles Azules -Registro para boletos"
+        },
+        {
+          "id": "local:d85b5472-497a-4ad0-abf2-7a503acf792e",
+          "nombre": "Evento Los Ángeles Azules- Contador de asistentes"
+        },
+        {
+          "id": "local:ecd5025f-4b95-44c1-92b3-894f2bff70d6",
+          "nombre": "Facturación Prácticas Profesionales"
+        },
+        {
+          "id": "local:1500f9b5-3d42-429d-868f-a40b63a6818d",
+          "nombre": "Generación automática de horarios de los cursos CAI"
+        },
+        {
+          "id": "local:aba058bf-d8ac-415c-876d-bf87f3809d29",
+          "nombre": "Gestión Integral de Documentos"
+        },
+        {
+          "id": "local:78899ae6-05e9-4b98-9472-f05b1feeb212",
+          "nombre": "Gestión de Cursos en Línea"
+        },
+        {
+          "id": "local:3129bfd6-4a59-4c53-972b-0f4534295a98",
+          "nombre": "Indicadores de la DGDCDC (Módulo en Registro de Eventos)"
+        },
+        {
+          "id": "local:793de1e7-8e5b-483f-ac2f-d326564fcef0",
+          "nombre": "Inscripciones Bellas Artes"
+        },
+        {
+          "id": "local:f42c4622-06f8-4871-8a6b-fa56fe53747d",
+          "nombre": "Inscripciones On Site"
+        },
+        {
+          "id": "local:abbab63a-9cff-448f-b2e0-170a83614874",
+          "nombre": "Inscripciones en línea"
+        },
+        {
+          "id": "local:ce9c638f-b0d1-4821-89fa-2e15f9c94c10",
+          "nombre": "Lenguas Extranjeras - Captura de Calificaciones"
+        },
+        {
+          "id": "local:71196a0c-9957-4e60-b321-d67e25e6b67a",
+          "nombre": "Lenguas Extranjeras - Inscripción"
+        },
+        {
+          "id": "local:0d30f342-95f5-44be-bbf2-1496a3fd1213",
+          "nombre": "Mi Salud UACJ"
+        },
+        {
+          "id": "local:1c93c5ae-c7c9-42d2-b41c-d5b8dc4283b7",
+          "nombre": "Modificación de correo alterno del empleado"
+        },
+        {
+          "id": "local:78442c70-2dc5-46c3-8cfe-61b3a307e97b",
+          "nombre": "Monitor de Servicios Médicos"
+        },
+        {
+          "id": "local:3154dad0-48b4-4ff2-97dd-84d4d0124a22",
+          "nombre": "Movilidad - Administrador"
+        },
+        {
+          "id": "local:b47b0351-c255-4867-bb94-da6b18fe76fa",
+          "nombre": "Movilidad -Registro Alumnos"
+        },
+        {
+          "id": "local:4245a639-7453-4c5e-a37c-cdfa946e9c15",
+          "nombre": "Movilidad- Registro Visitantes"
+        },
+        {
+          "id": "local:2278b3c5-7c63-427b-b6b5-4f45876b7473",
+          "nombre": "Nueva Cedula capacidad academica comision evaluadora"
+        },
+        {
+          "id": "local:2a835b01-11b3-4140-8ed9-165cf5fd15a8",
+          "nombre": "Nueva cedula de capacidad academica"
+        },
+        {
+          "id": "local:36b96c6e-f7fe-4c1f-8277-c9bd6dcb6718",
+          "nombre": "Ordenes de servicio comunicacion universitaria"
+        },
+        {
+          "id": "local:72e99686-1613-44c4-aed0-656ee259b5b7",
+          "nombre": "Pagos Prácticas Profesionales"
+        },
+        {
+          "id": "local:ad490053-ae95-478f-ac6e-f682a4a4d3b9",
+          "nombre": "Planes de trabajo docente (sin uso)"
+        },
+        {
+          "id": "local:b933dd27-fc2c-4fbc-911e-25e66ed2bb54",
+          "nombre": "Portal Declaración de Situación Patrimonial"
+        },
+        {
+          "id": "local:f4296f0d-ca71-4fac-93f8-72eca998459f",
+          "nombre": "Portal Transparencia Universitaria"
+        },
+        {
+          "id": "local:205dfe96-e211-466f-83cf-9850bb1867d6",
+          "nombre": "Portal de Academias ICSA"
+        },
+        {
+          "id": "local:9bd4d48a-61d0-4726-a897-f546a5c2f119",
+          "nombre": "Portal de Academias ICSA / Coordinador de Academia"
+        },
+        {
+          "id": "local:6db1e014-ec6d-4317-9421-dc8efa8d369e",
+          "nombre": "Portal de Academias ICSA / Corodinador de Programa"
+        },
+        {
+          "id": "local:c6589e98-0277-4ed2-96e9-f6b48f439eb5",
+          "nombre": "Portal de Academias ICSA / Jefe de departamento"
+        },
+        {
+          "id": "local:1352c6d3-7864-4579-b869-f850db506bdd",
+          "nombre": "Portal de Academias ICSA / Miembro Academia"
+        },
+        {
+          "id": "local:bd2313bb-4652-45a2-b026-e053e207bb7a",
+          "nombre": "Portal de Instructores de Artes y oficios"
+        },
+        {
+          "id": "local:791a5544-d013-4717-a37d-56856d919109",
+          "nombre": "Portal de Servicios para alumnos(as) de baja"
+        },
+        {
+          "id": "local:0adb4ae6-a1d4-4a71-9aba-f7ec347b5285",
+          "nombre": "Portal de encuesta de egresados del posgrado"
+        },
+        {
+          "id": "local:5ba640f7-4b02-4a28-89b2-9acfd427afac",
+          "nombre": "Portal de indiobus para proveedor"
+        },
+        {
+          "id": "local:5f809a9d-0b7f-43c0-8c70-69280099ebef",
+          "nombre": "Practicas Profesionales portal anterior"
+        },
+        {
+          "id": "local:fa20a0c3-c33b-4fcb-810a-f7dd8d020972",
+          "nombre": "Pre registro de Posgrado (admisión)"
+        },
+        {
+          "id": "local:87c254f4-9797-4b5f-ae47-21ea7ed362c4",
+          "nombre": "Pre-registro voto electrónico"
+        },
+        {
+          "id": "local:77ac2561-6e9c-4415-80a3-e710b02a28d2",
+          "nombre": "Prácticas Profesionales"
+        },
+        {
+          "id": "local:1b75b2c7-1e16-449f-9a0c-881c83573051",
+          "nombre": "Página para voto electrónico"
+        },
+        {
+          "id": "local:1c0bd62e-e2e8-4c2d-8f16-cd6fcad06f43",
+          "nombre": "Recuperación contraseña alumno(a)"
+        },
+        {
+          "id": "local:252ad8df-141f-47aa-b6e4-e410fe6b4671",
+          "nombre": "Recuperación de contraseña empleado(a)"
+        },
+        {
+          "id": "local:365a5720-630d-44d8-922e-670970fc073f",
+          "nombre": "Registro Carrera UACJ Alumnos"
+        },
+        {
+          "id": "local:c5cdef32-9b1e-440e-8768-3c59a9098789",
+          "nombre": "Registro Carrera UACJ Empleados"
+        },
+        {
+          "id": "local:ed3764dd-a088-4b6f-974b-f36289e8d009",
+          "nombre": "Registro Convocatoria PROMEP"
+        },
+        {
+          "id": "local:a7c9c1cc-e5c1-4e9d-af2e-3934c4361a23",
+          "nombre": "Registro Internacionalizacion"
+        },
+        {
+          "id": "local:c6440c82-fef6-45af-b8df-545dbb8d3ef2",
+          "nombre": "Registro Paseo Ciclista Alumnos"
+        },
+        {
+          "id": "local:e7574a71-6bf3-47ab-a07d-0754eec72805",
+          "nombre": "Registro Paseo Ciclista Empleados"
+        },
+        {
+          "id": "local:2e0fb6f5-290f-45e5-b931-bba573147d71",
+          "nombre": "Registro Paseo Ciclista Usuarios Externos"
+        },
+        {
+          "id": "local:6829bc83-6328-468a-b739-f50e15d2824d",
+          "nombre": "Registro Proyecto UNAM - UACJ"
+        },
+        {
+          "id": "local:d2601ffc-3b93-4094-b81d-837d7fceeb58",
+          "nombre": "Registro Remoto de Asistencia Administrativa"
+        },
+        {
+          "id": "local:c038b348-c635-4cb7-a71a-80d7a9e856f6",
+          "nombre": "Registro de Asistencia TEAMS de docentes y  alumnos(as)"
+        },
+        {
+          "id": "local:b61c5172-0ff9-4704-81de-2cba920eb766",
+          "nombre": "Registro de Cursos Externos de Docentes"
+        },
+        {
+          "id": "local:92010c40-edef-4c1f-a7ab-0a56cf990a2d",
+          "nombre": "Registro de Preparatorias"
+        },
+        {
+          "id": "local:e79c8b04-45c6-4396-b752-48625bd38f97",
+          "nombre": "Registro de eventos"
+        },
+        {
+          "id": "local:cb1c3153-75f0-4c6c-8497-ef12e1e028dd",
+          "nombre": "Registro tutorías estimulos"
+        },
+        {
+          "id": "local:ffb983fd-5c2a-49f7-a780-136ecd7d109f",
+          "nombre": "Registro y seguimiento de eventos culturales"
+        },
+        {
+          "id": "local:82865400-11b4-499b-96ca-a58830d77238",
+          "nombre": "Registro y seguimiento de planes de auditoría - Contraloría General"
+        },
+        {
+          "id": "local:416a002a-a865-4417-af05-a781b6967a0d",
+          "nombre": "Responsabilidad social universitaria"
+        },
+        {
+          "id": "local:5d649ff9-1e73-4827-b825-c8c06428b0b4",
+          "nombre": "Responsabilidad social universitaria - consulta"
+        },
+        {
+          "id": "local:963707f5-0467-45b3-891d-769fe0d79b00",
+          "nombre": "SGC - Administración Sistema de Gestión de la Calidad"
+        },
+        {
+          "id": "local:aeaf88d6-54a4-45f0-a00e-4e941a18c245",
+          "nombre": "SGC - Sistema de Gestión de la Calidad (Usuario)"
+        },
+        {
+          "id": "local:dcc1cccf-744d-44c4-8f2e-c81d5e20c427",
+          "nombre": "SGC -Modificación de formatos"
+        },
+        {
+          "id": "local:2f3301a9-4a78-4225-868f-383d642e5349",
+          "nombre": "Sabáticos"
+        },
+        {
+          "id": "local:4873fb55-803f-4993-a06c-693eca88a135",
+          "nombre": "Seguimiento a clases"
+        },
+        {
+          "id": "local:29870124-5665-42ba-a47e-dc1f2a15f2d2",
+          "nombre": "Seguridad Vehicular"
+        },
+        {
+          "id": "local:cdfad4d4-8532-4866-ba97-4409ef6e2cb7",
+          "nombre": "Servicio Social"
+        },
+        {
+          "id": "local:15b7d578-b7d2-4370-b45f-6604d3acb552",
+          "nombre": "Servicio social - consulta"
+        },
+        {
+          "id": "local:eaa59498-e950-4bed-aa46-fb9d19c482e1",
+          "nombre": "Sistema de Registro de Movilidad Estudiantil"
+        },
+        {
+          "id": "local:d817ea38-083a-4b09-a7e0-147f2c729a8c",
+          "nombre": "Sistema Único de Diseño Curricular (SUDIC) versión 2"
+        },
+        {
+          "id": "local:2e23dc64-a1eb-4492-b43b-0fb27a463f00",
+          "nombre": "Solicitud de Credencial Física Alumnos"
+        },
+        {
+          "id": "local:b07cc585-795e-4a38-b40b-2522d3eeb9e9",
+          "nombre": "Solicitud de Credencial de Egresados"
+        },
+        {
+          "id": "local:032712c6-a2e2-44e2-95e7-019d3a10b022",
+          "nombre": "Solicitudes de reconocimientos"
+        },
+        {
+          "id": "local:65f516a5-be31-4c85-8654-890bf673fe16",
+          "nombre": "Tienda UACJ"
+        },
+        {
+          "id": "local:b96d643d-cf79-4f61-b2c9-22b46b4b91a6",
+          "nombre": "Titulación - pago en línea de título"
+        },
+        {
+          "id": "local:50f9fba4-bd7f-4fe6-8c32-a2c81e62d00e",
+          "nombre": "Tramite de credencial"
+        },
+        {
+          "id": "local:67096c00-8452-4bcf-91cc-e9956141e61e",
+          "nombre": "Transporte"
+        },
+        {
+          "id": "local:64caa196-5353-4010-ae8b-0b9cbd6c9dc6",
+          "nombre": "Tu Información en línea /  Bono Cultural"
+        },
+        {
+          "id": "local:e9b576ce-cabf-4915-af83-9371333fc658",
+          "nombre": "Tu Información en línea / Solicitud de acreditación SATCA"
+        },
+        {
+          "id": "local:c639b43f-53b1-40b2-86cb-b8db3417a75c",
+          "nombre": "Tu Información en línea/ EGEL"
+        },
+        {
+          "id": "local:5345a69d-ce29-487e-83a9-72627bdd8e19",
+          "nombre": "Tu Información en línea/Registro de asistencia alumnos deportistas"
+        },
+        {
+          "id": "local:fc8de1b3-0e4c-4f63-9490-9dbce806b6aa",
+          "nombre": "Tu Información en línea/Solicitud de acreditación por examen único y proyecto."
+        },
+        {
+          "id": "local:2596e902-058f-4bc4-9ee4-5bbf15ef917d",
+          "nombre": "Tu información en línea (Concentrador)"
+        },
+        {
+          "id": "local:661beb09-73fb-4745-b2ba-6a656e53dda6",
+          "nombre": "Tu información en línea/Beca Socioeconómica"
+        },
+        {
+          "id": "local:e1cf478d-ce34-4d6d-9ec8-d250c77ffe8c",
+          "nombre": "Tu información en línea/Censo Población"
+        },
+        {
+          "id": "local:3e97bf6b-c36b-43e5-a0d3-0b1f253447fd",
+          "nombre": "Tu información en línea/Citas Titulación Oportuna"
+        },
+        {
+          "id": "local:9034d3c1-bd5b-4567-aed2-78e2265c8da6",
+          "nombre": "Tu información en línea/Citas Titulación Ordinaria"
+        },
+        {
+          "id": "local:9e9800b0-52fa-4d47-aa7a-43c776bd77b1",
+          "nombre": "Tu información en línea/Datos académicos"
+        },
+        {
+          "id": "local:0d1fc6bf-4a54-4b7c-af1f-5fd3d1cf2e5e",
+          "nombre": "Tu información en línea/Descarga documentos académicos"
+        },
+        {
+          "id": "local:570b596d-0fa9-4473-b52c-787181cf14e7",
+          "nombre": "Tu información en línea/Dirección de tesis de Posgrados - Alumnos"
+        },
+        {
+          "id": "local:e16b8d0e-cd32-4e4c-a12f-1cd1637185bf",
+          "nombre": "Tu información en línea/Encuestas tutorías alumnos"
+        },
+        {
+          "id": "local:61b3d7d5-5632-46ea-83ef-2b4f9fd42b84",
+          "nombre": "Tu información en línea/Evaluación docente"
+        },
+        {
+          "id": "local:01270575-ef36-4ca5-b37a-2a98ffb5303b",
+          "nombre": "Tu información en línea/Exámenes extraordinarios"
+        },
+        {
+          "id": "local:b6684e43-ebd0-440d-9930-42534893e15d",
+          "nombre": "Tu información en línea/Inscripciones para programa Médico Cirujano, Enfermería General y Odontología"
+        },
+        {
+          "id": "local:2c082868-9f44-41f5-b79f-906f1bec4061",
+          "nombre": "Tu información en línea/Registro becas"
+        },
+        {
+          "id": "local:170c75ea-b2ef-409c-8605-5410beee6f9d",
+          "nombre": "Tu información en línea/Registro de alumnos para Congreso de programa de odontologia"
+        },
+        {
+          "id": "local:fd39e97e-a71e-4857-bf9c-df952b42e0f5",
+          "nombre": "Tu información en línea/Registro servicio social"
+        },
+        {
+          "id": "local:e9096066-53d4-48c3-b172-03dad0c685ce",
+          "nombre": "Tu información en línea/Seguimiento Práctica Trabajo Social"
+        },
+        {
+          "id": "local:8d825a87-2f54-465e-a690-2b6d196552da",
+          "nombre": "Tu información en línea/Simulador  Cambio de Plan 14 Programa Medico Cirujano"
+        },
+        {
+          "id": "local:28e4d981-e1d5-4ffa-bf73-11ecf3a1f635",
+          "nombre": "Tu información en línea/Simulador Cambio de Plan 14 Trabajo Social"
+        },
+        {
+          "id": "local:faa15dd0-bc55-4db4-a910-3afa3ccc5919",
+          "nombre": "Tu información en línea/Titulación en línea"
+        },
+        {
+          "id": "local:5abd48ee-c1ac-429b-91f5-7acddb61d2d8",
+          "nombre": "Tu información en línea/Tutorias - Alumno"
+        },
+        {
+          "id": "local:5e9f600a-933b-456b-8f00-75bd87da6a5b",
+          "nombre": "Tutorías -Docente"
+        },
+        {
+          "id": "local:72d93805-484e-4bad-8e33-f31145019d6b",
+          "nombre": "Uniejercítate"
+        },
+        {
+          "id": "local:36485bf8-faa0-4527-9f86-97b958030a04",
+          "nombre": "Uso de Vehiculos - Contraloria"
+        },
+        {
+          "id": "local:5ea33922-78e4-4ae8-ad1f-a2a335e1fa59",
+          "nombre": "Verificación de Información Perfiles de usuario"
+        },
+        {
+          "id": "local:e24390f6-5ca3-4df4-88eb-ea3b7ff6ae6d",
+          "nombre": "Verificación de QR Certificados"
+        },
+        {
+          "id": "local:1a8f70fe-ee0c-4abe-8691-a4eab02c436b",
+          "nombre": "Verificación de datos docentes"
+        }
+      ]
+    },
+    {
+      "categoria": "moviles",
+      "archivo": "Aplicaciones Móviles 141026.xlsx",
+      "sha256": "86d86125fecb227ef28c4f9115c23a04ee9351bda1d5ba2d9ea2734a0e33edbb",
+      "esperadas": 26,
+      "aplicaciones": [
+        {
+          "id": "local:46913b80-61db-4610-bf42-e05186d3f7a7",
+          "nombre": "App Egresados"
+        },
+        {
+          "id": "local:b7d83b3c-63d4-41f0-b35a-c6328d1af521",
+          "nombre": "Aspirantes UACJ.actualización"
+        },
+        {
+          "id": "local:4444b1e2-4967-47d7-a8fd-27ff91d8e8a4",
+          "nombre": "AspirantesUACJ"
+        },
+        {
+          "id": "local:66723d83-054c-4b47-9422-febc4a407aa9",
+          "nombre": "CastUACJ"
+        },
+        {
+          "id": "local:7b3ed736-6120-44bd-9d93-0e5571f25b8f",
+          "nombre": "Conecta UACJ. EnlaceDocentes en linea"
+        },
+        {
+          "id": "local:9e8eab92-59eb-4046-9568-873998d02485",
+          "nombre": "Conecta UACJ.actualización"
+        },
+        {
+          "id": "local:87d83418-a120-4415-86d2-44a6b48ca27c",
+          "nombre": "ConectaUACJ. Mis Pendientes"
+        },
+        {
+          "id": "local:1838a424-fe58-46e9-834f-e51107e47d13",
+          "nombre": "ConectaUACJ.Administrador"
+        },
+        {
+          "id": "local:8e2b6435-fdfd-41f8-aa9d-73668807c3a1",
+          "nombre": "ConectaUACJ.Asesoría Psicológica"
+        },
+        {
+          "id": "local:3bd0a4c1-6913-4657-a213-9864da1e4a8f",
+          "nombre": "ConectaUACJ.Asistencia"
+        },
+        {
+          "id": "local:4dac80c5-0d7d-4e6c-bf36-407058252310",
+          "nombre": "ConectaUACJ.Ayuda"
+        },
+        {
+          "id": "local:07ff586b-cfe7-45a9-90bf-4a2a6d5859cc",
+          "nombre": "ConectaUACJ.Credencial Alumnos"
+        },
+        {
+          "id": "local:848763e4-fac3-493b-a140-d2940600f494",
+          "nombre": "ConectaUACJ.Credencial Empleados"
+        },
+        {
+          "id": "local:ff3ccf5c-6406-49b8-aed6-ffbfadd8325e",
+          "nombre": "ConectaUACJ.EnlaceCalendario"
+        },
+        {
+          "id": "local:ba77d582-63dd-4d88-8287-581c09798b84",
+          "nombre": "ConectaUACJ.EnlaceCampus virtual"
+        },
+        {
+          "id": "local:9362a2a6-ab3b-4a2a-8df1-b0665cc6ab3b",
+          "nombre": "ConectaUACJ.EnlaceTu Información en línea"
+        },
+        {
+          "id": "local:cde85d77-73ef-498b-9939-24ca13767926",
+          "nombre": "ConectaUACJ.Evaluación docente"
+        },
+        {
+          "id": "local:0c35c1c4-ddc4-43aa-9c53-dbce74f157a6",
+          "nombre": "ConectaUACJ.Eventos"
+        },
+        {
+          "id": "local:04b380ff-605b-4e94-b02b-e264149228dd",
+          "nombre": "ConectaUACJ.Indicadores Institucionales"
+        },
+        {
+          "id": "local:9f33ffbb-e77f-421c-9d1f-36fe33bb01ce",
+          "nombre": "ConectaUACJ.Indio bus"
+        },
+        {
+          "id": "local:f8ae7b08-f2aa-40a6-a8e3-5a02d6158ca5",
+          "nombre": "ConectaUACJ.Mis Archivos"
+        },
+        {
+          "id": "local:f8bd2dd2-38c5-462b-babe-86393bcfb0d5",
+          "nombre": "ConectaUACJ.Tutorías (Alumno)"
+        },
+        {
+          "id": "local:5663dd6b-c395-471e-9ff8-eba441e192ff",
+          "nombre": "ConectaUACJ.Tutorías (Tutor)"
+        },
+        {
+          "id": "local:87395abd-f4af-4bb2-9a8b-e8503effe216",
+          "nombre": "ExcobaUACJ"
+        },
+        {
+          "id": "local:38ec16fa-1679-423e-a525-662cb875cd9f",
+          "nombre": "Registro de eventos"
+        },
+        {
+          "id": "local:ecea5284-6152-46ae-806a-dd833cc7697f",
+          "nombre": "Registro de eventos.ayuda"
+        }
+      ]
+    }
+  ],
+  "extraccion": [
+    {
+      "categoria": "web",
+      "archivo": "Aplicaciones Web 141026.xlsx",
+      "filasVaciasOmitidas": 0,
+      "validas": 207,
+      "incidencias": []
+    },
+    {
+      "categoria": "moviles",
+      "archivo": "Aplicaciones Móviles 141026.xlsx",
+      "filasVaciasOmitidas": 0,
+      "validas": 26,
+      "incidencias": []
+    }
+  ]
+}

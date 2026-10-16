@@ -12,10 +12,11 @@ export type StageReview = {
     secciones: { id: string; nombre: string; completa: boolean }[];
     resumen: { procedimientos: number; herramientas: number; medios: string[] };
 };
-export default function FormSubmissionReview({ delivery, area, canSubmit, settled, submitting, busy, autosave, onNavigate, onSubmit, saveAction }: {
+export default function FormSubmissionReview({ delivery, area, canSubmit, settled, submitting, busy, autosave, onNavigate, onSubmit, saveAction, canCapture, preparingCapture }: {
     delivery: StageReview | null; area: string; canSubmit: boolean; settled: boolean; submitting: boolean; busy: boolean; autosave: string;
     onNavigate: (pending: FormPending) => void; onSubmit: () => void;
     saveAction?: ReactNode;
+    canCapture: boolean; preparingCapture: string | null;
 }) {
     const stage = delivery?.etapa, review = delivery?.revision;
     const submitted = stage?.estado === 'enviada', legacy = stage?.estado === 'historico';
@@ -54,12 +55,18 @@ export default function FormSubmissionReview({ delivery, area, canSubmit, settle
                 {!!review?.pendientes.length && <>
                     <Typography sx={{ fontWeight: 600 }}>Pendientes</Typography>
                     <Box component="ul" sx={{ p: 0, my: 1, listStyle: 'none' }}>
-                        {review.pendientes.map((item, index) => <Box component="li" key={`${item.bloque}:${item.campo}`}
+                        {review.pendientes.map((item, index) => {
+                            const addRecord = item.bloque.startsWith('cobertura:') && delivery.cobertura?.some(p =>
+                                p.id === item.bloque.slice('cobertura:'.length) && p.destino.bloque === item.bloque);
+                            return <Box component="li" key={`${item.bloque}:${item.campo}`}
                             data-pending-block={item.bloque} data-pending-field={item.campo}
                             sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
                             <Typography id={`${pendingId}-${index}`} variant="body2" sx={{ flex: '1 1 280px', overflowWrap: 'anywhere' }}>{item.mensaje}</Typography>
-                            <Button aria-describedby={`${pendingId}-${index}`} endIcon={<ArrowForward />} onClick={() => onNavigate(item)} sx={{ flexShrink: 0 }}>Ir al campo</Button>
-                        </Box>)}
+                            <Button aria-describedby={`${pendingId}-${index}`} endIcon={<ArrowForward />}
+                                disabled={preparingCapture !== null || !!addRecord && !canCapture}
+                                onClick={() => onNavigate(item)} sx={{ flexShrink: 0 }}>{addRecord ? 'Agregar registro' : 'Ir al campo'}</Button>
+                        </Box>;
+                        })}
                     </Box>
                 </>}
                 <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>

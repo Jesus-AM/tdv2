@@ -66,6 +66,8 @@ public static class FormRequirements
                     Add("uso", "¿Para qué se usa?", SystemAnswers.Uses.Contains(row["uso"]?.ToString()));
                     Add("estado", "¿Cómo funciona?", SystemAnswers.States.Contains(row["estado"]?.ToString()));
                     if (row["sistema"]?.ToString() == "sii_v2") Add(SystemModules.Field, "Módulos de SIIv2", SystemAnswers.Filled(row, "sistema"));
+                    if (SystemApplications.ForTool(row["sistema"]?.ToString()) is { } applicationKind)
+                        Add(applicationKind.Field, applicationKind.Label, SystemApplications.Complete(row, applicationKind));
                     if (row["sistema"]?.ToString() == "otra") Add("sistemaOtro", "Nombre de la herramienta", SystemAnswers.ValidText(row, "sistemaOtro"));
                     if (row["uso"]?.ToString() == "otro") Add("usoOtro", "Describe el uso", SystemAnswers.ValidText(row, "usoOtro"));
                 }

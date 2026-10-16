@@ -10,6 +10,8 @@ namespace Tdv2.Synchronization;
 public sealed record UnitInventory(string State, IReadOnlyList<JsonObject> Rows, string? Notice);
 public sealed record LocalSiiModule(string id, string descripcion);
 public sealed record LocalSiiModules(string estado, IReadOnlyList<LocalSiiModule> modulos);
+public sealed record LocalApplication(string id, string descripcion, string catalogo);
+public sealed record LocalApplications(string estado, IReadOnlyList<LocalApplication> aplicaciones);
 /// <summary>Consulta únicamente las réplicas de TDV2; una página jamás conecta SII o ILDA.</summary>
 public interface ILocalCatalog
 {
@@ -22,9 +24,32 @@ public interface ILocalCatalog
     }
     Task<DateTimeOffset?> LastSii(CancellationToken ct);
     Task<LocalSiiModules> SiiModules(CancellationToken ct) => Task.FromResult(new LocalSiiModules("pendiente", []));
+    Task<LocalApplications> Applications(ApplicationKind kind, CancellationToken ct) => Task.FromResult(new LocalApplications("pendiente", []));
 }
 public sealed class LocalCatalog(Tdv2DbContext db, ILogger<LocalCatalog> logger) : ILocalCatalog
 {
+    public async Task<LocalApplications> Applications(ApplicationKind kind, CancellationToken ct)
+    {
+        try
+        {
+            await db.Database.OpenConnectionAsync(ct);
+            var sql = new SyncSql((NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction?)db.Database.CurrentTransaction?.GetDbTransaction());
+            if (await ApplicationCatalogSchema.Inspect(sql, kind, ct) is { } issue)
+            {
+                logger.LogWarning("Esquema de catálogo local: {Catalog}, {Code}", kind.Key, issue.codigo);
+                return new("error", []);
+            }
+            // Sólo ID y nombre salen hacia el formulario; no expone responsables, URL ni otros datos de réplica.
+            var snapshot = await sql.Object("SELECT json_build_object('sincronizado',EXISTS(SELECT 1 FROM public.aplicaciones_importaciones WHERE categoria=$1),'aplicaciones',coalesce((SELECT json_agg(json_build_object('id',id,'descripcion',nombre,'catalogo',categoria)) FROM public.aplicaciones_catalogo WHERE categoria=$1 AND disponible),'[]'::json))::text", ct, kind.Key);
+            var rows = snapshot["aplicaciones"]!.AsArray().Select(r => new LocalApplication(r!["id"]!.ToString(), r["descripcion"]?.ToString() ?? "", kind.Key)).ToArray();
+            return new(snapshot["sincronizado"]!.GetValue<bool>() ? "disponible" : "pendiente", rows);
+        }
+        catch (Exception error) when (error is not OperationCanceledException)
+        {
+            logger.LogWarning("Catálogo de aplicaciones no disponible: {Catalog}, tipo {Type}", kind.Key, error.GetType().Name);
+            return new("error", []);
+        }
+    }
     public async Task<LocalSiiModules> SiiModules(CancellationToken ct)
     {
         try

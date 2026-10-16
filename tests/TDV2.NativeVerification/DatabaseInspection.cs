@@ -86,18 +86,24 @@ internal static class DatabaseInspection
             var migrations = applied.Length == 0 ? [] : applied.Split(',');
             var known = db.Database.GetMigrations().ToArray();
             // También reconoce el punto de partida de esta actualización, sin adoptar tablas desconocidas.
-            var priorTables = expected.Except(new[] { "formato_bloques", "formato_operaciones", "formato_posiciones", "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }).ToArray();
+            var beforeLists = expected.Except(new[] { "aplicaciones_catalogo", "aplicaciones_importaciones" }).ToArray();
+            var beforeApplications = beforeLists.Except(new[] { "sii_aplicaciones_moviles", "sii_aplicaciones_web" }).ToArray();
+            var priorTables = beforeApplications.Except(new[] { "formato_bloques", "formato_operaciones", "formato_posiciones", "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }).ToArray();
             var previousVersion = migrations.SequenceEqual(known.Take(2)) && tables.SequenceEqual(priorTables);
             var previousCapture = migrations.SequenceEqual(known.Take(3));
             var previousPresence = migrations.SequenceEqual(known.Take(4));
             var previousPhotographs = migrations.SequenceEqual(known.Take(5)) || migrations.SequenceEqual(known.Take(6));
             var previousModules = migrations.SequenceEqual(known.Take(7)) || migrations.SequenceEqual(known.Take(8));
             var previousStages = migrations.SequenceEqual(known.Take(9));
+            var previousApplications = migrations.SequenceEqual(known.Take(10));
+            var previousLists = migrations.SequenceEqual(known.Take(11));
             var recognized = tables.SequenceEqual(expected) || previousVersion
-                || previousCapture && tables.SequenceEqual(expected.Except(new[] { "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
-                || (previousPresence || previousPhotographs) && tables.SequenceEqual(expected.Except(new[] { "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
-                || previousModules && tables.SequenceEqual(expected.Except(new[] { "sii_modulos", "formato_envios_etapas" }))
-                || previousStages && tables.SequenceEqual(expected.Except(new[] { "formato_envios_etapas" }));
+                || previousCapture && tables.SequenceEqual(beforeApplications.Except(new[] { "configuracion_procesos", "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
+                || (previousPresence || previousPhotographs) && tables.SequenceEqual(beforeApplications.Except(new[] { "formato_exclusiones_ilda", "sii_modulos", "formato_envios_etapas" }))
+                || previousModules && tables.SequenceEqual(beforeApplications.Except(new[] { "sii_modulos", "formato_envios_etapas" }))
+                || previousStages && tables.SequenceEqual(beforeApplications.Except(new[] { "formato_envios_etapas" }))
+                || previousApplications && tables.SequenceEqual(beforeApplications)
+                || previousLists && tables.SequenceEqual(beforeLists);
             var counts = new Dictionary<string, long>();
             if (recognized)
             {
@@ -145,7 +151,7 @@ internal static class DatabaseInspection
                     OR (c.relname='formato_envios_etapas' AND p.proname='proteger_envio_etapa'))
                 """))!;
             var valid = empty || recognized && otherObjects == 0 && paused
-                && (previousVersion || (previousCapture || previousPresence || previousPhotographs || previousModules || previousStages || migrations.SequenceEqual(known) && stageProtection) && protection);
+                && (previousVersion || (previousCapture || previousPresence || previousPhotographs || previousModules || previousStages || (previousApplications || previousLists || migrations.SequenceEqual(known)) && stageProtection) && protection);
             var report = new { utc = DateTimeOffset.UtcNow, readOnly = true, target, address, tls, permissionsVerified = true,
                 serverVersion = await Scalar(connection, "SHOW server_version"), empty, recognized, tables, counts, otherObjects,
                 applied = migrations, pending = known.Except(migrations).ToArray(), submissionProtection = protection,

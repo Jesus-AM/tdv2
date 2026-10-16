@@ -7,15 +7,21 @@ const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarg
 const { catalogAttempt, processedCount, sqlServerAttempt } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 const run = changes => ({ id: 'a', fuentes: 'sii', estado: 'ejecutando', etapa: 'sii', resultado: {}, ...changes });
 
-test('SQL Server sólo completa con ambos catálogos confirmados y no mezcla éxitos de intentos distintos', () => {
-    const success = run({ id: 'old', estado: 'completada', terminada_en: '2026-10-08T12:00:00Z', resultado: { sii: { estado: 'completada' }, sii_modulos: { estado: 'completada' } } });
+test('SQL Server sólo completa con UR y módulos confirmados y no mezcla éxitos de intentos distintos', () => {
+    const success = run({ id: 'old', estado: 'completada', terminada_en: '2026-10-08T12:00:00Z', resultado: { sii: { estado: 'completada' }, sii_modulos: { estado: 'completada' }, sii_moviles: { estado: 'completada' }, sii_web: { estado: 'completada' } } });
     const partial = run({ estado: 'parcial', resultado: { sii: { estado: 'completada' }, sii_modulos: { estado: 'fallida' } } });
-    const failure = run({ estado: 'fallida', resultado: { sii: { estado: 'fallida' }, sii_modulos: { estado: 'fallida' } } });
+    const failure = run({ estado: 'fallida', resultado: { sii: { estado: 'fallida' }, sii_modulos: { estado: 'fallida' }, sii_moviles: { estado: 'fallida' }, sii_web: { estado: 'fallida' } } });
     assert.deepEqual(sqlServerAttempt([success], null), { state: 'completada', lastSuccess: success.terminada_en });
     assert.deepEqual(sqlServerAttempt([partial, success], null), { state: 'parcial', lastSuccess: success.terminada_en });
     assert.deepEqual(sqlServerAttempt([failure, success], null), { state: 'fallida', lastSuccess: success.terminada_en });
     assert.equal(sqlServerAttempt([partial, run({ estado: 'parcial', resultado: { sii: { estado: 'fallida' }, sii_modulos: { estado: 'completada' } } })], null).lastSuccess, null);
     assert.equal(sqlServerAttempt([run({ resultado: { sii: { estado: 'completada' } } })], 'a').state, 'ejecutando');
+    const oldSuccess = run({ estado: 'completada', resultado: { sii: { estado: 'completada' }, sii_modulos: { estado: 'completada' } } });
+    assert.deepEqual(sqlServerAttempt([oldSuccess], null), { state: 'completada', lastSuccess: null });
+    for (const catalog of ['sii_moviles', 'sii_web']) {
+        const result = structuredClone(success); result.estado = 'parcial'; result.resultado[catalog] = { estado: 'fallida' };
+        assert.deepEqual(sqlServerAttempt([result, success], null), { state: 'completada', lastSuccess: success.terminada_en });
+    }
 });
 test('UR en curso y módulos esperando; ILDA conserva su último intento independiente', () => {
     const history = [run({}), run({ id: 'i', fuentes: 'ilda', estado: 'completada', resultado: { ilda: { estado: 'completada', resumen: { registros: 5 } } } })];

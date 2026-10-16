@@ -76,7 +76,7 @@ internal static class SystemCatalogTests
             Check(publisher.Validate("sii_modulos", [Module("1"), Module("1")]).Rows.Count == 1);
             Check(publisher.Validate("sii_modulos", [Module("1"), Module("2")]).Rows.Count == 2);
         });
-        Test("SII manual y automático expanden los dos catálogos independientemente de ILDA", () =>
+        Test("SII manual y automático incluyen UR y módulos independientemente de ILDA", () =>
         {
             Check(SyncCoordinator.Catalogs("sii").SequenceEqual(["sii", "sii_modulos"]));
             Check(SyncCoordinator.Catalogs("ambas").SequenceEqual(["sii", "sii_modulos", "ilda"]));

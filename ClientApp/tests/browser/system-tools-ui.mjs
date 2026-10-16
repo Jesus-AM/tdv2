@@ -63,7 +63,7 @@ try {
         await page.getByRole('option', { name: 'Consultas', exact: true }).nth(1).click(); await finish(page);
         assert.equal(fixture.content.sistemas[0].modulosSii[0].id, '3'); await page.reload(); await systems(page);
         await expect(row(page).locator('.sii-module-value')).toHaveText('Consultas');
-        await expect(choice(page, 'Módulos de SIIv2')).toHaveAccessibleDescription('Selecciona uno o varios módulos utilizados para este procedimiento.');
+        await expect(choice(page, 'Módulos de SIIv2')).toHaveAccessibleDescription('Consultas');
         await module.click(); await expect(row(page)).toHaveAttribute('data-edit-state', 'owned'); await module.press('ArrowDown');
         await expect(page.getByRole('option', { name: 'Consultas', exact: true }).nth(0)).toHaveAttribute('aria-selected', 'false');
         await expect(page.getByRole('option', { name: 'Consultas', exact: true }).nth(1)).toHaveAttribute('aria-selected', 'true');
@@ -232,7 +232,7 @@ try {
                     await expect(group.getByText(message, { exact: true })).toBeVisible();
                     await typography(group, true);
                     const description = await detail.getAttribute('aria-describedby'); assert.ok(description);
-                    await expect(detail).toHaveAccessibleDescription(message);
+                    await expect(detail).toHaveAccessibleDescription(item.field === 'modulosSii' ? `${message} ${longModule}` : message);
                     assert.equal(fixture.requests.filter(r => r.path.endsWith('/liberar')).length, releases);
                     await detail.focus();
                     // Mostrar el inicio del grupo junto a Edición durante la revisión visual del scroll.
@@ -271,7 +271,8 @@ try {
                     await group.locator('.MuiAutocomplete-clearIndicator').click();
                     await page.keyboard.press('Escape');
                 } else await detail.fill('');
-                await principal.focus(); await typography(group, false);
+                // Módulos mantiene la etiqueta flotante para mostrar «Selecciona módulos» aun vacío.
+                await principal.focus(); await typography(group, !!item.module);
                 await page.keyboard.press('Tab'); await expect(detail).toBeFocused(); await typography(group, true);
                 const tableWidth = await page.locator('.systems-table').evaluate(el => el.getBoundingClientRect().width);
                 const releases = fixture.requests.filter(r => r.path.endsWith('/liberar')).length;
@@ -285,7 +286,7 @@ try {
                     assert.ok(optionLayout.content <= optionLayout.height + 1 && optionLayout.contentWidth <= optionLayout.width + 1);
                     await detail.press('ArrowDown'); await detail.press('Enter');
                     await expect(group.locator('.sii-module-value')).toHaveText(longModule); await expect(detail).toBeFocused();
-                    await expect(detail).toHaveAccessibleDescription('Selecciona uno o varios módulos utilizados para este procedimiento.');
+                    await expect(detail).toHaveAccessibleDescription(longModule);
                     const layout = await group.evaluate(el => {
                         const value = el.querySelector('.sii-module-value'), arrow = el.querySelector('.MuiAutocomplete-endAdornment');
                         const bounds = value.getBoundingClientRect(), control = el.querySelector('.MuiInputBase-root').getBoundingClientRect();

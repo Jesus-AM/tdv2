@@ -4,7 +4,7 @@ namespace Tdv2.Domain;
 
 public static class SystemAnswers
 {
-    public static readonly string[] Tools = ["sii_v2", "portal_cast", "excel", "correo", "formulario", "papel", "otra"];
+    public static readonly string[] Tools = ["sii_v2", "aplicaciones_moviles", "aplicaciones_web", "portal_cast", "excel", "correo", "formulario", "papel", "otra"];
     // CAST sigue siendo una respuesta histórica válida; ya no permite nuevas asignaciones.
     public static readonly string[] SelectableTools = Tools.Where(tool => tool != "portal_cast").ToArray();
     public static readonly string[] Uses = ["registrar", "agendar", "consultar", "seguimiento", "avisos", "reportes", "autorizar", "otro"];
@@ -12,7 +12,8 @@ public static class SystemAnswers
     public static readonly string[] Details = ["sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion"];
     public static string ToolLabel(JsonNode? row) => row?["sistema"]?.ToString() switch
     {
-        "sii_v2" => "SIIv2", "portal_cast" => "Portal del CAST de uso de técnicos", "excel" => "Hoja de cálculo (Excel)",
+        "sii_v2" => "SIIv2", "aplicaciones_moviles" => "Aplicaciones móviles", "aplicaciones_web" => "Aplicaciones Web",
+        "portal_cast" => "Portal del CAST de uso de técnicos", "excel" => "Hoja de cálculo (Excel)",
         "correo" => "Correo electrónico institucional", "formulario" => "Formulario en línea", "papel" => "Formato impreso (papel)",
         "otra" => string.IsNullOrWhiteSpace(row?["sistemaOtro"]?.ToString()) ? "Otra herramienta" : row!["sistemaOtro"]!.ToString(),
         null or "" => "Registro sin completar", var historical => historical
@@ -22,6 +23,7 @@ public static class SystemAnswers
         return field switch
         {
             "sistema" when row?[field]?.ToString() == "sii_v2" => SystemModules.Complete(row),
+            "sistema" when SystemApplications.ForTool(row?[field]?.ToString()) is { } kind => SystemApplications.Complete(row, kind),
             "sistema" when row?[field]?.ToString() == "otra" => ValidText(row, "sistemaOtro"),
             "uso" when row?[field]?.ToString() == "otro" => ValidText(row, "usoOtro"),
             "sistema" => Tools.Contains(row?[field]?.ToString()),

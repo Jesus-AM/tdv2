@@ -363,6 +363,7 @@ internal static partial class NativeTests
         RegisterParticipationCases(database, Test);
         RegisterSyncCases(database, Test);
         RegisterManualSyncCases(database, Test);
+        RegisterApplicationCatalogCases(database, Test);
         RegisterEditingCases(database, Test);
         RegisterFirstStageCases(database, Test);
         RegisterProcedureValidationCases(database, Test);

@@ -46,11 +46,10 @@ import PrioritySelect from '@/Components/PrioritySelect';
 import ProcedureFieldHelp from '@/Components/ProcedureFieldHelp';
 import CaptureTableScroll from '@/Components/CaptureTableScroll';
 import { focusCaptureField } from '@/lib/capture-focus';
-import SystemField, { type ModuleCatalog } from '@/Components/SystemField';
+import SystemField, { applicationFields, type ApplicationCatalog, type ModuleCatalog } from '@/Components/SystemField';
 import IdentificationInstructions from '@/Components/IdentificationInstructions';
 import RemoveRowDialog from '@/Components/RemoveRowDialog';
 import FormSubmissionReview from '@/Components/FormSubmissionReview';
-import ProcedureCoverageList from '@/Components/ProcedureCoverageList';
 import ProcedureSelect from '@/Components/ProcedureSelect';
 import RowEditingActions from '@/Components/RowEditingActions';
 import RowEditingPresence from '@/Components/RowEditingPresence';
@@ -128,6 +127,20 @@ export default function FormatoUR(props: Props) {
 function Editor(props: Props) {
     const { props: shared } = usePage();
     const [modules, setModules] = useState<ModuleCatalog>({ estado: 'cargando', modulos: [] });
+    const [applications, setApplications] = useState<{ moviles: ApplicationCatalog; web: ApplicationCatalog }>({
+        moviles: { estado: 'cargando', aplicaciones: [] }, web: { estado: 'cargando', aplicaciones: [] },
+    });
+    useEffect(() => {
+        const abort = new AbortController();
+        for (const kind of ['moviles', 'web'] as const) {
+            setApplications(current => ({ ...current, [kind]: { estado: 'cargando', aplicaciones: [] } }));
+            void axios.get(`${props.guardarUrl}/aplicaciones/${kind}`, { signal: abort.signal, timeout: 15000 }).then(({ data }: { data: ApplicationCatalog }) => {
+                const rows = data.aplicaciones.sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es', { sensitivity: 'base', numeric: true }) || a.id.localeCompare(b.id, 'es', { numeric: true }));
+                setApplications(current => ({ ...current, [kind]: { estado: data.estado, aplicaciones: rows } }));
+            }).catch(() => { if (!abort.signal.aborted) setApplications(current => ({ ...current, [kind]: { estado: 'error', aplicaciones: [] } })); });
+        }
+        return () => abort.abort();
+    }, [props.guardarUrl, shared.contextoEdicion]);
     useEffect(() => {
         const abort = new AbortController();
         setModules({ estado: 'cargando', modulos: [] });
@@ -425,14 +438,13 @@ function Editor(props: Props) {
     async function navigatePending(pending: FormPending) {
         if (!visibleTabs.some(([key]) => key === pending.seccion)) return;
         // Termina el guardado/liberación anterior antes de enfocar y reservar el destino.
-        await engine.flush(true); setActive(pending.seccion); engine.setSection(pending.seccion);
+        if (!await engine.flush(true)) return;
+        setActive(pending.seccion); engine.setSection(pending.seccion);
         if (pending.bloque.startsWith('cobertura:')) {
             const procedureId = pending.bloque.slice('cobertura:'.length);
             const coverage = engine.state.delivery?.cobertura?.find(p => p.id === procedureId);
             if (coverage && coverage.destino.bloque !== pending.bloque) return navigatePending(coverage.destino);
-            requestAnimationFrame(() => requestAnimationFrame(() => focusCaptureField(
-                Array.from(document.querySelectorAll<HTMLElement>('[data-coverage-action]')).find(e => e.dataset.coverageAction === procedureId))));
-            return;
+            return captureProcedure(procedureId);
         }
         if (pending.seccion === 'evaluacion') setEvalCode(pending.bloque.split(':')[1]);
         requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -452,7 +464,11 @@ function Editor(props: Props) {
         try {
             if (!await engine.flush(true) || !await engine.refresh()) return;
             const procedure = engine.state.procedures.find(p => p.id === procedureId);
-            if (!procedure) return;
+            if (!procedure) {
+                // La disponibilidad puede cambiar mientras se consulta la revisión.
+                await navigatePending({ seccion: 'identificacion', bloque: 'identificacion:' + procedureId, campo: 'tramite', mensaje: '' });
+                return;
+            }
             const existing = engine.state.content.sistemas.find(r => r.proceso === procedure.codigo);
             if (existing) { await navigatePending({ seccion: 'sistemas', bloque: 'sistemas:' + existing.id, campo: 'sistema', mensaje: '' }); return; }
             if (engine.state.content.sistemas.length >= 200) { setNotice('Se alcanzó el límite de registros. Revisa las herramientas existentes.'); return; }
@@ -555,7 +571,7 @@ function Editor(props: Props) {
                         </TableHead>
                         <TableBody>
                             {rows.map((r, i) => (
-                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
+                                <CaptureRow key={r.id} dependencies={[r, i, locked, state.initialized, state.saving, removingRow, sending, state.preparing.includes(`${section}:${r.id}`), state.issues[`${section}:${r.id}`], state.validation[`${section}:${r.id}`], modules, applications, engine.canEdit(`${section}:${r.id}`), engine.busy(`${section}:${r.id}`), JSON.stringify(state.blocks[`${section}:${r.id}`]?.reserva), openSelect?.key === `${section}:${r.id}` ? openSelect : null, c.identificacion, state.procedures]} render={() => <TableRow {...blockEvents(`${section}:${r.id}`)}>
                                     {section === 'sistemas' && <RowEditingPresence engine={engine} state={state} blockKey={`${section}:${r.id}`} />}
                                     {fields.map((f) => (
                                         <TableCell key={f.key}>
@@ -566,10 +582,11 @@ function Editor(props: Props) {
                                                     error={state.validation[`sistemas:${r.id}`]?.proceso} events={autocompleteEvents(`sistemas:${r.id}`, 'proceso')}
                                                     onChange={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row.proceso = value; })} />
                                                 : section === 'sistemas' && (f.key === 'sistema' || f.key === 'uso' || f.key === 'estado')
-                                                ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules}
+                                                ? <SystemField row={r as SystemRow} field={f.key} index={i} catalog={modules} applications={applications}
                                                     errors={state.validation[`sistemas:${r.id}`]} readOnly={locked || !engine.canEdit(`sistemas:${r.id}`)}
                                                     events={name => selectEvents(`sistemas:${r.id}`, name)}
-                                                    moduleEvents={autocompleteEvents(`sistemas:${r.id}`, 'modulosSii')}
+                                                    catalogEvents={field => autocompleteEvents(`sistemas:${r.id}`, field)}
+                                                    changeApplications={(kind, values) => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => { row[applicationFields[kind]] = values; })}
                                                     changeModules={value => engine.changeBlock<SystemRow>(`sistemas:${r.id}`, row => {
                                                         row.modulosSii = value;
                                                         row.moduloSiiId = ''; row.moduloSiiDescripcion = '';
@@ -771,9 +788,6 @@ function Editor(props: Props) {
                     Registra una herramienta por fila. Puedes agregar varias filas para el mismo procedimiento, cada una con su propio uso y funcionamiento.
                 </Typography>
                 {procedureOptions.length === 0 && <Typography variant="body2" sx={{ mb: 2 }}>Completa y valida los procedimientos en Identificación general para seleccionarlos aquí</Typography>}
-                <ProcedureCoverageList items={delivery?.cobertura || []} pendingSave={state.dirty || state.saving} readOnly={locked} preparing={preparingCapture}
-                    onCapture={id => void captureProcedure(id)} onNavigate={item => void navigatePending(locked && !item.registros
-                        ? { seccion: 'identificacion', bloque: 'identificacion:' + item.id, campo: 'tramite', mensaje: '' } : item.destino)} />
                 {table('sistemas', [
                     { key: 'proceso', label: 'Procedimiento', options: procedureOptions, wide: true },
                     { key: 'sistema', label: 'Sistema o herramienta' },
@@ -821,7 +835,8 @@ function Editor(props: Props) {
         ),
         revision: () => <FormSubmissionReview delivery={delivery} area={`${displayUnitCode(props.unidad.cve_ur)} · ${props.unidad.desc_ur}`}
             canSubmit={state.canSubmit} settled={settled} busy={otherEditing} autosave={autosave}
-            submitting={sending} saveAction={saveAction} onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
+            submitting={sending} saveAction={saveAction} canCapture={!locked} preparingCapture={preparingCapture}
+            onNavigate={navigatePending} onSubmit={() => void reviewForSubmission()} />,
         datos: () => (
             <>
                 <Typography variant="h2" sx={{ mb: 2 }}>

@@ -26,7 +26,9 @@ El promedio de Inicio no cambia: `floor(sum(porcentajes individuales) / N)` sobr
 
 ## Presentación y retiro
 
-Sistemas lista todos los procedimientos reales, código/nombre completo, condición de captura y acción. Es una proyección del servidor: no crea filas para mostrar pendientes. «Capturar herramientas» crea una fila sólo por intención explícita, con código confirmado; si ya hay captura, localiza la fila existente. «Ir al campo» enfoca la acción o el campo pendiente. Preparación visible y coordinación con Guardar/Enviar evitan una confirmación prematura durante el alta dirigida. La cobertura indica cuándo corresponde al último guardado, sin reemplazar escritura ni foco.
+**Ajuste posterior de presentación, 2026-10-14:** se retira de Sistemas el bloque «Procedimientos y captura de herramientas». La tabla, sus acciones, Medios y el desplazamiento independiente se conservan. La evaluación y la cobertura del servidor no cambian.
+
+Los pendientes de **Revisar y enviar** identifican código/nombre completo y campo. **Agregar registro** abre Sistemas y crea una fila sólo por esta intención explícita, con el código confirmado; revalida la disponibilidad y evita duplicar una fila ya existente. **Ir al campo** localiza/enfoca el control de una fila incompleta. Si el procedimiento dejó de estar disponible durante la consulta, lleva a Identificación. Se espera el guardado antes de navegar y se conserva su error si falla. Preparar el alta mantiene Guardar/Enviar deshabilitados hasta terminar. No se crean filas para mostrar pendientes.
 
 La confirmación MUI informa el número de herramientas/datos que perderán asociación. Conserva respuestas y facilita reasignación en Sistemas. El backend mantiene `FormRemoval.Changes`, reserva conjunta, versiones y comparación del plan vigente; cambios relacionados rechazan el plan obsoleto. Renombrar conserva código y relaciones.
 
@@ -72,6 +74,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Test-NativePostgres.
 
 Backend: `Domain/FormRequirements.cs`, `FormDocument.cs` (nuevo), `FormSchema.cs`, `FormStages.cs`, `Infrastructure/PostgresFormStore.cs`, `Services/FormEditingService.cs`.
 
-Frontend: `Components/ProcedureCoverageList.tsx` (nuevo), `FormSubmissionReview.tsx`, `RemoveRowDialog.tsx`, `pages/FormatoUR.tsx`, `types/tdv2.ts`.
+Frontend inicial: `Components/ProcedureCoverageList.tsx` (retirado en el ajuste de presentación posterior), `FormSubmissionReview.tsx`, `RemoveRowDialog.tsx`, `pages/FormatoUR.tsx`, `types/tdv2.ts`.
 
 Pruebas: `TDV2.Verification/CaptureProgressTests.cs`, `EntryPoint.cs`; `TDV2.NativeVerification/FormIntegrityTests.cs` (nuevo), `NativeTests.cs`, `NativeApplication.cs`; `ClientApp/tests/browser/procedure-coverage-native.mjs` (nuevo). Se conservan los cambios locales anteriores de módulos múltiples y su regresión.

@@ -1,3 +1,15 @@
+# Actualización 2026-10-15 — Aplicaciones desde listas versionadas
+
+Origen exclusivo Excel (207 web/26 móviles), manifiesto versionado, importación PostgreSQL explícita e idempotente, correspondencias exactas y UUID estables. Migración **20261015165555_LocalApplicationLists**, sin modificar anteriores ni formatos. SQL Server sólo UR/módulos; auditoría histórica retenida, ILDA independiente. Selectores y validación existentes conservados. [Implementación, pruebas y operación](APLICACIONES_LISTAS.md); [evidencia vigente](../../ESTADO_MIGRACION.md). Las entradas anteriores de aplicaciones SQL Server describen una implementación retirada.
+
+# Actualización 2026-10-14 — Aplicaciones móviles y web
+
+Entidades, mapeo y **20261014180408_SiiApplicationsCatalog** completados con tipos/nulos confirmados; IDs originales sin generación, padre web sin FK. Sincronización SQL Server de cuatro catálogos con resultados/transacciones independientes, ILDA aparte. Multiselección compacta, JSON discriminado e históricos; un requisito condicional. TypeScript/Vite/.NET, 114 dominio/HTTP con dobles, 88 frontend, 52 casos de sincronización y 12 de edición/concurrencia PostgreSQL, 59 comprobaciones EF y 11 recorridos Edge con ASP.NET/PostgreSQL correctos; 12 grupos UI complementarios con transporte simulado. La migración se aplica sólo en aislamiento; pendiente actualización del operador y validación institucional. [Archivos, evidencia, compatibilidad y comandos](APLICACIONES_SQL_SERVER.md).
+
+# Actualización 2026-10-14 — Sistemas compacto y pendientes en revisión
+
+Retirado el bloque de cobertura de Sistemas; sus pendientes conservan Ir al campo/Agregar registro en Revisar y enviar. Selector Módulos compacto: placeholder, un nombre completo o cantidad; búsqueda/casillas, reservas y autoguardado conservados. Sin cambios de backend ni migración. Verificados tipos/Vite, 88 pruebas frontend, 46 grupos Edge simulados y 12 recorridos con ASP.NET/PostgreSQL aislado. Dispositivos físicos/lector de pantalla e institucional pendientes. [Implementación, archivos y evidencia](SISTEMAS_HERRAMIENTAS.md#resumen-compacto-y-pendientes--2026-10-14).
+
 # Actualización 2026-10-14 — Cobertura y guardado
 
 Cobertura por procedimiento aplicable, herramientas completas, pendientes navegables y rechazo del envío API. Retiro informa cantidad y conserva respuestas para reasignación. Versión JSON compatible, sin backfill ni migración. Verificados 108 casos de dominio/HTTP, 88 frontend, 10 casos nativos distintos y 5 recorridos Edge con PostgreSQL real. [Implementación, fórmula, archivos y límites](COBERTURA_Y_GUARDADO.md). Los cambios locales anteriores se conservan.

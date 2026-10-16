@@ -25,7 +25,7 @@ public sealed class FormSchema
     private static readonly Dictionary<string, string[]> Fields = new()
     {
         ["identificacion"] = ["id", "codigo", "prioridad", "fuente", "area", "tramite", "usuario", "resultado", "responsable", "validacion"],
-        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion", SystemModules.Field],
+        ["sistemas"] = ["id", "proceso", "sistema", "uso", "estado", "fallas", "sistemaOtro", "usoOtro", "moduloSiiId", "moduloSiiDescripcion", SystemModules.Field, ..SystemApplications.Fields],
         ["datos"] = ["id", "proceso", "dato", "fuente", "origen", "detalle"],
         ["acuerdos"] = ["id", "acuerdo", "responsable", "fecha"]
     };
@@ -49,7 +49,7 @@ public sealed class FormSchema
         };
         foreach (var (section, fields) in Fields)
         {
-            var row = new JsonObject(fields.Where(f => f != SystemModules.Field).Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
+            var row = new JsonObject(fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f)).Select(f => KeyValuePair.Create<string, JsonNode?>(f, JsonValue.Create(f == "id" ? "inicial" : f == "fuente" && section == "identificacion" ? "Nuevo" : ""))));
             if (section == "identificacion") row["usuario"] = new JsonArray();
             result[section] = new JsonArray(row);
         }
@@ -113,7 +113,7 @@ public sealed class FormSchema
                 if (section == "identificacion" && row.ContainsKey("usuarioOtro"))
                     throw FieldError(key, "usuario", "El catálogo de ¿A quién atiende? cambió. Actualiza el formato antes de guardar.");
                 Object(row, fields);
-                foreach (var field in fields.Where(f => f != SystemModules.Field)) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
+                foreach (var field in fields.Where(f => f != SystemModules.Field && !SystemApplications.Fields.Contains(f))) clean[field] = At<JsonNode?>(key, field, () => section == "identificacion" && field == "usuario"
                     ? Users(row[field]) : section == "sistemas" && SystemAnswers.Details.Contains(field) && !row.ContainsKey(field)
                     ? JsonValue.Create("") : JsonValue.Create(Text(row, field, field == "id" ? 64 : 4000)));
                 if (section == "sistemas")
@@ -126,6 +126,13 @@ public sealed class FormSchema
                     // Un cliente antiguo no puede borrar la colección al guardar otro campo.
                     else if (before is JsonObject prior && prior.ContainsKey(SystemModules.Field))
                         clean[SystemModules.Field] = prior[SystemModules.Field]?.DeepClone();
+                    foreach (var kind in SystemApplications.Kinds)
+                    {
+                        if (row.ContainsKey(kind.Field)) clean[kind.Field] = before is JsonObject priorRow && priorRow.ContainsKey(kind.Field)
+                            && JsonNode.DeepEquals(row[kind.Field], before[kind.Field]) ? row[kind.Field]?.DeepClone()
+                            : SystemApplications.Normalize(row[kind.Field], key, kind);
+                        else if (before is JsonObject priorRow && priorRow.ContainsKey(kind.Field)) clean[kind.Field] = priorRow[kind.Field]?.DeepClone();
+                    }
                 }
                 normalized.Add(clean);
             }

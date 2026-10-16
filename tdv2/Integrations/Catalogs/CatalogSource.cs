@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using Tdv2.Synchronization;
+using Tdv2.Domain;
 namespace Tdv2.Integrations.Catalogs;
 
 public interface ISourceConnections { DbConnection Create(string source); }
@@ -14,9 +15,10 @@ public sealed class SourceConnections(IConfiguration configuration) : ISourceCon
 {
     public DbConnection Create(string source)
     {
-        var value = configuration.GetConnectionString(source is "sii" or "sii_modulos" ? "Sii" : "Ilda");
+        var sqlServer = source is "sii" or "sii_modulos";
+        var value = configuration.GetConnectionString(sqlServer ? "Sii" : "Ilda");
         if (string.IsNullOrWhiteSpace(value)) throw new SyncProblem("La conexión de origen no está configurada en el servidor.");
-        if (source is "sii" or "sii_modulos")
+        if (sqlServer)
         {
             var sql = new SqlConnectionStringBuilder(value) { ApplicationIntent = ApplicationIntent.ReadOnly, PersistSecurityInfo = false };
             return new SqlConnection(sql.ConnectionString);
@@ -49,7 +51,7 @@ public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncO
         if (source is not ("sii" or "sii_modulos" or "ilda")) throw new SyncProblem("Fuente no válida.");
         if (source == "ilda" && !settings.IldaEnabled) throw new SyncProblem("Configura y habilita la conexión ILDA en el servidor.");
         await using var connection = connections.Create(source); await connection.OpenAsync(ct);
-        if (source is "sii" or "sii_modulos")
+        if (source != "ilda")
         {
             await using var isolation = connection.CreateCommand(); isolation.CommandText = "SET TRANSACTION ISOLATION LEVEL READ COMMITTED";
             isolation.CommandTimeout = settings.CommandTimeoutSeconds; await isolation.ExecuteNonQueryAsync(ct);
@@ -60,8 +62,10 @@ public sealed class CatalogSource(ISourceConnections connections, IOptions<SyncO
         if (source == "ilda") { var limit = command.CreateParameter(); limit.ParameterName = "@limit"; limit.Value = settings.MaxRows + 1; command.Parameters.Add(limit); }
         await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, ct);
         var names = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToArray();
+        var required = source switch { "sii" => SiiColumns, "sii_modulos" => SiiModuleColumns,
+            _ => ["id", "ur2", "informacion_generada"] };
         if (names.Distinct(StringComparer.Ordinal).Count() != names.Length
-            || (source == "sii" ? SiiColumns.Select(n => n.ToUpperInvariant()) : source == "sii_modulos" ? SiiModuleColumns.Select(n => n.ToUpperInvariant()) : ["id", "ur2", "informacion_generada"]).Any(n => !names.Contains(n, StringComparer.Ordinal)))
+            || required.Select(n => source == "ilda" ? n : n.ToUpperInvariant()).Any(n => !names.Contains(n, StringComparer.Ordinal)))
             throw new SyncProblem("El origen no contiene las columnas requeridas o contiene columnas duplicadas.");
         var rows = new List<JsonObject>(); long bytes = 0;
         while (await reader.ReadAsync(ct))
