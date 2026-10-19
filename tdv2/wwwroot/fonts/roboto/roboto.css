@@ -1,0 +1,15 @@
+/* Sólo lo carga el shell interno; portal y quiz conservan Inter. */
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./RobotoVariable.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('./RobotoVariable-Italic.ttf') format('truetype');
+}

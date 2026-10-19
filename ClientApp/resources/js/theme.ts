@@ -34,6 +34,7 @@ export const theme = createTheme({
             styleOverrides: { root: { background: '#fff' } },
         },
         MuiFormControl: { defaultProps: { size: 'small' } },
+        MuiInputLabel: { styleOverrides: { root: { fontWeight: 500 } } },
         MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { outlined: { borderColor: '#e0e7f0' } } },
         MuiTableCell: {
             styleOverrides: {

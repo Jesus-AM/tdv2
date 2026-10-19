@@ -1,5 +1,89 @@
 # Presencia, catálogo, Acciones y colores públicos — 2026-10-16
 
+## Revisión vigente del portal — 2026-10-17
+
+**Ajuste posterior: enlaces sin subrayado.** En `Index.cshtml` se retiran los subrayados de navegación, accesos rápidos, correo y documentos; la regla común cubre normal, visitado, hover y foco. Se conservan iconos/flechas, destinos y geometría. El resaltado `#CFD6E8` y texto azul distinguen hover/foco, incluido ahora el correo; el contorno de teclado permanece azul sobre claro y blanco sobre Contacto. No cambian estilos internos ni recursos del quiz.
+
+Verificación nueva en `.artifacts/public-links-20261017/`: build Release de aplicación/verificador correcto (dos advertencias previas NU1902/NU1903); suite pública existente antes/después correcta en 1366/768/390/320 px, 316 elementos sin cambios de contenido/geometría/tipografía, y 16 recursos HTTP/TestServer correctos. Inspección adicional en Edge de 19 enlaces por ventana (1366/390/320), diez controles visibles en normal/hover/foco: sin subrayados, foco visible, resaltado y tamaño/posición estables; clic y Enter en anclas/documentos, comprobación posterior a la visita. La privacidad del navegador impide usar CSS calculado para demostrar el historial `:visited`; ese estado comparte expresamente la regla sin decoración. Activación real de `mailto:` interceptada sólo en la comprobación para no abrir un cliente de correo. Documentos conservan sus destinos `#` existentes. Capturas `before/after-asideside-*.png`, `contact-focus-*.png` y `link-observations.json`. Móvil emulado, sin bases ni OAuth; fotografía externa inaccesible como antes. No se repitió el recorrido del juego ni TypeScript: no cambian sus fuentes. Sin push, despliegue o migraciones.
+
+Se mejora únicamente el color, el acabado y la llegada a las anclas del portal público sobre los cambios locales existentes. **Contenido, orden, geometría y tipografía conservados**: todo el Razor después de `</style>` es idéntico al inicio de esta revisión, incluidos textos, preguntas/respuestas, nombres de botones, enlaces, SVG, imágenes y ramas de sesión. Inter, tamaños/pesos, jerarquía UACJ–Dirección–proyecto y compensación horizontal del logo permanecen. No cambian vistas internas, autenticación, colaboradores, captura ni el interior del quiz. Las decisiones anteriores sobre conservar exactamente el velo/sombras/hover quedan sustituidas sólo por el alcance de esta revisión.
+
+### Manual y colores
+
+Se abrió la versión actual de `C:\Users\Jesus Arenas\Documents\colores.pdf` mediante Windows PDF y se renderizaron sus seis páginas. Revisadas la paleta institucional (141), combinaciones (143) y complementarios (144–145). SHA-256: `1D99B0E50EDD3EAA3707121CF084BCF546A187017E90EB3E4C29A9BF94876E04`. Se usan los HEX escritos, con **#213455** como azul; no se reproduce la errata de la muestra 2026 de la página 144. No se utiliza amarillo.
+
+| Color | Uso vigente |
+|---|---|
+| `#213455` | Velo y respaldo del hero, centro del modelo, etiquetas de dimensiones, recuadros de los seis iconos, línea de las ocho fases, textos, bordes/foco y botones. Contacto, diagnóstico y pie conservan este azul. |
+| `#FFFFFF` | Navegación, El proyecto, cuerpos de tarjetas/respuestas; textos e iconos sobre azul. |
+| `#DADADA` | Separadores y superficies neutras existentes; degradado del modelo reducido a una capa al 18 % sobre blanco. |
+| `#CFD6E8` | Único complementario: encabezados de preguntas abiertas y resaltado de enlaces/botones al interactuar. Distingue estados sin convertirse en fondo general de secciones. |
+
+Se retira `#174187` del hover público: las interacciones utilizan azul institucional, blanco y el resaltado claro. No se añaden otros tonos. Las transparencias conservan el color primario como base, sin modificar su saturación.
+
+### Ajustes aplicados
+
+- **Hero:** fotografía/URL, posición y tamaño originales; velo de un solo azul con opacidades 96/92/90 % en las paradas existentes y respaldo azul si la foto no carga. Textos blancos opacos. No se modifican píxeles de imágenes.
+- **Modelo:** fondo casi blanco, sombras moderadas, cuerpos blancos con borde gris discreto, etiquetas azul/blanco y bloque central azul. Se conservan dimensiones y disposición. Se elimina la elevación de hover en tarjetas informativas.
+- **Ejes y ruta:** seis recuadros azul/blanco con SVG originales; tarjetas blancas sin elevación ni apariencia de botón. La línea usa azul institucional con sus mismos 2 px; círculos y ocho fases conservan tratamiento uniforme, sin estados inventados.
+- **Accesos y documentos:** fondo suave al interactuar y foco visible, sin subrayados conforme al ajuste posterior; se corrige el selector no coincidente `.panel .qa` sin activar las reglas de padding, display o tipografía que nunca se aplicaban. Contacto conserva blanco sobre azul en reposo y azul sobre resaltado al interactuar. Botones reconocibles y foco visible; se retiran desplazamientos de hover del botón y su flecha para evitar movimiento. No cambian dimensiones ni destinos.
+- **Preguntas:** encabezado abierto `#CFD6E8`, texto/indicador azul, cuerpo blanco. Foco interior para que no lo corte el contenedor. Se conserva `<details>`, incluido poder abrir varias preguntas.
+- **Anclas:** `public-navigation.js` mide la altura real de `.topbar` y la actualiza con `ResizeObserver`. CSS aplica `scroll-margin-top` con esa altura + 18 px a las secciones y paneles con ID. No intercepta clics, no cambia el historial, no ejecuta scroll programático ni mueve secciones. Se conserva el desplazamiento suave nativo y movimiento reducido. Fallback inicial de 67 px; la medición cubre encabezados móviles de varias filas y la variante autenticada.
+
+### Verificado ahora
+
+- TypeScript, sintaxis del nuevo JS y compilación .NET Release correctos. Persisten cuatro advertencias NuGet previas NU1902/NU1903 de Pkcs 9.0.18. No se necesita recompilar Vite para CSS de Razor y el nuevo archivo estático; no cambió el código productivo React/MUI.
+- `public-colors-ui.mjs before/after --surface-finish`: **316 elementos por ventana** en 1366×900, 768×1024, 390×844 y 320×800. Geometría, familia/tamaño/peso, espaciado, radios, contenido y enlaces idénticos; sólo se exceptúan las transiciones de hover expresamente retiradas. Sin desbordamiento horizontal. Inter web local confirmada por CDP.
+- **172 registros de comprobación**, incluidos **83 llegadas por anclas** (menú visible, accesos, enlaces directos, atrás/adelante), cuatro cabeceras con sesión sintética, estados hover/activo/foco y fuente real. Ejes queda visible; encabezado anónimo medido de 67 px en escritorio a 110.61 px en 320 px. Se comprueba también el desplazamiento suave normal, además de movimiento reducido.
+- Contraste conservador de textos a partir de colores calculados y transparencias: mínimo **8.55:1**, hero **9.22:1** incluso suponiendo fotografía blanca detrás. Etiquetas azul/blanco **12.44:1**; los trazos principales de los seis iconos usan la misma combinación. Se conservan los detalles decorativos de opacidad de los SVG originales.
+- Preguntas abiertas/cerradas, varias abiertas, teclado/foco, estados sin cambios de geometría, menú, accesos y correo; modelo, ejes, ruta, diagnóstico, participación, beneficios, preguntas y lateral capturados en las mismas ventanas/zonas antes y después.
+- **9/9 grupos del quiz** existentes: seis partidas completas de diez preguntas, cuatro resultados, ayuda, reinicio, cierre/Escape dentro/fuera del iframe y restitución de foco/desplazamiento. JS/CSS originales del juego verificados íntegros; Inter del quiz y Roboto interno realmente cargadas. El estilo público no entra en el iframe.
+- **16/16 recursos públicos** servidos anónimamente por ASP.NET/TestServer real, incluido el nuevo JS, con `DENY`/`nosniff` conservados. También se exportó la rama autenticada de Razor con identidad de prueba: se mantienen Ir a mi espacio, POST de cierre y navegación. No se ejecuta OAuth institucional.
+
+Incidencias del verificador corregidas: el fixture antiguo sólo servía assets/images/fonts y devolvía HTML por el JS público; ahora sirve también css/js/quiz locales. La comprobación de foco compara distribución, permitiendo el scroll nativo para llegar al control. Al cambiar de HTML anónimo a autenticado se fuerza documento nuevo, pues navegar al mismo hash no vuelve a solicitar HTML. No se modificó la aplicación para sortear estas expectativas.
+
+### Evidencia y límites
+
+Nueva carpeta **`.artifacts/public-finish-20261017/`**, sin sobrescribir evidencia anterior:
+
+- `public-{before,after}-{1366,768,390,320}.png` y `*-layout.json`: vista completa y geometría.
+- `{before,after}-{hero,que-es,modelo,ejes,ruta,diagnostico,participa,beneficios,asideside,preguntas}-{ancho}.png`: mismas zonas y ventanas. `*-faq-multiple-*` documenta varias preguntas abiertas.
+- `after-anchor-ejes-*`, `after-authenticated-ejes-*`: llegada de anclas con/sin sesión sintética.
+- `public-{before,after}-report.json`, `public-contrast-*.json`, `quiz-inter-after-report.json`, capturas del quiz, `http-assets.json`, `build.txt`, `types.txt`, `scope-audit.json` y `manual-1.png`…`manual-6.png`.
+
+**Limitación real:** la fotografía de `images.unsplash.com` no pudo descargarse, tanto en Edge como en la solicitud HTTP directa. Los dos pases comparten esa indisponibilidad; no se sustituyó ni se recoloreó el recurso. Logos y fuentes locales sí cargaron. Queda pendiente confirmar el acabado con la foto externa disponible; el contraste del velo se verificó contra extremos blanco/negro. No se afirma una comparación visual con la fotografía cargada.
+
+Edge real, tamaños/tacto emulados y pruebas en loopback. Razor se exporta desde ASP.NET/TestServer; las pruebas internas del quiz usan transporte simulado. Sin PostgreSQL/Nexo reales, dispositivos físicos, otros motores, lector de pantalla ni nueva prueba OAuth. Los enlaces de documentos conservan sus destinos `#` preexistentes, sin inventar documentos. No hay cambios de contratos, datos, migraciones, seguridad o permisos. Sin push, publicación ni despliegue. `RemoveUsedMedia` intacta; no se presume aplicada.
+
+### Archivos y reproducción
+
+Producción: `tdv2/Views/Home/Index.cshtml` y nuevo `tdv2/wwwroot/js/public-navigation.js`. Pruebas: `ClientApp/tests/browser/public-colors-ui.mjs`, `system-ui-fixture.mjs` y `tests/TDV2.Verification/PublicAssetsTests.cs`. Documentación: README, ESTADO_MIGRACION, INVENTARIO y este documento. Los restantes cambios pendientes de Git son previos y se conservan.
+
+Desde la raíz, con .NET 10, Node y Edge disponibles:
+
+```powershell
+npm.cmd --prefix ClientApp run types:check
+node --check tdv2/wwwroot/js/public-navigation.js
+dotnet build tdv2.slnx -c Release --no-restore -p:UseAppHost=false -p:NuGetAudit=false
+dotnet tests/TDV2.Verification/bin/Release/net10.0/TDV2.Verification.dll --export-public .artifacts/public-finish-20261017/public-after.html
+dotnet tests/TDV2.Verification/bin/Release/net10.0/TDV2.Verification.dll --verify-public-assets .artifacts/public-finish-20261017/http-assets.json
+Push-Location ClientApp
+$env:TDV2_VISUAL_ARTIFACTS='../.artifacts/public-finish-20261017'
+node tests/browser/public-colors-ui.mjs after --surface-finish
+node tests/browser/quiz-inter-ui.mjs after
+Pop-Location
+```
+
+El pase comparativo exige la referencia `before` exportada/capturada antes de editar; no restaura archivos. Para repetir sin sobrescribir esta evidencia, usar otra carpeta en `TDV2_VISUAL_ARTIFACTS`. En Ubuntu usar `npm` y `export TDV2_VISUAL_ARTIFACTS=...`; los demás comandos son equivalentes, pero esta ejecución fue Windows/Edge. El JS nuevo se incluye mediante el contenido estático `wwwroot` del paquete habitual; no requiere migración ni ejecución contra una base. Las evidencias y decisiones que siguen corresponden a entregas anteriores.
+
+## Actualización vigente: vistas internas y Roboto
+
+Por solicitud posterior, Procedimientos y Colaboradores recuperan su apariencia anterior al último ajuste: clave secundaria bajo el nombre, distribución, etiquetas, controles y espaciados previos. La única excepción visual es retirar Origen y sus textos en Colaboradores. Se conserva **Roboto, sans-serif** local dentro del sistema. El portal y el quiz mantienen **Inter**, colores, jerarquía, logo y recursos intactos. No cambian Edición/Acciones ni la agrupación de captura. [Restauración selectiva, fuentes, reglas y evidencia nueva](VISTAS_PROCEDIMIENTOS_COLABORADORES.md#restauración-visual-vigente).
+
+## Entrega anterior: Inter local y reto Microsoft 365
+
+En esa entrega se incorporó a portal, MUI y quiz **Inter 4.1 local**, variable 100–900, con licencia OFL, precarga y `font-display: swap`. Sustituye las familias descritas en las evidencias anteriores; los tamaños, colores, jerarquía y archivos de imágenes permanecen. La portada añade el botón del reto dentro de Diagnóstico y su diálogo/iframe público, con juego original sin recolorear. La reversión de delimitadores y los controles internos se conservan. Fuentes realmente renderizadas, antes/después, recorrido de diez preguntas, políticas, publicación y regresiones comprobados en aislamiento. [Estado, archivos, pruebas, capturas y límites](QUIZ_MICROSOFT_365_E_INTER.md).
+
 ## Actualización vigente: reversión de la delimitación y alineación UACJ conservada
 
 Por solicitud posterior se retiran sólo los últimos separadores interiores, celdas laterales vacías de los grupos y adaptación móvil de 68 px. Vuelven la apariencia y distribución anteriores, con las columnas fijas y la excepción previa de Edición hasta 600 px. Se conserva el botón de agregar dentro del grupo. La portada permanece intacta: jerarquía descrita abajo y desplazamiento horizontal -3.272 % del logotipo para compensar sus 96 px transparentes originales. Evidencia nueva interna en `.artifacts/columns-revert-20261016/`; la comparación pública de `.artifacts/fixed-columns-logo-20261016/` corresponde a la entrega anterior. [Alcance, pruebas y límites vigentes](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md#reversión-parcial-vigente).

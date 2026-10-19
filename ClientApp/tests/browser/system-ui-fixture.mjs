@@ -36,11 +36,11 @@ export async function systemFixture() {
         const url = new URL(req.url, 'http://127.0.0.1');
         const json = (value, status = 200) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(value)); };
         if (fixture.handleRequest && await fixture.handleRequest(req, url, json)) return;
-        if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/images/')) {
+        if (['/assets/', '/images/', '/fonts/', '/css/', '/js/', '/quiz/'].some(prefix => url.pathname.startsWith(prefix))) {
             const base = root;
             const file = path.resolve(base, '.' + url.pathname);
             if (!file.startsWith(base + path.sep)) { res.writeHead(404); return res.end(); }
-            res.setHeader('content-type', file.endsWith('.svg') ? 'image/svg+xml' : file.endsWith('.js') ? 'text/javascript' : 'text/css');
+            res.setHeader('content-type', file.endsWith('.woff2') ? 'font/woff2' : file.endsWith('.ttf') ? 'font/ttf' : file.endsWith('.png') ? 'image/png' : file.endsWith('.svg') ? 'image/svg+xml' : file.endsWith('.js') ? 'text/javascript' : file.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/css');
             try { return res.end(await readFile(file)); } catch { res.writeHead(404); return res.end(); }
         }
         if (url.pathname === '/form-events/negotiate') return json({ negotiateVersion: 1, connectionId: randomUUID(), connectionToken: randomUUID(), availableTransports: [{ transport: 'WebSockets', transferFormats: ['Text'] }] });

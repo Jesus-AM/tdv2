@@ -4,7 +4,7 @@ import { chromium, expect } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { systemFixture } from './system-ui-fixture.mjs';
-const fixture = await systemFixture(), output = path.resolve('../.artifacts/collaboration-actions-20261011');
+const fixture = await systemFixture(), output = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS || '../.artifacts/collaboration-actions-20261016');
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, hasTouch: true, reducedMotion: 'reduce' });
@@ -25,27 +25,27 @@ const assignments = [{ ...link, key: 'central:1:A3', id: null, origen: 'central'
     { ...link, key: 'aplicacion:2:A3', id: 2, origen: 'aplicacion', puedeRetirar: false },
     { ...link, key: 'aplicacion:3:A', id: 3, origen: 'aplicacion', puedeRetirar: true, tipo: 'dependencias', id_ur_alcance: 'A', ur_otorgante: 'A', alcance: '100 · Área principal' }];
 fixture.pages = { '/colaboradores': () => ({ component: 'Colaboradores', url: '/colaboradores', props: { ...common, unidades: [], tipos: [], avisoDelegacion: null,
-    avisoAsignaciones: 'Sólo se muestran asignaciones cuyo rol y área pueden comprobarse. Si faltan esos datos, no se presume alcance institucional.', colaboraciones: assignments } }) };
+    avisoAsignaciones: '', colaboraciones: assignments } }) };
 fixture.content.sistemas[0] = { ...fixture.content.sistemas[0], proceso: 'PO-01', sistema: 'excel', uso: 'consultar', estado: 'bien' };
 fixture.delivery = () => ({ etapa: { id: 1, nombre: 'Primera etapa', habilitada: true, estado: fixture.submitted ? 'enviada' : 'borrador', ejercicio: 2026, enviadoEn: fixture.submitted ? '2026-10-10T12:00:00Z' : null, enviadoPor: 'persona@example.test' },
     revision: { listo: true, pendientes: [] }, secciones: [{ id: 'contexto', nombre: 'Contexto', completa: true }, { id: 'identificacion', nombre: 'Identificación general', completa: true }, { id: 'sistemas', nombre: 'Sistemas y herramientas', completa: true }],
     resumen: { procedimientos: 3, herramientas: 1, medios: [] } });
 try {
-    await check('Colaboradores muestra Agregado por Administrador sin revelar el origen; conserva asignaciones y acciones', async () => {
+    await check('Colaboradores omite procedencia y conserva roles, asignaciones y acciones', async () => {
         await page.goto(fixture.origin + '/colaboradores');
         await expect(page.locator('[data-assignment]')).toHaveCount(3);
         const central = page.locator('[data-assignment="central:1:A3"]');
-        await expect(central.getByText('Agregado por Administrador', { exact: true })).toBeVisible();
+        await expect(central.getByText('Local', { exact: true })).toBeVisible();
         await expect(central).toContainText('Solo consulta.');
         await expect(central.getByRole('button')).toHaveCount(0);
-        await expect(page.locator('[data-assignment="aplicacion:2:A3"]')).toContainText('Origen: delegación en TDV2');
-        await expect(page.locator('[data-assignment="aplicacion:2:A3"]')).toContainText('El retiro corresponde al área que otorgó la asignación.');
-        const forbiddenOrigin = /nexo|origen central|externo|sincronizado/i;
+        await expect(page.locator('[data-assignment="aplicacion:2:A3"]')).toContainText('Local');
+        await expect(page.locator('[data-assignment="aplicacion:3:A"]')).toContainText('Áreas dependientes');
+        const forbiddenOrigin = /nexo|origen|externo|sincronizado|Agregado por Administrador|delegación en TDV2/i;
         assert.doesNotMatch(await page.locator('.page').innerText(), forbiddenOrigin);
         const accessibleText = await page.locator('.page').evaluate(el => [...el.querySelectorAll('[title], [aria-label]')]
             .map(item => [item.getAttribute('title'), item.getAttribute('aria-label')].join(' ')).join('\n'));
         assert.doesNotMatch(accessibleText, forbiddenOrigin);
-        await central.getByText('Agregado por Administrador', { exact: true }).hover();
+        await central.getByText('Local', { exact: true }).hover();
         await expect(page.getByRole('tooltip')).toHaveCount(0);
         await expect(page.locator('[data-assignment="aplicacion:2:A3"]').getByRole('button')).toHaveCount(0);
         const remove = page.locator('[data-assignment="aplicacion:3:A"]').getByRole('button');
@@ -56,7 +56,7 @@ try {
         await page.keyboard.press('Escape'); await picture('colaboradores-escritorio');
         for (const width of [390, 320]) {
             await page.setViewportSize({ width, height: 900 }); await noOverflow();
-            await central.getByText('Agregado por Administrador', { exact: true }).tap();
+            await central.getByText('Local', { exact: true }).tap();
             await expect(page.getByRole('tooltip')).toHaveCount(0);
             await picture('colaboradores-' + width);
         }

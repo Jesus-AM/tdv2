@@ -214,8 +214,7 @@ export default function Colaboradores({
                             />
                         </div>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 3 }}>
-                            Busca por nombre o correo entre el personal del área seleccionada y sus áreas dependientes.
-                            {Number(current?.nivel_ur) === 3 && ' La colaboración permite llenar únicamente el formato de esta área de nivel 3.'}
+                            Busca una persona por nombre o correo para agregarla como colaboradora.
                         </Typography>
                         <div className="split">
                             <section>
@@ -410,9 +409,6 @@ export default function Colaboradores({
                                         variant="outlined"
                                         sx={{ mt: 0.5 }}
                                     />
-                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: .5 }}>
-                                        {c.origen === 'central' ? 'Agregado por Administrador' : 'Origen: delegación en TDV2'}
-                                    </Typography>
                                     {c.revocada && <Chip label="Revocada" color="warning" sx={{ ml: 1 }} />}
                                     {c.pendiente && (
                                         <Typography variant="caption" color="warning.main" sx={{ display: 'block' }}>
@@ -429,7 +425,7 @@ export default function Colaboradores({
                                 >
                                     {c.pendiente ? 'Reintentar retiro' : 'Retirar'}
                                 </Button> : <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 200 }}>
-                                    Solo consulta.{c.origen !== 'central' && ' El retiro corresponde al área que otorgó la asignación.'}
+                                    Solo consulta.
                                 </Typography>}
                             </Box>
                         ))}
@@ -439,9 +435,6 @@ export default function Colaboradores({
                         <Typography variant="body2">Aún no hay colaboradores asignados.</Typography>
                     </div>
                 )}
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                    El acceso depende de que la autorización y la adscripción al área sigan vigentes.
-                </Typography>
                 {avisoAsignaciones && <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>{avisoAsignaciones}</Typography>}
             </div>
             <Dialog open={!!removing} onClose={() => !busy && setRemoving(null)}>

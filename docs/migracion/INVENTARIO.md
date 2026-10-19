@@ -1,3 +1,19 @@
+# Actualización vigente 2026-10-17 — Acabado del portal público
+
+Ajuste posterior: enlaces públicos sin subrayados en todos sus estados, resaltado suave y contorno de teclado conservados. Build y suite pública antes/después correctos en cuatro ventanas; clics/Enter, foco y móvil emulado revisados. Evidencia `.artifacts/public-links-20261017/`; sin cambios internos ni en el quiz.
+
+Cambios sólo en estilos de Razor y nuevo JS de medición de cabecera: azul institucional más presente, modelo claro, iconos/etiquetas azul–blanco, ruta y controles legibles, FAQ abierto claro y anclas nativas sin ocultar títulos. Contenido, geometría, Inter, logos, quiz y sistema interno conservados. Tipos/Release, comparación de 316 elementos en cuatro ventanas, 83 llegadas, nueve grupos del quiz y 16 recursos HTTP correctos. Fotografía externa inaccesible: pendiente inspección con foto cargada; logos/fuentes locales sí cargan. Sin datos, contratos ni migraciones. [Estado, archivos, evidencia y límites](AJUSTES_VISUALES_Y_PALETA_PUBLICA.md#revisión-vigente-del-portal--2026-10-17).
+
+# Actualización 2026-10-16 — Restauración de Procedimientos y Colaboradores
+
+Se retira el último ajuste visual de ambas vistas mediante hunks del diff: distribución, etiquetas, espacios, botones y clave secundaria originales. Colaboradores conserva exclusivamente la eliminación de Origen y sus textos; datos y reglas de ambos roles intactos. Se mantiene Roboto local en el sistema e Inter en portal/quiz, sin tocar la captura ni sus columnas. Tipos/Vite, 94 pruebas frontend, 116 de dominio/HTTP y 16 grupos de navegador correctos. Capturas nuevas en `.artifacts/views-revert-20261016/`; las de `.artifacts/views-20261016/` documentan el ajuste anterior. Sin cambios de base, contratos ni migraciones. [Estado vigente, fuentes, archivos, verificaciones y límites](VISTAS_PROCEDIMIENTOS_COLABORADORES.md#restauración-visual-vigente).
+
+# Entrega anterior 2026-10-16 — Quiz Microsoft 365 e Inter local
+
+La unificación interna en Inter descrita en esta evidencia queda sustituida por la recuperación de Roboto; el portal y el quiz se conservan.
+
+Diagnóstico público abre el HTML original en diálogo/iframe del mismo sitio, sin login ni persistencia; conserva preguntas, lógica, diseño y textos. Inter oficial variable 100–900 con OFL y respaldo visible en `wwwroot/fonts/inter` para portal/MUI/quiz. Sin CDN de fuentes ni cambios en seguridad, columnas, grupos, captura o migraciones. Tipos/Vite/Release, 94 frontend, once recursos HTTP reales de ASP.NET/TestServer, nueve grupos del quiz y 33 regresiones internas correctos; paquete construido y probado con sus estáticos en aislamiento. [Archivos, alcance, antes/después, límites y reproducción](QUIZ_MICROSOFT_365_E_INTER.md).
+
 # Actualización 2026-10-16 — Reversión visual de columnas
 
 Restaurada la apariencia anterior a la delimitación: fondos, sombras suaves, anchos, espaciado y grupos de una celda completa. Se conservan Edición/Acciones fijas con la excepción móvil previa para Edición, la acción de alta dentro del grupo y las acciones por registro. Portada, jerarquía y alineación UACJ sin cambios. Sólo tres archivos productivos internos, ajuste de pruebas y documentación; sin contratos, datos ni migraciones. [Estado vigente, verificación y alcance](COLUMNAS_FIJAS_Y_ALINEACION_UACJ.md#reversión-parcial-vigente).

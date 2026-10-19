@@ -28,8 +28,8 @@ public sealed class CollaboratorService(RequestAccess access, ICollaboratorAcces
         string? notice = null;
         if (roots.Count == 0)
         {
-            notice = admin && branch is null ? "No se pudo identificar tu rama de nivel 2. Revisa en Nexo tu número de empleado y un área de pertenencia única."
-                : admin && UnitDirectory.Employee(profile.User) != branch?.Employee ? "Tu cuenta es Administrador, pero no figura como encargada de esta área de nivel 2. El rol Administrador por sí solo no concede administración delegada."
+            notice = admin && branch is null ? "No se pudo identificar tu área principal. Revisa en Nexo tu número de empleado y un área de pertenencia única."
+                : admin && UnitDirectory.Employee(profile.User) != branch?.Employee ? "Tu cuenta es Administrador, pero no figura como encargada de esta área. El rol Administrador por sí solo no concede administración delegada."
                 : "Nexo no publicó una delegación válida para tu cuenta. Revisa los roles autorizados y la responsabilidad institucional.";
         }
         else if (kinds.Length == 0) notice = "No hay roles de colaborador habilitados para asignar en la administración delegada de Nexo.";
@@ -54,7 +54,7 @@ public sealed class CollaboratorService(RequestAccess access, ICollaboratorAcces
             ["colaboraciones"] = links,
             ["avisoAsignaciones"] = access.Selection?.Kind == "preview"
                 ? "La vista por rol y área no muestra asignaciones personales."
-                : "Sólo se muestran asignaciones cuyo rol y área pueden comprobarse. Si faltan esos datos, no se presume alcance institucional."
+                : ""
         }, profile);
     }
 

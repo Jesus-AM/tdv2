@@ -1,6 +1,10 @@
 # Distribución compacta de Procesos operativos — 2026-10-05
 
-## Implementado
+## Revisión vigente — 2026-10-16
+
+Se restaura la presentación previa al último ajuste: nombre principal, **CVE_UR en la línea secundaria** junto a cantidades/estado, sin duplicarlo arriba. Vuelven los tamaños, bordes, controles Expandir visibles/Contraer y botones anteriores. Se conservan Tu área, Formato del área principal, Áreas dependientes, cifras y cálculos. La clave vuelve a usar el auxiliar de presentación original; no se modifican el valor del catálogo ni sus ceros almacenados. Roboto local permanece; portal y quiz intactos. [Archivos, pruebas nuevas y capturas](VISTAS_PROCEDIMIENTOS_COLABORADORES.md#restauración-visual-vigente). La distribución descrita abajo vuelve a estar vigente; las medidas históricas no se presentan como una ejecución nueva.
+
+## Distribución conservada
 
 Se conservan la cabecera principal, el logo de 180/150 px, la separación de 32 px al menú, la navegación y las acciones de usuario. El título, descripción, Colaboradores y Actualizar mantienen su presentación y funcionamiento.
 

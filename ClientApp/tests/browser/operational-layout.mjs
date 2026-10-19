@@ -6,7 +6,7 @@ import path from 'node:path';
 import { chromium, expect } from '@playwright/test';
 
 const phase = process.argv[2] === 'before' ? 'before' : 'after';
-const root = path.resolve('tdv2/wwwroot'), output = path.resolve('.artifacts/operational-layout', phase);
+const root = path.resolve('tdv2/wwwroot'), output = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS || '.artifacts/operational-layout', phase);
 await mkdir(output, { recursive: true });
 const unit = (id, code, name, level = 2, parent = null, kind = '0') => ({
     id_ur: id, cve_ur: code, desc_ur: name, nivel_ur: level, id_ur_pertenece: parent, tipo_ur: kind, ejercicio: 2026,
@@ -134,7 +134,7 @@ try {
         await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: 'reduce' });
         const trigger = page.locator('.area-root-trigger').first(); await trigger.focus(); await page.keyboard.press('Enter');
         await expect(trigger).toBeFocused(); await expect(open(child.desc_ur)).toBeVisible();
-        await expect(trigger).toHaveAccessibleDescription(/1 áreas dependientes.*40%/);
+        await expect(trigger).toHaveAccessibleDescription(/1 área dependiente.*40%/);
         assert.equal(await trigger.evaluate(el => getComputedStyle(el).transitionDuration), '0s');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         await page.screenshot({ path: path.join(output, 'inicio-movil-expandido.png'), fullPage: true });

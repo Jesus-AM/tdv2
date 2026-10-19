@@ -12,15 +12,20 @@ assert.ok(['before', 'after'].includes(phase));
 // La revisión de jerarquía autoriza cambios dentro del hero; el resto conserva su diseño.
 const heroHierarchy = process.argv.includes('--hero-hierarchy');
 const logoAlignment = process.argv.includes('--logo-alignment');
+const surfaceFinish = process.argv.includes('--surface-finish');
 assert.ok(!(heroHierarchy && logoAlignment), 'Comparar cada revisión con su referencia correspondiente');
 const selectiveLayout = heroHierarchy || logoAlignment;
 const output = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS || '../.artifacts/visual-refresh');
 await mkdir(path.join(output, 'resources'), { recursive: true });
-const html = await readFile(path.join(output, `public-${phase}.html`), 'utf8');
+let html = await readFile(path.join(output, `public-${phase}.html`), 'utf8');
 if (phase === 'after') {
     // Primarios y un único complementario reservado al estado hover.
-    const palette = new Set(['#213455', '#FFFFFF', '#DADADA', '#174187']);
+    const palette = new Set(surfaceFinish ? ['#213455', '#FFFFFF', '#DADADA', '#CFD6E8'] : ['#213455', '#FFFFFF', '#DADADA', '#174187']);
     for (const color of html.match(/#[\da-f]{3,8}\b/gi) || []) assert.ok(palette.has(color.toUpperCase()), `Color fuera de paleta: ${color}`);
+}
+if (surfaceFinish && phase === 'after') {
+    const before = await readFile(path.join(output, 'public-before.html'), 'utf8');
+    assert.equal(html.slice(html.indexOf('</style>')), before.slice(before.indexOf('</style>')), 'Contenido, marcado, enlaces y preguntas intactos');
 }
 const fixture = await systemFixture();
 fixture.handleRequest = async (req, url, json) => {
@@ -60,11 +65,12 @@ page.on('pageerror', error => report.errors.push(error.message));
 try {
     const viewports = selectiveLayout
         ? [[1920, 1080], [1366, 900], [1024, 768], [768, 1024], [390, 844], [320, 800]]
-        : [[1366, 900], [390, 844], [320, 800]];
+        : surfaceFinish ? [[1366, 900], [768, 1024], [390, 844], [320, 800]] : [[1366, 900], [390, 844], [320, 800]];
     for (const [width, height] of viewports) {
         await page.setViewportSize({ width, height });
         await page.goto(fixture.origin, { waitUntil: 'networkidle' });
         await page.evaluate(() => document.fonts.ready);
+        await page.mouse.move(0, 0);
         await page.screenshot({ path: path.join(output, `public-${phase}-${width}-viewport.png`), animations: 'disabled' });
         await page.screenshot({ path: path.join(output, `public-${phase}-${width}.png`), fullPage: true, animations: 'disabled' });
         if (selectiveLayout) {
@@ -139,6 +145,13 @@ try {
                 for (const text of [hero.direction, hero.title, hero.subtitle, hero.paragraph]) assert.ok(Math.abs(hero.visibleLogo.left - text.x) < 1, 'Borde visible alineado');
                 assert.ok(hero.visibleLogo.left >= 0 && hero.visibleLogo.right <= width, 'Marca completa dentro del viewport');
             }
+            else if (surfaceFinish) {
+                assert.equal(layout.length, before.length);
+                for (let i = 0; i < layout.length; i++) {
+                    // Se retiran elevaciones/animaciones de hover, sin cambiar la geometría ni la tipografía.
+                    assert.deepEqual({ ...layout[i], motion: [] }, { ...before[i], motion: [] }, `Contenido y geometría intactos ${width}px / ${i}`);
+                }
+            }
             else if (!heroHierarchy) assert.deepEqual(layout, before, `Diseño intacto a ${width}px`);
             else {
                 const previous = JSON.parse(await readFile(path.join(output, 'public-before-report.json'), 'utf8')).views.find(v => v.width === width).hero;
@@ -185,8 +198,19 @@ try {
         }
         report.views.push({ width, height, elements: layout.length, identicalLayout: phase === 'after' && !selectiveLayout, onlyLogoShift: phase === 'after' && logoAlignment,
             unchangedOutsideHero: phase === 'after' && heroHierarchy, pageWidth, hero, fonts: await page.evaluate(() => [...document.fonts].map(f => ({ family: f.family, weight: f.weight, status: f.status }))) });
+        if (surfaceFinish) {
+            // Mismos encuadres documentales antes y después, independientes del margen de ancla.
+            for (const selector of ['.hero', '#que-es', '#modelo', '#ejes', '#ruta', '#diagnostico', '#participa', '#beneficios', 'aside.side', '#preguntas']) {
+                const target = page.locator(selector);
+                await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+                await target.evaluate(el => scrollTo({ top: el.getBoundingClientRect().top + scrollY - document.querySelector('.topbar').getBoundingClientRect().height - 18, behavior: 'instant' }));
+                await page.screenshot({ path: path.join(output, `${phase}-${selector.replace(/[.#]/g, '')}-${width}.png`), animations: 'disabled' });
+            }
+            if (phase === 'after') await verifyFinish(page, report, width, output);
+        }
         await page.getByText('¿Cómo me beneficia?', { exact: true }).click();
         assert.equal(await page.locator('details').nth(1).getAttribute('open'), '');
+        if (surfaceFinish) await page.screenshot({ path: path.join(output, `${phase}-faq-multiple-${width}.png`), animations: 'disabled' });
         await page.keyboard.press('Tab');
         await page.locator('.brand').focus();
         assert.equal(await page.locator('.brand').evaluate(el => getComputedStyle(el).outlineStyle), 'solid');
@@ -208,6 +232,23 @@ try {
             report.states.push({ width, disabledControls: await page.locator(':disabled').count(), note: 'La portada no contiene controles deshabilitados ni un selector de estado propio' });
         }
     }
+    if (surfaceFinish && phase === 'after') {
+        html = await readFile(path.join(output, 'public-authenticated.html'), 'utf8');
+        for (const [width, height] of [[1366, 900], [768, 1024], [390, 844], [320, 800]]) {
+            await page.setViewportSize({ width, height });
+            await page.goto('about:blank'); // Cambia de documento; una navegación al mismo hash no vuelve a pedir HTML.
+            await page.goto(fixture.origin + '/#ejes', { waitUntil: 'networkidle' });
+            assert.equal(await page.getByRole('link', { name: /Ir a mi espacio/ }).getAttribute('href'), '/inicio');
+            assert.equal(await page.locator('.session-actions form').getAttribute('action'), '/logout');
+            assert.equal(await page.locator('.session-actions form').getAttribute('method'), 'POST');
+            assert.ok(await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).isVisible());
+            const metrics = await page.evaluate(() => ({ header: document.querySelector('.topbar').getBoundingClientRect().bottom,
+                title: document.querySelector('#ejes h2').getBoundingClientRect().top, scrollWidth: document.documentElement.scrollWidth }));
+            assert.ok(metrics.title >= metrics.header); assert.equal(metrics.scrollWidth, width);
+            report.states.push({ width, authenticated: 'sintético', ...metrics });
+            await page.screenshot({ path: path.join(output, `after-authenticated-ejes-${width}.png`) });
+        }
+    }
     assert.equal(report.errors.length, 0, report.errors.join('\n'));
     report.completed = true;
 } finally {
@@ -215,3 +256,89 @@ try {
     await context.close(); await browser.close(); await fixture.close();
 }
 console.log(JSON.stringify({ completed: report.completed, phase, views: report.views.map(v => v.width) }));
+
+async function verifyFinish(page, report, width, output) {
+    const blue = 'rgb(33, 52, 85)', white = 'rgb(255, 255, 255)', soft = 'rgb(207, 214, 232)';
+    const color = (selector, property) => page.locator(selector).first().evaluate((el, key) => getComputedStyle(el)[key], property);
+    assert.equal(await color('.m-cat', 'backgroundColor'), blue);
+    assert.equal(await color('.m-cat', 'color'), white);
+    assert.equal(await color('.m-card', 'backgroundColor'), white);
+    assert.equal(await page.locator('#ejes .ico').count(), 6);
+    for (const icon of await page.locator('#ejes .ico').all()) {
+        assert.deepEqual(await icon.evaluate(el => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color]), [blue, white]);
+    }
+    assert.equal(await page.locator('.step').count(), 8);
+    assert.equal(await color('.steps', 'borderLeftColor'), blue);
+    assert.equal(await color('footer', 'backgroundColor'), blue);
+    for (const selector of ['.m-card', '#ejes .card']) {
+        const card = page.locator(selector).first(); await card.hover();
+        assert.equal(await card.evaluate(el => getComputedStyle(el).transform), 'none', 'Tarjeta informativa sin elevación');
+        assert.equal(await card.locator('a, button, [tabindex]').count(), 0);
+    }
+    for (const selector of ['.topbar .btn-dark', '#open-microsoft-quiz', '.panel.qa a', '.doclist a', '.contact-email', '.faq summary', '.nav a']) {
+        const control = page.locator(selector).first(); if (!await control.isVisible()) continue;
+        await control.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0);
+        const before = await control.boundingBox();
+        const layoutBefore = await control.evaluate(el => [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight]);
+        await control.hover(); const hovered = await control.boundingBox();
+        assert.deepEqual(hovered, before, `Sin movimiento al pasar el cursor: ${selector}`);
+        const ratios = await renderedContrast(page, selector);
+        assert.ok(ratios.every(c => c.ratio >= c.required), selector);
+        await page.keyboard.press('Tab'); await control.focus();
+        const focus = await control.evaluate(el => ({ style: getComputedStyle(el).outlineStyle, width: getComputedStyle(el).outlineWidth }));
+        assert.equal(focus.style, 'solid'); assert.ok(parseFloat(focus.width) >= 2);
+        assert.deepEqual(await control.evaluate(el => [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight]), layoutBefore, `Sin cambio de distribución al enfocar: ${selector}`);
+        report.states.push({ width, selector, hoverMinimum: Math.min(...ratios.map(c => c.ratio)), focus });
+    }
+    assert.equal(await color('.faq details[open] summary', 'backgroundColor'), soft);
+    assert.equal(await color('.faq details[open] p', 'backgroundColor'), white);
+    const second = page.locator('.faq details').nth(1); await second.locator('summary').focus();
+    await page.keyboard.press('Enter'); assert.equal(await page.locator('.faq details[open]').count(), 2, 'Acordeón permite varias abiertas');
+    assert.equal(await second.locator('summary').evaluate(el => getComputedStyle(el).backgroundColor), soft);
+    await page.keyboard.press('Enter'); assert.equal(await page.locator('.faq details[open]').count(), 1);
+
+    const anchor = async id => {
+        const metrics = await page.evaluate(id => {
+            const target = document.getElementById(id);
+            const heading = target.querySelector('h1,h2,h4') || target;
+            return { id, header: document.querySelector('.topbar').getBoundingClientRect().bottom,
+                titleTop: heading.getBoundingClientRect().top, titleBottom: heading.getBoundingClientRect().bottom,
+                offset: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--alto-cabecera')),
+                headerHeight: document.querySelector('.topbar').getBoundingClientRect().height, hash: location.hash };
+        }, id);
+        assert.equal(metrics.hash, '#' + id); assert.ok(Math.abs(metrics.offset - metrics.headerHeight) < .1);
+        assert.ok(metrics.titleTop >= metrics.header - .5, `Título bajo la barra: ${JSON.stringify(metrics)}`);
+        assert.ok(metrics.titleBottom <= page.viewportSize().height, `Título visible: ${id}`);
+        report.states.push({ width, anchor: metrics });
+    };
+    for (const link of await page.locator('.nav a, .panel.qa a, .topbar > .wrap > .btn').all()) {
+        if (!await link.isVisible()) continue;
+        const href = await link.getAttribute('href'); if (!href?.startsWith('#') || href === '#') continue;
+        await link.click(); await anchor(href.slice(1));
+    }
+    // En móvil la navegación conserva su ocultación existente: se prueban también enlaces directos.
+    const origin = new URL(page.url()).origin;
+    for (const id of ['que-es', 'modelo', 'ejes', 'ruta', 'diagnostico', 'participa', 'beneficios', 'preguntas']) {
+        await page.goto(`${origin}/#${id}`, { waitUntil: 'networkidle' }); await anchor(id);
+    }
+    await page.locator('.brand').click(); await anchor('inicio');
+    await page.locator('.topbar > .wrap > .btn').click(); await anchor('participa');
+    await page.goBack(); await anchor('inicio'); await page.goForward(); await anchor('participa');
+    await page.goto(`${origin}/#ejes`, { waitUntil: 'networkidle' }); await anchor('ejes');
+    await page.screenshot({ path: path.join(output, `after-anchor-ejes-${width}.png`) });
+    if (width === 1366) {
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+        await page.locator('.nav a[href="#ejes"]').click();
+        await page.waitForFunction(() => Math.abs(document.getElementById('ejes').getBoundingClientRect().top
+            - document.querySelector('.topbar').getBoundingClientRect().height - 18) < 1);
+        await anchor('ejes'); report.states.push({ width, smoothAnchor: 'Ejes, movimiento normal' });
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+    }
+    const cdp = await page.context().newCDPSession(page); await cdp.send('DOM.enable'); await cdp.send('CSS.enable');
+    const { root } = await cdp.send('DOM.getDocument');
+    const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: 'h1' });
+    const actualFonts = (await cdp.send('CSS.getPlatformFontsForNode', { nodeId })).fonts;
+    assert.ok(actualFonts.some(f => f.isCustomFont && f.familyName.includes('Inter'))); await cdp.detach();
+    report.states.push({ width, actualFonts });
+}

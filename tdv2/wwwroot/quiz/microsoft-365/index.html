@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reto Microsoft 365 · Diagnóstico interactivo</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
+<link rel="preload" href="/fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/inter/inter.css">
+<link rel="stylesheet" href="/quiz/microsoft-365/quiz.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mslogo"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+      <span>Reto Microsoft 365</span>
+    </div>
+    <div class="stats hidden" id="liveStats">
+      <div class="pill">⭐ <b id="xp">0</b> XP</div>
+      <div class="pill">🔥 <b id="streak">0</b> racha</div>
+    </div>
+  </div>
+
+  <section class="hero" id="welcome">
+    <div class="welcome-icon">🎮</div>
+    <h1>¿Qué tan bien dominas Microsoft 365?</h1>
+    <p>Un diagnóstico rápido, visual y sin estrés. Responde situaciones reales, gana XP y descubre tu nivel.</p>
+    <div class="hero-actions">
+      <button class="primary" data-quiz-action="start">🚀 Comenzar reto</button>
+      <button class="secondary" data-quiz-action="help">¿Cómo funciona?</button>
+    </div>
+    <div class="features">
+      <div class="feature">⚡<b>Rápido</b><span>10 retos, pocos minutos.</span></div>
+      <div class="feature">🎯<b>Práctico</b><span>Situaciones del trabajo real.</span></div>
+      <div class="feature">🏆<b>Gamificado</b><span>XP, rachas y medallas.</span></div>
+      <div class="feature">📊<b>Diagnóstico</b><span>Resultado por competencias.</span></div>
+    </div>
+  </section>
+
+  <section class="quiz hidden" id="quiz">
+    <div class="progress-row">
+      <span id="counter">Reto 1 de 10</span><span id="percent">0%</span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="question-top">
+      <span class="module" id="module">Microsoft 365</span>
+      <span class="streak">🔥 <span id="streak2">0</span></span>
+    </div>
+    <h2 class="question" id="question"></h2>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="next-row">
+      <span class="tip">💡 No necesitas memorizar: piensa en qué harías.</span>
+      <button class="next" id="nextBtn" data-quiz-action="next">Siguiente →</button>
+    </div>
+  </section>
+
+  <section class="result hidden" id="result">
+    <div class="result-icon">🏆</div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultText"></p>
+    <div class="score-ring" id="ring"><strong id="score">0%</strong></div>
+    <div class="badges" id="badges"></div>
+    <div class="result-grid">
+      <div class="result-card"><small>Respuestas correctas</small><b id="correctCount">0/10</b></div>
+      <div class="result-card"><small>XP conseguido</small><b id="finalXP">0 XP</b></div>
+      <div class="result-card"><small>Nivel diagnóstico</small><b id="level">—</b></div>
+      <div class="result-card"><small>Racha máxima</small><b id="maxStreak">0</b></div>
+    </div>
+    <button class="primary" data-quiz-action="restart">🔄 Jugar de nuevo</button>
+  </section>
+</div>
+
+<script src="/quiz/microsoft-365/quiz.js" defer></script>
+<script src="/quiz/microsoft-365/quiz-controls.js" defer></script>
+</body>
+</html>

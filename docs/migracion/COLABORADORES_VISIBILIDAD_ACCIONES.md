@@ -1,6 +1,18 @@
 # Guardar, Colaboradores y distribución de Pruebas de acceso — 2026-10-10
 
-## Ajuste de presentación — 2026-10-11
+## Ajuste de textos vigente — 2026-10-16
+
+La ayuda ahora dice «Busca una persona por nombre o correo para agregarla como colaboradora.». Se eliminan, sin sustitutos, el pie sobre autorización/adscripción vigentes y el aviso general sobre asignaciones comprobables. `avisoAsignaciones` conserva su contrato: devuelve cadena vacía en la vista habitual y mantiene el aviso específico ya existente de la vista de prueba. Los dos avisos de Administrador sobre área principal/responsabilidad dejan de mencionar niveles numéricos; sus condiciones no cambian. Sin cambios de distribución, estilos, fuente, roles visibles ni reaparición de Origen.
+
+Revisados `CollaboratorService`, `CollaboratorAccess`, `CollaboratorsController`, `CollaborationRules`, `CollaborationListing` y `Access`. Responsables administran sólo raíces autorizadas por responsabilidad y delegación vigente; Administrador no adquiere facultades por el rol solo. Local/dependencias conservan alcance, visibilidad y restricciones actuales; retirar sigue dependiendo del otorgante y de la autorización, no de poder ver una fila. Vigencia de identidad, empleado, adscripción, rol, concesión, vínculo y contexto se comprueba igual. Sólo cambian textos/elementos de texto, no decisiones, consultas ni persistencia. La matriz de abajo sigue vigente.
+
+**Verificado en este ajuste:** tipos/Vite/.NET Release, 116/116 dominio/HTTP y nueve grupos de navegador existentes, incluidos búsqueda, ambos tipos de alta, retiro exacto, perfiles de responsables, representación de consulta, errores y teclado/móvil emulado. ASP.NET/TestServer usa dobles en memoria; Edge usa transporte simulado. Capturas y reportes en `.artifacts/collaborator-texts-20261016/`; fuentes locales y disposición anterior conservadas. Sin bases institucionales, migraciones, push o despliegue. Compilación conserva cuatro advertencias NuGet previas de Pkcs 9.0.18. No quedan pendientes de implementación del ajuste.
+
+## Presentación vigente — 2026-10-16
+
+Se restaura la apariencia anterior al último ajuste de vistas: área autorizante y buscador en la primera fila; Selecciona una persona y Define el alcance debajo; listado flexible original, sin las nuevas columnas/tarjetas. Vuelven sus tamaños, etiquetas, ayudas y espaciados. En el alta se muestran Colaborador local y Colaborador de áreas dependientes; en la lista, Local y Áreas dependientes, como antes. Esas etiquetas no cambian claves, alcance ni facultades. La única excepción es que no aparecen **Origen**, **delegación en TDV2**, **Agregado por Administrador** ni la explicación de procedencia del retiro. Se mantiene Solo consulta y toda la información funcional de estado. Datos internos, matriz de autorización y Roboto local intactos. [Restauración selectiva, flujos N2/N3, pruebas y límites](VISTAS_PROCEDIMIENTOS_COLABORADORES.md#restauración-visual-vigente).
+
+## Evidencia anterior de presentación — 2026-10-11 (etiquetas de origen retiradas)
 
 En Colaboradores, `origen = central` se presenta como **Agregado por Administrador**. No hay columna «Agregado por», por lo que se utiliza la frase completa. Se elimina la explicación «Se administra en NEXO» y se neutralizan los avisos auxiliares de procedencia; se conserva **Solo consulta**, la condición de autorización/adscripción vigente, el aviso de datos insuficientes y el estado de retiro pendiente. Las asignaciones delegadas mantienen su indicación, área y acciones existentes. No se cambia la identidad de TDV2 ni mensajes operativos de otros módulos.
 

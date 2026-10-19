@@ -4,6 +4,8 @@ Este procedimiento construye un paquete; **no autoriza ni realiza un despliegue 
 
 ## Construcción
 
+**Fuentes vigentes tras la revisión de Procedimientos/Colaboradores:** incluir también `wwwroot/fonts/roboto/` (TTF variables originales, CSS, OFL y procedencia). El sistema interno recupera Roboto; Inter permanece en portal/quiz. El SDK incluye ambos directorios estáticos sin cambiar targets. Se comprobaron quince recursos mediante ASP.NET/TestServer, pero no se reconstruyó el paquete en esta última revisión. No requiere migración. [Detalle y límites](migracion/VISTAS_PROCEDIMIENTOS_COLABORADORES.md).
+
 Desde la raíz, con .NET SDK 10 y Node/npm en PATH:
 
 ```powershell
@@ -11,6 +13,10 @@ dotnet publish tdv2/tdv2.csproj -c Release -p:UseAppHost=false -o .artifacts/pub
 ```
 
 El target `BuildReactForPublish` restaura el lockfile con `npm ci --ignore-scripts`, limpia exclusivamente `tdv2/wwwroot/assets`, compila Vite y agrega los archivos generados al paquete. No hay que recordar un build manual previo de React. Las imágenes y la portada se conservan. No publicar sobre un directorio viejo en el servidor: preparar una carpeta de versión nueva para no conservar archivos de versiones anteriores.
+
+Desde 2026-10-16 incluye además `wwwroot/quiz/microsoft-365/`, `wwwroot/fonts/inter/` (WOFF2 normal/cursiva, CSS y licencia OFL), `wwwroot/css/public-quiz.css` y `wwwroot/js/public-quiz.js`. Deben distribuirse con el paquete completo: no dependen de Downloads ni de un CDN. Este ajuste no agrega migraciones ni configuración. `X-Frame-Options: DENY` permanece; el diálogo carga el recurso local fijo en `srcdoc`. Se verificaron contenido/MIME/cabeceras con ASP.NET de pruebas y recorrido del quiz con los estáticos publicados. [Detalle y límites](migracion/QUIZ_MICROSOFT_365_E_INTER.md).
+
+En Windows, `npm ci` requiere que ningún proceso esté bloqueando las dependencias de esa copia. En esta entrega se construyó desde una copia aislada del código vigente, sin detener Vite ajeno, con `RestorePackagesPath` apuntando explícitamente al caché NuGet raíz. No cambiar la política de seguridad ni la configuración institucional para resolver bloqueos locales de construcción.
 
 `UseAppHost=false` produce un paquete dependiente de ASP.NET Runtime 10 invocable con `dotnet tdv2.dll`; no obliga a usar un ejecutable Windows. La construcción se verificó en Windows, y el paquete se inició en ambiente Production con Edge/HTTPS. **No se ejecutó en Ubuntu.** Node y Vite sólo se necesitan para construir; no se incluyen como servidores de producción.
 
