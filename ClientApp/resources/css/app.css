@@ -4,7 +4,7 @@ html {
 }
 body {
     margin: 0;
-    font-family: Roboto, sans-serif;
+    font-family: var(--font-interface);
 }
 button, input, select, textarea { font-family: inherit; }
 button,
@@ -16,7 +16,7 @@ textarea {
 a {
     color: inherit;
 }
-.page {
+.page, .app-footer-inner {
     padding: 28px var(--page-gutter);
     max-width: 1640px;
     width: 100%;
@@ -37,22 +37,39 @@ a {
 .page-breadcrumbs .MuiTypography-root { font-size: 12px; line-height: 1.8; }
 .page-breadcrumbs a { display: inline-flex; align-items: center; min-height: 28px; }
 .app-toolbar.MuiToolbar-root { max-width: 1640px; width: 100%; margin-inline: auto; padding-inline: var(--page-gutter); min-height: 68px; gap: 12px; }
-.app-footer { flex-wrap: wrap; }
-.page-back.MuiButton-root { color: #65748a; padding-inline: 0; margin-bottom: 8px; min-height: 30px; }
+.app-footer { container: tdv2-footer / inline-size; }
+.app-footer.institutional-footer .app-footer-inner {
+    display: grid;
+    grid-template-columns: 220px minmax(max-content, 1.5fr) repeat(4, minmax(max-content, 1fr));
+    align-items: center;
+    gap: 28px clamp(16px, 1.2vw, 24px);
+}
+.app-footer .institutional-signature { width: auto; max-width: none; min-width: 0; }
+.app-footer .app-footer-inner .institutional-logo { margin-right: 0; }
+@container tdv2-footer (max-width: 1280px) {
+    .app-footer.institutional-footer .app-footer-inner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container tdv2-footer (max-width: 900px) {
+    .app-footer.institutional-footer .app-footer-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container tdv2-footer (max-width: 600px) {
+    .app-footer.institutional-footer .app-footer-inner { grid-template-columns: minmax(0, 1fr); }
+}
+.page-back.MuiButton-root { color: var(--uacj-muted); padding-inline: 0; margin-bottom: 8px; min-height: 30px; }
 .page-heading .row-actions { flex-shrink: 0; gap: 10px; max-width: 100%; }
 .operational-heading .page-heading-copy { flex: 1 1 360px; max-width: none; }
 .operational-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 10px; }
 .surface.operational-stat { display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 12px 16px; }
-.operational-stat-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; color: #245bb6; background: #edf3fd; border-radius: 10px; }
+.operational-stat-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; color: var(--uacj-blue); background: var(--uacj-soft); border-radius: 10px; }
 .operational-stat-icon .MuiSvgIcon-root { font-size: 20px; }
 .operational-stat-copy { min-width: 0; }
 .operational-stat-value.MuiTypography-root { font-size: 26px; font-weight: 600; line-height: 1.2; }
 .surface.personal-area-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 80px; padding: 12px 16px; }
-.area-root-trigger:focus-visible { outline: 2px solid #245bb6; outline-offset: -3px; }
+.area-root-trigger:focus-visible { outline: 2px solid var(--uacj-blue); outline-offset: -3px; }
 .area-format-row { transition: background-color 180ms ease; }
-.area-format-row:hover, .area-format-row:focus-within { background-color: #f8faff; }
+.area-format-row:hover, .area-format-row:focus-within { background-color: var(--uacj-canvas); }
 .area-root-trigger { transition: background-color 180ms ease; }
-.area-scope-tabs { background: #fff; border: 1px solid #dce5ef; border-radius: 10px; }
+.area-scope-tabs { background: #fff; border: 1px solid var(--uacj-gray); border-radius: 10px; }
 .operational-heading .row-actions { align-items: center; }
 .page-header { animation: content-appear 180ms ease-out; }
 @keyframes content-appear { from { opacity: 0; } to { opacity: 1; } }
@@ -60,7 +77,7 @@ a {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 .eyebrow {
-    color: #7a8aa2;
+    color: var(--uacj-muted);
     text-transform: uppercase;
     font-size: 10px;
     font-weight: 700;
@@ -68,11 +85,11 @@ a {
     margin-bottom: 8px;
 }
 .muted {
-    color: #65748a;
+    color: var(--uacj-muted);
 }
 .surface {
     background: #fff;
-    border: 1px solid #e0e7f0;
+    border: 1px solid var(--uacj-gray);
     border-radius: 12px;
     padding: 22px;
 }
@@ -96,7 +113,7 @@ a {
 .sync-catalogs .settings-section-content { flex: 1; }
 .surface.settings-section { padding: 20px; min-width: 0; }
 .settings-section-heading { display: flex; align-items: flex-start; gap: 12px; }
-.settings-section-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; background: #edf3fd; color: #245bb6; border-radius: 10px; }
+.settings-section-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; background: var(--uacj-soft); color: var(--uacj-blue); border-radius: 10px; }
 .settings-section-icon .MuiSvgIcon-root { font-size: 22px; }
 .settings-section-copy { min-width: 0; }
 .settings-section-copy h2 { line-height: 1.5; }
@@ -104,7 +121,7 @@ a {
 .settings-section-content { margin-top: 20px; }
 .settings-access { display: flex; flex-direction: column; }
 .settings-access .settings-section-content { margin-top: auto; padding-top: 20px; }
-.settings-section-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 16px; margin-top: 16px; border-top: 1px solid #e4eaf2; }
+.settings-section-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--uacj-gray); }
 .settings-page .settings-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
 .settings-page .MuiInputBase-root { min-width: 0; }
 .settings-page .MuiSelect-select { white-space: normal; overflow-wrap: anywhere; }
@@ -118,8 +135,8 @@ a {
 .empty {
     padding: 34px 20px;
     text-align: center;
-    color: #65748a;
-    border: 1px dashed #dce4ef;
+    color: var(--uacj-muted);
+    border: 1px dashed var(--uacj-gray);
     border-radius: 10px;
 }
 .skip-link {
@@ -128,14 +145,14 @@ a {
     top: -100px;
     background: #fff;
     padding: 12px;
-    color: #245bb6;
+    color: var(--uacj-blue);
 }
 .skip-link:focus {
     top: 8px;
     left: 8px;
 }
 :focus-visible {
-    outline: 2px solid #245bb6;
+    outline: 2px solid var(--uacj-blue);
     outline-offset: 3px;
 }
 .capture-scroll {
@@ -143,7 +160,7 @@ a {
     scroll-padding-inline: 8px calc(var(--capture-actions-width, 176px) + 8px);
     overflow: auto;
     max-height: 65vh;
-    border: 1px solid #e4eaf2;
+    border: 1px solid var(--uacj-gray);
     border-radius: 10px;
 }
 .capture-scroll table {
@@ -170,8 +187,8 @@ a {
     min-width: 0;
     max-width: none;
     padding: 0;
-    background: #edf3fb;
-    border-block: 1px solid #dce6f4;
+    background: var(--uacj-soft);
+    border-block: 1px solid var(--uacj-gray);
 }
 .systems-group-content {
     position: sticky;
@@ -248,9 +265,9 @@ a {
     font-size: inherit;
     font-weight: 700;
     line-height: 1.5;
-    color: #20314d;
-    background: #f1f3f6;
-    border-bottom: 1px solid #dce2ea;
+    color: var(--uacj-blue);
+    background: var(--uacj-soft);
+    border-bottom: 1px solid var(--uacj-gray);
     opacity: 1;
 }
 .record-select-popup .MuiAutocomplete-option { font-weight: 400; }
@@ -266,7 +283,7 @@ a {
     grid-area: 2 / 1 / auto / -1;
 }
 .systems-table .sii-modules-select .MuiAutocomplete-endAdornment { position: static; transform: none; grid-area: 1 / 2; align-self: start; }
-.systems-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
+.systems-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid var(--uacj-blue); outline-offset: 2px; }
 .capture-scroll .MuiTextField-root {
     min-width: 150px;
 }
@@ -274,12 +291,12 @@ a {
     min-width: 255px;
 }
 /* Tamaños y espaciado del tema/captura; conservar énfasis, contraste y foco sin otra escala tipográfica. */
-.identification-table .MuiTableCell-root { color: #17263c; overflow-wrap: anywhere; }
+.identification-table .MuiTableCell-root { color: var(--uacj-blue); overflow-wrap: anywhere; }
 .identification-table .MuiTableCell-head { font-weight: 700; white-space: normal; }
 .identification-table .MuiTableCell-body { font-weight: 400; }
-.identification-table .MuiInputBase-root { font-weight: 400; color: #17263c; }
+.identification-table .MuiInputBase-root { font-weight: 400; color: var(--uacj-blue); }
 .identification-table .MuiSelect-select.MuiSelect-select { white-space: normal; text-overflow: clip; line-height: 1.5; }
-.identification-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid #1e4fa8; outline-offset: 2px; }
+.identification-table :is(button, input, textarea, [role="combobox"]):focus-visible { outline: 2px solid var(--uacj-blue); outline-offset: 2px; }
 /* MUI dibuja el foco en su fieldset exterior. Sólo se retira la segunda línea del input interior. */
 :is(.identification-table, .systems-table) .MuiOutlinedInput-root .MuiInputBase-input:focus-visible { outline: none; }
 .row-editing-actions { width: 140px; min-height: 92px; display: flex; flex-direction: column; align-items: flex-start; }
@@ -295,7 +312,7 @@ a {
     scroll-padding-inline: var(--capture-presence-width, 132px) calc(var(--capture-actions-width) + 8px);
     scroll-margin-block: 84px 16px;
 }
-.capture-row-scroll .MuiTableCell-head { top: 0; z-index: 3; background: #f5f8fc; }
+.capture-row-scroll .MuiTableCell-head { top: 0; z-index: 3; background: var(--uacj-canvas); }
 .capture-row-scroll .MuiTableCell-root { vertical-align: top; }
 .capture-scroll .row-actions-cell {
     position: sticky;
@@ -310,9 +327,9 @@ a {
     overflow-wrap: normal;
     text-align: center;
     background: var(--capture-row-background, #fff);
-    box-shadow: -2px 0 0 #e4eaf2;
+    box-shadow: -2px 0 0 var(--uacj-gray);
 }
-.capture-scroll th.row-actions-cell { z-index: 4; background: #f5f8fc; }
+.capture-scroll th.row-actions-cell { z-index: 4; background: var(--uacj-canvas); }
 .capture-row-scroll .row-editing-cell {
     position: sticky;
     left: 0;
@@ -322,9 +339,9 @@ a {
     min-width: 124px;
     max-width: 124px;
     background: #fff;
-    box-shadow: 2px 0 0 #e4eaf2;
+    box-shadow: 2px 0 0 var(--uacj-gray);
 }
-.capture-row-scroll th.row-editing-cell { z-index: 4; background: #f5f8fc; }
+.capture-row-scroll th.row-editing-cell { z-index: 4; background: var(--uacj-canvas); }
 /* Con poco espacio sólo Acciones queda anclada horizontalmente: la presencia
    conserva avatar/texto en su columna, sin tapar los controles entre dos bordes. */
 @container (max-width: 600px) {
@@ -332,7 +349,7 @@ a {
 }
 .capture-row-scroll :is([data-edit-state="owned"], [data-edit-state="occupied"]) .row-editing-cell {
     background: var(--capture-row-background, #fff);
-    box-shadow: inset 4px 0 var(--participant-color), 2px 0 0 #e4eaf2;
+    box-shadow: inset 4px 0 var(--participant-color), 2px 0 0 var(--uacj-gray);
 }
 .row-editing-cell .row-presence { width: 108px; padding: 0; }
 .row-editing-cell .row-presence > [role="status"] { min-height: 44px; gap: 4px; }
@@ -349,7 +366,7 @@ a {
     justify-content: space-between;
     padding: 12px 18px;
     background: #fff;
-    border: 1px solid #dce5ef;
+    border: 1px solid var(--uacj-gray);
     border-radius: 12px;
     margin-top: 20px;
 }

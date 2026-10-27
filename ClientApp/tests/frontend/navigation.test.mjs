@@ -85,10 +85,22 @@ test('cambios de identidad aceptados notifican antes de HTTP; navegar no invalid
     let notifications = 0;
     const off = router.on('identity-changing', () => { notifications++; assert.equal(calls.length, 0); });
     calls = []; await nextPage(() => router.visit('/inicio')); assert.equal(notifications, 0);
-    for (const path of ['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba']) {
+    for (const path of ['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba', '/competencias-digitales/api/representacion']) {
         calls = []; await new Promise(resolve => router.post(path, {}, { onFinish: resolve }));
     }
-    assert.equal(notifications, 4); off();
+    assert.equal(notifications, 5); off();
+});
+test('salida de captura espera confirmación del guardado; error no ejecuta la navegación', async () => {
+    answer = config => ({ component: 'Inicio', url: config.url, props: props() });
+    let dirty = true, resume;
+    const remove = router.on('before', event => { if (dirty) { event.preventDefault(); resume = event.detail.visit.resume; } });
+    calls = []; router.visit('/competencias-digitales/mi-informe-ruta');
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(calls.length, 0); // Fallo de guardado: conservar borrador y no reanudar.
+    dirty = false;
+    await nextPage(() => resume());
+    assert.equal(calls.length, 1); assert.equal(published.url, '/competencias-digitales/mi-informe-ruta');
+    remove();
 });
 test('Usar otra cuenta realiza navegación completa a OAuth conservando query, sin consulta de página JSON', async () => {
     calls = [];

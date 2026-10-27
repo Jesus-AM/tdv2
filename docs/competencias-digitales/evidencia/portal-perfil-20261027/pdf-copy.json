@@ -1,0 +1,20 @@
+﻿[
+    {
+        "file":  "PITD_2026_2030_Marco_General_UACJ.pdf",
+        "bytes":  14398920,
+        "sha256":  "6F5EAD2FD5936ED4C64BE7C49CF1AB8D8AD5015DDB8B3B7239028D9FAFC9C1C0",
+        "identical":  true
+    },
+    {
+        "file":  "Decalogo_Cultura_de_Datos_UACJ.pdf",
+        "bytes":  2167730,
+        "sha256":  "53C5ADE776F802FC9043F7B52C1BDFD1509B036F3B17E6EB79B021F1C9A983FC",
+        "identical":  true
+    },
+    {
+        "file":  "Glosario_Transformacion_Digital_UACJ.pdf",
+        "bytes":  8080899,
+        "sha256":  "0E72A5ED01B2BD70C63BFE2D5423107B4DBD7EF755B3282D62A590D3E5D58031",
+        "identical":  true
+    }
+]

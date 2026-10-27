@@ -193,7 +193,7 @@ try {
                 try {
                     & dotnet tool restore
                     if ($LASTEXITCODE -ne 0) { throw 'No se pudo restaurar dotnet-ef.' }
-                    & dotnet ef database update --project tdv2 -- --environment Development
+                    & dotnet ef database update --context Tdv2DbContext --project tdv2 -- --environment Development
                     if ($LASTEXITCODE -ne 0) { throw 'No se completaron las migraciones EF locales.' }
                 } finally { Pop-Location }
             } finally {

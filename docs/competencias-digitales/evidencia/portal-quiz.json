@@ -1,0 +1,780 @@
+{
+  "phase": "after",
+  "checks": [
+    "1366: Iniciar test enlaza al subsitio de Competencias",
+    "1366: diez preguntas, 10 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 7 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 5 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 0 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: juego histórico directo conserva ayuda, teclado y reinicio",
+    "390: Iniciar test enlaza al subsitio de Competencias",
+    "390: diez preguntas, 7 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "390: juego histórico directo conserva ayuda, teclado y reinicio",
+    "320: Iniciar test enlaza al subsitio de Competencias",
+    "320: diez preguntas, 10 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "320: juego histórico directo conserva ayuda, teclado y reinicio"
+  ],
+  "fonts": [
+    {
+      "label": "portal-1366",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-1366",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-Bold",
+          "isCustomFont": true,
+          "glyphCount": 35
+        }
+      ]
+    },
+    {
+      "label": "español-portal-400",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-500",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text-Medium",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-600",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-700",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text-Bold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-800",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text-ExtraBold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-900",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Text-Black",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "portal-390",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-390",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-Bold",
+          "isCustomFont": true,
+          "glyphCount": 34
+        }
+      ]
+    },
+    {
+      "label": "portal-320",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-320",
+      "actual": [
+        {
+          "familyName": "Inter Variable",
+          "postScriptName": "InterVariable-Display-Bold",
+          "isCustomFont": true,
+          "glyphCount": 34
+        }
+      ]
+    },
+    {
+      "label": "interno-1366",
+      "actual": [
+        {
+          "familyName": "Roboto",
+          "postScriptName": "Roboto-Bold",
+          "isCustomFont": true,
+          "glyphCount": 27
+        }
+      ]
+    },
+    {
+      "label": "interno-390",
+      "actual": [
+        {
+          "familyName": "Roboto",
+          "postScriptName": "Roboto-Bold",
+          "isCustomFont": true,
+          "glyphCount": 27
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "externalBlocked": [
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com",
+    "images.unsplash.com"
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/InterVariable.woff2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/fonts/inter/inter.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:51448/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/fonts/roboto/RobotoVariable.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/fonts/roboto/roboto.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/index-CshkdbA-.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/rolldown-runtime-Dd_uD5pT.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/navigation-DxGlFdHn.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/RtlProvider-CObbs4TQ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/index-C_u2i4vM.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/FormatoUR-DqwVRmPe.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/HomeOutlined-DtVxrs4P.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Select-9Vt3wdaM.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/MenuItem-BYGbQNeb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Autocomplete-BlmL7hke.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Checkbox-BWldoFzJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/SwitchBase-hrtVYnX_.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/FormControlLabel-DCY7rky6.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Button-EzNReMzx.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/RadioGroup-D_pZuBpY.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/PageHeading-DNNc4yj4.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/DialogTitle-B7O6nH1t.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/WarningAmber-CMJoCMlb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Tabs-CXUfA64e.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/TextField-qJKsXtNi.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/ArrowForward-D4dCe0rK.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/CheckCircleOutlined-BymQ0l21.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/DeleteOutlined-n7jy9e2X.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/LockOutlined-Cg9tNypb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/area-directory-BG7ZYcLZ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/form-labels-RefNZozJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/form-events/negotiate?negotiateVersion=1",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/aplicaciones/moviles",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/aplicaciones/web",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/modulos-sii",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/estado?tab=3b4f6079-75e2-4148-a2fc-55456ea48ec9",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/posicion",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/fonts/roboto/RobotoVariable.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/fonts/roboto/roboto.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/index-CshkdbA-.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/rolldown-runtime-Dd_uD5pT.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/navigation-DxGlFdHn.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/RtlProvider-CObbs4TQ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/index-C_u2i4vM.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/FormatoUR-DqwVRmPe.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/HomeOutlined-DtVxrs4P.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Select-9Vt3wdaM.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/MenuItem-BYGbQNeb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Autocomplete-BlmL7hke.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Checkbox-BWldoFzJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/SwitchBase-hrtVYnX_.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/FormControlLabel-DCY7rky6.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Button-EzNReMzx.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/RadioGroup-D_pZuBpY.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/PageHeading-DNNc4yj4.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/DialogTitle-B7O6nH1t.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/WarningAmber-CMJoCMlb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/Tabs-CXUfA64e.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/TextField-qJKsXtNi.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/ArrowForward-D4dCe0rK.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/CheckCircleOutlined-BymQ0l21.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/DeleteOutlined-n7jy9e2X.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/LockOutlined-Cg9tNypb.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/area-directory-BG7ZYcLZ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/assets/form-labels-RefNZozJ.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/form-events/negotiate?negotiateVersion=1",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/aplicaciones/moviles",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/aplicaciones/web",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/modulos-sii",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/estado?tab=e9cf9233-d078-4fa1-a9f0-fda0eff5b29d",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60288/formatos/A/posicion",
+      "method": "POST"
+    }
+  ],
+  "completed": true
+}

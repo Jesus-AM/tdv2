@@ -279,12 +279,12 @@ internal static class EntryPoint
             var valid = schema.Validate(data, Fixtures.Units[0]); Check(FormSchema.Progress(valid) == 100); FormSchema.RequireComplete(valid); Check(valid["encabezado"]!["fecha"]!.ToString() == ""); Check(valid["evaluaciones"]!["PO-01"]![0]!["criterio"]!.GetValue<string>() != "alterado");
         });
 
-        Http("Portada pública no consulta Nexo y conserva Inter local y el quiz", async (app, client) =>
+        Http("Portada pública no consulta Nexo y carga Noto Sans local, identidad compartida y el quiz", async (app, client) =>
         {
             app.Nexo.Outage = true;
             var r = await client.GetAsync("/"); Check(r.IsSuccessStatusCode);
             var html = await r.Content.ReadAsStringAsync();
-            Check(html.Contains("/fonts/inter/inter.css") && !html.Contains("fonts.googleapis.com")
+            Check(html.Contains("/css/institutional.css") && html.Contains("/fonts/noto-sans/NotoSans-Regular.ttf") && !html.Contains("fonts.googleapis.com")
                 && !html.Contains("/fonts/roboto/") && html.Contains("Registrar un procedimiento institucional")
                 && html.Contains("Iniciar test"));
         });

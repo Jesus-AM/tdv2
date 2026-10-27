@@ -20,6 +20,13 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     private const string BrowserCookie = "__Host-tdv2.oauth";
     private const string HintCookie = "__Host-tdv2.microsoft-hint";
     private const string LogoutCookie = "__Host-tdv2.microsoft-logout";
+    private const string ReturnCookie = "__Host-tdv2.oauth-return";
+    private static string SafeReturn(string? value)
+    {
+        if (value is null || value.Length > 2048 || !value.StartsWith('/') || value.StartsWith("//") || value.Contains('\\') || value.Any(char.IsControl)) return "/inicio";
+        var path = value.Split('?', '#')[0];
+        return Tdv2.Competencias.DigitalRoutes.Page(path) ? value : "/inicio";
+    }
     private string? Hint(string cookie)
     {
         try
@@ -47,12 +54,13 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     [EnableRateLimiting("microsoft-login")]
     public async Task<IResult> Connect()
     {
-        if (User.Identity?.IsAuthenticated == true) return Results.Redirect("/inicio");
+        if (User.Identity?.IsAuthenticated == true) return Results.Redirect(SafeReturn(Request.Query["returnUrl"]));
         settings.Value.Validate();
         var ct = HttpContext.RequestAborted;
         if (!Request.Query.ContainsKey("code") && !Request.Query.ContainsKey("error"))
         {
             var attempt = await attempts.Create(ct);
+            StoreHint(ReturnCookie, attempt.State + "|" + SafeReturn(Request.Query["returnUrl"]));
             Response.Cookies.Append(BrowserCookie, attempt.Browser, BrowserOptions());
             return Results.Redirect(microsoft.Authorize(attempt.State, attempt.Challenge, attempt.Nonce,
                 Hint(HintCookie), Request.Query["account"] == "other"));
@@ -69,14 +77,19 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
             var code = Request.Query["code"];
             if (Request.Query.ContainsKey("error") || code.Count != 1 || string.IsNullOrWhiteSpace(code) || code.ToString().Length > 16384)
                 return Results.Redirect("/?authError=invalid");
-            var authenticated = await login.Complete(code.ToString(), verifier, ct);
+            var destination = "/inicio";
+            var storedReturn = Hint(ReturnCookie);
+            if (storedReturn is not null && storedReturn.StartsWith(stateValue.ToString() + "|", StringComparison.Ordinal))
+                destination = SafeReturn(storedReturn[(stateValue.ToString().Length + 1)..]);
+            Response.Cookies.Delete(ReturnCookie, BrowserOptions());
+            var authenticated = await login.Complete(code.ToString(), verifier, ct, destination.StartsWith("/competencias-digitales", StringComparison.Ordinal));
             email = authenticated.Email;
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticated.Principal,
                 new AuthenticationProperties { IsPersistent = false, IssuedUtc = DateTimeOffset.UtcNow, ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2) });
             Response.Cookies.Delete("tdv2.aspnet.csrf");
             StoreHint(HintCookie, authenticated.Principal.FindFirstValue("tdv2.microsoft_login_hint") ?? authenticated.Email);
             await audit.Record("login", email, authenticated.Name, ct);
-            return Results.Redirect("/inicio");
+            return Results.Redirect(destination);
         }
         catch (Exception error) when (error is not OperationCanceledException)
         {

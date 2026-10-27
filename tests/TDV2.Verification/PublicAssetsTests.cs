@@ -14,7 +14,13 @@ internal static class PublicAssetsTests
             "/quiz/microsoft-365/quiz.js", "/quiz/microsoft-365/quiz-controls.js",
             "/fonts/inter/inter.css", "/fonts/inter/InterVariable.woff2", "/fonts/inter/InterVariable-Italic.woff2",
             "/fonts/inter/LICENSE.txt", "/css/public-quiz.css", "/js/public-quiz.js", "/js/public-navigation.js",
-            "/fonts/roboto/roboto.css", "/fonts/roboto/RobotoVariable.ttf", "/fonts/roboto/RobotoVariable-Italic.ttf", "/fonts/roboto/OFL.txt"];
+            "/fonts/roboto/roboto.css", "/fonts/roboto/RobotoVariable.ttf", "/fonts/roboto/RobotoVariable-Italic.ttf", "/fonts/roboto/OFL.txt",
+            "/css/institutional.css", "/css/design-tokens.css", "/fonts/noto-sans/noto-sans.css", "/quiz/microsoft-365/quiz-brand.css", "/images/portal/img_9885.jpg", "/images/portal/img_9885-1920.jpg", "/images/portal/img_9885-960.jpg",
+            "/fonts/noto-sans/public.css", "/fonts/noto-sans/NotoSans-Regular.ttf", "/fonts/noto-sans/NotoSans-Medium.ttf",
+            "/fonts/noto-sans/NotoSans-SemiBold.ttf", "/fonts/noto-sans/NotoSans-Bold.ttf", "/fonts/noto-sans/OFL.txt",
+            "/documentos/PITD_2026_2030_Marco_General_UACJ.pdf", "/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf", "/documentos/Glosario_Transformacion_Digital_UACJ.pdf",
+            "/images/competencias-digitales/firma-1.png", "/images/competencias-digitales/firma-3.png", "/images/competencias-digitales/firma-5.png",
+            "/images/competencias-digitales/firma-7.png", "/images/competencias-digitales/firma-9.png"];
         var results = new List<object>();
         foreach (var path in paths)
         {
@@ -28,6 +34,12 @@ internal static class PublicAssetsTests
                 || !bytes.AsSpan(0, 4).SequenceEqual("wOF2"u8))) throw new Exception("Fuente WOFF2 inválida.");
             if (path.EndsWith(".ttf") && (response.Content.Headers.ContentType?.MediaType != "application/x-font-ttf"
                 || !bytes.AsSpan(0, 4).SequenceEqual(new byte[] { 0, 1, 0, 0 }))) throw new Exception("Fuente TTF inválida.");
+            if (path.EndsWith(".pdf") && (response.Content.Headers.ContentType?.MediaType != "application/pdf"
+                || !bytes.AsSpan(0, 5).SequenceEqual("%PDF-"u8)
+                || response.Content.Headers.ContentDisposition?.DispositionType == "attachment"))
+                throw new Exception("PDF público no disponible para visualización: " + path);
+            if (path.EndsWith(".jpg") && (response.Content.Headers.ContentType?.MediaType != "image/jpeg"
+                || !bytes.AsSpan(0, 2).SequenceEqual(new byte[] { 0xff, 0xd8 }))) throw new Exception("Fotografía JPEG inválida.");
             results.Add(new { path, status = (int)response.StatusCode, contentType = response.Content.Headers.ContentType?.MediaType,
                 sha256 = Convert.ToHexString(SHA256.HashData(bytes)), frameOptions = "DENY", bytes = bytes.Length });
         }

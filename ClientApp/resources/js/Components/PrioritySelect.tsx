@@ -1,13 +1,14 @@
 import { Box, MenuItem, Select, Typography } from '@mui/material';
+import colors from '../design-tokens.json';
 
 export const priorities = [
-    ['5', 'Muy alta', '#B91C1C'], ['4', 'Alta', '#C2410C'], ['3', 'Media', '#A16207'],
-    ['2', 'Baja', '#1E4FA8'], ['1', 'Puede esperar', '#475569'],
+    ['5', 'Muy alta', colors.error], ['4', 'Alta', '#C2410C'], ['3', 'Media', colors.yellow],
+    ['2', 'Baja', colors.blue], ['1', 'Puede esperar', '#475569'],
 ] as const;
 export function PriorityValue({ option }: { option: readonly [string, string, string] }) {
     return <Box component="span" sx={{ display: 'inline-flex', gap: 1, alignItems: 'center' }}>
         <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            bgcolor: option[2], color: '#fff', borderRadius: '50%', width: 26, height: 26, flexShrink: 0, fontWeight: 600 }}>{option[0]}</Box>
+            bgcolor: option[2], color: option[2] === colors.yellow ? colors.blue : colors.white, borderRadius: '50%', width: 26, height: 26, flexShrink: 0, fontWeight: 600 }}>{option[0]}</Box>
         <Box component="span" sx={{ fontWeight: 400 }}>{option[1]}</Box>
     </Box>;
 }

@@ -1,5 +1,5 @@
-param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly, [switch]$DirectStart,
-    [switch]$NexoDelegationOnly, [string]$NexoSource = 'C:\Users\Jesus Arenas\Herd\nexo',
+param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly, [switch]$DirectStart, [switch]$DigitalOnly,
+    [switch]$NoBuild, [switch]$NexoDelegationOnly, [string]$NexoSource = 'C:\Users\Jesus Arenas\Herd\nexo',
     [string]$Php = 'C:\Users\Jesus Arenas\.config\herd\bin\php84\php.exe')
 $ErrorActionPreference = 'Stop'
 if ($NexoDelegationOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly -or $TransitionOnly -or $MigrationsOnly)) { throw 'NexoDelegationOnly es una selección independiente.' }
@@ -74,9 +74,15 @@ try {
             & $Php -n (Join-Path $workspace 'tests/TDV2.NativeVerification/Export-NexoDelegation.php') $NexoSource (Join-Path $run 'nexo-generated.json')
             if ($LASTEXITCODE -ne 0) { throw 'No se pudo generar el contrato desde el código fuente de Nexo.' }
         }
-        $testArguments = if ($EditingOnly) { @('--', '--editing-only') } elseif ($NexoDelegationOnly) { @('--', '--nexo-delegation-only') } elseif ($MigrationsOnly) { @('--', '--migrations-only') } elseif ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
+        $testArguments = if ($DigitalOnly) { @('--', '--digital-only') } elseif ($EditingOnly) { @('--', '--editing-only') } elseif ($NexoDelegationOnly) { @('--', '--nexo-delegation-only') } elseif ($MigrationsOnly) { @('--', '--migrations-only') } elseif ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
+        if ($DigitalOnly -and $BrowserOnly) { $testArguments += '--browser-only' }
         # Usar Release sin apphost evita disputar el ejecutable Debug abierto por F5 en Visual Studio.
-        & dotnet run --project tests/TDV2.NativeVerification -c Release -p:UseAppHost=false -p:NuGetAudit=false @testArguments
+        if ($NoBuild) {
+            $runtimeArguments = @($testArguments | Select-Object -Skip 1)
+            & dotnet tests/TDV2.NativeVerification/bin/Release/net10.0/TDV2.NativeVerification.dll @runtimeArguments
+        } else {
+            & dotnet run --project tests/TDV2.NativeVerification -c Release -p:UseAppHost=false -p:NuGetAudit=false @testArguments
+        }
         $result = $LASTEXITCODE
         if ($result -ne 0) { throw 'Native verification failed. See results in the isolated artifacts directory.' }
     } finally { Pop-Location }

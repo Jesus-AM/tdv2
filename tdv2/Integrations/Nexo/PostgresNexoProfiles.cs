@@ -8,8 +8,16 @@ namespace Tdv2.Integrations.Nexo;
 
 // Las vistas compartidas están filtradas por la cuenta PostgreSQL publicada por Nexo.
 // Ningún ID de aplicación, rol, módulo o UR enviado por el navegador concede permisos.
-public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogger<PostgresNexoProfiles> logger) : INexoProfiles
+public sealed class PostgresNexoProfiles : INexoProfiles
 {
+    private readonly DatabaseConnections connections;
+    private readonly ILogger<PostgresNexoProfiles> logger;
+    private readonly long? expectedApplication;
+    public string ConnectionName { get; }
+    public PostgresNexoProfiles(DatabaseConnections connections, ILogger<PostgresNexoProfiles> logger)
+        : this(connections, logger, "Nexo", null) { }
+    public PostgresNexoProfiles(DatabaseConnections connections, ILogger<PostgresNexoProfiles> logger, string connectionName, long? applicationId)
+    { this.connections = connections; this.logger = logger; ConnectionName = connectionName; expectedApplication = applicationId; }
     private readonly Dictionary<string, Profile> profiles = new(StringComparer.Ordinal);
     private long? application;
     private static DomainProblem Denied() => new(403, "Tu cuenta no tiene un acceso y un rol vigentes para Transformación Digital en Nexo.");
@@ -25,12 +33,16 @@ public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogge
     public async Task<long> ApplicationId(CancellationToken cancellation)
     {
         if (application is { } id) return id;
-        await using var connection = await connections.Open("Nexo", cancellation);
+        if (ConnectionName != "Nexo" && expectedApplication is not > 0) throw Unavailable();
+        await using var connection = await connections.Open(ConnectionName, cancellation);
         await using var command = new NpgsqlCommand("SELECT to_jsonb(a)::text FROM public.nexo_aplicacion a LIMIT 2", connection);
         await using var reader = await command.ExecuteReaderAsync(cancellation);
         if (!await reader.ReadAsync(cancellation)) throw Denied();
         var row = JsonNode.Parse(reader.GetString(0))!.AsObject();
-        if (await reader.ReadAsync(cancellation) || Text(row, "clave") != "tdv2" || row["nivel_control"]?.ToString() != "2") throw Unavailable();
+        if (await reader.ReadAsync(cancellation)) throw Unavailable();
+        if (ConnectionName == "Nexo"
+            ? Text(row, "clave") != "tdv2" || row["nivel_control"]?.ToString() != "2"
+            : Positive(row["id"]) != expectedApplication || Text(row, "clave") == "tdv2") throw Unavailable();
         return (application = Positive(row["id"])).Value;
     }
     public async Task<Profile> ForEmail(string email, CancellationToken cancellation)
@@ -40,7 +52,7 @@ public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogge
         try
         {
             var app = await ApplicationId(cancellation);
-            await using var connection = await connections.Open("Nexo", cancellation);
+            await using var connection = await connections.Open(ConnectionName, cancellation);
             JsonObject row;
             await using (var command = new NpgsqlCommand("SELECT to_jsonb(u)::text FROM public.nexo_usuarios u WHERE email = $1 LIMIT 2", connection))
             {
@@ -85,7 +97,7 @@ public sealed class PostgresNexoProfiles(DatabaseConnections connections, ILogge
         try
         {
             await ApplicationId(cancellation);
-            await using var connection = await connections.Open("Nexo", cancellation);
+            await using var connection = await connections.Open(ConnectionName, cancellation);
             // La publicación distingue central/aplicacion. No inferir origen a partir de usuario_rol.
             // Las concesiones históricas de entrada sin rol no habilitan un alcance de colaboración.
             await using var command = new NpgsqlCommand("SELECT concesion_id::bigint,rol_id::bigint,id_ur_acceso,origen FROM public.nexo_concesiones WHERE email = $1 AND rol_id IS NOT NULL", connection);

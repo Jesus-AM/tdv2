@@ -1,0 +1,262 @@
+{
+  "utc": "2026-10-27T08:12:09.8045667+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 50,
+  "failed": 0,
+  "results": [
+    {
+      "name": "OAuth: tenant institucional, state, PKCE y cookie segura",
+      "passed": true,
+      "milliseconds": 3994
+    },
+    {
+      "name": "OAuth: tenant common es rechazado antes de crear intento",
+      "passed": true,
+      "milliseconds": 3032
+    },
+    {
+      "name": "OAuth: state ajeno no consume intento leg\u00EDtimo",
+      "passed": true,
+      "milliseconds": 4046
+    },
+    {
+      "name": "OAuth: callback sin cookie de navegador no autentica",
+      "passed": true,
+      "milliseconds": 2818
+    },
+    {
+      "name": "OAuth: caducidad y error del proveedor no canjean c\u00F3digo",
+      "passed": true,
+      "milliseconds": 3234
+    },
+    {
+      "name": "OAuth: callback concurrente se consume una sola vez en PostgreSQL",
+      "passed": true,
+      "milliseconds": 3378
+    },
+    {
+      "name": "Microsoft simulado \u002B Nexo SQL: identidad, tokens cifrados y sesi\u00F3n revocable",
+      "passed": true,
+      "milliseconds": 6134
+    },
+    {
+      "name": "Nexo: usuario sin aplicaci\u00F3n no crea identidad ni tokens locales",
+      "passed": true,
+      "milliseconds": 3755
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n no publicada y conexi\u00F3n ambigua deniegan",
+      "passed": true,
+      "milliseconds": 3761
+    },
+    {
+      "name": "Nexo: clave, nivel e ID publicados deben ser v\u00E1lidos",
+      "passed": true,
+      "milliseconds": 3947
+    },
+    {
+      "name": "Nexo: cuenta no individual o sin roles denegada",
+      "passed": true,
+      "milliseconds": 3921
+    },
+    {
+      "name": "Microsoft: correo externo y object ID inv\u00E1lido no autentican",
+      "passed": true,
+      "milliseconds": 3511
+    },
+    {
+      "name": "Microsoft: mismo correo no permite sustituir object ID local",
+      "passed": true,
+      "milliseconds": 4642
+    },
+    {
+      "name": "Sesi\u00F3n activa no se sustituye por otro callback",
+      "passed": true,
+      "milliseconds": 3681
+    },
+    {
+      "name": "Logout: CSRF, Nexo ca\u00EDdo, revocaci\u00F3n de cookie copiada y salida Microsoft",
+      "passed": true,
+      "milliseconds": 4166
+    },
+    {
+      "name": "CSRF previo a login no autoriza guardados de nueva identidad",
+      "passed": true,
+      "milliseconds": 5596
+    },
+    {
+      "name": "M\u00F3dulo y ruta se exigen en HTML y JSON aunque React env\u00EDe rol/UR",
+      "passed": true,
+      "milliseconds": 4704
+    },
+    {
+      "name": "Configuraci\u00F3n y jerarqu\u00EDa Nexo: padre, permiso y ruta exactos",
+      "passed": true,
+      "milliseconds": 5423
+    },
+    {
+      "name": "Nexo: permisos se revocan al siguiente request sin cierre de sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 4538
+    },
+    {
+      "name": "Responsable edita subordinadas de su rama y rechaza UR ajena",
+      "passed": true,
+      "milliseconds": 8513
+    },
+    {
+      "name": "Administrador con rol responsable conserva l\u00EDmite de edici\u00F3n de su rama",
+      "passed": true,
+      "milliseconds": 9646
+    },
+    {
+      "name": "Colaboraci\u00F3n exige v\u00EDnculo local y concesi\u00F3n SQL vigente; revocaci\u00F3n inmediata",
+      "passed": true,
+      "milliseconds": 9949
+    },
+    {
+      "name": "Nexo ca\u00EDdo deniega lecturas y guardados sin filtrar error SQL",
+      "passed": true,
+      "milliseconds": 5959
+    },
+    {
+      "name": "PostgreSQL: lectura no crea filas y guardado conserva respuestas can\u00F3nicas",
+      "passed": true,
+      "milliseconds": 7169
+    },
+    {
+      "name": "PostgreSQL: dos primeros guardados concurrentes crean una fila y un 409",
+      "passed": true,
+      "milliseconds": 6600
+    },
+    {
+      "name": "PostgreSQL: dos editores con misma versi\u00F3n no sobrescriben respuestas",
+      "passed": true,
+      "milliseconds": 8994
+    },
+    {
+      "name": "PostgreSQL: error transaccional conserva versi\u00F3n/respuesta y permite reintento",
+      "passed": true,
+      "milliseconds": 11286
+    },
+    {
+      "name": "PostgreSQL: payload inv\u00E1lido o contexto obsoleto no modifica filas",
+      "passed": true,
+      "milliseconds": 7387
+    },
+    {
+      "name": "Sesi\u00F3n PostgreSQL: expiraci\u00F3n y cambio de identidad local invalidan acceso",
+      "passed": true,
+      "milliseconds": 3889
+    },
+    {
+      "name": "Graph: refresco concurrente una vez, rotaci\u00F3n cifrada y foto fallida sin logout",
+      "passed": true,
+      "milliseconds": 5468
+    },
+    {
+      "name": "Graph: sin rotaci\u00F3n conserva refresh anterior; error no cambia token",
+      "passed": true,
+      "milliseconds": 5016
+    },
+    {
+      "name": "Auditor\u00EDa: falla revierte alta local y revocaci\u00F3n; nunca escribe sin bit\u00E1cora",
+      "passed": true,
+      "milliseconds": 6915
+    },
+    {
+      "name": "Representaci\u00F3n: administrador sin capacidad no busca ni inicia; sin escritura no la obtiene",
+      "passed": true,
+      "milliseconds": 5565
+    },
+    {
+      "name": "Representaci\u00F3n: b\u00FAsqueda autorizada vac\u00EDa/permitida y objetivo fuera de alcance",
+      "passed": true,
+      "milliseconds": 6058
+    },
+    {
+      "name": "Representaci\u00F3n: identidad real intacta, token s\u00F3lo cifrado y permisos efectivos",
+      "passed": true,
+      "milliseconds": 5314
+    },
+    {
+      "name": "Representaci\u00F3n: escritura y auditor\u00EDa at\u00F3micas respetan alcance y actor real",
+      "passed": true,
+      "milliseconds": 15092
+    },
+    {
+      "name": "Representaci\u00F3n: s\u00F3lo lectura rechaza endpoint directo y conserva permiso te\u00F3rico visible",
+      "passed": true,
+      "milliseconds": 8228
+    },
+    {
+      "name": "Representaci\u00F3n: pesta\u00F1a obsoleta y contextos anidados no ejecutan acciones centrales",
+      "passed": true,
+      "milliseconds": 6930
+    },
+    {
+      "name": "Representaci\u00F3n: dos inicios concurrentes no sustituyen el contexto ganador",
+      "passed": true,
+      "milliseconds": 4556
+    },
+    {
+      "name": "Auditor\u00EDa: rechazo CSRF identifica representaci\u00F3n y no modifica datos",
+      "passed": true,
+      "milliseconds": 7571
+    },
+    {
+      "name": "Logout representado: revocaci\u00F3n y auditor\u00EDa at\u00F3micas incluso con Nexo ca\u00EDdo",
+      "passed": true,
+      "milliseconds": 7043
+    },
+    {
+      "name": "Representaci\u00F3n: delegaci\u00F3n utiliza transporte JSON con actor real y token servidor",
+      "passed": true,
+      "milliseconds": 8600
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n/vencimiento central bloquean sin restaurar administrador",
+      "passed": true,
+      "milliseconds": 6399
+    },
+    {
+      "name": "Representaci\u00F3n: vencimiento local se verifica antes de llamar Nexo",
+      "passed": true,
+      "milliseconds": 5008
+    },
+    {
+      "name": "Representaci\u00F3n: salida con Nexo ca\u00EDdo restaura identidad propia expl\u00EDcitamente y audita",
+      "passed": true,
+      "milliseconds": 7964
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n de m\u00F3dulo actor o persona impide continuidad",
+      "passed": true,
+      "milliseconds": 6825
+    },
+    {
+      "name": "Auditor\u00EDa: falla al iniciar representaci\u00F3n revierte contexto y compensa Nexo",
+      "passed": true,
+      "milliseconds": 4574
+    },
+    {
+      "name": "Vista de prueba: s\u00F3lo escenario y \u00E1reas v\u00E1lidas, sin modo usuario",
+      "passed": true,
+      "milliseconds": 7000
+    },
+    {
+      "name": "Vista de prueba: mutaciones/b\u00FAsquedas/configuraci\u00F3n bloqueadas y salida auditada",
+      "passed": true,
+      "milliseconds": 9975
+    },
+    {
+      "name": "Vista de prueba: caducidad/revocaci\u00F3n no restauran escritura y salida no depende de Nexo",
+      "passed": true,
+      "milliseconds": 6004
+    }
+  ]
+}

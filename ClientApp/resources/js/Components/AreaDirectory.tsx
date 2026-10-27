@@ -157,7 +157,7 @@ export default function AreaDirectory({
         <section aria-label="Directorio de áreas">
             <Tabs value={scope} onChange={(_, value) => setScope(value)} aria-label="Ámbito de consulta"
                 className="area-scope-tabs"
-                sx={{ mb: 2, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 1 }, '& .Mui-selected': { bgcolor: '#edf3fd', fontWeight: 700 } }}>
+                sx={{ mb: 2, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 1 }, '& .Mui-selected': { bgcolor: 'var(--uacj-soft)', fontWeight: 700 } }}>
                 <Tab value="mis" label="Mis áreas" />
                 <Tab value="todas" label="Todas las áreas" />
             </Tabs>
@@ -215,7 +215,7 @@ export default function AreaDirectory({
                             key={node.unit.id_ur}
                             sx={{
                                 border: '1px solid',
-                                borderColor: open.has(node.unit.id_ur) ? '#bfd0eb' : 'divider',
+                                borderColor: open.has(node.unit.id_ur) ? 'var(--uacj-soft)' : 'divider',
                                 borderRadius: '12px',
                                 background: '#fff',
                                 overflow: 'hidden',
@@ -231,7 +231,7 @@ export default function AreaDirectory({
                                 onClick={() => toggle(node.unit.id_ur)}
                                 sx={{
                                     width: '100%',
-                                    background: open.has(node.unit.id_ur) ? '#f8faff' : '#fff',
+                                    background: open.has(node.unit.id_ur) ? 'var(--uacj-soft)' : '#fff',
                                     border: 0,
                                     display: 'flex',
                                     alignItems: 'center',
@@ -242,7 +242,7 @@ export default function AreaDirectory({
                                     gap: 1.5,
                                     cursor: 'pointer',
                                     color: 'text.primary',
-                                    '&:hover': { background: '#f5f8fd' },
+                                    '&:hover': { background: 'var(--uacj-soft)' },
                                 }}
                             >
                                 <Box
@@ -252,7 +252,7 @@ export default function AreaDirectory({
                                         flexShrink: 0,
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        bgcolor: '#edf3fd',
+                                        bgcolor: 'var(--uacj-soft)',
                                         color: 'primary.main',
                                         borderRadius: 2,
                                         display: { xs: 'none', sm: 'flex' },

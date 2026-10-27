@@ -41,14 +41,14 @@ export default function ModuleNavigation({ modules, url, mobile, onVisit }: {
                 aria-controls={menu?.key === module.key ? 'module-submenu' : undefined}
                 onClick={event => children.length ? setMenu({ element: event.currentTarget, key: module.key }) : visit(module)}
                 sx={{ justifyContent: mobile ? 'flex-start' : 'center', fontSize: 13, minHeight: 40, px: 1.5,
-                    border: '1px solid', borderColor: active ? '#d5e3f9' : 'transparent',
+                    border: '1px solid', borderColor: active ? 'var(--uacj-soft)' : 'transparent',
                     '& .MuiButton-endIcon': { ml: mobile ? 'auto' : 1 },
-                    bgcolor: active ? '#eaf1fc' : 'transparent', color: active ? 'primary.main' : 'text.secondary' }}>{module.name}</Button>;
+                    bgcolor: active ? 'var(--uacj-soft)' : 'transparent', color: active ? 'primary.main' : 'text.secondary' }}>{module.name}</Button>;
         })}
         <Menu id="module-submenu" anchorEl={menu?.element} open={!!expanded} onClose={() => setMenu(null)}
             disableScrollLock transitionDuration={reduced ? 0 : 180}
             slotProps={{ list: { 'aria-label': expanded?.module.name || 'Submódulos' },
-                paper: { sx: { mt: .75, minWidth: 260, maxWidth: 'calc(100vw - 24px)', boxShadow: '0 6px 24px #20314d14' } } }}>
+                paper: { sx: { mt: .75, minWidth: 260, maxWidth: 'calc(100vw - 24px)', boxShadow: '0 6px 24px rgb(33 52 85 / .08)' } } }}>
             {expanded && item(expanded.module)}
             <Divider />
             {expanded?.children.map(item)}

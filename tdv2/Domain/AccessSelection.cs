@@ -2,11 +2,13 @@ namespace Tdv2.Domain;
 
 // Estado cifrado en servidor. Nunca serializar este registro completo en páginas ni auditorías.
 public sealed record AccessSelection(string Kind, string Id, string ActorEmail, string Email, string Name,
-    string? UnitId, bool Write, DateTimeOffset ExpiresAt, string? Token = null, string? Role = null, string? Reason = null)
+    string? UnitId, bool Write, DateTimeOffset ExpiresAt, string? Token = null, string? Role = null, string? Reason = null,
+    string Application = "tdv2")
 {
     public object? Representation() => Kind == "representation" ? new
     {
         id = Id,
+        application = Application,
         email = Email,
         nombre = Name,
         id_ur = UnitId,

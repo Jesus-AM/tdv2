@@ -237,7 +237,7 @@ export default function Colaboradores({
                                                     mb: 0.5,
                                                     border: '1px solid',
                                                     borderColor:
-                                                        selected?.email === p.email ? '#bfd1ed' : 'transparent',
+                                                        selected?.email === p.email ? 'var(--uacj-soft)' : 'transparent',
                                                 }}
                                             >
                                                 <ListItemText
@@ -314,7 +314,7 @@ export default function Colaboradores({
                                                     sx={{
                                                         border: '1px solid',
                                                         borderColor: type === t ? 'primary.main' : 'divider',
-                                                        background: type === t ? '#f3f7fe' : '#fff',
+                                                        background: type === t ? 'var(--uacj-soft)' : '#fff',
                                                         borderRadius: 2,
                                                         mb: 1,
                                                         px: 1.5,

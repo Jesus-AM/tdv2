@@ -1,0 +1,248 @@
+{
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    {
+      "name": "portal conserva diseño y el botón inicia OAuth hacia Competencias",
+      "passed": true
+    },
+    {
+      "name": "aviso accesible: sin preselección, Escape/cierre no aceptan y captura bloqueada",
+      "passed": true
+    },
+    {
+      "name": "perfil institucional ineditable y perfil personal persistido",
+      "passed": true
+    }
+  ],
+  "skipped": [
+    {
+      "name": "avance y resultados: rutas directas, recargas, gráficas y tablas con PostgreSQL",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "rúbricas de Ciberseguridad permiten confirmación Inicial y captura por indicadores",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "cada bloque bloquea su siguiente sección y URL/API respetan el avance",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "móvil 390/320: cinco bloques, aviso desplazable, controles y sin desbordamiento exterior",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "error de guardado conserva cambios y no muestra éxito",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "respuesta perdida después de guardar: reintento no duplica y solo entonces avanza",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "retroceso, edición anterior y salida a otro módulo conservan el borrador",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "cuenta compartida: nombre completo, fotografía y avatar ante imagen fallida",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "comparación visual con original en escritorio y móvil, fuentes y elementos fijos",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "finalización completa e informe sin descarga ni acciones de edición",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "informe por bloques, ámbar, flujo de página y footer exclusivo en escritorio/móvil",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "configuración administra metas de adscripción directa",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "reinicio: confirmación, resumen obsoleto, respuesta perdida y nuevas capturas protegidas",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "representación consulta permisos efectivos sin configuración y salida siempre visible",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "supervisor sin configuración, N2/N3 con rama y sin filtro de nivel; participante personal",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "regresión /inicio de Procedimientos conserva vista y portada no registra errores JS",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    },
+    {
+      "name": "participante exclusivo conserva nombre y foto sin permisos de Procedimientos",
+      "reason": "Recorrido limitado a perfil y su acceso."
+    }
+  ],
+  "errors": [],
+  "layouts": [
+    {
+      "width": 1366,
+      "flow": {
+        "actual": {
+          "mainBottom": 1589.96875,
+          "top": 1629.96875,
+          "bottom": 1744.046875,
+          "viewport": 900,
+          "page": 1744,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 745.921875,
+            "top": 785.921875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 745.921875,
+            "top": 785.921875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 745.921875,
+            "top": 785.921875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 745.921875,
+            "top": 785.921875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "flow": {
+        "actual": {
+          "mainBottom": 2093.625,
+          "top": 2133.625,
+          "bottom": 2466.015625,
+          "viewport": 900,
+          "page": 2466,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "flow": {
+        "actual": {
+          "mainBottom": 2517.234375,
+          "top": 2557.234375,
+          "bottom": 2889.625,
+          "viewport": 900,
+          "page": 2890,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 527.609375,
+            "top": 567.609375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    }
+  ]
+}

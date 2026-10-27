@@ -4,11 +4,11 @@ import { router } from '@/lib/navigation';
 import { ParticipantPhotoStore } from '@/lib/participant-photos';
 
 const Photos = createContext<ParticipantPhotoStore | null>(null);
-export function AccountPhotoProvider({ context, children }: { context?: string | null; children: ReactNode }) {
+export function AccountPhotoProvider({ context, application, children }: { context?: string | null; application?: string; children: ReactNode }) {
     // Vive sobre las páginas. Cambiar identidad/contexto crea un almacén vacío en el mismo render,
     // sin esperar un efecto ni mostrar un frame con la fotografía de la cuenta anterior.
     const store = useMemo(() => context ? new ParticipantPhotoStore(async (url, signal) =>
-        (await axios.get(url, { signal, headers: { 'X-TDV2-Photo-Context': context } })).data, context) : null, [context]);
+        (await axios.get(url, { signal, headers: { 'X-TDV2-Photo-Context': context, ...(application ? { 'X-TDV2-Application': application } : {}) } })).data, context) : null, [context, application]);
     useEffect(() => {
         // Sólo una notificación efímera; no transmite imágenes, identidades ni credenciales.
         const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('tdv2-photo-context') : null;

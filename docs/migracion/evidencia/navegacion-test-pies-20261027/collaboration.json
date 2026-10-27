@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "database": false,
+  "aspNet": false,
+  "mockedTransport": true,
+  "checks": [
+    "Colaboradores omite procedencia y conserva roles, asignaciones y acciones",
+    "Guardar secundario conserva la última captura sin enviar; doble clic no duplica el guardado",
+    "Guardar antes de Enviar, altura consistente, azul/borde y teclado en escritorio/móvil",
+    "Cambio remoto invalida confirmación; envío usa versión reciente y sólo confirma tras ACK, sin duplicación"
+  ],
+  "errors": [],
+  "passed": true
+}

@@ -1,0 +1,13 @@
+/* Generado por scripts/build-design-tokens.mjs. Editar design-tokens.json. */
+:root{
+  --uacj-blue:#213455;
+  --uacj-yellow:#F0BD10;
+  --uacj-gray:#DADADA;
+  --uacj-white:#FFFFFF;
+  --uacj-muted:#626873;
+  --uacj-canvas:#F9F9F9;
+  --uacj-soft:#EDEFF2;
+  --uacj-warning-background:#FCF2CF;
+  --uacj-success:#23836C;
+  --uacj-error:#B91C1C;
+}

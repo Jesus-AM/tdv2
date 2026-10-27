@@ -1,0 +1,889 @@
+{
+  "vite": false,
+  "reproduce": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "migrations": false,
+  "resets": false,
+  "checks": [
+    {
+      "width": 1366,
+      "authorizedNavigationCases": [
+        "participante",
+        "responsable",
+        "supervisor",
+        "administrador",
+        "soloInforme",
+        "soloReporte"
+      ],
+      "aggregateNames": true
+    },
+    {
+      "width": 768,
+      "authorizedNavigationCases": [
+        "participante",
+        "responsable",
+        "supervisor",
+        "administrador",
+        "soloInforme",
+        "soloReporte"
+      ],
+      "aggregateNames": true
+    },
+    {
+      "width": 390,
+      "authorizedNavigationCases": [
+        "participante",
+        "responsable",
+        "supervisor",
+        "administrador",
+        "soloInforme",
+        "soloReporte"
+      ],
+      "aggregateNames": true
+    },
+    {
+      "width": 320,
+      "authorizedNavigationCases": [
+        "participante",
+        "responsable",
+        "supervisor",
+        "administrador",
+        "soloInforme",
+        "soloReporte"
+      ],
+      "aggregateNames": true
+    }
+  ],
+  "fonts": [],
+  "errors": [],
+  "surfaces": [],
+  "resources": [
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/css/institutional.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/css/design-tokens.css",
+      "status": 200,
+      "type": "text/css"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    },
+    {
+      "url": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "type": "font/ttf"
+    }
+  ],
+  "completed": true
+}

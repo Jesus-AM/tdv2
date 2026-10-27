@@ -41,6 +41,8 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
                 && (sent.Length == 0 ? "own" : sent) != snapshot.Key)
                 throw new DomainProblem(409, "El usuario activo cambió en otra pestaña. Recarga antes de guardar.");
             var real = await Own(http); Selection = snapshot.Selection;
+            if (Selection is { Application: not "tdv2" })
+                throw new DomainProblem(409, "Sal de la representación de Competencias digitales antes de entrar a Procedimientos institucionales.");
             audit.Resolved = Selection; audit.Effective = real;
             var profile = real;
             if (Selection is { } selection)

@@ -5,7 +5,8 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
 export async function systemFixture() {
-    const root = path.resolve('..', 'tdv2', 'wwwroot');
+    const root = path.resolve(process.env.TDV2_PUBLIC_ROOT || '../tdv2/wwwroot');
+    let vite;
     const definition = JSON.parse(await readFile('../tdv2/Contracts/procesos_operativos.json', 'utf8'));
     const blankSystem = { id: 'inicial', proceso: '', sistema: '', uso: '', estado: '', fallas: '', sistemaOtro: '', usoOtro: '', moduloSiiId: '', moduloSiiDescripcion: '' };
     const procedure = { id: 'inicial', codigo: 'PO-01', prioridad: '4', fuente: 'ILDA', area: '', tramite: 'Actividad sintética', usuario: ['Docentes'], resultado: 'Constancia', responsable: 'Área', validacion: 'V' };
@@ -34,6 +35,7 @@ export async function systemFixture() {
     });
     const server = createServer(async (req, res) => {
         const url = new URL(req.url, 'http://127.0.0.1');
+        if (vite && url.pathname.startsWith('/__vite/')) return vite.middlewares(req, res, () => { res.writeHead(404); res.end(); });
         const json = (value, status = 200) => { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(value)); };
         if (fixture.handleRequest && await fixture.handleRequest(req, url, json)) return;
         if (['/assets/', '/images/', '/fonts/', '/css/', '/js/', '/quiz/'].some(prefix => url.pathname.startsWith(prefix))) {
@@ -104,10 +106,17 @@ export async function systemFixture() {
             unidad: { id_ur: 'A', cve_ur: '100', desc_ur: 'Área sintética', nivel_ur: 2, ejercicio: 2026, id_ur_pertenece: null }, contenido: clone(content), plantilla: { ...clone(content), sistemas: [clone(blankSystem)] }, definicion: definition,
             editable: !fixture.submitted && !fixture.readOnly, entrega: fixture.delivery?.(), permisoEdicion: !fixture.readOnly, version: fixture.version, porcentaje: 0, porcentajeEtapa: 0, seccionesPosteriores: !!fixture.laterSections, puedeEnviar: !!fixture.delivery && !fixture.readOnly, enviadoEn: fixture.submitted ? new Date().toISOString() : null, enviadoPor: null, actualizadoEn: null, actualizadoPor: null, guardarUrl: '/formatos/A',
         } });
-        res.setHeader('content-type', 'text/html'); res.end(await readFile(path.join(root, 'index.html')));
+        res.setHeader('content-type', 'text/html');
+        res.end(vite ? await vite.transformIndexHtml('/__vite/index.html', await readFile('index.html', 'utf8')) : await readFile(path.join(root, 'index.html')));
     });
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    // Misma transformación de HTML/prefijo que ReactShell. HMR sólo usa este puerto
+    // aleatorio de prueba: nunca se conecta al host 7136 ni al Vite 5173 del operador.
+    if (process.env.TDV2_TEST_VITE === '1') vite = await (await import('vite')).createServer({
+        envDir: false, cacheDir: '../.artifacts/cd-visual-regression/vite-cache',
+        server: { middlewareMode: true, watch: null, hmr: { server, protocol: 'ws', host: '127.0.0.1', clientPort: server.address().port } },
+    });
     fixture.origin = `http://127.0.0.1:${server.address().port}`;
-    fixture.close = () => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); });
+    fixture.close = async () => { await vite?.close(); await new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }); };
     return fixture;
 }

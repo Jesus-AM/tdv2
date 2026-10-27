@@ -16,6 +16,7 @@ using Tdv2.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Policy;
+using Tdv2.Competencias;
 namespace Tdv2.Hosting;
 
 public static class ServiceRegistration
@@ -113,6 +114,14 @@ public static class ServiceRegistration
         builder.Services.AddSignalR(options => { options.MaximumReceiveMessageSize = 4096; options.EnableDetailedErrors = false; });
         builder.Services.AddScoped<PostgresNexoProfiles>();
         builder.Services.AddScoped<INexoProfiles>(services => services.GetRequiredService<PostgresNexoProfiles>());
+        builder.Services.AddScoped<IDigitalNexo, DigitalNexo>();
+        builder.Services.AddScoped<DigitalAccess>();
+        builder.Services.AddDbContext<DigitalDbContext>(options => DigitalDbContext.Configure(options, builder.Configuration));
+        builder.Services.AddSingleton(new DigitalInstrument(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "competencias-digitales-v1.json"))));
+        builder.Services.AddScoped<DigitalAggregates>();
+        builder.Services.AddScoped<DigitalSurveyService>();
+        builder.Services.AddScoped<DigitalResetService>();
+        builder.Services.AddScoped<DigitalRepresentation>();
         builder.Services.AddScoped<RequestAccess>();
         builder.Services.AddSingleton(new FormSchema(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "procesos_operativos.json"))));
         builder.Services.AddScoped<FormService>();

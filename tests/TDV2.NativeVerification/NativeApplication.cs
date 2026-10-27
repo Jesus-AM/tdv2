@@ -128,6 +128,13 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     internal string ControlToken { get; } = ProtectedValues.Random();
     internal string PublicOrigin = "https://localhost";
     internal bool Browser, Vite, ManualProcessing;
+    internal IStartupFilter? AdditionalControls;
+    internal Dictionary<string, string?> DigitalConfiguration { get; set; } = new()
+    {
+        ["ConnectionStrings:CompetenciasDigitales"] = null,
+        ["ConnectionStrings:CompetenciasDigitalesNexo"] = null,
+        ["CompetenciasDigitales:Nexo:ApplicationId"] = null
+    };
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -142,7 +149,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
             ["Microsoft:TenantId"] = FakeMicrosoft.Tenant, ["Microsoft:ClientId"] = "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
             ["Microsoft:ClientSecret"] = "synthetic-only", ["Microsoft:PublicOrigin"] = PublicOrigin,
             ["Synchronization:IldaEnabled"] = "true", ["ReactDevelopment:UseVite"] = Vite.ToString()
-        }); });
+        }); configuration.AddInMemoryCollection(DigitalConfiguration); });
         builder.ConfigureTestServices(services =>
         {
             if (!ManualProcessing)
@@ -161,6 +168,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
             services.AddSingleton<ISourceConnections>(Sources);
             services.AddHttpClient<MicrosoftClient>().ConfigurePrimaryHttpMessageHandler(() => Microsoft);
             if (Browser) {
+                if (AdditionalControls is not null) services.AddSingleton<IStartupFilter>(AdditionalControls);
                 Microsoft.PhotoAvailable = true;
                 services.AddSingleton<IStartupFilter>(new BrowserControls(database, ControlToken, Sources, Microsoft, Clock));
             }

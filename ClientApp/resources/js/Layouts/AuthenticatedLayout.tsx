@@ -1,7 +1,8 @@
 import { router, usePage } from '@/lib/navigation';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useAccountPhoto } from '@/Components/AccountPhoto';
+import AccountMenu from '@/Components/AccountMenu';
+import InstitutionalFooter from '@/Components/InstitutionalFooter';
 import {
     AppBar,
     Toolbar,
@@ -9,12 +10,6 @@ import {
     Drawer,
     IconButton,
     Button,
-    Avatar,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText,
-    Divider,
     Typography,
     Chip,
     Alert,
@@ -23,9 +18,6 @@ import {
 import {
     Menu as MenuIcon,
     Close,
-    Logout,
-    HomeOutlined,
-    ExpandMore,
     ManageAccountsOutlined,
     ArrowBack,
 } from '@mui/icons-material';
@@ -79,7 +71,6 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
         return () => observer.disconnect();
     }, []);
     const [open, setOpen] = useState(false),
-        [account, setAccount] = useState<HTMLElement | null>(null),
         [busy, setBusy] = useState(false);
     const last = useRef(Date.now());
     useEffect(() => {
@@ -99,18 +90,10 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
             document.removeEventListener('visibilitychange', check);
         };
     }, [props.session.lifetime_ms, routes.inicio]);
-    const photo = useAccountPhoto();
-    const visibleName = rep?.nombre || auth.user?.name;
     const exit = () => {
         if (busy) return;
         setBusy(true);
         router.delete(rep ? '/actuar-como-usuario' : '/vista-prueba', { onFinish: () => setBusy(false) });
-    };
-    const logout = () => {
-        if (busy) return;
-        setBusy(true);
-        router.clearHistory();
-        router.post(routes.logout, {}, { onFinish: () => setBusy(false) });
     };
     const visit = (path: string) => {
         setOpen(false);
@@ -151,77 +134,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                     </Box>
                     {!mobile && navigation}
                     <Box sx={{ flex: 1 }} />
-                    <Button
-                        color="inherit"
-                        aria-label="Abrir menú de usuario"
-                        aria-haspopup="menu"
-                        aria-expanded={!!account}
-                        aria-controls={account ? 'account-menu' : undefined}
-                        onClick={(e) => setAccount(e.currentTarget)}
-                        sx={{ minWidth: 40, p: 0.5, gap: 1 }}
-                    >
-                        <Avatar
-                            key={props.photoContext || 'initials'}
-                            src={photo || undefined}
-                            sx={{ width: 32, height: 32, fontSize: 12, bgcolor: '#e6eefb', color: 'primary.dark' }}
-                        >
-                            {visibleName
-                                ?.split(/\s+/)
-                                .slice(0, 2)
-                                .map((n) => n[0])
-                                .join('')}
-                        </Avatar>
-                        <Typography
-                            sx={{ display: { xs: 'none', lg: 'block' }, maxWidth: 165, fontSize: 13, fontWeight: 500 }}
-                            noWrap
-                        >
-                            {visibleName}
-                        </Typography>
-                        <ExpandMore fontSize="small" sx={{ display: { xs: 'none', sm: 'block' } }} />
-                    </Button>
-                    <Menu
-                        id="account-menu"
-                        disableScrollLock
-                        anchorEl={account}
-                        open={!!account}
-                        onClose={() => setAccount(null)}
-                        slotProps={{ paper: { sx: { width: 285, maxWidth: 'calc(100vw - 24px)', mt: 1, boxShadow: '0 6px 24px #20314d14' } } }}
-                    >
-                        <Box sx={{ px: 2, py: 1 }}>
-                            <div className="eyebrow">Tu cuenta</div>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {auth.user?.name}
-                            </Typography>
-                            <Typography variant="caption" sx={{ overflowWrap: 'anywhere' }}>
-                                {auth.user?.email}
-                            </Typography>
-                        </Box>
-                        <Divider />
-                        {(rep || preview) && (
-                            <MenuItem onClick={exit} disabled={busy}>
-                                <ListItemIcon>
-                                    <ArrowBack />
-                                </ListItemIcon>
-                                <ListItemText>Volver a mi usuario</ListItemText>
-                            </MenuItem>
-                        )}
-                        <MenuItem component="a" href={routes.home}>
-                            <ListItemIcon>
-                                <HomeOutlined />
-                            </ListItemIcon>
-                            <ListItemText>Portada pública</ListItemText>
-                        </MenuItem>
-                        <MenuItem disabled={busy} onClick={logout}>
-                            <ListItemIcon>
-                                <Logout />
-                            </ListItemIcon>
-                            <ListItemText>Cerrar sesión</ListItemText>
-                        </MenuItem>
-                        <MenuItem disabled={busy} onClick={() => {
-                            setBusy(true); router.clearHistory();
-                            router.post('/session/use-another-account', {}, { onFinish: () => setBusy(false) });
-                        }}><ListItemIcon><ManageAccountsOutlined /></ListItemIcon><ListItemText>Usar otra cuenta</ListItemText></MenuItem>
-                    </Menu>
+                    <AccountMenu />
                 </Toolbar>
             </AppBar>
             <Box
@@ -267,23 +180,7 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
                 <main id="main-content" tabIndex={-1} style={{ flex: 1, minWidth: 0, outline: 'none' }}>
                     {children}
                 </main>
-                <Box
-                    className="app-footer"
-                    sx={{
-                        px: 3,
-                        py: 2,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        textAlign: 'center',
-                        gap: 2,
-                        color: 'text.secondary',
-                        fontSize: 11,
-                        borderTop: '1px solid',
-                        borderColor: 'divider',
-                    }}
-                >
-                    <span>Universidad Autónoma de Ciudad Juárez</span>
-                </Box>
+                <InstitutionalFooter variant="internal" />
             </Box>
         </>
     );

@@ -92,6 +92,3 @@ function finish(){
  document.getElementById("badges").innerHTML=badges.map(x=>`<span class="badge">${x}</span>`).join("");
 }
 function restart(){startGame()}
-function showHow(){
- alert("🎮 Responde 10 situaciones rápidas. Cada acierto te da XP y mantiene tu racha. Al final recibirás un nivel diagnóstico. La versión completa puede crecer a 50–100 retos, incluir banco aleatorio, resultados por aplicación y exportación.");
-}

@@ -1,0 +1,927 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 1440,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 154,
+      "items": [
+        {
+          "x": 154,
+          "y": 6084.1875,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6103.0703125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 583,
+          "y": 6086.640625,
+          "w": 154,
+          "h": 32.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 766,
+          "y": 6088.90625,
+          "w": 154,
+          "h": 28.34375,
+          "center": 6103.078125,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 949,
+          "y": 6083.3125,
+          "w": 154,
+          "h": 39.53125,
+          "center": 6103.078125,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 1132,
+          "y": 6086.140625,
+          "w": 154,
+          "h": 33.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 1180,
+      "flow": {
+        "actual": {
+          "mainBottom": 6027.3125,
+          "top": 6047.3125,
+          "bottom": 6158.84375,
+          "viewport": 900,
+          "page": 6159,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 1366,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 1366,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 117,
+      "items": [
+        {
+          "x": 117,
+          "y": 6084.1875,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6103.0703125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 546,
+          "y": 6086.640625,
+          "w": 154,
+          "h": 32.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 729,
+          "y": 6088.90625,
+          "w": 154,
+          "h": 28.34375,
+          "center": 6103.078125,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 912,
+          "y": 6083.3125,
+          "w": 154,
+          "h": 39.53125,
+          "center": 6103.078125,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 1095,
+          "y": 6086.140625,
+          "w": 154,
+          "h": 33.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 1180,
+      "flow": {
+        "actual": {
+          "mainBottom": 6027.3125,
+          "top": 6047.3125,
+          "bottom": 6158.84375,
+          "viewport": 900,
+          "page": 6159,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 1280,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 1280,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 74,
+      "items": [
+        {
+          "x": 74,
+          "y": 6084.1875,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6103.0703125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 503,
+          "y": 6086.640625,
+          "w": 154,
+          "h": 32.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 686,
+          "y": 6088.90625,
+          "w": 154,
+          "h": 28.34375,
+          "center": 6103.078125,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 869,
+          "y": 6083.3125,
+          "w": 154,
+          "h": 39.53125,
+          "center": 6103.078125,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 1052,
+          "y": 6086.140625,
+          "w": 154,
+          "h": 33.875,
+          "center": 6103.078125,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 1180,
+      "flow": {
+        "actual": {
+          "mainBottom": 6027.3125,
+          "top": 6047.3125,
+          "bottom": 6158.84375,
+          "viewport": 900,
+          "page": 6159,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 768.46875,
+            "top": 788.46875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 1100,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 1100,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 24,
+      "items": [
+        {
+          "x": 24,
+          "y": 6239.125,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6258.0078125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 453,
+          "y": 6243.703125,
+          "w": 134,
+          "h": 28.609375,
+          "center": 6258.0078125,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 616,
+          "y": 6245.6875,
+          "w": 134,
+          "h": 24.65625,
+          "center": 6258.015625,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 779,
+          "y": 6240.8125,
+          "w": 134,
+          "h": 34.40625,
+          "center": 6258.015625,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 942,
+          "y": 6243.28125,
+          "w": 134,
+          "h": 29.46875,
+          "center": 6258.015625,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 1100,
+      "flow": {
+        "actual": {
+          "mainBottom": 6184.8125,
+          "top": 6204.8125,
+          "bottom": 6311.21875,
+          "viewport": 900,
+          "page": 6311,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 773.59375,
+            "top": 793.59375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 773.59375,
+            "top": 793.59375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 773.59375,
+            "top": 793.59375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 773.59375,
+            "top": 793.59375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 1024,
+      "unchangedOutsideFooter": true,
+      "overflow": true,
+      "pageWidth": 1079,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 24,
+      "items": [
+        {
+          "x": 24,
+          "y": 6224.9375,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6243.8203125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 453,
+          "y": 6226.421875,
+          "w": 163,
+          "h": 34.796875,
+          "center": 6243.8203125,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 645,
+          "y": 6228.8125,
+          "w": 163,
+          "h": 30,
+          "center": 6243.8125,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 837,
+          "y": 6223.28125,
+          "w": 160,
+          "h": 41.078125,
+          "center": 6243.8203125,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 37,
+          "y": 6298.359375,
+          "w": 183,
+          "h": 40.25,
+          "center": 6318.484375,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 1024,
+      "flow": {
+        "actual": {
+          "mainBottom": 6167.28125,
+          "top": 6187.28125,
+          "bottom": 6374.609375,
+          "viewport": 900,
+          "page": 6375,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 692.671875,
+            "top": 712.671875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 692.671875,
+            "top": 712.671875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 692.671875,
+            "top": 712.671875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 692.671875,
+            "top": 712.671875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 768,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 768,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 24,
+      "items": [
+        {
+          "x": 24,
+          "y": 6653.125,
+          "w": 400,
+          "h": 37.765625,
+          "center": 6672.0078125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 453,
+          "y": 6658.03125,
+          "w": 131,
+          "h": 27.96875,
+          "center": 6672.015625,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 613,
+          "y": 6659.953125,
+          "w": 131,
+          "h": 24.109375,
+          "center": 6672.0078125,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 37,
+          "y": 6720,
+          "w": 160,
+          "h": 41.078125,
+          "center": 6740.5390625,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 254,
+          "y": 6720.40625,
+          "w": 183,
+          "h": 40.25,
+          "center": 6740.53125,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 768,
+      "flow": {
+        "actual": {
+          "mainBottom": 6602.03125,
+          "top": 6622.03125,
+          "bottom": 6797.078125,
+          "viewport": 900,
+          "page": 6797,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 704.953125,
+            "top": 724.953125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 704.953125,
+            "top": 724.953125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 704.953125,
+            "top": 724.953125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 704.953125,
+            "top": 724.953125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 390,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 24,
+      "items": [
+        {
+          "x": 24,
+          "y": 9571.875,
+          "w": 342,
+          "h": 32.28125,
+          "center": 9588.015625,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 37,
+          "y": 9632.15625,
+          "w": 150,
+          "h": 32.015625,
+          "center": 9648.1640625,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 216,
+          "y": 9634.359375,
+          "w": 150,
+          "h": 27.609375,
+          "center": 9648.1640625,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 37,
+          "y": 9698.171875,
+          "w": 150,
+          "h": 38.515625,
+          "center": 9717.4296875,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 216,
+          "y": 9700.921875,
+          "w": 150,
+          "h": 33,
+          "center": 9717.421875,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 390,
+      "flow": {
+        "actual": {
+          "mainBottom": 9521.875,
+          "top": 9541.875,
+          "bottom": 9772.6875,
+          "viewport": 900,
+          "page": 9773,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 649.1875,
+            "top": 669.1875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 649.1875,
+            "top": 669.1875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 649.1875,
+            "top": 669.1875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 649.1875,
+            "top": 669.1875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "unchangedOutsideFooter": true,
+      "overflow": false,
+      "pageWidth": 320,
+      "footerOverflow": false,
+      "background": "rgb(33, 52, 85)",
+      "contentX": 24,
+      "items": [
+        {
+          "x": 24,
+          "y": 11022.859375,
+          "w": 272,
+          "h": 25.671875,
+          "center": 11035.6953125,
+          "alt": "UACJ Inspira el Futuro · Dirección General de Tecnologías de la Información",
+          "src": "/images/competencias-digitales/firma-1.png",
+          "loaded": true,
+          "ratio": 10.589285714285714
+        },
+        {
+          "x": 37,
+          "y": 11076.53125,
+          "w": 183,
+          "h": 39.0625,
+          "center": 11096.0625,
+          "alt": "Subdirección de Inteligencia de Datos",
+          "src": "/images/competencias-digitales/firma-3.png",
+          "loaded": true,
+          "ratio": 4.683760683760684
+        },
+        {
+          "x": 37,
+          "y": 11149.59375,
+          "w": 188,
+          "h": 34.59375,
+          "center": 11166.890625,
+          "alt": "Subdirección de Desarrollo de Sistemas",
+          "src": "/images/competencias-digitales/firma-5.png",
+          "loaded": true,
+          "ratio": 5.4324324324324325
+        },
+        {
+          "x": 37,
+          "y": 11218.1875,
+          "w": 160,
+          "h": 41.078125,
+          "center": 11238.7265625,
+          "alt": "Subdirección de Operación y Redes",
+          "src": "/images/competencias-digitales/firma-7.png",
+          "loaded": true,
+          "ratio": 3.894308943089431
+        },
+        {
+          "x": 37,
+          "y": 11293.265625,
+          "w": 183,
+          "h": 40.25,
+          "center": 11313.390625,
+          "alt": "Subdirección de Tecnología Educativa",
+          "src": "/images/competencias-digitales/firma-9.png",
+          "loaded": true,
+          "ratio": 4.545454545454546
+        }
+      ],
+      "containerWidth": 320,
+      "flow": {
+        "actual": {
+          "mainBottom": 10972.859375,
+          "top": 10992.859375,
+          "bottom": 11369.515625,
+          "viewport": 900,
+          "page": 11370,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 503.34375,
+            "top": 523.34375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 503.34375,
+            "top": 523.34375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 503.34375,
+            "top": 523.34375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 503.34375,
+            "top": 523.34375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "synthetic": true,
+  "passed": true
+}

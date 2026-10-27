@@ -49,16 +49,16 @@ internal static partial class NativeTests
     private static async Task<JsonObject> Form(HttpClient client) => (await Json(await client.GetAsync("/formatos/A")))["props"]!.AsObject();
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<HttpClient, System.Collections.Concurrent.ConcurrentDictionary<string, Guid>> EditorTabs = new();
     private static Task<HttpResponseMessage> Save(HttpClient client, int version, JsonNode content) => SaveAll(client, "A", version, content);
-    // Adaptador de los escenarios históricos: envía todos los bloques explícitamente reservados.
+    // Adaptador de escenarios históricos al contrato vigente de captura de primera etapa.
     // Las pruebas nuevas ejercitan parches mínimos y sesiones/pestañas independientes.
     private static async Task<HttpResponseMessage> SaveAll(HttpClient client, string unit, int version, JsonNode content)
     {
         var values = FormBlocks.Split(content.AsObject());
-        for (var i = 0; i < 12; i++) values.TryAdd("preguntas:" + i, null);
         var tab = EditorTabs.GetOrCreateValue(client).GetOrAdd(unit, _ => Guid.NewGuid());
         var read = await client.GetAsync($"/formatos/{unit}/estado?tab={tab}"); if (!read.IsSuccessStatusCode) return read;
         var current = await Json(read);
         foreach (var key in FormBlocks.Split(current["contenido"]!.AsObject()).Keys) values.TryAdd(key, null);
+        foreach (var key in values.Keys.Where(k => !FormCapture.FirstStageBlock(k)).ToArray()) values.Remove(key);
         var versions = current["bloques"]!.AsArray().ToDictionary(b => b!["key"]!.ToString(), b => b!["version"]!.GetValue<int>());
         int Expected(string key) => Math.Min(version, versions.GetValueOrDefault(key));
         var reserved = await client.PostAsJsonAsync($"/formatos/{unit}/reservas", new { tabId = tab, operationId = Guid.NewGuid(), blocks = values.Select(p => new { key = p.Key, version = Expected(p.Key) }) });
@@ -92,6 +92,7 @@ internal static partial class NativeTests
             await work; return 0;
         }
         await database.Initialize();
+        if (args.Contains("--digital-only")) return await DigitalTests.Run(database);
         if (args.Contains("--transition-only")) return await TransitionTests.Run(database);
         var results = new List<object>(); var failed = 0; var passed = 0;
         var cases = new List<(string, Func<NativeApplication, HttpClient, Task>)>();
@@ -323,7 +324,7 @@ internal static partial class NativeTests
         Test("PostgreSQL: payload inválido o contexto obsoleto no modifica filas", async (app, client) =>
         {
             await Login(app, client); await Csrf(client); var content = (await Form(client))["contenido"]!;
-            content["preguntas"] = new JsonArray(); Check((int)(await Save(client, 0, content)).StatusCode == 422);
+            content["identificacion"]![0]!["prioridad"] = "99"; Check((int)(await Save(client, 0, content)).StatusCode == 422);
             client.DefaultRequestHeaders.Add("X-TDV2-Context", "obsolete"); Check((await Save(client, 0, content)).StatusCode == HttpStatusCode.Conflict);
             Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM formato_operaciones")) == 0);
             Check(Convert.ToInt32(await database.Scalar("SELECT version FROM formatos_ur")) == 0);

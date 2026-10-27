@@ -23,6 +23,7 @@
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="NodaTime" Version="3.3.3" />
     <Content Update="Contracts/procesos_operativos.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Update="Contracts/competencias-digitales-v1.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Contracts/aplicaciones-2026-10-14.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Remove="wwwroot/assets/**;wwwroot/index.html" />
   </ItemGroup>

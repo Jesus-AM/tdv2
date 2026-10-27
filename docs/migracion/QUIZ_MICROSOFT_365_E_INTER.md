@@ -1,5 +1,7 @@
 # Quiz Microsoft 365 e Inter local — 2026-10-16
 
+**Revisión vigente 2026-10-27:** el portal usa Noto Sans local y presenta dos accesos: encuesta principal a `/competencias-digitales` y **Juego de Microsoft 365 / Iniciar test**, secundario, con el mismo diálogo/adaptador/recursos de esta guía. El documento del juego conserva Inter, preguntas, lógica y diseño originales. Procedimientos conserva Roboto. [Cambios, comprobaciones y evidencia vigentes](PORTAL_Y_PERFIL_20261027.md). Las referencias siguientes a Inter en el portal documentan entregas anteriores.
+
 ## Estado y alcance
 
 **Etiqueta vigente 2026-10-19:** el acceso público se llama **Iniciar test**. Es también su nombre accesible, obtenido del contenido del botón; conserva clases, ID, apertura y funcionamiento. Build Release y suite existente del quiz correctos; evidencia `.artifacts/quiz-button-20261019/`. El nombre anterior que aparece en la descripción de la entrega original corresponde al historial.

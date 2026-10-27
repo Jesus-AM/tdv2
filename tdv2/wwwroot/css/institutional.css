@@ -1,0 +1,15 @@
+@import url('/fonts/noto-sans/noto-sans.css');
+@import url('./design-tokens.css');
+
+/* Ventana de la firma UACJ completa (x=0..560) del recurso compuesto original.
+   El archivo y todos los píxeles del logotipo se conservan; DGTI se presenta aparte. */
+.institutional-logo{display:block;width:220px;max-width:100%;aspect-ratio:560/112;overflow:hidden;flex-shrink:0}
+.institutional-logo img{display:block;height:100%;width:auto;max-width:none}
+.institutional-footer{background:var(--uacj-blue);color:var(--uacj-white);font-family:var(--font-interface);flex-shrink:0}
+.institutional-footer .institutional-signatures{display:flex;align-items:center;flex-wrap:wrap;gap:24px 16px;padding-top:30px;padding-bottom:30px}
+.institutional-signature{border-left:1px solid rgb(255 255 255 / .28);padding-left:14px;flex:0 0 auto;width:140px;font-size:14px;line-height:1.4;font-weight:400;color:var(--uacj-white)}
+.institutional-signature span,.institutional-signature strong{display:block}
+.institutional-signature strong{font-weight:700}
+.institutional-directorate{font-size:16px;width:185px}
+@media(max-width:700px){.institutional-footer .institutional-signatures{align-items:flex-start;gap:24px}.institutional-signature{width:calc(50% - 12px);max-width:none;flex:0 0 auto}.institutional-directorate{width:100%;font-size:17px;max-width:300px}.institutional-footer .institutional-logo{margin-right:calc(100% - 220px)}}
+@media(max-width:380px){.institutional-signature{width:100%;max-width:260px}}

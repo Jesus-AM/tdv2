@@ -1,0 +1,404 @@
+{
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "migrations": false,
+  "resets": false,
+  "checks": [
+    {
+      "width": 1366,
+      "flow": {
+        "actual": {
+          "mainBottom": 2854.859375,
+          "top": 2854.859375,
+          "bottom": 2983.03125,
+          "viewport": 900,
+          "page": 2983,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      },
+      "profile": true,
+      "report": true,
+      "privacyReadOnly": true
+    },
+    {
+      "width": 768,
+      "flow": {
+        "actual": {
+          "mainBottom": 3573.546875,
+          "top": 3573.546875,
+          "bottom": 3784.5,
+          "viewport": 900,
+          "page": 3785,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 689.046875,
+            "top": 689.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 689.046875,
+            "top": 689.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 689.046875,
+            "top": 689.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 689.046875,
+            "top": 689.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      },
+      "profile": true,
+      "report": true,
+      "privacyReadOnly": true
+    },
+    {
+      "width": 390,
+      "flow": {
+        "actual": {
+          "mainBottom": 4928.25,
+          "top": 4928.25,
+          "bottom": 5182.8125,
+          "viewport": 844,
+          "page": 5183,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 589.4375,
+            "top": 589.4375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 589.4375,
+            "top": 589.4375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 589.4375,
+            "top": 589.4375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 589.4375,
+            "top": 589.4375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          }
+        ]
+      },
+      "profile": true,
+      "report": true,
+      "privacyReadOnly": true
+    },
+    {
+      "width": 320,
+      "flow": {
+        "actual": {
+          "mainBottom": 5359.703125,
+          "top": 5359.703125,
+          "bottom": 5744.84375,
+          "viewport": 844,
+          "page": 5745,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 458.859375,
+            "top": 458.859375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 458.859375,
+            "top": 458.859375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 458.859375,
+            "top": 458.859375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 458.859375,
+            "top": 458.859375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          }
+        ]
+      },
+      "profile": true,
+      "report": true,
+      "privacyReadOnly": true
+    }
+  ],
+  "fonts": [
+    {
+      "label": "perfil-1366",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "label": "cuenta-1366",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 32
+        }
+      ]
+    },
+    {
+      "label": "aviso-1366",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 31
+        }
+      ]
+    },
+    {
+      "label": "informe-1366",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 32
+        }
+      ]
+    },
+    {
+      "label": "perfil-768",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "label": "cuenta-768",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 32
+        }
+      ]
+    },
+    {
+      "label": "aviso-768",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 31
+        }
+      ]
+    },
+    {
+      "label": "informe-768",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 31
+        }
+      ]
+    },
+    {
+      "label": "perfil-390",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "label": "cuenta-390",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 32
+        }
+      ]
+    },
+    {
+      "label": "aviso-390",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 30
+        }
+      ]
+    },
+    {
+      "label": "informe-390",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 31
+        }
+      ]
+    },
+    {
+      "label": "perfil-320",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 23
+        }
+      ]
+    },
+    {
+      "label": "cuenta-320",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 61
+        }
+      ]
+    },
+    {
+      "label": "aviso-320",
+      "fonts": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 30
+        }
+      ]
+    },
+    {
+      "label": "informe-320",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 31
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

@@ -1,0 +1,136 @@
+{
+    "baselineCommit":  "27b5f248b376351a260d54cbd966d4a50f22f0c1",
+    "baselineMethod":  "git archive HEAD; solo RestorePackagesPath adaptado al cache local existente. Código de aplicación y pruebas sin cambios.",
+    "isolatedPostgreSql":  true,
+    "syntheticIdentity":  true,
+    "currentReport":  ".artifacts/native-postgres-20261027-075201-34720037/verification.json",
+    "baselineReports":  [
+                            ".artifacts/competencias-baseline/.artifacts/native-postgres-20261027-075743-b6902e1b/verification.json",
+                            ".artifacts/competencias-baseline/.artifacts/native-postgres-20261027-080055-97fc33a5/verification.json",
+                            ".artifacts/competencias-baseline/.artifacts/native-postgres-20261027-080457-da3c6820/verification.json"
+                        ],
+    "compared":  15,
+    "allReproduced":  true,
+    "results":  [
+                    {
+                        "name":  "Central/concesión sin rol no habilita; formato enviado continúa inmutable",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/regresión: códigos y criterios confirmados atómicamente para dos altas simultáneas",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/regresión: un vínculo inválido histórico no paraliza otro registro ni se limpia al guardarlo",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "ArgumentOutOfRangeException",
+                        "currentException":  "ArgumentOutOfRangeException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/reproducción: referencia a código local no confirmado rechaza incluso un bloque independiente",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "ArgumentOutOfRangeException",
+                        "currentException":  "ArgumentOutOfRangeException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/usuarios múltiples: colección vacía pendiente, validación estricta, guardado y recarga sin limpieza",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/usuarios: envío rechaza colección vacía y acepta opciones confirmadas sin alterar prioridad",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/revisión omite sesión, recalcula borradores sin escribir y conserva historia al enviar",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/otra persona colaboradora edita dentro de su formato pero no puede enviarlo",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/enviado conserva ILDA, unidad y respuestas aunque cambien los catálogos",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/validación: D/N históricos permiten otros campos, quedan pendientes y se corrigen a V/A",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/etapas: envío concurrente y reintento confirman una instantánea parcial y auditoría",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/etapas: auditoría fallida revierte envío, recibo y versión",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/etapas: segunda deshabilitada y envíos independientes sin alterar primera",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/entrega: responsable y administrador envían sólo primera etapa sin alterar respuestas posteriores",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    },
+                    {
+                        "name":  "Edición/entrega: elegibilidad única, cambios concurrentes y vínculos históricos pendientes",
+                        "baselinePassed":  false,
+                        "currentPassed":  false,
+                        "baselineException":  "InvalidOperationException",
+                        "currentException":  "InvalidOperationException",
+                        "sameFailure":  true
+                    }
+                ]
+}

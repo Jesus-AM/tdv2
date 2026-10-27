@@ -6,7 +6,7 @@ using Tdv2.Security;
 namespace Tdv2.Services;
 
 /// <summary>Revoca la sesión y audita ambas identidades, incluso si Nexo está caído.</summary>
-public sealed class SessionTerminationService(AccessState state, DatabaseConnections connections, NexoOperations nexo, OperationAudit audit)
+public sealed class SessionTerminationService(AccessState state, DatabaseConnections connections, NexoOperations nexo, OperationAudit audit, Tdv2.Competencias.IDigitalNexo digital)
 {
     public async Task Revoke(string? email, CancellationToken ct)
     {
@@ -18,7 +18,12 @@ public sealed class SessionTerminationService(AccessState state, DatabaseConnect
         var closed = false;
         if (snapshot.Selection is { Kind: "representation" } selection && selection.ActorEmail == email)
         {
-            try { await nexo.Represent("finalizar", email!, new() { ["token"] = selection.Token }, ct); closed = true; }
+            try
+            {
+                if (selection.Application == "competencias-digitales") await digital.Represent("finalizar", email!, new() { ["token"] = selection.Token }, ct);
+                else await nexo.Represent("finalizar", email!, new() { ["token"] = selection.Token }, ct);
+                closed = true;
+            }
             catch (DomainProblem) { /* El cierre local sigue disponible ante revocación o caída central. */ }
         }
         await PostgresTicketStore.Revoke(connection, transaction, state.SessionHash, ct);

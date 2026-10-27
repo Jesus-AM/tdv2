@@ -1,0 +1,304 @@
+{
+  "passed": true,
+  "postgres": false,
+  "anonymous": true,
+  "syntheticAuthenticatedPage": true,
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html",
+      "sha256": "B6B8A29CDBCF02F1D8816F69C5BF982927BB4DC7944C596E984165C1456FEA8D",
+      "frameOptions": "DENY",
+      "bytes": 41261
+    },
+    {
+      "path": "/quiz/microsoft-365/index.html",
+      "status": 200,
+      "contentType": "text/html",
+      "sha256": "9A56971F68BEF37A5631A2F7DE6450988897CAFCE0E1157ADB8210909707ED0B",
+      "frameOptions": "DENY",
+      "bytes": 4568
+    },
+    {
+      "path": "/quiz/microsoft-365/quiz.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "F8B05765B925DE9C3D05A8F66E87E46F7E97FE97F2E789CAD033E488508FBAAA",
+      "frameOptions": "DENY",
+      "bytes": 5189
+    },
+    {
+      "path": "/quiz/microsoft-365/quiz.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "45DA8C62944F5DCF333553AD49C0CF2EFF9EE6087F40F9281A4DC859096CC88F",
+      "frameOptions": "DENY",
+      "bytes": 7535
+    },
+    {
+      "path": "/quiz/microsoft-365/quiz-controls.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "26F6390102C7FA53B8D22C3F53394D60EB610E7ABB639ABC2404B2DB81517F94",
+      "frameOptions": "DENY",
+      "bytes": 1907
+    },
+    {
+      "path": "/fonts/inter/inter.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "983F8724DBB435AC9F14541E22D11DDE005C6DF655289F877F9BB863B34BF3F2",
+      "frameOptions": "DENY",
+      "bytes": 499
+    },
+    {
+      "path": "/fonts/inter/InterVariable.woff2",
+      "status": 200,
+      "contentType": "font/woff2",
+      "sha256": "693B77D4F32EE9B8BFC995589B5FAD5E99ADF2832738661F5402F9978429A8E3",
+      "frameOptions": "DENY",
+      "bytes": 352240
+    },
+    {
+      "path": "/fonts/inter/InterVariable-Italic.woff2",
+      "status": 200,
+      "contentType": "font/woff2",
+      "sha256": "E564F652916DB6C139570FEFB9524A77C4D48F30C92928DE9DB19B6B5C7A262A",
+      "frameOptions": "DENY",
+      "bytes": 387976
+    },
+    {
+      "path": "/fonts/inter/LICENSE.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "262481E844521B326F5ECD053E59B98C8B2DA78C8EE1BDBB6E8174305E54935A",
+      "frameOptions": "DENY",
+      "bytes": 4380
+    },
+    {
+      "path": "/css/public-quiz.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "109196CF0DA480EA16D2B7169953D54126D80C1187511B23B47D7BC833D657A6",
+      "frameOptions": "DENY",
+      "bytes": 1227
+    },
+    {
+      "path": "/js/public-quiz.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "6692B2EF615A160F9BE1DB8F6FEB2A42332BEC28B5F8558AF7D3A22A11A58CB0",
+      "frameOptions": "DENY",
+      "bytes": 2695
+    },
+    {
+      "path": "/js/public-navigation.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "F4C77AC8035C18E9AF7E501D9A53E88B8623C58982E2DEBF3A14241CD6CD18DB",
+      "frameOptions": "DENY",
+      "bytes": 440
+    },
+    {
+      "path": "/fonts/roboto/roboto.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "1EB865F9A329D9645EFA95E5B722B3556EBDC21C03B06AF15FADB701CC7172C5",
+      "frameOptions": "DENY",
+      "bytes": 423
+    },
+    {
+      "path": "/fonts/roboto/RobotoVariable.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "D7598E12C5DBEF095FF8272CFC55DA0250BD07FBDECBAC8A530B9B277872A134",
+      "frameOptions": "DENY",
+      "bytes": 488584
+    },
+    {
+      "path": "/fonts/roboto/RobotoVariable-Italic.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "9725A847AF6B460FFCA162AE66D20DAD48B01876137947180B42D7DCD7887182",
+      "frameOptions": "DENY",
+      "bytes": 530944
+    },
+    {
+      "path": "/fonts/roboto/OFL.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "061402327A96AADB0BFB694A960ED289ECD38D383E396243831AB81FEB109C41",
+      "frameOptions": "DENY",
+      "bytes": 4394
+    },
+    {
+      "path": "/css/institutional.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "C96B7C16956BB5392CD0E0981B7F1237BAFFD230DC7D11823CE3D07B92A20C29",
+      "frameOptions": "DENY",
+      "bytes": 1485
+    },
+    {
+      "path": "/css/design-tokens.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "FF99A95A49AEB9AAC66DBC7497A575A444EF5C34B6CA1649D47E1431C35BBFAF",
+      "frameOptions": "DENY",
+      "bytes": 342
+    },
+    {
+      "path": "/fonts/noto-sans/noto-sans.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "1C1FE3406D2018FEE6EDC05AD4749A61EBD68FF3D92670CE66B9CAA19E3E4C3D",
+      "frameOptions": "DENY",
+      "bytes": 707
+    },
+    {
+      "path": "/quiz/microsoft-365/quiz-brand.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "6026601513F979A05511A9FEDA9A41312435341A033AAEDEC653481C4D9020CE",
+      "frameOptions": "DENY",
+      "bytes": 1434
+    },
+    {
+      "path": "/images/portal/img_9885.jpg",
+      "status": 200,
+      "contentType": "image/jpeg",
+      "sha256": "CFC5723062CC8F52C8FCE483F07F039D07DC24A692FB18EE4866C4F900B1ED93",
+      "frameOptions": "DENY",
+      "bytes": 7123952
+    },
+    {
+      "path": "/images/portal/img_9885-1920.jpg",
+      "status": 200,
+      "contentType": "image/jpeg",
+      "sha256": "E19308BBF50D47CFB0D1A0AD5BC3D69A51B5F969B5E46E33C54C7F8571FA9826",
+      "frameOptions": "DENY",
+      "bytes": 349352
+    },
+    {
+      "path": "/images/portal/img_9885-960.jpg",
+      "status": 200,
+      "contentType": "image/jpeg",
+      "sha256": "3C0C33FC32EBAEA0024EDC8809E786364C2D7A0635E7B113E8971D671B600E49",
+      "frameOptions": "DENY",
+      "bytes": 117519
+    },
+    {
+      "path": "/fonts/noto-sans/public.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "B66F6C4C9200661C5A143A00BF18B1CBFE780CD6EB800FEF505F54EC2A71F6B2",
+      "frameOptions": "DENY",
+      "bytes": 119
+    },
+    {
+      "path": "/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "B85C38ECEA8A7CFB39C24E395A4007474FA5A4FC864F6EE33309EB4948D232D5",
+      "frameOptions": "DENY",
+      "bytes": 569208
+    },
+    {
+      "path": "/fonts/noto-sans/NotoSans-Medium.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "7BBE267354704C6AD18BDE24B1DBC756C8E4380CA1C3F3C25C45EC5C4471510B",
+      "frameOptions": "DENY",
+      "bytes": 566428
+    },
+    {
+      "path": "/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "87A8B90ECE1E89746B544E4E086F85A3710E41485A8078F9BE874837DFAD45D5",
+      "frameOptions": "DENY",
+      "bytes": 572924
+    },
+    {
+      "path": "/fonts/noto-sans/NotoSans-Bold.ttf",
+      "status": 200,
+      "contentType": "application/x-font-ttf",
+      "sha256": "C976E4B1B99EDC88775377FCC21692CA4BFA46B6D6CA6522BFDA505B28FF9D6A",
+      "frameOptions": "DENY",
+      "bytes": 575740
+    },
+    {
+      "path": "/fonts/noto-sans/OFL.txt",
+      "status": 200,
+      "contentType": "text/plain",
+      "sha256": "0DAB92D0544F7B233403F14B84A663BDBFA746982EDA629E7F4F9FFE1B036FEB",
+      "frameOptions": "DENY",
+      "bytes": 4377
+    },
+    {
+      "path": "/documentos/PITD_2026_2030_Marco_General_UACJ.pdf",
+      "status": 200,
+      "contentType": "application/pdf",
+      "sha256": "6F5EAD2FD5936ED4C64BE7C49CF1AB8D8AD5015DDB8B3B7239028D9FAFC9C1C0",
+      "frameOptions": "DENY",
+      "bytes": 14398920
+    },
+    {
+      "path": "/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf",
+      "status": 200,
+      "contentType": "application/pdf",
+      "sha256": "53C5ADE776F802FC9043F7B52C1BDFD1509B036F3B17E6EB79B021F1C9A983FC",
+      "frameOptions": "DENY",
+      "bytes": 2167730
+    },
+    {
+      "path": "/documentos/Glosario_Transformacion_Digital_UACJ.pdf",
+      "status": 200,
+      "contentType": "application/pdf",
+      "sha256": "0E72A5ED01B2BD70C63BFE2D5423107B4DBD7EF755B3282D62A590D3E5D58031",
+      "frameOptions": "DENY",
+      "bytes": 8080899
+    },
+    {
+      "path": "/images/competencias-digitales/firma-1.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "FF70D2F1DDB313A2473089A238497CA3E30C60EEC059D3AA592F029981ADBA67",
+      "frameOptions": "DENY",
+      "bytes": 37222
+    },
+    {
+      "path": "/images/competencias-digitales/firma-3.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "298F992BE25738AB78536AD77761C5E10582DAD74F14D84FA6526FB235998FB9",
+      "frameOptions": "DENY",
+      "bytes": 7454
+    },
+    {
+      "path": "/images/competencias-digitales/firma-5.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "4527D3E2E62B2B9BFDE31E5190D51E7B022892D5094997927DDCCD7AD46817FE",
+      "frameOptions": "DENY",
+      "bytes": 22990
+    },
+    {
+      "path": "/images/competencias-digitales/firma-7.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "BA770C1C10F30FA869E2B2DE785DB73FC7B0B85ADD7FA99090BC947600A72081",
+      "frameOptions": "DENY",
+      "bytes": 21397
+    },
+    {
+      "path": "/images/competencias-digitales/firma-9.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "03249C248213404A0734328B159ACBCC0A13BFE4596BACFEDC37E0908C9CF57B",
+      "frameOptions": "DENY",
+      "bytes": 20171
+    }
+  ]
+}

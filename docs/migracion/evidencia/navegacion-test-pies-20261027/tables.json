@@ -1,0 +1,762 @@
+{
+  "mockedTransport": true,
+  "database": false,
+  "checks": [
+    "1366-1x: grupos legibles, primer clic, búsqueda y teclado",
+    "1366-1x: dos usuarios, estados, color estable y acciones bloqueadas",
+    "1366-1x: multiselección, cambio de familia, autoguardado y recarga",
+    "1366-1x: Acciones, confirmación, cancelar y asociaciones conservadas",
+    "1366-1x: muchas filas, desplazamiento vertical y última acción",
+    "1366-1x: Acciones en Datos y Acuerdos conserva presencia y confirmaciones",
+    "390-1x: grupos legibles, primer clic, búsqueda y teclado",
+    "390-1x: dos usuarios, estados, color estable y acciones bloqueadas",
+    "390-1x: multiselección, cambio de familia, autoguardado y recarga",
+    "390-1x: Acciones, confirmación, cancelar y asociaciones conservadas",
+    "390-1x: muchas filas, desplazamiento vertical y última acción",
+    "390-1x: Acciones en Datos y Acuerdos conserva presencia y confirmaciones",
+    "320-1x: grupos legibles, primer clic, búsqueda y teclado",
+    "320-1x: dos usuarios, estados, color estable y acciones bloqueadas",
+    "320-1x: multiselección, cambio de familia, autoguardado y recarga",
+    "320-1x: Acciones, confirmación, cancelar y asociaciones conservadas",
+    "320-1x: muchas filas, desplazamiento vertical y última acción",
+    "320-1x: Acciones en Datos y Acuerdos conserva presencia y confirmaciones",
+    "1366-2x: grupos legibles, primer clic, búsqueda y teclado",
+    "1366-2x: dos usuarios, estados, color estable y acciones bloqueadas",
+    "1366-2x: multiselección, cambio de familia, autoguardado y recarga",
+    "1366-2x: Acciones, confirmación, cancelar y asociaciones conservadas",
+    "1366-2x: muchas filas, desplazamiento vertical y última acción",
+    "1366-2x: Acciones en Datos y Acuerdos conserva presencia y confirmaciones"
+  ],
+  "errors": [],
+  "styles": [
+    {
+      "key": "1366-1x",
+      "catalogContrast": [
+        {
+          "text": "Sistemas institucionales",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Productividad y colaboración",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Formularios y encuestas",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Análisis y visualización de datos",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Diseño y producción multimedia",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "1366-1x",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "key": "1366-1x",
+      "presence": [
+        {
+          "state": "owned",
+          "color": "#713C91",
+          "bg": "color(srgb 0.977725 0.969412 0.982745)",
+          "cell": "color(srgb 0.977725 0.969412 0.982745)",
+          "indicator": "rgb(113, 60, 145) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "occupied",
+          "color": "#006A73",
+          "bg": "color(srgb 0.96 0.976627 0.978039)",
+          "cell": "color(srgb 0.96 0.976627 0.978039)",
+          "indicator": "rgb(0, 106, 115) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "idle",
+          "color": "#713C91",
+          "bg": "rgba(0, 0, 0, 0)",
+          "cell": "rgb(255, 255, 255)",
+          "indicator": "rgb(218, 218, 218) 2px 0px 0px 0px"
+        }
+      ]
+    },
+    {
+      "key": "1366-1x",
+      "presenceContrast": [
+        {
+          "text": "AM",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-j898j5",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              113,
+              60,
+              145,
+              1
+            ]
+          ],
+          "ratio": 7.616001661224227,
+          "required": 4.5
+        },
+        {
+          "text": "Estás editando",
+          "selector": "SPAN.",
+          "color": "rgb(113, 60, 145)",
+          "backgrounds": [
+            [
+              249,
+              247,
+              251,
+              1
+            ]
+          ],
+          "ratio": 7.153695873429471,
+          "required": 4.5
+        },
+        {
+          "text": "BS",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-tjbc",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              0,
+              106,
+              115,
+              1
+            ]
+          ],
+          "ratio": 6.345993354808522,
+          "required": 4.5
+        },
+        {
+          "text": "Bruno Solís está editando",
+          "selector": "SPAN.",
+          "color": "rgb(0, 106, 115)",
+          "backgrounds": [
+            [
+              245,
+              249,
+              249,
+              1
+            ]
+          ],
+          "ratio": 5.983570292172935,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "390-1x",
+      "catalogContrast": [
+        {
+          "text": "Sistemas institucionales",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Productividad y colaboración",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Formularios y encuestas",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Análisis y visualización de datos",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Diseño y producción multimedia",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "390-1x",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "key": "390-1x",
+      "presence": [
+        {
+          "state": "owned",
+          "color": "#713C91",
+          "bg": "color(srgb 0.977725 0.969412 0.982745)",
+          "cell": "color(srgb 0.977725 0.969412 0.982745)",
+          "indicator": "rgb(113, 60, 145) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "occupied",
+          "color": "#006A73",
+          "bg": "color(srgb 0.96 0.976627 0.978039)",
+          "cell": "color(srgb 0.96 0.976627 0.978039)",
+          "indicator": "rgb(0, 106, 115) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "idle",
+          "color": "#713C91",
+          "bg": "rgba(0, 0, 0, 0)",
+          "cell": "rgb(255, 255, 255)",
+          "indicator": "rgb(218, 218, 218) 2px 0px 0px 0px"
+        }
+      ]
+    },
+    {
+      "key": "390-1x",
+      "presenceContrast": [
+        {
+          "text": "AM",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-j898j5",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              113,
+              60,
+              145,
+              1
+            ]
+          ],
+          "ratio": 7.616001661224227,
+          "required": 4.5
+        },
+        {
+          "text": "Estás editando",
+          "selector": "SPAN.",
+          "color": "rgb(113, 60, 145)",
+          "backgrounds": [
+            [
+              249,
+              247,
+              251,
+              1
+            ]
+          ],
+          "ratio": 7.153695873429471,
+          "required": 4.5
+        },
+        {
+          "text": "BS",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-tjbc",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              0,
+              106,
+              115,
+              1
+            ]
+          ],
+          "ratio": 6.345993354808522,
+          "required": 4.5
+        },
+        {
+          "text": "Bruno Solís está editando",
+          "selector": "SPAN.",
+          "color": "rgb(0, 106, 115)",
+          "backgrounds": [
+            [
+              245,
+              249,
+              249,
+              1
+            ]
+          ],
+          "ratio": 5.983570292172935,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "320-1x",
+      "catalogContrast": [
+        {
+          "text": "Sistemas institucionales",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Productividad y colaboración",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Formularios y encuestas",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Análisis y visualización de datos",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Diseño y producción multimedia",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "320-1x",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "key": "320-1x",
+      "presence": [
+        {
+          "state": "owned",
+          "color": "#713C91",
+          "bg": "color(srgb 0.977725 0.969412 0.982745)",
+          "cell": "color(srgb 0.977725 0.969412 0.982745)",
+          "indicator": "rgb(113, 60, 145) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "occupied",
+          "color": "#006A73",
+          "bg": "color(srgb 0.96 0.976627 0.978039)",
+          "cell": "color(srgb 0.96 0.976627 0.978039)",
+          "indicator": "rgb(0, 106, 115) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "idle",
+          "color": "#713C91",
+          "bg": "rgba(0, 0, 0, 0)",
+          "cell": "rgb(255, 255, 255)",
+          "indicator": "rgb(218, 218, 218) 2px 0px 0px 0px"
+        }
+      ]
+    },
+    {
+      "key": "320-1x",
+      "presenceContrast": [
+        {
+          "text": "AM",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-j898j5",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              113,
+              60,
+              145,
+              1
+            ]
+          ],
+          "ratio": 7.616001661224227,
+          "required": 4.5
+        },
+        {
+          "text": "Estás editando",
+          "selector": "SPAN.",
+          "color": "rgb(113, 60, 145)",
+          "backgrounds": [
+            [
+              249,
+              247,
+              251,
+              1
+            ]
+          ],
+          "ratio": 7.153695873429471,
+          "required": 4.5
+        },
+        {
+          "text": "BS",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-tjbc",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              0,
+              106,
+              115,
+              1
+            ]
+          ],
+          "ratio": 6.345993354808522,
+          "required": 4.5
+        },
+        {
+          "text": "Bruno Solís está editando",
+          "selector": "SPAN.",
+          "color": "rgb(0, 106, 115)",
+          "backgrounds": [
+            [
+              245,
+              249,
+              249,
+              1
+            ]
+          ],
+          "ratio": 5.983570292172935,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "1366-2x",
+      "catalogContrast": [
+        {
+          "text": "Sistemas institucionales",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Productividad y colaboración",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Formularios y encuestas",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Análisis y visualización de datos",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        },
+        {
+          "text": "Diseño y producción multimedia",
+          "selector": "DIV.tool-catalog-group-title MuiBox-root css-0",
+          "color": "rgb(33, 52, 85)",
+          "backgrounds": [
+            [
+              237,
+              239,
+              242,
+              1
+            ]
+          ],
+          "ratio": 10.805719804108032,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "key": "1366-2x",
+      "fonts": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ]
+    },
+    {
+      "key": "1366-2x",
+      "presence": [
+        {
+          "state": "owned",
+          "color": "#713C91",
+          "bg": "color(srgb 0.977725 0.969412 0.982745)",
+          "cell": "color(srgb 0.977725 0.969412 0.982745)",
+          "indicator": "rgb(113, 60, 145) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "occupied",
+          "color": "#006A73",
+          "bg": "color(srgb 0.96 0.976627 0.978039)",
+          "cell": "color(srgb 0.96 0.976627 0.978039)",
+          "indicator": "rgb(0, 106, 115) 4px 0px 0px 0px inset, rgb(218, 218, 218) 2px 0px 0px 0px"
+        },
+        {
+          "state": "idle",
+          "color": "#713C91",
+          "bg": "rgba(0, 0, 0, 0)",
+          "cell": "rgb(255, 255, 255)",
+          "indicator": "rgb(218, 218, 218) 2px 0px 0px 0px"
+        }
+      ]
+    },
+    {
+      "key": "1366-2x",
+      "presenceContrast": [
+        {
+          "text": "AM",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-j898j5",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              113,
+              60,
+              145,
+              1
+            ]
+          ],
+          "ratio": 7.616001661224227,
+          "required": 4.5
+        },
+        {
+          "text": "Estás editando",
+          "selector": "SPAN.",
+          "color": "rgb(113, 60, 145)",
+          "backgrounds": [
+            [
+              249,
+              247,
+              251,
+              1
+            ]
+          ],
+          "ratio": 7.153695873429471,
+          "required": 4.5
+        },
+        {
+          "text": "BS",
+          "selector": "DIV.MuiAvatar-root MuiAvatar-circular MuiAvatar-colorDefault css-tjbc",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              0,
+              106,
+              115,
+              1
+            ]
+          ],
+          "ratio": 6.345993354808522,
+          "required": 4.5
+        },
+        {
+          "text": "Bruno Solís está editando",
+          "selector": "SPAN.",
+          "color": "rgb(0, 106, 115)",
+          "backgrounds": [
+            [
+              245,
+              249,
+              249,
+              1
+            ]
+          ],
+          "ratio": 5.983570292172935,
+          "required": 4.5
+        }
+      ]
+    }
+  ],
+  "completed": true
+}

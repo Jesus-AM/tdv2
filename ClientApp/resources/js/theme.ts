@@ -1,17 +1,20 @@
 import { createTheme } from '@mui/material/styles';
+import colors from './design-tokens.json';
 export const theme = createTheme({
     transitions: { duration: { shortest: 150, shorter: 180, short: 180, standard: 200, complex: 220, enteringScreen: 200, leavingScreen: 180 } },
     palette: {
-        primary: { main: '#245bb6', dark: '#183e80' },
-        secondary: { main: '#157e83' },
-        background: { default: '#f4f7fb', paper: '#fff' },
-        text: { primary: '#20314d', secondary: '#65748a' },
-        divider: '#e4eaf2',
-        success: { main: '#23836c' },
-        warning: { main: '#a76a16' },
+        primary: { main: colors.blue, dark: colors.blue, light: colors.soft, contrastText: colors.white },
+        secondary: { main: colors.blue },
+        info: { main: colors.blue },
+        background: { default: colors.canvas, paper: colors.white },
+        text: { primary: colors.blue, secondary: colors.muted },
+        divider: colors.gray,
+        success: { main: colors.success },
+        error: { main: colors.error },
+        warning: { main: colors.yellow, dark: colors.blue, light: colors.warningBackground, contrastText: colors.blue },
     },
     typography: {
-        fontFamily: 'Roboto, sans-serif',
+        fontFamily: '"Noto Sans", "Segoe UI", sans-serif',
         fontSize: 14,
         h1: { fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-.025em' },
         h2: { fontSize: '1.05rem', fontWeight: 700 },
@@ -26,27 +29,33 @@ export const theme = createTheme({
         MuiDialog: { defaultProps: { transitionDuration: 180 } },
         MuiButton: {
             defaultProps: { disableElevation: true, size: 'small' },
-            styleOverrides: { root: { minHeight: 36, paddingInline: 14 } },
+            styleOverrides: { root: { minHeight: 36, paddingInline: 14,
+                '&.MuiButton-outlined.MuiButton-colorWarning': { color: colors.blue, borderColor: colors.yellow },
+                '&.MuiButton-text.MuiButton-colorWarning': { color: colors.blue },
+            } },
         },
         MuiIconButton: { defaultProps: { size: 'small' } },
         MuiTextField: {
             defaultProps: { size: 'small', variant: 'outlined' },
-            styleOverrides: { root: { background: '#fff' } },
+            styleOverrides: { root: { background: colors.white } },
         },
         MuiFormControl: { defaultProps: { size: 'small' } },
         MuiInputLabel: { styleOverrides: { root: { fontWeight: 500 } } },
-        MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { outlined: { borderColor: '#e0e7f0' } } },
+        MuiPaper: { defaultProps: { elevation: 0 }, styleOverrides: { outlined: { borderColor: colors.gray } } },
         MuiTableCell: {
             styleOverrides: {
-                head: { background: '#f6f8fc', fontSize: '.75rem', fontWeight: 600, color: '#5c6d85' },
-                root: { borderColor: '#e8edf4', padding: '12px 14px' },
+                head: { background: colors.soft, fontSize: '.75rem', fontWeight: 600, color: colors.blue },
+                root: { borderColor: colors.gray, padding: '12px 14px' },
             },
         },
         MuiChip: {
             defaultProps: { size: 'small' },
             styleOverrides: { root: { fontSize: '.7rem', fontWeight: 500, borderRadius: 6 } },
         },
-        MuiAlert: { styleOverrides: { root: { fontSize: '.8125rem', alignItems: 'center' } } },
+        MuiAlert: { styleOverrides: { root: { fontSize: '.8125rem', alignItems: 'center',
+            '&.MuiAlert-standard.MuiAlert-colorWarning': { background: colors.warningBackground, color: colors.blue, borderLeft: `4px solid ${colors.yellow}`, '& .MuiAlert-icon': { color: colors.blue } },
+            '&.MuiAlert-outlined.MuiAlert-colorWarning': { borderColor: colors.yellow, color: colors.blue, '& .MuiAlert-icon': { color: colors.blue } },
+        } } },
         MuiTab: {
             styleOverrides: { root: { textTransform: 'none', minHeight: 46, fontSize: '.8125rem', fontWeight: 500 } },
         },

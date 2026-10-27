@@ -1,0 +1,12 @@
+{
+  "blue": "#213455",
+  "yellow": "#F0BD10",
+  "gray": "#DADADA",
+  "white": "#FFFFFF",
+  "muted": "#626873",
+  "canvas": "#F9F9F9",
+  "soft": "#EDEFF2",
+  "warningBackground": "#FCF2CF",
+  "success": "#23836C",
+  "error": "#B91C1C"
+}

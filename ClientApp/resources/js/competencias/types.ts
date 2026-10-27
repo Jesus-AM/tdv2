@@ -1,0 +1,20 @@
+export const base = '/competencias-digitales';
+export const levels = ['Inicial', 'Básico', 'Intermedio', 'Avanzado'];
+export interface Unit { id: string; code: string; description: string | null; level: number; parent: string | null; levelKnown: boolean; }
+export interface Summary { completed: number; inProgress: number; participatingUnits: number; target: number | null; configuredTargets: number; totalUnits: number; participation: number | null; maturity: number | null; }
+export interface UnitSummary { id: string; code: string; name: string; level: number; parent: string | null; parentName: string | null; directCompleted: number; directInProgress: number; summary: Summary; }
+export interface Distribution { id: string; name: string; count: number; notApplicable: number; notUsed: number; levels: number[]; score: number | null; }
+export interface Recommendation { kind: 'info' | 'warning' | 'success'; title: string; text: string; }
+export interface Aggregates { selectedUnit: string | null; selectedLevel: number | null; selectedPosition: string | null; positionOptions: string[]; institutional: boolean; roots: Unit[]; options: Unit[]; levels: number[]; summary: Summary; units: UnitSummary[]; blocks: Distribution[]; tools: Distribution[]; positions: Distribution[]; competenceLevels: number[]; recommendations: Recommendation[]; }
+export interface Answer { state: 'pending' | 'level' | 'na' | 'unused'; level?: number | null; checks?: string | null; }
+export interface Tool { id: string; n: string; s: string; cat: string; lv: string[][]; c: string[]; lic: string | null; doc: boolean; opt: boolean; }
+export interface Block { id: string; n: string; d: string; tools: Tool[]; trans: string[]; }
+export interface Notice { version: string; title: string; paragraphs: string[]; institutionalUrl: string; confirmation: string; }
+export interface Instrument { version: string; modules: Block[]; profile: { id: string; label: string; options: string[]; multiple?: boolean }[]; notice: Notice; trainingPhases: { id: string; title: string; description: string }[]; }
+export interface Report { global: number | null; level: number | null; blocks: { id: string; name: string; score: number | null; level: number | null }[]; tools: { id: string; name: string; block: string; value: number | null; expected: number; gap: number }[]; route: { tool: string; name: string; block: string; phase: number; from: number; to: number; why: string; courses: string[]; missing: string[]; license: string | null }[]; transversal: string[]; recommendations: Recommendation[]; }
+export interface SurveyStep { id: string; name: string; complete: boolean; accessible: boolean; pending: string[]; }
+export interface Survey { generation: string; navigation: { steps: SurveyStep[]; resume: string; current: string }; version: number; completedAt: string | null; institution: { status: string; name: string; employee: string; unit: Unit | null; level2: Unit | null; level3: Unit | null; origin: string; ancestors: Unit[] }; profile: Record<string, string | string[]>; answers: Record<string, Answer>; instrument: Instrument; accepted: boolean; evaluation: { answered: number; total: number; progress: number; pending: string[]; report: Report }; }
+export interface Config { generation: string; units: Unit[]; targets: { unitId: string; value: number; version: number; updatedAt: string }[]; catalog: { source: string; available: boolean; completedAt: string | null }; nexoRoles: { key: string; name: string }[]; nexoModules: { key: string; name: string; path: string }[]; }
+export interface DigitalPage { generation: string; notice: Notice; page: number; user: string; actor: string; readOnly: boolean; navigation: { path: string; name: string }[]; content: Aggregates | Survey | Config; }
+export const percent = (value: number | null) => value === null ? 'No aplica' : `${value.toLocaleString('es-MX', { maximumFractionDigits: 1 })} %`;
+export const unitName = (unit: Unit) => `${unit.code} · ${unit.description || unit.code}`;

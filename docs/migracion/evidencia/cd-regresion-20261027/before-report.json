@@ -1,0 +1,168 @@
+{
+  "vite": true,
+  "reproduce": true,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "migrations": false,
+  "resets": false,
+  "checks": [],
+  "fonts": [],
+  "errors": [],
+  "surfaces": [
+    {
+      "width": 1366,
+      "blue": "",
+      "rootBlue": "",
+      "header": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 1366,
+        "height": 229
+      },
+      "name": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 191,
+        "height": 19.5
+      },
+      "nav": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 88.015625,
+        "height": 49
+      },
+      "footer": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 1366,
+        "height": 120
+      },
+      "card": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(33, 52, 85)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 900,
+        "height": 237.421875
+      },
+      "logoLoaded": true
+    },
+    {
+      "width": 390,
+      "blue": "",
+      "rootBlue": "",
+      "header": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 390,
+        "height": 237
+      },
+      "name": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 191,
+        "height": 19.5
+      },
+      "nav": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 88.015625,
+        "height": 49
+      },
+      "footer": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(255, 255, 255)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 390,
+        "height": 144
+      },
+      "card": {
+        "background": "rgb(255, 255, 255)",
+        "color": "rgb(33, 52, 85)",
+        "visibility": "visible",
+        "opacity": "1",
+        "display": "block",
+        "width": 358,
+        "height": 309.421875
+      },
+      "logoLoaded": true
+    }
+  ],
+  "resources": [
+    {
+      "url": "/__vite/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "url": "/__vite/css/institutional.css",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "url": "/__vite/resources/css/app.css",
+      "status": 200,
+      "type": "text/javascript"
+    },
+    {
+      "url": "/__vite/resources/css/competencias-digitales.css",
+      "status": 200,
+      "type": "text/javascript"
+    },
+    {
+      "url": "/images/competencias-digitales/firma-1.png",
+      "status": 200,
+      "type": "image/png"
+    },
+    {
+      "url": "/__vite/fonts/noto-sans/NotoSans-Regular.ttf",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "url": "/__vite/css/institutional.css",
+      "status": 200,
+      "type": "text/html"
+    },
+    {
+      "url": "/__vite/resources/css/app.css",
+      "status": 200,
+      "type": "text/javascript"
+    },
+    {
+      "url": "/__vite/resources/css/competencias-digitales.css",
+      "status": 200,
+      "type": "text/javascript"
+    },
+    {
+      "url": "/images/competencias-digitales/firma-1.png",
+      "status": 200,
+      "type": "image/png"
+    }
+  ],
+  "completed": true
+}

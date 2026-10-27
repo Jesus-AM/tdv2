@@ -1,0 +1,3109 @@
+{
+  "phase": "after",
+  "checks": [
+    {
+      "width": 1366,
+      "heroContrast": [
+        {
+          "text": "Dirección General de Tecnologías de la Información",
+          "selector": "P.direccion-general",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Transformación digital",
+          "selector": "H1.",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Una universidad más ágil, integrada y centrada en las personas.",
+          "selector": "P.lema",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Optimizamos procedimientos, gobernamos los datos y usamos la tecnología\n        de forma estratégica",
+          "selector": "P.lead",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "width": 1366,
+      "publicFlow": {
+        "actual": {
+          "mainBottom": 6027.3125,
+          "top": 6047.3125,
+          "bottom": 6174.484375,
+          "viewport": 900,
+          "page": 6174,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 752.828125,
+            "top": 772.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 752.828125,
+            "top": 772.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 752.828125,
+            "top": 772.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 752.828125,
+            "top": 772.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      },
+      "content": true,
+      "documents": true
+    },
+    "1366: diez preguntas, 10 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 7 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 5 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diez preguntas, 0 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "1366: diálogo, teclado, ayuda, reinicio, Escape en ambos documentos, cierre/foco/scroll",
+    {
+      "width": 1024,
+      "heroContrast": [
+        {
+          "text": "Dirección General de Tecnologías de la Información",
+          "selector": "P.direccion-general",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Transformación digital",
+          "selector": "H1.",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Una universidad más ágil, integrada y centrada en las personas.",
+          "selector": "P.lema",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Optimizamos procedimientos, gobernamos los datos y usamos la tecnología\n        de forma estratégica",
+          "selector": "P.lead",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "publicFlow": {
+        "actual": {
+          "mainBottom": 6443.609375,
+          "top": 6463.609375,
+          "bottom": 6673.5625,
+          "viewport": 900,
+          "page": 6674,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 670.046875,
+            "top": 690.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 670.046875,
+            "top": 690.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 670.046875,
+            "top": 690.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 670.046875,
+            "top": 690.046875,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      },
+      "content": true,
+      "documents": true
+    },
+    {
+      "width": 768,
+      "heroContrast": [
+        {
+          "text": "Dirección General de Tecnologías de la Información",
+          "selector": "P.direccion-general",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Transformación digital",
+          "selector": "H1.",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Una universidad más ágil, integrada y centrada en las personas.",
+          "selector": "P.lema",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Optimizamos procedimientos, gobernamos los datos y usamos la tecnología\n        de forma estratégica",
+          "selector": "P.lead",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "publicFlow": {
+        "actual": {
+          "mainBottom": 6602.03125,
+          "top": 6622.03125,
+          "bottom": 6831.984375,
+          "viewport": 1024,
+          "page": 6832,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 794.046875,
+            "top": 814.046875,
+            "bottom": 1024,
+            "viewport": 1024,
+            "page": 1024,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 794.046875,
+            "top": 814.046875,
+            "bottom": 1024,
+            "viewport": 1024,
+            "page": 1024,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 794.046875,
+            "top": 814.046875,
+            "bottom": 1024,
+            "viewport": 1024,
+            "page": 1024,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 794.046875,
+            "top": 814.046875,
+            "bottom": 1024,
+            "viewport": 1024,
+            "page": 1024,
+            "position": "static"
+          }
+        ]
+      },
+      "content": true,
+      "documents": true
+    },
+    {
+      "width": 390,
+      "heroContrast": [
+        {
+          "text": "Dirección General de Tecnologías de la Información",
+          "selector": "P.direccion-general",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Transformación digital",
+          "selector": "H1.",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Una universidad más ágil, integrada y centrada en las personas.",
+          "selector": "P.lema",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Optimizamos procedimientos, gobernamos los datos y usamos la tecnología\n        de forma estratégica",
+          "selector": "P.lead",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "publicFlow": {
+        "actual": {
+          "mainBottom": 9495.5,
+          "top": 9515.5,
+          "bottom": 9856.65625,
+          "viewport": 844,
+          "page": 9857,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 482.84375,
+            "top": 502.84375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 482.84375,
+            "top": 502.84375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 482.84375,
+            "top": 502.84375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 482.84375,
+            "top": 502.84375,
+            "bottom": 844,
+            "viewport": 844,
+            "page": 844,
+            "position": "static"
+          }
+        ]
+      },
+      "content": true,
+      "documents": true
+    },
+    "390: diez preguntas, 7 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "390: diálogo, teclado, ayuda, reinicio, Escape en ambos documentos, cierre/foco/scroll",
+    {
+      "width": 320,
+      "heroContrast": [
+        {
+          "text": "Dirección General de Tecnologías de la Información",
+          "selector": "P.direccion-general",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Transformación digital",
+          "selector": "H1.",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 3
+        },
+        {
+          "text": "Una universidad más ágil, integrada y centrada en las personas.",
+          "selector": "P.lema",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        },
+        {
+          "text": "Optimizamos procedimientos, gobernamos los datos y usamos la tecnología\n        de forma estratégica",
+          "selector": "P.lead",
+          "color": "rgb(255, 255, 255)",
+          "backgrounds": [
+            [
+              32.2,
+              52,
+              85,
+              1
+            ],
+            [
+              25.6,
+              41.6,
+              68,
+              1
+            ],
+            [
+              76.6,
+              92.6,
+              118.99999999999999,
+              1
+            ],
+            [
+              32.258823529411764,
+              52.74117647058823,
+              85,
+              1
+            ],
+            [
+              23.71764705882353,
+              39.28235294117647,
+              63,
+              1
+            ],
+            [
+              89.71764705882352,
+              105.28235294117646,
+              129,
+              1
+            ],
+            [
+              32.32156862745098,
+              52,
+              85,
+              1
+            ],
+            [
+              21.70980392156863,
+              35.27843137254902,
+              57.66666666666667,
+              1
+            ],
+            [
+              103.70980392156861,
+              117.27843137254901,
+              139.66666666666666,
+              1
+            ]
+          ],
+          "ratio": 4.646652805777535,
+          "required": 4.5
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "publicFlow": {
+        "actual": {
+          "mainBottom": 10972.859375,
+          "top": 10992.859375,
+          "bottom": 11445,
+          "viewport": 800,
+          "page": 11445,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "mainBottom": 327.859375,
+            "top": 347.859375,
+            "bottom": 800,
+            "viewport": 800,
+            "page": 800,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "mainBottom": 327.859375,
+            "top": 347.859375,
+            "bottom": 800,
+            "viewport": 800,
+            "page": 800,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "mainBottom": 327.859375,
+            "top": 347.859375,
+            "bottom": 800,
+            "viewport": 800,
+            "page": 800,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "mainBottom": 327.859375,
+            "top": 347.859375,
+            "bottom": 800,
+            "viewport": 800,
+            "page": 800,
+            "position": "static"
+          }
+        ]
+      },
+      "content": true,
+      "documents": true
+    },
+    "320: diez preguntas, 10 aciertos, explicaciones/XP/rachas/nivel/medallas originales",
+    "320: diálogo, teclado, ayuda, reinicio, Escape en ambos documentos, cierre/foco/scroll"
+  ],
+  "fonts": [
+    {
+      "label": "portal-1366",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-1366",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 35
+        }
+      ]
+    },
+    {
+      "label": "español-portal-400",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Regular",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-500",
+      "actual": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-600",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-portal-700",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-quiz-400",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Regular",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-quiz-500",
+      "actual": [
+        {
+          "familyName": "Noto Sans Medium",
+          "postScriptName": "NotoSans-Medium",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-quiz-600",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "español-quiz-700",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 19
+        }
+      ]
+    },
+    {
+      "label": "portal-1024",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "portal-768",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "portal-390",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-390",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 34
+        }
+      ]
+    },
+    {
+      "label": "portal-320",
+      "actual": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 22
+        }
+      ]
+    },
+    {
+      "label": "quiz-320",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 34
+        }
+      ]
+    },
+    {
+      "label": "interno-1366",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 27
+        }
+      ]
+    },
+    {
+      "label": "interno-390",
+      "actual": [
+        {
+          "familyName": "Noto Sans",
+          "postScriptName": "NotoSans-Bold",
+          "isCustomFont": true,
+          "glyphCount": 27
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "externalBlocked": [],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-brand.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-1920.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-brand.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/public-quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/logos/firmaLogotipo-blancosinfondo-3.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/competencias-digitales/firma-1.png",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-navigation.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/js/public-quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/images/portal/img_9885-960.jpg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/index.html",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-brand.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/quiz/microsoft-365/quiz-controls.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:63808/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@vite/client",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/app.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@react-refresh",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react-dom_client.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_material.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/theme.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/navigation.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/AccountPhoto.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/css/app.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react_jsx-dev-runtime.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/rolldown-runtime-B-lAHAz2.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react-dom.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react_jsx-runtime.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/styled-B6bt3kE5.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/createSvgIcon-BtbfJdi0.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/styles-Dd3szjIa.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_material_styles.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/design-tokens.json?import",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/axios.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/participant-photos.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/node_modules/vite/dist/client/env.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/pages/FormatoUR.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/system-catalog.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/StableCaptureBody.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/system-groups.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-labels.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ParticipantAvatar.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/UsersServedSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/participant-colors.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_icons-material.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Layouts/AuthenticatedLayout.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/PageHeading.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/BlockEditingStatus.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-blocks.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/PrioritySelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ProcedureFieldHelp.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/CaptureTableScroll.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/capture-focus.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/SystemField.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/IdentificationInstructions.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RemoveRowDialog.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/FormSubmissionReview.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ProcedureSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RowEditingActions.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RowEditingPresence.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/record-editing-context.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-deletion.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/area-directory.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/pending-field-input.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/block-editor.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@microsoft_signalr.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/FieldHelp.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/AccountMenu.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ModuleNavigation.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/CatalogMultiSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ToolSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-editor.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/module-navigation.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/form-events/negotiate?negotiateVersion=1",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/aplicaciones/moviles",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/aplicaciones/web",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/modulos-sii",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/estado?tab=b9372478-a53a-450b-8688-e00ec1554ed9",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/posicion",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@vite/client",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Regular.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/css/institutional.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/app.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@react-refresh",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react-dom_client.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_material.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/theme.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/navigation.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/AccountPhoto.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/css/app.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react_jsx-dev-runtime.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/node_modules/vite/dist/client/env.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/noto-sans.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/css/design-tokens.css",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/rolldown-runtime-B-lAHAz2.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react-dom.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_material_styles.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/design-tokens.json?import",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/axios.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/participant-photos.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/styled-B6bt3kE5.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/styles-Dd3szjIa.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/react_jsx-runtime.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/createSvgIcon-BtbfJdi0.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/pages/FormatoUR.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/system-catalog.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/StableCaptureBody.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/system-groups.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-labels.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ParticipantAvatar.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/UsersServedSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/participant-colors.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@mui_icons-material.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Layouts/AuthenticatedLayout.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/PageHeading.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/BlockEditingStatus.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-blocks.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/PrioritySelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ProcedureFieldHelp.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/CaptureTableScroll.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/capture-focus.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/SystemField.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/IdentificationInstructions.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RemoveRowDialog.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/FormSubmissionReview.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ProcedureSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RowEditingActions.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/RowEditingPresence.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/record-editing-context.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-deletion.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/area-directory.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/pending-field-input.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/block-editor.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/@fs/C:/Users/Jesus%20Arenas/source/repos/tdv2/.artifacts/cd-visual-regression/vite-cache/deps/@microsoft_signalr.js?v=b54b3d62",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/AccountMenu.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ModuleNavigation.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/FieldHelp.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/CatalogMultiSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/Components/ToolSelect.tsx",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/form-editor.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/__vite/resources/js/lib/module-navigation.ts",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/images/logos/TRANSFORMACION_DIGITAL_logo.svg",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-SemiBold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Bold.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/fonts/noto-sans/NotoSans-Medium.ttf",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/form-events/negotiate?negotiateVersion=1",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/aplicaciones/moviles",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/aplicaciones/web",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/modulos-sii",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/estado?tab=05718df8-40d0-4934-ab4c-2df6629c5fed",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60334/formatos/A/posicion",
+      "method": "POST"
+    }
+  ],
+  "completed": true
+}

@@ -1,8 +1,26 @@
 # TDV2 · ASP.NET Core 10 + React
 
+**Corrección vigente de menú y pie — 2026-10-27:** Competencias recupera Avance/Resultados/Encuesta/Informe/Configuración, sin agrupaciones, conservando 1400 px y sus demás mejoras. Pie interno TDV2 distribuido en todo su ancho, con nombres completos en dos líneas y filas adaptables. Del portal se retira únicamente la oración indicada del test; se conservan ayuda, progreso y acceso principal a la encuesta. Sin cambios de Nexo ni migraciones. [Capturas, archivos y verificación](docs/migracion/CORRECCION_MENU_PIE_TDV2_20261027.md). Las demás mejoras de la [entrega anterior](docs/migracion/NAVEGACION_TEST_Y_PIES_20261027.md) permanecen.
+
+**Distribución de Competencias — 2026-10-27:** contenedor común centrado de hasta 1400 px, UACJ/cuenta en una fila y navegación debajo. En móvil, botón de fotografía con nombre accesible y completo en el menú. Pie con cinco firmas espaciadas y distribución adaptable, conservando colores, tipografía y lógica. Verificado en siete anchos con Vite y bundles. [Capturas, archivos y límites](docs/migracion/DISTRIBUCION_COMPETENCIAS_1400_20261027.md).
+
+**Corrección de carga visual en desarrollo — 2026-10-27:** Vite anteponía `/__vite/` al CSS institucional de ASP.NET y recibía HTML en su lugar; las variables quedaban vacías y la cabecera mostraba blanco sobre blanco. Corregidos únicamente los enlaces estáticos del shell con `vite-ignore`, sin modificar estilos ni lógica. Verificado con Vite real, bundles, escritorio/móvil y regresión de portal/Procedimientos. [Causa, capturas y pruebas](docs/migracion/REGRESION_VISUAL_COMPETENCIAS_20261027.md).
+
+**Identidad visual vigente — 2026-10-27:** azul `#213455`, amarillo `#F0BD10`, gris `#DADADA` y Noto Sans local unificados en portal, Procedimientos, Competencias y juego. Nuevo fondo fotográfico local con versiones optimizadas; firmas de áreas en Noto Sans, pies en el orden institucional solicitado y DGTI trasladada al pie de Competencias. Cuenta, captura, permisos y lógica del juego conservados. Avenirs LS STD queda pendiente de un archivo autorizado; no se simula su carga. [Archivos, recursos, evidencias, pruebas y límites](docs/migracion/IDENTIDAD_VISUAL_20261027.md).
+
+**Portal y perfil — revisión anterior 2026-10-27:** perfil de Competencias organizado en tres grupos, dos columnas adaptables y foco en orden visible; pies al fondo mediante flujo normal. Portal con Noto Sans local, contacto `td.pi@uacj.mx`, textos de etapas actualizados, tres PDF públicos y pie con identidad UACJ/DGTI más cuatro subdirecciones. **Responder encuesta de competencias digitales** lleva al subsitio; **Juego de Microsoft 365 / Iniciar test** abre el juego existente. Esta separación sustituye el enlace único descrito en entregas anteriores; en aquella entrega el juego conservaba Inter y Procedimientos Roboto; la revisión de identidad posterior sustituye ambas por Noto Sans. Tipos, frontend, ASP.NET y recorridos aislados comprobados, sin nuevas migraciones ni reinicios ejecutados. [Archivos, documentos, publicación local y evidencia](docs/migracion/PORTAL_Y_PERFIL_20261027.md).
+
 Backend ASP.NET con controladores, EF Core 10/Npgsql y PostgreSQL; frontend React, TypeScript y MUI. Abre **tdv2.slnx** y selecciona **TDV2 HTTPS + React** para F5. El retorno Microsoft permanece en **https://localhost:7136/connect**.
 
 La adaptación técnica no acredita todavía el acceso institucional real ni el despliegue Ubuntu. Implementado, probado y pendiente se registran por separado en [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
+
+**Reinicio administrativo e informe de Competencias — 2026-10-27:** Configuración permite al administrador real revisar y confirmar un reinicio global; metas opcionales, generación persistente contra solicitudes antiguas y recibo idempotente con auditoría. Requiere aplicar explícitamente **`20261027131404_AdministrativeDigitalReset`** y conceder sus permisos mínimos antes de habilitar esta versión. La migración inicial aplicada permanece intacta. Informe por bloques con brechas ámbar, sin descarga HTML; pie azul (ampliado posteriormente con DGTI) y aviso de lectura en la cuenta. [Alcance, respaldo, permisos, operación y pruebas](docs/competencias-digitales/GUIA.md#reinicio-administrativo-informe-y-pie--2026-10-27).
+
+**Ajuste anterior de Competencias digitales — 2026-10-27:** presentación del HTML recuperada con Noto Sans local, cuenta/fotografía compartidas con TDV2 y avance obligatorio por seis secciones validado en el servidor. El aviso antes situado en el pie pasó al menú de cuenta en la revisión vigente. [Reglas, archivos y evidencia](docs/competencias-digitales/GUIA.md).
+
+**Implementación inicial de Competencias digitales UACJ — 2026-10-27:** subsitio `/competencias-digitales` con Avance por dependencia, Resultados generales, Encuesta, Mi informe y ruta y Configuración. Autorización propia en Nexo, catálogo institucional compartido por los servicios existentes y base PostgreSQL independiente mediante `DigitalDbContext`. Encuesta única, privacidad por versión, evaluación del servidor, informe definitivo inmutable y representación únicamente de consulta. El botón público **Iniciar test** ahora dirige al subsitio; este comportamiento sustituye el acceso al quiz descrito en las entradas históricas siguientes. El diseño público y Procedimientos se conservan.
+
+La nueva configuración es opcional para el arranque de TDV2: `CompetenciasDigitales:Nexo:ApplicationId`, `ConnectionStrings:CompetenciasDigitalesNexo` y `ConnectionStrings:CompetenciasDigitales`. No hay fallback de persistencia ni migración automática. Antes de habilitarlo institucionalmente, completar Nexo, base/usuario, secretos y revisión del aviso. [Guía de arquitectura, permisos, fórmulas, claves de entorno, migraciones y lista concreta para el operador](docs/competencias-digitales/GUIA.md). Las pruebas utilizan autenticación y publicaciones Nexo sintéticas sobre PostgreSQL aislado; no acreditan integración institucional real.
 
 **Portal público — acabado visual 2026-10-17:** mayor presencia del azul institucional, modelo más claro, etiquetas/iconos azul–blanco, ruta azul y controles/preguntas abiertas mejor diferenciados. `#CFD6E8` se limita a estados; sin amarillo. Anclas ajustadas a la altura real de la cabecera. Ajuste posterior: enlaces sin subrayados, con resaltado suave y contorno de teclado; clics/foco y móvil nuevamente verificados. Textos, geometría, Inter, logos, jerarquía y quiz intactos; sistema interno sin cambios. Comparación de 316 elementos en cuatro ventanas, anclas, contraste, quiz y recursos HTTP verificados en aislamiento. La foto externa no cargó: queda pendiente verla con ese recurso disponible. [Archivos, colores, capturas, pruebas y límites](docs/migracion/AJUSTES_VISUALES_Y_PALETA_PUBLICA.md#revisión-vigente-del-portal--2026-10-17).
 
@@ -140,15 +158,15 @@ EF es el único mecanismo vigente; historial `public."__EFMigrationsHistory"`. N
 
 ```powershell
 # Inspeccionar y comprobar que el modelo tenga su migración (sin conectar).
-dotnet ef migrations list --no-connect --project tdv2
-dotnet ef migrations has-pending-model-changes --project tdv2
+dotnet ef migrations list --no-connect --context Tdv2DbContext --project tdv2
+dotnet ef migrations has-pending-model-changes --context Tdv2DbContext --project tdv2
 
 # Después de editar entidades y mapeos; revisar Up, Down y snapshot.
-dotnet ef migrations add NombreDelCambio --project tdv2 --output-dir Migrations
-dotnet ef migrations script --idempotent --project tdv2 --output .artifacts/tdv2-migrations.sql
+dotnet ef migrations add NombreDelCambio --context Tdv2DbContext --project tdv2 --output-dir Migrations
+dotnet ef migrations script --idempotent --context Tdv2DbContext --project tdv2 --output .artifacts/tdv2-migrations.sql
 
 # Aplicar explícitamente ConnectionStrings:Tdv2 de User Secrets.
-dotnet ef database update --project tdv2 -- --environment Development
+dotnet ef database update --context Tdv2DbContext --project tdv2 -- --environment Development
 ```
 
 Equivalencias: `make:migration` → `dotnet ef migrations add`; `migrate` → `dotnet ef database update`; `migrate:status` → `dotnet ef migrations list`. Confirmar migración y snapshot junto con el cambio de modelo. Ejecutar siempre con **un solo operador**, sin actualizaciones concurrentes. La inicial exige una base vacía; las siguientes utilizan el historial EF existente. Revisar SQL y recuperación antes de aplicar sobre datos.

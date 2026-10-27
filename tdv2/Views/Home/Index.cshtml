@@ -5,18 +5,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Transformación Digital UACJ</title>
-<link rel="preload" href="/fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/fonts/inter/inter.css">
+<link rel="preload" href="/fonts/noto-sans/NotoSans-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/css/institutional.css">
 <link rel="stylesheet" href="/css/public-quiz.css">
-<script src="/js/public-quiz.js" defer></script>
 <script src="/js/public-navigation.js" defer></script>
+<script src="/js/public-quiz.js" defer></script>
 <style>
   :root{
-    --azul:#213455;
-    --gris:#DADADA;
-    --blanco:#FFFFFF;
+    --azul:var(--uacj-blue);
+    --gris:var(--uacj-gray);
+    --blanco:var(--uacj-white);
     /* Complementario sólo para controles resaltados y preguntas abiertas. */
-    --resaltado:#CFD6E8;
+    --resaltado:var(--uacj-soft);
     --alto-cabecera:67px;
     --acento:var(--azul);
     --gris-2:var(--gris);
@@ -30,6 +30,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
+    min-height:100dvh;display:flex;flex-direction:column;
     font-family:var(--font-interface);
     color:var(--tinta);
     background:var(--blanco);
@@ -37,6 +38,9 @@
     -webkit-font-smoothing:antialiased;
   }
   a{color:inherit}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+  .public-content{flex:1 0 auto;width:100%}
+  body>.topbar,body>footer{flex-shrink:0}
   a,a:visited,a:hover,a:focus{text-decoration:none}
   h1,h2,h3,h4{font-family:var(--font-interface);line-height:1.12;letter-spacing:-.01em}
 
@@ -127,9 +131,10 @@
   /* ---------- Hero ---------- */
   .hero{
     position:relative;overflow:hidden;
+    --hero-overlay:linear-gradient(105deg, rgb(from var(--azul) r g b / .80) 0%, rgb(from var(--azul) r g b / .74) 45%, rgb(from var(--azul) r g b / .68) 100%);
     background:
-      linear-gradient(105deg, rgb(from var(--azul) r g b / .96) 0%, rgb(from var(--azul) r g b / .92) 45%, rgb(from var(--azul) r g b / .90) 100%),
-      url('https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1600&q=70') center 28%/cover no-repeat var(--azul);
+      var(--hero-overlay),
+      url('/images/portal/img_9885-1920.jpg') center 55%/cover no-repeat var(--azul);
     color:var(--blanco);
   }
   .hero .wrap{
@@ -338,13 +343,24 @@
   .doclist svg{color:var(--azul);flex:0 0 auto}
 
   /* ---------- Footer ---------- */
-  footer{background:var(--azul);color:var(--blanco);margin-top:20px}
-  footer .wrap{padding:16px 24px;font-size:.88rem;text-align:center}
+  .public-footer{margin-top:20px}
+  @@media(max-width:960px){.hero{background-position:center,40% 55%}}
+  @@media(max-width:640px){.hero{background-image:var(--hero-overlay),image-set(url('/images/portal/img_9885-960.jpg') 1x,url('/images/portal/img_9885-1920.jpg') 2x);background-position:center,32% center}}
+  .diagnosis-actions{display:grid;gap:22px;margin-top:24px;justify-items:start}
+  .diagnosis-game{border-top:1px solid #ffffff40;padding-top:18px;width:100%;display:flex;gap:12px 20px;align-items:center;flex-wrap:wrap}
+  .diagnosis-game-copy{flex:1 1 280px;min-width:0}
+  .diagnosis-game h3{font-size:1.05rem;line-height:1.4;margin:0 0 8px}
+  .diagnosis-game p{font-size:.9rem;max-width:65ch}
+  .diagnosis-game .quiz-launch{margin-top:0}
+  .diagnosis-actions .btn{text-align:center;white-space:normal;max-width:100%}
+  @@media(max-width:700px){.diagnosis-game{align-items:flex-start;flex-direction:column}.diagnosis-game-copy{flex:initial}}
 
   /* ---------- Responsive ---------- */
-  @@media(max-width:960px){
+  @@media(max-width:1120px){
     .layout{grid-template-columns:1fr;gap:40px}
     aside.side{position:static;order:2;flex-direction:column}
+  }
+  @@media(max-width:960px){
     .hero .wrap{grid-template-columns:1fr;gap:36px;padding-top:48px;padding-bottom:48px}
     .net{max-width:440px;margin:0 auto}
     .strip .wrap{grid-template-columns:repeat(2,1fr)}
@@ -433,6 +449,7 @@
 </header>
 
 <!-- ===== HERO ===== -->
+<div class="public-content">
 <section class="hero" id="inicio">
   <div class="wrap">
     <div class="hero-text">
@@ -566,15 +583,15 @@
       <section class="block" id="ruta">
         <span class="eyebrow">Metodología</span>
         <h2>Ruta de Transformación Digital</h2>
-        <p class="sub">Un camino de ocho fases, del entendimiento inicial a la mejora continua. Cada fase produce entregables que alimentan la siguiente.</p>
+        <p class="sub">Un camino de ocho etapas, del entendimiento inicial a la mejora continua. Cada etapa produce entregables que alimentan la siguiente.</p>
         <div class="steps">
-          <div class="step"><span class="num">1</span><h3>Contextualización</h3><p>Dar a conocer la visión, los objetivos y los beneficios del proyecto institucional.</p></div>
+          <div class="step"><span class="num">1</span><h3>Contextualización</h3><p>Comunicar la visión, los objetivos, el alcance y los beneficios del PITD</p></div>
           <div class="step"><span class="num">2</span><h3>Diagnóstico</h3><p>Evaluar la madurez digital de procedimientos, datos, infraestructura, seguridad, personas y sustentabilidad.</p></div>
-          <div class="step"><span class="num">3</span><h3>Sensibilización</h3><p>Capacitar al personal en cultura organizacional.</p></div>
+          <div class="step"><span class="num">3</span><h3>Sensibilización</h3><p>Fortalecer cultura organizacional, cultura de datos y capacidades digitales</p></div>
           <div class="step"><span class="num">4</span><h3>Registro de procedimientos</h3><p>Documentar los procedimientos institucionales que desarrolla cada dependencia universitaria.</p></div>
           <div class="step"><span class="num">5</span><h3>Análisis y priorización</h3><p>Identificar problemas, duplicidades, riesgos, necesidades y oportunidades de mejora.</p></div>
           <div class="step"><span class="num">6</span><h3>Diseño de soluciones</h3><p>Definir mejoras, automatizaciones, integraciones y proyectos tecnológicos.</p></div>
-          <div class="step"><span class="num">7</span><h3>Implementación</h3><p>Desarrollar y poner en operación las soluciones priorizadas.</p></div>
+          <div class="step"><span class="num">7</span><h3>Implementación</h3><p>Desarrollar, probar y poner en operación</p></div>
           <div class="step"><span class="num">8</span><h3>Seguimiento y mejora</h3><p>Evaluar resultados, indicadores, adopción e impacto institucional.</p></div>
         </div>
       </section>
@@ -582,9 +599,9 @@
       <!-- 4. Diagnóstico -->
       <section class="block" id="diagnostico">
         <div class="dark-card">
-          <span class="eyebrow">Fase 2</span>
+          <span class="eyebrow">Etapa 2</span>
           <h2>Diagnóstico de madurez digital</h2>
-          <p class="sub">Una fotografía honesta del punto de partida de tu área. Estos son los aspectos que evaluaremos:</p>
+          <p class="sub">Una fotografía honesta de su área en estas 8 dimensiones:</p>
           <ul class="checks">
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Claridad y estandarización de los procedimientos</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Nivel de digitalización y automatización</li>
@@ -595,7 +612,13 @@
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Sustentabilidad y aprovechamiento tecnológico</li>
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Uso de analítica de datos e inteligencia artificial</li>
           </ul>
-          <button type="button" class="btn btn-primary quiz-launch" id="open-microsoft-quiz" aria-haspopup="dialog" aria-controls="microsoft-quiz-dialog">Iniciar test</button>
+          <div class="diagnosis-actions">
+            <a class="btn btn-primary" href="/competencias-digitales">Responder encuesta de competencias digitales</a>
+            <div class="diagnosis-game">
+              <div class="diagnosis-game-copy"><h3>¿Qué tan bien dominas Microsoft 365?</h3><p>Pon a prueba tus conocimientos de Microsoft 365.</p></div>
+              <button class="btn btn-outline quiz-launch" type="button" id="open-microsoft-quiz" aria-haspopup="dialog" aria-controls="microsoft-quiz-dialog">Iniciar test</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -654,8 +677,9 @@
         <h4>Contacto</h4>
 
         <div class="contact-info">
+          <p class="contact-area">Dirección General de Tecnologías de la Información</p>
           <p class="contact-area">Subdirección de Inteligencia de Datos</p>
-          <a class="contact-email" href="mailto:sid@@uacj.mx">sid@@uacj.mx</a>
+          <a class="contact-email" href="mailto:td.pi@@uacj.mx">td.pi@@uacj.mx</a>
           <p class="contact-meta">Extensiones telefónicas: 4374, 4274, 4174</p>
           <p class="contact-meta">Lunes a viernes, 8:00 a 15:00 h</p>
         </div>
@@ -664,10 +688,9 @@
       <div class="panel doclist" id="docs">
         <h4>Documentos relacionados</h4>
         <ul>
-          <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Política de Innovación Tecnológica Digital de la UACJ</a></li>
-          <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Plan Institucional de Transformación Digital</a></li>
-          <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Decálogo</a></li>
-          <li><a href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Glosario</a></li>
+          <li><a href="/documentos/PITD_2026_2030_Marco_General_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Plan Institucional de Transformación Digital<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
+          <li><a href="/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Decálogo<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
+          <li><a href="/documentos/Glosario_Transformacion_Digital_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Glosario<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
         </ul>
       </div>
     </aside>
@@ -692,9 +715,15 @@
 </section>
 
 <!-- ===== FOOTER ===== -->
-<footer>
-  <div class="wrap">
-    Universidad Autónoma de Ciudad Juárez
+</div>
+<footer class="public-footer institutional-footer">
+  <div class="wrap institutional-signatures">
+    <span class="institutional-logo"><img src="/images/competencias-digitales/firma-1.png" alt="UACJ Inspira el Futuro" width="1186" height="112"></span>
+    <div class="institutional-signature institutional-directorate"><span>Dirección General de</span><strong>Tecnologías de la Información</strong></div>
+    <div class="institutional-signature"><span>Subdirección de</span><strong>Desarrollo de Sistemas</strong></div>
+    <div class="institutional-signature"><span>Subdirección de</span><strong>Tecnología Educativa</strong></div>
+    <div class="institutional-signature"><span>Subdirección de</span><strong>Operación y Redes</strong></div>
+    <div class="institutional-signature"><span>Subdirección de</span><strong>Inteligencia de Datos</strong></div>
   </div>
 </footer>
 

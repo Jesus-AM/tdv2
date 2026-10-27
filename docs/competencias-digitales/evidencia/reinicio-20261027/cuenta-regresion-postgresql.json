@@ -1,0 +1,202 @@
+{
+  "utc": "2026-10-27T13:40:38.3890992+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 38,
+  "failed": 0,
+  "results": [
+    {
+      "name": "OAuth: tenant institucional, state, PKCE y cookie segura",
+      "passed": true,
+      "milliseconds": 3118
+    },
+    {
+      "name": "OAuth: tenant common es rechazado antes de crear intento",
+      "passed": true,
+      "milliseconds": 2626
+    },
+    {
+      "name": "OAuth: state ajeno no consume intento leg\u00EDtimo",
+      "passed": true,
+      "milliseconds": 3233
+    },
+    {
+      "name": "OAuth: callback sin cookie de navegador no autentica",
+      "passed": true,
+      "milliseconds": 2389
+    },
+    {
+      "name": "OAuth: caducidad y error del proveedor no canjean c\u00F3digo",
+      "passed": true,
+      "milliseconds": 2642
+    },
+    {
+      "name": "OAuth: callback concurrente se consume una sola vez en PostgreSQL",
+      "passed": true,
+      "milliseconds": 2917
+    },
+    {
+      "name": "Sesi\u00F3n activa no se sustituye por otro callback",
+      "passed": true,
+      "milliseconds": 2864
+    },
+    {
+      "name": "Logout: CSRF, Nexo ca\u00EDdo, revocaci\u00F3n de cookie copiada y salida Microsoft",
+      "passed": true,
+      "milliseconds": 3525
+    },
+    {
+      "name": "CSRF previo a login no autoriza guardados de nueva identidad",
+      "passed": true,
+      "milliseconds": 5155
+    },
+    {
+      "name": "Sesi\u00F3n PostgreSQL: expiraci\u00F3n y cambio de identidad local invalidan acceso",
+      "passed": true,
+      "milliseconds": 3154
+    },
+    {
+      "name": "Graph: refresco concurrente una vez, rotaci\u00F3n cifrada y foto fallida sin logout",
+      "passed": true,
+      "milliseconds": 4373
+    },
+    {
+      "name": "Graph: sin rotaci\u00F3n conserva refresh anterior; error no cambia token",
+      "passed": true,
+      "milliseconds": 3727
+    },
+    {
+      "name": "Representaci\u00F3n: administrador sin capacidad no busca ni inicia; sin escritura no la obtiene",
+      "passed": true,
+      "milliseconds": 4141
+    },
+    {
+      "name": "Representaci\u00F3n: b\u00FAsqueda autorizada vac\u00EDa/permitida y objetivo fuera de alcance",
+      "passed": true,
+      "milliseconds": 4876
+    },
+    {
+      "name": "Representaci\u00F3n: identidad real intacta, token s\u00F3lo cifrado y permisos efectivos",
+      "passed": true,
+      "milliseconds": 3957
+    },
+    {
+      "name": "Representaci\u00F3n: escritura y auditor\u00EDa at\u00F3micas respetan alcance y actor real",
+      "passed": true,
+      "milliseconds": 10983
+    },
+    {
+      "name": "Representaci\u00F3n: s\u00F3lo lectura rechaza endpoint directo y conserva permiso te\u00F3rico visible",
+      "passed": true,
+      "milliseconds": 5557
+    },
+    {
+      "name": "Representaci\u00F3n: pesta\u00F1a obsoleta y contextos anidados no ejecutan acciones centrales",
+      "passed": true,
+      "milliseconds": 4874
+    },
+    {
+      "name": "Representaci\u00F3n: dos inicios concurrentes no sustituyen el contexto ganador",
+      "passed": true,
+      "milliseconds": 3598
+    },
+    {
+      "name": "Logout representado: revocaci\u00F3n y auditor\u00EDa at\u00F3micas incluso con Nexo ca\u00EDdo",
+      "passed": true,
+      "milliseconds": 5017
+    },
+    {
+      "name": "Representaci\u00F3n: delegaci\u00F3n utiliza transporte JSON con actor real y token servidor",
+      "passed": true,
+      "milliseconds": 5958
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n/vencimiento central bloquean sin restaurar administrador",
+      "passed": true,
+      "milliseconds": 4638
+    },
+    {
+      "name": "Representaci\u00F3n: vencimiento local se verifica antes de llamar Nexo",
+      "passed": true,
+      "milliseconds": 3647
+    },
+    {
+      "name": "Representaci\u00F3n: salida con Nexo ca\u00EDdo restaura identidad propia expl\u00EDcitamente y audita",
+      "passed": true,
+      "milliseconds": 5419
+    },
+    {
+      "name": "Representaci\u00F3n: revocaci\u00F3n de m\u00F3dulo actor o persona impide continuidad",
+      "passed": true,
+      "milliseconds": 4889
+    },
+    {
+      "name": "Foto/persistencia entre p\u00E1ginas y recarga; actualizaci\u00F3n tras quince minutos",
+      "passed": true,
+      "milliseconds": 5753
+    },
+    {
+      "name": "Foto/429, red, timeout y 503 conservan imagen con espera progresiva y l\u00EDmite absoluto",
+      "passed": true,
+      "milliseconds": 5477
+    },
+    {
+      "name": "Foto/ausencia confirmada retira imagen anterior y no se confunde con indisponibilidad",
+      "passed": true,
+      "milliseconds": 4495
+    },
+    {
+      "name": "Foto/renovaci\u00F3n de token temporal conserva imagen; cifrado de otro entorno la retira sin alterar tokens",
+      "passed": true,
+      "milliseconds": 4438
+    },
+    {
+      "name": "Foto/respuesta lenta revalida revocaci\u00F3n local y contexto de representaci\u00F3n",
+      "passed": true,
+      "milliseconds": 6205
+    },
+    {
+      "name": "Foto/logout durante renovaci\u00F3n y cabecera de contexto anterior no entregan imagen",
+      "passed": true,
+      "milliseconds": 5066
+    },
+    {
+      "name": "Foto/volver de representaci\u00F3n cambia revisi\u00F3n incluso con la misma cuenta Microsoft",
+      "passed": true,
+      "milliseconds": 5731
+    },
+    {
+      "name": "Foto/desconectar la petici\u00F3n libera la renovaci\u00F3n sin borrar la imagen v\u00E1lida",
+      "passed": true,
+      "milliseconds": 3974
+    },
+    {
+      "name": "Foto/Graph debe acreditar la identidad de la miniatura y conserva renovaci\u00F3n ante 401",
+      "passed": true,
+      "milliseconds": 3936
+    },
+    {
+      "name": "Foto/reserva verificada, cach\u00E9 compartida, renovaci\u00F3n y rechazo tras liberar",
+      "passed": true,
+      "milliseconds": 6257
+    },
+    {
+      "name": "Foto/no es directorio: UR ajena, participante ausente, sesi\u00F3n revocada y acceso suspendido",
+      "passed": true,
+      "milliseconds": 4786
+    },
+    {
+      "name": "Foto/iniciales ante Graph ausente, identidad no coincidente y vencimiento de reserva",
+      "passed": true,
+      "milliseconds": 4695
+    },
+    {
+      "name": "Foto/representaci\u00F3n usa objetivo verificado o iniciales; nunca la foto del administrador",
+      "passed": true,
+      "milliseconds": 7743
+    }
+  ]
+}

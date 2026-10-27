@@ -17,7 +17,7 @@ function App() {
     const Component = pages[`./pages/${page.component}.tsx`];
     if (!Component) return <Alert severity="error">Vista no disponible.</Alert>;
     return <PageContext.Provider value={page}>
-        <AccountPhotoProvider context={page.props.photoContext}>
+        <AccountPhotoProvider context={page.props.photoContext} application={page.props.photoApplication}>
             <Suspense fallback={<LinearProgress />}><Component {...page.props} /></Suspense>
         </AccountPhotoProvider>
     </PageContext.Provider>;

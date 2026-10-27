@@ -1,0 +1,102 @@
+﻿{
+    "publishedLocally":  true,
+    "deployed":  false,
+    "results":  [
+                    {
+                        "path":  "documentos/PITD_2026_2030_Marco_General_UACJ.pdf",
+                        "bytes":  14398920,
+                        "sha256":  "6F5EAD2FD5936ED4C64BE7C49CF1AB8D8AD5015DDB8B3B7239028D9FAFC9C1C0",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "documentos/Decalogo_Cultura_de_Datos_UACJ.pdf",
+                        "bytes":  2167730,
+                        "sha256":  "53C5ADE776F802FC9043F7B52C1BDFD1509B036F3B17E6EB79B021F1C9A983FC",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "documentos/Glosario_Transformacion_Digital_UACJ.pdf",
+                        "bytes":  8080899,
+                        "sha256":  "0E72A5ED01B2BD70C63BFE2D5423107B4DBD7EF755B3282D62A590D3E5D58031",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/public.css",
+                        "bytes":  706,
+                        "sha256":  "1C6F094BC8DF0D288A42CC8A0AB95FA399070C2D2E56C196C41901098F629EA4",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/NotoSans-Regular.ttf",
+                        "bytes":  569208,
+                        "sha256":  "B85C38ECEA8A7CFB39C24E395A4007474FA5A4FC864F6EE33309EB4948D232D5",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/NotoSans-Medium.ttf",
+                        "bytes":  566428,
+                        "sha256":  "7BBE267354704C6AD18BDE24B1DBC756C8E4380CA1C3F3C25C45EC5C4471510B",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/NotoSans-SemiBold.ttf",
+                        "bytes":  572924,
+                        "sha256":  "87A8B90ECE1E89746B544E4E086F85A3710E41485A8078F9BE874837DFAD45D5",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/NotoSans-Bold.ttf",
+                        "bytes":  575740,
+                        "sha256":  "C976E4B1B99EDC88775377FCC21692CA4BFA46B6D6CA6522BFDA505B28FF9D6A",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "fonts/noto-sans/OFL.txt",
+                        "bytes":  4377,
+                        "sha256":  "0DAB92D0544F7B233403F14B84A663BDBFA746982EDA629E7F4F9FFE1B036FEB",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "images/competencias-digitales/firma-1.png",
+                        "bytes":  37222,
+                        "sha256":  "FF70D2F1DDB313A2473089A238497CA3E30C60EEC059D3AA592F029981ADBA67",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "images/competencias-digitales/firma-3.png",
+                        "bytes":  7454,
+                        "sha256":  "298F992BE25738AB78536AD77761C5E10582DAD74F14D84FA6526FB235998FB9",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "images/competencias-digitales/firma-5.png",
+                        "bytes":  22990,
+                        "sha256":  "4527D3E2E62B2B9BFDE31E5190D51E7B022892D5094997927DDCCD7AD46817FE",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "images/competencias-digitales/firma-7.png",
+                        "bytes":  21397,
+                        "sha256":  "BA770C1C10F30FA869E2B2DE785DB73FC7B0B85ADD7FA99090BC947600A72081",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "images/competencias-digitales/firma-9.png",
+                        "bytes":  20171,
+                        "sha256":  "03249C248213404A0734328B159ACBCC0A13BFE4596BACFEDC37E0908C9CF57B",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "quiz/microsoft-365/index.html",
+                        "bytes":  3528,
+                        "sha256":  "CA9F47D193523F9D3A46C408B20C060A4C29F96D091507BF68AEA65934D8D9A8",
+                        "identical":  true
+                    },
+                    {
+                        "path":  "quiz/microsoft-365/quiz.js",
+                        "bytes":  7813,
+                        "sha256":  "9FF15621FBDEC8C17F51011F4894B4EBBB43E91A6C20367F54444E4EA1B0F2CA",
+                        "identical":  true
+                    }
+                ]
+}

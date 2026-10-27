@@ -27,12 +27,13 @@ public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, Mi
 
     public async Task<ParticipantPhoto> Account(HttpContext http)
     {
-        var profile = await access.Profile(http);
-        var context = PhotoContext.Key(http, state, profile.User.Email);
+        var digital = http.Request.Headers["X-TDV2-Application"] == "competencias-digitales";
+        var profile = digital ? (await http.RequestServices.GetRequiredService<Tdv2.Competencias.DigitalAccess>().Resolve(http)).Profile : await access.Profile(http);
+        var context = PhotoContext.Key(http, state, profile.User.Email, digital ? "competencias-digitales" : "tdv2");
         if (http.Request.Headers["X-TDV2-Photo-Context"] is { Count: > 0 } sent && sent.ToString() != context)
             throw new DomainProblem(409, "El usuario activo cambió. Recarga para consultar su fotografía.");
         // En representación se busca al objetivo: jamás reutilizar el identificador Microsoft del actor.
-        if (access.Selection?.Kind == "preview") {
+        if (!digital && access.Selection?.Kind == "preview") {
             await state.CheckRead(http.RequestAborted);
             return new(null, DateTimeOffset.UtcNow.AddMinutes(2), Contexto: context);
         }

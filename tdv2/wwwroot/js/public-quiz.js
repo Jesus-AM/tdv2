@@ -30,7 +30,7 @@ frame.addEventListener('load', () => {
     if (!document?.getElementById('welcome')) return;
     loaded = true; loading.hidden = true; frame.hidden = false;
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && dialog.open) { event.preventDefault(); dialog.close(); }
+        if (event.key === 'Escape' && !event.defaultPrevented && dialog.open) { event.preventDefault(); dialog.close(); }
     });
 });
 opener.addEventListener('click', () => {

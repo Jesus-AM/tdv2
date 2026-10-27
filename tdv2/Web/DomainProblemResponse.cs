@@ -11,6 +11,12 @@ public static class DomainProblemResponse
     public static async Task Write(HttpContext context, DomainProblem problem, ReactShell shell)
     {
         await context.RequestServices.GetRequiredService<OperationAudit>().Failure(context, problem.Status);
+        if (problem.Status == 401 && Tdv2.Competencias.DigitalRoutes.Page(context.Request.Path)
+            && context.Request.Headers.Accept.Any(v => v?.Contains("text/html") == true))
+        {
+            context.Response.Redirect("/connect?returnUrl=" + Uri.EscapeDataString(context.Request.Path + context.Request.QueryString));
+            return;
+        }
         context.Response.StatusCode = problem.Status;
         if (PagePaths.IsPage(context.Request.Path) && context.Request.Headers.Accept.Any(v => v?.Contains("text/html") == true))
         {

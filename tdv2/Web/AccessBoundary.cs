@@ -9,6 +9,16 @@ public static class AccessBoundary
     public static async Task Validate(HttpContext http)
     {
         var path = http.Request.Path;
+        if (path.StartsWithSegments(Tdv2.Competencias.DigitalRoutes.Base))
+        {
+            if (path == "/competencias-digitales/api/representacion" && HttpMethods.IsDelete(http.Request.Method)) return;
+            var digital = http.RequestServices.GetRequiredService<Tdv2.Competencias.DigitalAccess>();
+            var slug = path.Value!.TrimEnd('/').Split('/').Last();
+            var module = Array.IndexOf(Tdv2.Competencias.DigitalRoutes.Slugs, slug);
+            if (Tdv2.Competencias.DigitalRoutes.Page(path) && module >= 0) await digital.Require(http, module);
+            else await digital.Resolve(http);
+            return;
+        }
         if (path == "/vista-prueba" && HttpMethods.IsDelete(http.Request.Method)
             || path == "/actuar-como-usuario" && HttpMethods.IsDelete(http.Request.Method)) return;
         var access = http.RequestServices.GetRequiredService<RequestAccess>();
@@ -42,6 +52,8 @@ public static class AccessBoundary
                 throw new DomainProblem(403, "Origen no autorizado.");
             await access.Resolve(http);
         }
+        else if (path == "/user/photo" && http.Request.Headers["X-TDV2-Application"] == "competencias-digitales")
+            await http.RequestServices.GetRequiredService<Tdv2.Competencias.DigitalAccess>().Resolve(http);
         else if (path.StartsWithSegments("/user")) await access.Profile(http);
     }
 }

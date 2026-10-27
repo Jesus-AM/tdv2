@@ -1,4 +1,16 @@
-# Actualización vigente 2026-10-17 — Acabado del portal público
+# Actualización vigente 2026-10-27 — Competencias digitales UACJ
+
+**Identidad visual posterior vigente:** [Guía e inventario 2026-10-27](IDENTIDAD_VISUAL_20261027.md). Noto Sans local, tokens institucionales comunes, nueva fotografía local y pies ordenados con DGTI en Competencias. Las referencias posteriores a Inter/Roboto o pie CD de cuatro firmas son históricas. Sin modificaciones de persistencia ni permisos.
+
+**Revisión posterior vigente:** Perfil agrupado, pies al fondo en flujo normal, portal Noto Sans local y contacto/textos actualizados. Tres PDF públicos originales; encuesta principal y Juego Microsoft 365/Iniciar test separados. Pie público con UACJ/DGTI y cuatro firmas; Competencias conserva cuatro. Sin nuevas migraciones ni reinicios ejecutados. [Inventario de archivos y comprobaciones](PORTAL_Y_PERFIL_20261027.md). Las descripciones del botón único e Inter público siguientes son históricas.
+
+**Implementado:** subsitio con cinco módulos, autorización independiente de Procedimientos, contexto/migración PostgreSQL propios, catálogos locales compartidos sin duplicación, perfil institucional validado, encuesta única e informe definitivo. Privacidad por versión, evaluación central, agregados y exportaciones por alcance, metas directas sin doble conteo y representación Nexo solo de consulta. Iniciar test dirige al subsitio; el resto del portal se conserva. Los recursos del HTML están integrados y el original se mantiene como referencia documental fuera de `wwwroot`.
+
+**Probado y evidencia:** resultados finales, comandos y límites en la entrada 2026-10-27 de [ESTADO_MIGRACION](../../ESTADO_MIGRACION.md). Se distinguen PostgreSQL/HTTP/navegador reales de las fuentes Microsoft/Nexo sintéticas.
+
+**Pendiente:** administración/provisión en Nexo, configuración de conexiones reales, migración explícita de la base nueva y aceptación institucional del aviso, catálogo y contenido. Nada de ello se ejecuta automáticamente. [Inventario de archivos, separación de bases, permisos, fórmulas y lista exacta para el operador](../competencias-digitales/GUIA.md).
+
+# Actualización 2026-10-17 — Acabado del portal público
 
 Ajuste posterior: enlaces públicos sin subrayados en todos sus estados, resaltado suave y contorno de teclado conservados. Build y suite pública antes/después correctos en cuatro ventanas; clics/Enter, foco y móvil emulado revisados. Evidencia `.artifacts/public-links-20261017/`; sin cambios internos ni en el quiz.
 

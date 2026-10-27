@@ -1,0 +1,123 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Conexiones: dos historias EF, tablas y permisos separados; repetici\u00F3n sin cambios",
+      "passed": true
+    },
+    {
+      "name": "Sin configuraci\u00F3n del subsitio: portal, /inicio y autorizaci\u00F3n TDV2 conservados",
+      "passed": true
+    },
+    {
+      "name": "Migraciones equivocadas rechazan tablas ajenas y configuraci\u00F3n nunca reutiliza TDV2",
+      "passed": true
+    },
+    {
+      "name": "OAuth: empleado de Competencias sin roles TDV2 y destino profundo conservado",
+      "passed": true
+    },
+    {
+      "name": "An\u00F3nimo conserva destino, rutas profundas y recargas requieren autorizaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Roles de otra aplicaci\u00F3n no conceden permisos; empleado obligatorio y m\u00F3dulos reales",
+      "passed": true
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n incorrecta y ca\u00EDda deniegan sin secreto ni permiso en cach\u00E9",
+      "passed": true
+    },
+    {
+      "name": "administrador: consulta institucional; Configuraci\u00F3n exclusiva del administrador",
+      "passed": true
+    },
+    {
+      "name": "responsable_ur_supervisor: consulta institucional; Configuraci\u00F3n exclusiva del administrador",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0001: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0002: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0031: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable de otros niveles y adscripci\u00F3n sin responsabilidad conservan solo capacidades personales",
+      "passed": true
+    },
+    {
+      "name": "Responsabilidades m\u00FAltiples forman una uni\u00F3n autorizada sin hermanos ni duplicados",
+      "passed": true
+    },
+    {
+      "name": "Perfil: antecesoras exactas, adscripci\u00F3n N2 sin N3, m\u00FAltiples/incompletas/ciclos",
+      "passed": true
+    },
+    {
+      "name": "Privacidad: API sin consentimiento, CSRF, versi\u00F3n, idempotencia y aislamiento por empleado",
+      "passed": true
+    },
+    {
+      "name": "Instrumento: 84 herramientas y r\u00FAbricas consecutivas, cero v\u00E1lido, no aplica y complementarias",
+      "passed": true
+    },
+    {
+      "name": "Finalizaci\u00F3n incompleta rechaza todas las preguntas saltadas y adscripci\u00F3n incompleta",
+      "passed": true
+    },
+    {
+      "name": "Guardado no admite identidad, porcentajes, estados ni niveles de r\u00FAbrica inventados",
+      "passed": true
+    },
+    {
+      "name": "Dos pesta\u00F1as/sesiones: versi\u00F3n evita sobrescrituras y borrador retoma en otro cliente",
+      "passed": true
+    },
+    {
+      "name": "Finalizaci\u00F3n transaccional idempotente; doble clic, reintentos y guardados atrasados inmutables",
+      "passed": true
+    },
+    {
+      "name": "Informe y contexto final permanecen tras traslado; sin acceso por ID ajeno",
+      "passed": true
+    },
+    {
+      "name": "Nueva versi\u00F3n t\u00E9cnica o aviso no permiten segundo intento ni reabren el definitivo",
+      "passed": true
+    },
+    {
+      "name": "Cambio de aviso en captura exige confirmaci\u00F3n vigente conservando respuestas",
+      "passed": true
+    },
+    {
+      "name": "Agregados: personas \u00FAnicas, nivel no excluye descendientes, promedio por persona y sin metas",
+      "passed": true
+    },
+    {
+      "name": "Metas directas: suma sin duplicar, ausencia/0 expl\u00EDcito, edici\u00F3n concurrente",
+      "passed": true
+    },
+    {
+      "name": "Alcance aplicado a opciones, totales, recomendaciones, puestos, herramientas y exportaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Representaci\u00F3n: identidad efectiva, sin permisos heredados/escrituras/anidaci\u00F3n, salida y auditor\u00EDa",
+      "passed": true
+    },
+    {
+      "name": "Navegador real y PostgreSQL aislado",
+      "passed": true
+    }
+  ]
+}

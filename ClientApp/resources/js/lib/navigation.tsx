@@ -14,7 +14,7 @@ export function Head({ title }: { title: string }) {
 }
 type Errors = Record<string, string>;
 type Options = { only?: string[]; onError?: (errors: Errors) => void; onFinish?: () => void; onSuccess?: () => void };
-type Before = CustomEvent<{ visit: { headers: Record<string, string> } }>;
+type Before = CustomEvent<{ visit: { headers: Record<string, string>; resume?: () => void } }>;
 const events = new EventTarget();
 let current: Page | null = null;
 let csrf = '';
@@ -44,11 +44,11 @@ function restricted(message: string, status: number, url: string, context?: Part
         access: { message, status },
     } };
 }
-function before(): boolean {
-    return events.dispatchEvent(new CustomEvent('before', { cancelable: true, detail: { visit: { headers: {} } } }));
+function before(resume?: () => void): boolean {
+    return events.dispatchEvent(new CustomEvent('before', { cancelable: true, detail: { visit: { headers: {}, resume } } }));
 }
 async function visit(path: string, options: Options = {}, historyMode: 'push' | 'replace' = 'push', check = true) {
-    if (check && !before()) { options.onFinish?.(); return; }
+    if (check && !before(() => { void visit(path, options, historyMode); })) { options.onFinish?.(); return; }
     const ticket = ++sequence;
     try {
         const url = localPath(path);
@@ -61,7 +61,7 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
         // Reload uses the same page instance so form drafts and sync settings survive polling.
         const page = options.only && current?.component === data.component
             ? { ...data, props: { ...current.props, ...Object.fromEntries(Object.entries(data.props).filter(([key]) =>
-                options.only!.includes(key) || ['auth', 'simulacion', 'representacion', 'contextoEdicion', 'photoContext', 'csrfToken', 'session', 'routes'].includes(key))) } }
+                options.only!.includes(key) || ['auth', 'simulacion', 'representacion', 'contextoEdicion', 'photoContext', 'photoApplication', 'csrfToken', 'session', 'routes'].includes(key))) } }
             : data;
         window.history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', url);
         setPage(page);
@@ -69,6 +69,9 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
     } catch (error) {
         if (ticket !== sequence) return;
         const status = axios.isAxiosError(error) ? error.response?.status || 503 : 503;
+        if (status === 401 && new URL(path, window.location.origin).pathname.startsWith('/competencias-digitales')) {
+            window.location.assign('/connect?returnUrl=' + encodeURIComponent(localPath(path))); return;
+        }
         const message = axios.isAxiosError(error) ? error.response?.data?.message : null;
         const context = axios.isAxiosError(error) ? error.response?.data : undefined;
         // Un fallo temporal al refrescar conserva el borrador. La denegación de acceso sí sustituye la vista.
@@ -80,8 +83,8 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
     } finally { options.onFinish?.(); }
 }
 async function mutate(method: 'post' | 'delete', path: string, data: unknown, options: Options) {
-    if (!before()) { options.onFinish?.(); return; }
-    if (['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba'].includes(localPath(path)))
+    if (!before(() => { void mutate(method, path, data, options); })) { options.onFinish?.(); return; }
+    if (['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba', '/competencias-digitales/api/representacion'].includes(localPath(path)))
         events.dispatchEvent(new Event('identity-changing'));
     try {
         if (!csrf) csrf = (await axios.get<{ token: string }>('/session/csrf')).data.token;
@@ -112,7 +115,8 @@ export const router = {
 export function startNavigation(onPage: (page: Page) => void) {
     publish = onPage;
     const pop = () => {
-        if (before()) void visit(window.location.pathname + window.location.search, {}, 'replace', false);
+        const target = window.location.pathname + window.location.search;
+        if (before(() => { void visit(target, {}, 'replace'); })) void visit(target, {}, 'replace', false);
         else if (current) window.history.pushState(null, '', current.url);
     };
     window.addEventListener('popstate', pop);

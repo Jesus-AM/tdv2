@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reto Microsoft 365 · Diagnóstico interactivo</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'">
-<link rel="preload" href="/fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/fonts/inter/inter.css">
+<link rel="preload" href="/fonts/noto-sans/NotoSans-Regular.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/css/institutional.css">
 <link rel="stylesheet" href="/quiz/microsoft-365/quiz.css">
+<link rel="stylesheet" href="/quiz/microsoft-365/quiz-brand.css">
 </head>
 <body>
 <div class="app">
@@ -28,8 +29,18 @@
     <p>Un diagnóstico rápido, visual y sin estrés. Responde situaciones reales, gana XP y descubre tu nivel.</p>
     <div class="hero-actions">
       <button class="primary" data-quiz-action="start">🚀 Comenzar reto</button>
-      <button class="secondary" data-quiz-action="help">¿Cómo funciona?</button>
+      <button class="secondary" data-quiz-action="help" aria-expanded="false" aria-controls="quiz-instructions">¿Cómo funciona?</button>
     </div>
+    <section id="quiz-instructions" class="quiz-instructions" aria-labelledby="quiz-instructions-title" hidden>
+      <h2 id="quiz-instructions-title" tabindex="-1">¿Cómo funciona?</h2>
+      <ol>
+        <li>Responde 10 preguntas sobre situaciones de trabajo con Microsoft 365. Selecciona una respuesta por pregunta.</li>
+        <li>Después de responder verás la opción correcta y su explicación. Pulsa «Siguiente» para continuar.</li>
+        <li>Cada acierto suma 100 XP, más 20 XP por cada acierto anterior de la racha actual. Una respuesta incorrecta termina la racha, sin restar los XP obtenidos.</li>
+        <li>Al terminar verás tus aciertos, porcentaje, nivel, XP, racha máxima y medallas. El resultado de esta práctica es independiente de la encuesta de competencias digitales.</li>
+      </ol>
+      <button class="secondary" data-quiz-action="help-close">Entendido</button>
+    </section>
     <div class="features">
       <div class="feature">⚡<b>Rápido</b><span>10 retos, pocos minutos.</span></div>
       <div class="feature">🎯<b>Práctico</b><span>Situaciones del trabajo real.</span></div>

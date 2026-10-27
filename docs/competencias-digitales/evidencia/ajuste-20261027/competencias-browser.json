@@ -1,0 +1,83 @@
+{
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    {
+      "name": "portal conserva diseño y el botón inicia OAuth hacia Competencias",
+      "passed": true
+    },
+    {
+      "name": "avance y resultados: rutas directas, recargas, gráficas y tablas con PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "aviso accesible: sin preselección, Escape/cierre no aceptan y captura bloqueada",
+      "passed": true
+    },
+    {
+      "name": "perfil institucional ineditable y perfil personal persistido",
+      "passed": true
+    },
+    {
+      "name": "M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente",
+      "passed": true
+    },
+    {
+      "name": "rúbricas de Ciberseguridad permiten confirmación Inicial y captura por indicadores",
+      "passed": true
+    },
+    {
+      "name": "cada bloque bloquea su siguiente sección y URL/API respetan el avance",
+      "passed": true
+    },
+    {
+      "name": "móvil 390/320: cinco bloques, aviso desplazable, controles y sin desbordamiento exterior",
+      "passed": true
+    },
+    {
+      "name": "error de guardado conserva cambios y no muestra éxito",
+      "passed": true
+    },
+    {
+      "name": "respuesta perdida después de guardar: reintento no duplica y solo entonces avanza",
+      "passed": true
+    },
+    {
+      "name": "retroceso, edición anterior y salida a otro módulo conservan el borrador",
+      "passed": true
+    },
+    {
+      "name": "cuenta compartida: nombre completo, fotografía y avatar ante imagen fallida",
+      "passed": true
+    },
+    {
+      "name": "comparación visual con original en escritorio y móvil, fuentes y elementos fijos",
+      "passed": true
+    },
+    {
+      "name": "finalización completa en UI y descarga; recarga sin acciones de edición",
+      "passed": true
+    },
+    {
+      "name": "configuración administra metas de adscripción directa",
+      "passed": true
+    },
+    {
+      "name": "representación consulta permisos efectivos sin configuración y salida siempre visible",
+      "passed": true
+    },
+    {
+      "name": "supervisor sin configuración, N2/N3 con rama y sin filtro de nivel; participante personal",
+      "passed": true
+    },
+    {
+      "name": "regresión /inicio de Procedimientos conserva vista y portada no registra errores JS",
+      "passed": true
+    },
+    {
+      "name": "participante exclusivo conserva nombre y foto sin permisos de Procedimientos",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,18 @@
+/* Identidad compartida; preguntas, puntuación y estilos estructurales del juego se conservan. */
+:root{--bg:var(--uacj-canvas);--card:var(--uacj-white);--text:var(--uacj-blue);--muted:var(--uacj-muted);--primary:var(--uacj-blue);--primary2:var(--uacj-blue);--line:var(--uacj-gray)}
+body{font-family:var(--font-interface);background:var(--uacj-canvas)}
+button,input,select,textarea{font-family:inherit}
+.hero:before,.progress,.letter,.secondary,.module,.badge{background:var(--uacj-soft)}
+.secondary,.module,.streak{color:var(--uacj-blue)}
+.feature{background:var(--uacj-canvas)}
+.hero > *{position:relative}
+.answer:hover{border-color:var(--uacj-blue)}
+.next{background:var(--uacj-blue)}
+.brand,h1,h2,h3,button,.primary,.secondary,.next,.pill,.module,.streak,.letter,.score-ring b,.badge,.bar-label b,.result-card b{font-weight:700}
+.quiz-instructions{position:relative;margin:24px auto 0;padding:24px;max-width:760px;text-align:left;background:var(--uacj-white);border:1px solid var(--uacj-gray);border-radius:16px}
+.quiz-instructions[hidden]{display:none}
+.quiz-instructions h2{font-size:1.2rem;margin:0 0 16px;line-height:1.4}
+.quiz-instructions ol{padding-left:24px;margin:0 0 20px;line-height:1.6}
+.quiz-instructions li+li{margin-top:12px}
+.quiz-instructions :focus-visible,[data-quiz-action="help"]:focus-visible{outline:2px solid var(--uacj-blue);outline-offset:3px}
+@media(max-width:600px){.quiz-instructions{padding:18px}}

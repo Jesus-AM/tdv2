@@ -18,7 +18,7 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
         {
             await profiles.ApplicationId(ct);
             var emails = new List<string>();
-            await using (var connection = await connections.Open("Nexo", ct))
+            await using (var connection = await connections.Open(profiles.ConnectionName, ct))
             {
                 // Sólo vistas publicadas para TDV2: ya excluyen suspensión, revocación y caducidad.
                 // La selección inicial se limita a la rama o a vínculos locales candidatos, nunca a todo el directorio.
@@ -49,7 +49,7 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
         return await Guard(async () =>
         {
             await profiles.ApplicationId(ct);
-            await using var connection = await connections.Open("Nexo", ct);
+            await using var connection = await connections.Open(profiles.ConnectionName, ct);
             await using var command = new NpgsqlCommand("SELECT to_jsonb(r)::text FROM public.nexo_" + resource + " r" + (email is null ? "" : " WHERE email=$1"), connection);
             if (email is not null) command.Parameters.AddWithValue(email);
             return await ReadRows(command, ct);
@@ -61,7 +61,7 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
         return await Guard(async () =>
         {
             var id = await profiles.ApplicationId(ct);
-            await using var connection = await connections.Open("Nexo", ct);
+            await using var connection = await connections.Open(profiles.ConnectionName, ct);
             await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
             var function = "public.nexo_a" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + "_" + operation;
             // Conservar una fila también cuando la función devuelve una única columna de confirmación.
@@ -77,7 +77,7 @@ public sealed class NexoOperations(DatabaseConnections connections, PostgresNexo
         {
             var id = await profiles.ApplicationId(ct);
             var input = data?.DeepClone().AsObject() ?? new(); input["accion"] = action; input["actor_email"] = actor;
-            await using var connection = await connections.Open("Nexo", ct);
+            await using var connection = await connections.Open(profiles.ConnectionName, ct);
             await using var transaction = await connection.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
             await using var command = new NpgsqlCommand("SELECT public.nexo_a" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + "_representacion($1)::text", connection, transaction);
             command.Parameters.AddWithValue(NpgsqlDbType.Jsonb, input.ToJsonString());

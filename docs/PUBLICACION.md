@@ -58,7 +58,7 @@ Desde 2026-10-15 el paquete incluye `Contracts/aplicaciones-2026-10-14.json` (20
 
 ## Base y procesador
 
-EF Core es el único mecanismo de migraciones. Desde la raíz del código, con la configuración externa del destino y una cuenta de migración, ejecutar explícitamente `dotnet ef database update --project tdv2 -- --environment Production`. Revisar antes `dotnet ef migrations script --idempotent --project tdv2 --output .artifacts/tdv2-migrations.sql` y el destino/permisos. El primer bootstrap exige una base vacía y un solo operador. La cuenta del sitio no necesita DDL; el arranque no invoca EF Migrate ni EnsureCreated.
+EF Core es el único mecanismo de migraciones. Desde la raíz del código, con la configuración externa del destino y una cuenta de migración, ejecutar explícitamente `dotnet ef database update --context Tdv2DbContext --project tdv2 -- --environment Production`. Revisar antes `dotnet ef migrations script --idempotent --context Tdv2DbContext --project tdv2 --output .artifacts/tdv2-migrations.sql` y el destino/permisos. El primer bootstrap exige una base vacía y un solo operador. La cuenta del sitio no necesita DDL; el arranque no invoca EF Migrate ni EnsureCreated.
 
 En desarrollo se añade `-- --environment Development` para cargar User Secrets. `public."__EFMigrationsHistory"` es el historial vigente. Los SQL 001–004 y la conversión anterior son fixtures históricos de pruebas; no se despliegan ni se aplican mediante un segundo ejecutor. Una copia Laravel requiere [revisión y adopción EF explícita](migracion/TRANSICION_DATOS.md), no el bootstrap.
 

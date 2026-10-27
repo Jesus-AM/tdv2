@@ -125,6 +125,7 @@ public sealed class AccessToolService(RequestAccess access, NexoOperations nexo,
     {
         var snapshot = await state.Load(http.RequestAborted);
         if (snapshot.Selection is not { } selection) return;
+        if (selection.Application != "tdv2") throw new DomainProblem(409, "Utiliza la salida de representación de Competencias digitales.");
         if (selection.Kind != kind) throw new DomainProblem(409, "Utiliza la salida del contexto activo.");
         await using var connection = await connections.Open("Tdv2", http.RequestAborted);
         await using var transaction = await connection.BeginTransactionAsync(http.RequestAborted);
