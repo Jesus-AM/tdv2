@@ -112,6 +112,7 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
             if (email is not null) StoreHint(HintCookie, email);
         }
         await termination.Revoke(email, HttpContext.RequestAborted);
+        await Tdv2.Competencias.DigitalActivityHooks.Logout(HttpContext.RequestServices);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         Response.Cookies.Delete(BrowserCookie, BrowserOptions());
         Response.Cookies.Delete("tdv2.aspnet.csrf");

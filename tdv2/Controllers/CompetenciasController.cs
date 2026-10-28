@@ -56,6 +56,9 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
                 ?? new { version = 0, completedAt = (DateTimeOffset?)null };
         }
         else content = await Service<DigitalSurveyService>().Read(scope, Ct, paso);
+        var activity = Service<DigitalActivity>();
+        await activity.BestEffort(() => activity.Visit(scope, index == 3, (content as DigitalSurveyView)?.Version ?? 0, pageGeneration, Ct));
+        await Service<DigitalActivityDelivery>().TryFlush();
         var csrf = Service<IAntiforgery>().GetAndStoreTokens(HttpContext);
         return Results.Json(new { component = "CompetenciasDigitales", url = Request.Path + Request.QueryString,
             props = new { name = "Competencias digitales UACJ", csrfToken = csrf.RequestToken, contextoEdicion = state.Loaded?.Key ?? "own",
@@ -87,8 +90,20 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Finish([FromBody] DigitalFinalize input)
     { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Finalize(scope, input, Ct); return await Saved(scope, input.Generation); }
+    [HttpPost("api/encuesta/actualizar-instrumento")]
+    [EnableRateLimiting("form-writes")]
+    public async Task<IResult> Upgrade([FromBody] DigitalUpgrade input)
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Upgrade(scope, input, Ct); return await Saved(scope, input.Generation); }
     [HttpGet("api/informe")]
-    public async Task<IResult> Report() => Results.Json(await Service<DigitalSurveyService>().Read(await access.Require(HttpContext, 3), Ct));
+    public async Task<IResult> Report()
+    {
+        var scope = await access.Require(HttpContext, 3);
+        var view = await Service<DigitalSurveyService>().Read(scope, Ct);
+        var activity = Service<DigitalActivity>();
+        await activity.BestEffort(() => activity.Visit(scope, true, view.Version, view.Generation, Ct));
+        await Service<DigitalActivityDelivery>().TryFlush();
+        return Results.Json(view);
+    }
     [HttpPut("api/metas/{unit}")]
     public async Task<IResult> Target(string unit, [FromBody] DigitalTargetInput input)
     { await Service<DigitalSurveyService>().Target(await access.Require(HttpContext, 4), unit, input, Ct); return Results.Json(new { saved = true }); }

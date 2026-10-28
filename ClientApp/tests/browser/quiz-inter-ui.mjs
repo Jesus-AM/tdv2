@@ -137,8 +137,8 @@ async function verifyPublic(page, width) {
     for (const [index,text] of [[0,'Comunicar la visión, los objetivos, el alcance y los beneficios del PITD'],[2,'Fortalecer cultura organizacional, cultura de datos y capacidades digitales'],[6,'Desarrollar, probar y poner en operación']]) await expect(steps.nth(index).locator('p')).toHaveText(text);
     await expect(page.locator('#diagnostico .sub')).toHaveText('Una fotografía honesta de su área en estas 8 dimensiones:');
     await expect(page.locator('#diagnostico .checks li')).toHaveCount(8);
-    await expect(page.locator('.diagnosis-game h3')).toHaveText('¿Qué tan bien dominas Microsoft 365?');
-    await expect(page.locator('.diagnosis-game p')).toHaveText('Pon a prueba tus conocimientos de Microsoft 365.');
+    await expect(page.locator('.diagnosis-game h3')).toHaveText('¿Qué tanto sabes de Microsoft 365?');
+    await expect(page.locator('.diagnosis-game p')).toHaveCount(0);
     const links = page.locator('#docs a'); await expect(links).toHaveCount(3);
     const files = ['PITD_2026_2030_Marco_General_UACJ.pdf','Decalogo_Cultura_de_Datos_UACJ.pdf','Glosario_Transformacion_Digital_UACJ.pdf'];
     for (let i=0;i<3;i++) {
@@ -168,7 +168,7 @@ async function verifyPublic(page, width) {
 async function verifyQuiz(page, width, height) {
     const digitalLink = page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true });
     await expect(digitalLink).toHaveAttribute('href', '/competencias-digitales');
-    const open = page.getByRole('button', { name: 'Iniciar test', exact: true });
+    const open = page.getByRole('button', { name: 'Jugar Ahora', exact: true });
     let portalScroll;
     const dialog = page.getByRole('dialog', { name: 'Reto Microsoft 365', exact: true });
     const quiz = page.frameLocator('#microsoft-quiz-frame');

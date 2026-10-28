@@ -68,6 +68,7 @@ public sealed class DigitalDbContext(DbContextOptions<DigitalDbContext> options)
     public DbSet<DigitalTarget> Targets => Set<DigitalTarget>();
     public DbSet<DigitalControl> Control => Set<DigitalControl>();
     public DbSet<DigitalResetOperation> ResetOperations => Set<DigitalResetOperation>();
+    public DbSet<DigitalActivityEvent> ActivityEvents => Set<DigitalActivityEvent>();
     protected override void OnModelCreating(ModelBuilder model)
     {
         var s = model.Entity<DigitalSurvey>();
@@ -88,6 +89,10 @@ public sealed class DigitalDbContext(DbContextOptions<DigitalDbContext> options)
         var reset = model.Entity<DigitalResetOperation>(); reset.ToTable("cd_reset_operations"); reset.HasKey(x => x.Id);
         reset.Property(x => x.Id).ValueGeneratedNever(); reset.Property(x => x.Actor).HasMaxLength(254); reset.Property(x => x.Employee).HasMaxLength(32);
         reset.Property(x => x.SummaryJson).HasColumnType("jsonb");
+        var events = model.Entity<DigitalActivityEvent>(); events.ToTable("cd_activity_events"); events.HasKey(e => e.Id);
+        events.Property(e => e.Id).ValueGeneratedNever(); events.HasIndex(e => e.Key).IsUnique(); events.Property(e => e.Key).HasMaxLength(64);
+        events.Property(e => e.Session).HasMaxLength(64); events.Property(e => e.Payload).HasColumnType("jsonb");
+        events.Property(e => e.Failure).HasMaxLength(60); events.HasIndex(e => new { e.ReceivedAt, e.NextAttemptAt });
     }
     public static void Configure(DbContextOptionsBuilder options, IConfiguration config)
     {

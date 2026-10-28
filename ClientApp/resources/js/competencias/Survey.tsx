@@ -58,7 +58,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const progress = useRef<HTMLDivElement>(null);
     const current = useRef({ survey, profile, answers, dirty, step }); current.current = { survey, profile, answers, dirty, step };
     const saving = useRef<Promise<Survey | null> | null>(null);
-    const disabled = readOnly || busy || !survey.accepted;
+    const disabled = readOnly || busy || !survey.accepted || !!survey.editionUpdate;
     const failed = (e: unknown) => { setError(errorText(e)); if (axios.isAxiosError(e) && e.response?.data?.reset) window.dispatchEvent(new Event('cd-generation-invalid')); };
     const change = () => { current.current.dirty = true; setDirty(true); setEdit(e => e + 1); setMessage(''); setError(''); setPending([]); };
     const showStep = (id: string) => {
@@ -97,7 +97,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     }
     const persistRef = useRef(persist); persistRef.current = persist;
     useEffect(() => {
-        if (!edit || readOnly || survey.completedAt || !survey.accepted) return;
+        if (!edit || readOnly || survey.completedAt || !survey.accepted || survey.editionUpdate) return;
         const timer = window.setTimeout(() => { if (current.current.dirty) void persistRef.current(); }, 1500);
         return () => clearTimeout(timer);
     }, [edit, readOnly, survey.accepted, survey.completedAt]);
@@ -140,8 +140,18 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         } catch (e) { failed(e); const id = saved.navigation.resume; showStep(id); focusPending(saved.navigation.steps.find(s => s.id === id)!.pending); }
         finally { setBusy(false); setFinishOpen(false); }
     }
+    async function updateEdition() {
+        if (!survey.editionUpdate || busy || readOnly) return;
+        setBusy(true); setError('');
+        try {
+            const saved = (await axios.post<Survey>(`${base}/api/encuesta/actualizar-instrumento`, { generation: survey.generation, version: survey.version, instrumentVersion: survey.editionUpdate.current })).data;
+            setSurvey(saved); setProfile(saved.profile); setAnswers(saved.answers); setDirty(false);
+            current.current = { survey: saved, profile: saved.profile, answers: saved.answers, dirty: false, step: 'perfil' };
+            showStep('perfil'); setMessage('Borrador actualizado. Revisa tu perfil laboral y tus funciones antes de continuar. Las respuestas vigentes se conservaron.');
+        } catch (e) { failed(e); } finally { setBusy(false); }
+    }
     const steps = survey.navigation.steps, stepIndex = steps.findIndex(s => s.id === step), block = survey.instrument.modules.find(b => b.id === step);
-    const applicable = block?.tools.filter(t => !t.doc || profile.puesto === 'Personal docente') || [];
+    const applicable = block?.tools.filter(t => !t.doc || (survey.instrument.academicPositions ?? ['Personal docente']).includes(String(profile.puesto))) || [];
     const visible = applicable.filter(t => !t.opt || answers[t.id] && answers[t.id].state !== 'unused');
     const categories = [...new Set(applicable.filter(t => !t.opt).map(t => t.cat))];
     const name = (id: string) => survey.instrument.modules.flatMap(m => m.tools).find(t => t.id === id)?.n || survey.instrument.profile.find(f => `perfil:${f.id}` === id)?.label || 'Información institucional pendiente';
@@ -152,6 +162,10 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
             <div className="cd-progress" ref={progress}><span>Paso {stepIndex + 1} de 6 · {steps[stepIndex].name}</span><LinearProgress variant="determinate" value={survey.evaluation.progress} aria-label="Progreso de llenado guardado" /><strong>{percent(survey.evaluation.progress)}</strong><small>{survey.evaluation.answered}/{survey.evaluation.total} respuestas guardadas</small></div>
             <div className="cd-feedback" aria-live="polite">{error && <Alert severity="error">{error}</Alert>}{message && <p className="cd-saved" role="status">{message}</p>}{busy && <p role="status">Guardando…</p>}</div>
             {!survey.accepted && !readOnly && <Alert severity="info" action={<Button onClick={() => setNoticeOpen(true)}>Leer y confirmar</Button>}>Confirma el aviso de privacidad antes de comenzar.</Alert>}
+            {survey.editionUpdate && <Alert severity="warning"><h3>El instrumento tiene una nueva edición</h3><p>Antes de continuar, revisa y confirma la actualización de este borrador. Se conservarán las respuestas vigentes y una copia de la captura anterior. No cambia tu aceptación del aviso de privacidad.</p>
+                <p>Se retiran: {survey.editionUpdate.removedTools.join(', ')}.</p>{survey.editionUpdate.reviewFields.length > 0 && <p>Revisa estos datos anteriores; las opciones retiradas no se reclasificarán automáticamente: {survey.editionUpdate.reviewFields.join(' · ')}.</p>}
+                {!readOnly && <Button disabled={busy || !survey.accepted} variant="contained" onClick={() => void updateEdition()}>Confirmar actualización del borrador</Button>}
+            </Alert>}
             <div id="cd-step-content" tabIndex={-1} className={step === 'perfil' ? 'cd-card cd-profile-panel' : undefined}>
             {step === 'perfil' ? <section className="cd-profile-body"><span className="cd-eyebrow">Paso 1 de 6</span><h2>Comencemos por conocerte</h2><p className="cd-profile-intro">Con estos datos ubicamos tus resultados en tu dependencia y comparamos tu nivel con lo que requieren las funciones de tu puesto. Así tu ruta de capacitación será realmente tuya. Los campos con * son obligatorios.</p>
                 <ProfileFields survey={survey} profile={profile} disabled={disabled} onChange={(id, value) => { setProfile(p => { const next = { ...p }; if (value) next[id] = value; else delete next[id]; current.current.profile = next; return next; }); change(); }} />

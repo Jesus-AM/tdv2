@@ -117,11 +117,14 @@ public static class ServiceRegistration
         builder.Services.AddScoped<IDigitalNexo, DigitalNexo>();
         builder.Services.AddScoped<DigitalAccess>();
         builder.Services.AddDbContext<DigitalDbContext>(options => DigitalDbContext.Configure(options, builder.Configuration));
-        builder.Services.AddSingleton(new DigitalInstrument(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "competencias-digitales-v1.json"))));
+        builder.Services.AddSingleton(new DigitalInstrument(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "competencias-digitales-v2.json"))));
         builder.Services.AddScoped<DigitalAggregates>();
         builder.Services.AddScoped<DigitalSurveyService>();
         builder.Services.AddScoped<DigitalResetService>();
         builder.Services.AddScoped<DigitalRepresentation>();
+        builder.Services.AddScoped<DigitalActivity>();
+        builder.Services.AddScoped<DigitalActivityDelivery>();
+        builder.Services.AddScoped<IDigitalActivityTransport, DigitalActivityTransport>();
         builder.Services.AddScoped<RequestAccess>();
         builder.Services.AddSingleton(new FormSchema(File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, "Contracts", "procesos_operativos.json"))));
         builder.Services.AddScoped<FormService>();

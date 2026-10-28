@@ -6,9 +6,10 @@ import { chromium, expect } from '@playwright/test';
 import { systemFixture } from './system-ui-fixture.mjs';
 import { verifySignatures } from './identity-checks.mjs';
 import { verifyFooterFlow } from './page-flow.mjs';
+import { renderedContrast } from './rendered-contrast.mjs';
 
 const output = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS || '../.artifacts/identity-20261027'); await mkdir(output, { recursive: true });
-const instrument = JSON.parse(await readFile('../tdv2/Contracts/competencias-digitales-v1.json', 'utf8'));
+const instrument = JSON.parse(await readFile('../tdv2/Contracts/competencias-digitales-v2.json', 'utf8'));
 const base = '/competencias-digitales', fixture = await systemFixture();
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const reproduce = process.env.TDV2_STYLE_REPRO === '1';
@@ -75,25 +76,26 @@ try {
         const context=await browser.newContext({viewport:{width,height:width<500?844:900},reducedMotion:'reduce'});
         await context.route('**/*',r=>new URL(r.request().url()).origin===fixture.origin?r.continue():r.abort());
         const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
-        page.on('response', response => { if (/\/(css|fonts)\/|firma-1\.png/.test(response.url())) report.resources.push({url:new URL(response.url()).pathname,status:response.status(),type:response.headers()['content-type']}); });
+        page.on('response', response => { if (/\/(css|fonts)\/|firma-1\.png|transformacion-digital-blanco\.svg/.test(response.url())) report.resources.push({url:new URL(response.url()).pathname,status:response.status(),type:response.headers()['content-type']}); });
         page.setDefaultTimeout(report.vite ? 30000 : 10000);
         await page.goto(fixture.origin+base);await expect(page.locator('.cd-welcome')).toBeVisible();await page.evaluate(()=>document.fonts.ready);
         const surface=await page.evaluate(()=>{
-            const values=selector=>{const e=document.querySelector(selector),s=getComputedStyle(e),r=e.getBoundingClientRect();return {background:s.backgroundColor,color:s.color,border:s.borderTopColor,borderStyle:s.borderTopStyle,borderWidth:s.borderTopWidth,visibility:s.visibility,opacity:s.opacity,display:s.display,width:r.width,height:r.height};};
-            const img=document.querySelector('.cd-brandmark img');return {blue:getComputedStyle(document.querySelector('.cd-site')).getPropertyValue('--cd-blue').trim(),rootBlue:getComputedStyle(document.documentElement).getPropertyValue('--uacj-blue').trim(),header:values('.cd-header'),name:values('.account-visible-name'),nav:values('.cd-nav button'),footer:values('.cd-footer'),card:values('.cd-card'),logoLoaded:img.complete&&img.naturalWidth===1186};
+            const values=selector=>{const e=document.querySelector(selector),s=getComputedStyle(e),r=e.getBoundingClientRect();return {background:s.backgroundColor,color:s.color,border:s.borderTopColor,bottomBorder:s.borderBottomColor,borderStyle:s.borderTopStyle,borderWidth:s.borderTopWidth,visibility:s.visibility,opacity:s.opacity,display:s.display,width:r.width,height:r.height};};
+            const img=document.querySelector('.cd-brandmark img');return {blue:getComputedStyle(document.querySelector('.cd-site')).getPropertyValue('--cd-blue').trim(),rootBlue:getComputedStyle(document.documentElement).getPropertyValue('--uacj-blue').trim(),header:values('.cd-header'),name:values('.account-visible-name'),nav:values('.cd-nav button'),footer:values('.cd-footer'),card:values('.cd-card'),logoLoaded:img.complete&&img.naturalWidth>0&&img.getAttribute('src')==='/images/logos/transformacion-digital-blanco.svg',logoFilter:getComputedStyle(img).filter};
         });
         report.surfaces.push({width,...surface});
         await page.screenshot({path:path.join(output,`digital-home-${width}.png`),fullPage:true});
         if(reproduce){assert.equal(surface.blue,'');assert.equal(surface.header.background,'rgba(0, 0, 0, 0)');assert.equal(surface.name.color,'rgb(255, 255, 255)');assert.equal(surface.name.opacity,'1');assert(surface.logoLoaded);await context.close();continue;}
-        assert.equal(surface.header.background,'rgb(33, 52, 85)');assert.equal(surface.footer.background,'rgb(33, 52, 85)');assert.equal(surface.name.color,'rgb(255, 255, 255)');assert(surface.logoLoaded);
+        assert.equal(surface.header.background,'rgb(33, 52, 85)');assert.equal(surface.header.bottomBorder,'rgb(33, 52, 85)');assert.equal(surface.footer.background,'rgb(33, 52, 85)');assert.equal(surface.name.color,'rgb(255, 255, 255)');assert.equal(surface.nav.color,'rgb(255, 255, 255)');assert(surface.logoLoaded);assert.equal(surface.logoFilter,'none');
         assert.equal(surface.card.background,'rgb(255, 255, 255)');assert.equal(surface.card.border,'rgb(218, 218, 218)');assert.equal(surface.card.borderStyle,'solid');assert.equal(surface.card.borderWidth,'1px');
+        const contrast=await renderedContrast(page,'.cd-header');assert(contrast.every(c=>c.ratio>=c.required),JSON.stringify(contrast));report.surfaces.at(-1).contrast=contrast;
         const alignment=await page.evaluate(()=>{
             const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,center:r.top+r.height/2};};
             const main=document.querySelector('#cd-main'),s=getComputedStyle(main);
             return {wrappers:[...document.querySelectorAll('.cd-header-inner,.cd-titleband>.cd-wrap,#cd-main,.cd-footer>.cd-wrap')].map(rect),
                 left:main.getBoundingClientRect().left+parseFloat(s.paddingLeft),right:main.getBoundingClientRect().right-parseFloat(s.paddingRight),
                 logo:rect(document.querySelector('.cd-brandmark')),account:rect(document.querySelector('.account-trigger')),nav:rect(document.querySelector('.cd-nav')),
-                footer:[...document.querySelectorAll('.cd-footer .institutional-signature')].map(rect),paragraph:rect(document.querySelector('.cd-welcome>p'))};
+                footer:[...document.querySelectorAll('.cd-footer .institutional-signatures>*')].map(rect),paragraph:rect(document.querySelector('.cd-welcome>p'))};
         });
         const common=alignment.wrappers[0];assert.equal(Math.round(common.width),Math.min(width,1400));assert(Math.abs(common.left-(width-common.width)/2)<1);
         for(const box of alignment.wrappers) {assert(Math.abs(box.left-common.left)<1);assert(Math.abs(box.right-common.right)<1);}
@@ -101,11 +103,12 @@ try {
         assert(Math.abs(alignment.logo.center-alignment.account.center)<1);assert(alignment.nav.top>=alignment.logo.bottom-1);
         assert(Math.abs(alignment.nav.left-alignment.left)<1);assert(Math.abs(alignment.nav.right-alignment.right)<1);
         assert(Math.abs(alignment.footer[0].left-alignment.left)<1);assert(alignment.paragraph.width<800);
-        if(width>1040){for(let i=1;i<alignment.footer.length;i++)assert(alignment.footer[i].left-alignment.footer[i-1].right>=20);}
+        if(width>=1200){for(let i=1;i<alignment.footer.length;i++)assert(alignment.footer[i].left-alignment.footer[i-1].right>=16);}
         const account=page.getByRole('button',{name:'Abrir menú de usuario · Persona Sintética de Verificación',exact:true});
         if(width<=700){await expect(page.locator('.account-visible-name')).toBeHidden();assert(alignment.account.width>=44&&alignment.account.height>=44);}
         else {await expect(page.locator('.account-visible-name')).toBeVisible();await expect(page.locator('.account-trigger>.MuiSvgIcon-root')).toBeVisible();}
-        await account.focus();await page.keyboard.press('Enter');await expect(page.getByRole('menu').getByText('Persona Sintética de Verificación',{exact:true})).toBeVisible();
+        const brand=page.getByRole('link',{name:'Volver al portal de Transformación Digital',exact:true});await expect(brand).toHaveAttribute('href','/');await brand.focus();await page.keyboard.press('Tab');await expect(account).toBeFocused();await expect(account).toHaveCSS('outline-color','rgb(255, 255, 255)');await expect(account).toHaveCSS('outline-style','solid');
+        await page.keyboard.press('Enter');await expect(page.getByRole('menu').getByText('Persona Sintética de Verificación',{exact:true})).toBeVisible();
         await actualFont(page,'#account-menu .MuiTypography-body2','cuenta-'+width);
         await page.screenshot({path:path.join(output,`digital-account-${width}.png`)});
         await page.keyboard.press('Escape');await expect(account).toBeFocused();
@@ -114,13 +117,18 @@ try {
         await expect(page.locator('.cd-profile-groups')).toBeVisible();await expect(page.locator('.cd-account img')).toHaveAttribute('alt','Persona Sintética de Verificación');
         await expect(page.locator('[id="perfil:antig"]')).toHaveCSS('border-top-color','rgb(218, 218, 218)');
         await expect(page.locator('.cd-header .institutional-directorate')).toHaveCount(0);
-        assert(await page.locator('.cd-header .institutional-logo').evaluate(e=>{const r=e.getBoundingClientRect(),image=e.querySelector('img').getBoundingClientRect();return Math.abs(r.height-image.height)<1&&image.width/r.width>2;}),'La cabecera muestra UACJ completo y deja DGTI para el pie, también en móvil');
+        await expect(page.locator('.cd-brandmark img')).toHaveAttribute('alt','Transformación Digital UACJ');
+        assert(await page.locator('.cd-brandmark img').evaluate(e=>{const r=e.getBoundingClientRect();return Math.abs(r.width/r.height-e.naturalWidth/e.naturalHeight)<.02;}),'Logotipo oficial completo y proporcionado');
         await expect(page.locator('.cd-nav button')).toHaveText(['Encuesta','Mi informe y ruta']);
+        await expect(page.locator('.cd-nav button[aria-current]')).toHaveCSS('border-bottom-color','rgb(240, 189, 16)');
+        await account.focus();await page.keyboard.press('Tab');const focusedModule=page.locator('.cd-nav button').first();await expect(focusedModule).toBeFocused();await expect(focusedModule).toHaveCSS('outline-color','rgb(255, 255, 255)');await expect(focusedModule).toHaveCSS('outline-style','solid');
+        const focusedContrast=await renderedContrast(page,'.cd-nav');assert(focusedContrast.every(c=>c.ratio>=c.required),JSON.stringify(focusedContrast));report.surfaces.at(-1).focusedContrast=focusedContrast;
+        await page.screenshot({path:path.join(output,`digital-navigation-focus-${width}.png`)});
         await expect(page.locator('.cd-steps button').nth(1)).toBeDisabled();
         await actualFont(page,'.cd-profile-body h2','perfil-'+width);
         if(width>700) await actualFont(page,'.account-visible-name','nombre-cabecera-'+width);
         await page.screenshot({path:path.join(output,`digital-profile-${width}.png`),fullPage:true});
-        await verifySignatures(page,'.cd-footer',false);
+        await verifySignatures(page,'.cd-footer',true);
         await page.locator('.cd-footer').screenshot({path:path.join(output,`digital-footer-${width}.png`)});
         await page.getByRole('button',{name:'Guardar y continuar',exact:true}).click();
         await expect(page.locator('[id="perfil:antig"]')).toBeFocused();
@@ -137,12 +145,13 @@ try {
         scenario='report';await page.goto(fixture.origin+base+'/mi-informe-ruta');await expect(page.locator('.cd-report')).toBeVisible();
         await actualFont(page,'.cd-report-hero h2','informe-'+width);await expect(page.locator('.cd-gap').first()).toHaveCSS('background-color','rgb(240, 189, 16)');
         await page.screenshot({path:path.join(output,`digital-report-${width}.png`),fullPage:true});
-        await verifySignatures(page,'.cd-footer',false);
+        await verifySignatures(page,'.cd-footer',true);
         report.checks.push({width,flow:await verifyFooterFlow(page,'#cd-main','.cd-footer'),profile:true,report:true,privacyReadOnly:true});
         missingPhoto=true;scenario='profile';await page.goto(fixture.origin+base);await expect(page.locator('.cd-account .MuiAvatar-root')).toHaveText('PS');
         represented=true;await page.reload();await expect(page.locator('.cd-representation')).toContainText('Persona Representada Sintética');await expect(page.locator('.cd-account .MuiAvatar-root')).toHaveText('PR');
+        const representedContrast=await renderedContrast(page,'.cd-header');assert(representedContrast.every(c=>c.ratio>=c.required),JSON.stringify(representedContrast));
         await expect(page.getByRole('button',{name:'Abrir menú de usuario · Persona Representada Sintética',exact:true})).toBeVisible();
-        await expect(page.getByRole('button',{name:'Volver a mi usuario',exact:true})).toBeVisible();
+        const exit=page.getByRole('button',{name:'Volver a mi usuario',exact:true});await expect(exit).toBeVisible();await exit.focus();await expect(exit).toHaveCSS('outline-color','rgb(33, 52, 85)');
         await page.screenshot({path:path.join(output,`digital-representation-${width}.png`),fullPage:true});
         await context.close();
     }
@@ -178,12 +187,12 @@ try {
                 const dependent=page.getByRole('combobox',{name:'Unidad dependiente',exact:true});
                 await dependent.fill(area.code);await expect(page.getByRole('option')).toContainText(`${area.code} - ${area.description}`);
                 await expect(page.getByRole('option')).toContainText(`Depende de ${unit.code} - ${unit.description}`);await page.keyboard.press('Escape');
-                await verifySignatures(page,'.cd-footer',false);
+                await verifySignatures(page,'.cd-footer',true);
                 if(role==='administrador') await page.screenshot({path:path.join(output,`digital-${slugs[index]}-${width}.png`),fullPage:true});
             }
         }
         report.checks.push({width,authorizedNavigationCases:Object.keys(menus),aggregateNames:true});await context.close();
     }
-    if(!reproduce){assert(report.resources.some(r=>r.url==='/css/institutional.css'&&r.status===200&&r.type?.startsWith('text/css')));assert(!report.resources.some(r=>r.url.startsWith('/__vite/css/')||r.url.startsWith('/__vite/fonts/')));}
+    if(!reproduce){assert(report.resources.some(r=>r.url==='/css/institutional.css'&&r.status===200&&r.type?.startsWith('text/css')));assert(report.resources.some(r=>r.url==='/images/logos/transformacion-digital-blanco.svg'&&r.status===200&&r.type?.startsWith('image/svg+xml')));assert(!report.resources.some(r=>r.url.startsWith('/__vite/css/')||r.url.startsWith('/__vite/fonts/')));}
     assert.deepEqual(report.errors,[]);report.completed=true;
 } finally {await writeFile(path.join(output,'digital-visual-report.json'),JSON.stringify(report,null,2));await browser.close();await fixture.close();}

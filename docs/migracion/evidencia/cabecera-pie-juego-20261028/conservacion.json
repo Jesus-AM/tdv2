@@ -1,0 +1,226 @@
+﻿[
+    {
+        "file":  "tdv2/Hosting\\ServiceRegistration.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Hosting\\ApplicationPipeline.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\SessionController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\ProcessConfigurationController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\ParticipantPhotosController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\HomeController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\FormsController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\FormHub.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\ConfigurationController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\CompetenciasController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\CollaboratorsController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\AuthenticationController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Controllers\\AccessToolsController.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\ProtectedValues.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\PostgresTicketStore.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\PostgresOAuthAttempts.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\PostgresIdentity.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\OperationAudit.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\InstitutionalAccessHandler.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\GraphTokens.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\AuthenticationAudit.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Security\\AccessState.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Contracts\\procesos_operativos.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Contracts\\competencias-digitales-v2.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Contracts\\competencias-digitales-v1.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Contracts\\aplicaciones-2026-10-14.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Catalogs\\CatalogSource.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Microsoft\\MicrosoftSettings.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Microsoft\\MicrosoftPhotoResult.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Microsoft\\MicrosoftClient.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalEditions.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalDbContext.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalAggregates.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalActivity.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalAccess.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalRepresentation.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalInstrument.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalResetService.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\DigitalSurveyService.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\DigitalDbContextModelSnapshot.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261028175912_DigitalActivityDelivery.Designer.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261028175912_DigitalActivityDelivery.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261027131404_AdministrativeDigitalReset.Designer.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261027131404_AdministrativeDigitalReset.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261027070211_InitialDigitalDiagnosis.Designer.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Competencias\\Migrations\\20261027070211_InitialDigitalDiagnosis.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Nexo\\PostgresNexoProfiles.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Integrations\\Nexo\\NexoOperations.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/Program.cs",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/tdv2.csproj",
+        "unchanged":  true
+    },
+    {
+        "file":  "ClientApp/package.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "ClientApp/package-lock.json",
+        "unchanged":  true
+    },
+    {
+        "file":  "ClientApp/resources/js/competencias/Survey.tsx",
+        "unchanged":  true
+    },
+    {
+        "file":  "ClientApp/resources/js/competencias/PersonalReport.tsx",
+        "unchanged":  true
+    },
+    {
+        "file":  "ClientApp/resources/js/lib/http.ts",
+        "unchanged":  true
+    },
+    {
+        "file":  "tdv2/wwwroot/css/institutional.css",
+        "unchanged":  true
+    }
+]

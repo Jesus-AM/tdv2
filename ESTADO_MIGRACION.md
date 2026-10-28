@@ -1,6 +1,30 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-27**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-28**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+
+## 2026-10-28 — Recuperación de cabecera azul de Competencias
+
+**Implementado:** fondo `#213455` en cabecera y navegación, con SVG blanco oficial copiado sin alteraciones a `/images/logos/transformacion-digital-blanco.svg`. Texto blanco, indicador activo amarillo y foco legible. Se conservan las dos filas, cuenta/fotografía, representación, Noto Sans, menú recibido de Nexo, cuerpo y pie aprobado. Cambios productivos limitados a CSS de cabecera, URL del logo y recurso nuevo; se preservan los demás cambios locales. Sustituye únicamente la barra blanca de la entrega anterior.
+
+**Probado:** TypeScript, frontend, ASP.NET Release (cero advertencias/errores) y paquete local correctos. Once grupos de navegador con bundles y once con Vite, de 320 a 1920 px; participantes y cinco combinaciones adicionales de módulos. Contraste, teclado, cuenta, representación, proporción/carga del SVG, alineación y ausencia de desbordamiento comprobados. SVG idéntico al original y al publicado por SHA-256, servido como `image/svg+xml` en transporte estático aislado. Cincuenta y nueve archivos protegidos idénticos al inicio, incluidos paquetes, 401, instrumento y auditoría. [Archivos, capturas, resultados y límites](docs/migracion/CABECERA_AZUL_COMPETENCIAS_20261028.md).
+
+**Límites y pendientes:** identidades/transporte sintéticos, Edge con tamaños emulados; no acredita Nexo/Microsoft ni PostgreSQL real. Se conserva el aviso de obsolescencia HMR del arnés Vite. No hay configuración, permisos ni migraciones nuevos. Sin acceso a bases institucionales, reinicios, push ni despliegue; la propuesta de una sola fila no se implementó.
+
+## 2026-10-28 — Cabecera y pie compartidos, acceso al juego
+
+**Implementado:** bloque público con «¿Qué tanto sabes de Microsoft 365?» y «Jugar Ahora», sin subtítulo; encuesta principal conservada. Competencias usa el SVG oscuro oficial de Transformación Digital sobre la barra blanca del portal, con texto/estados azules y cuenta existente. Pie completo compartido (UACJ, DGTI, Sistemas, Tecnología Educativa, Operación y Redes, Inteligencia de Datos), alineado al contenedor de 1400 px y adaptable. No cambia el orden publicado por Nexo ni la lógica de permisos/captura/auditoría.
+
+**Probado:** TypeScript, build React y ASP.NET Release correctos; 116 pruebas de backend sin base; 51 grupos de portal/juego/TDV2; 11 grupos de Competencias con bundles y 11 con Vite, escritorio/tableta/móvil, sin errores JS. Contraste, recursos, teclado, cuenta/representación, pies con contenido corto/largo y ausencia de desbordamiento comprobados. Cincuenta y seis archivos protegidos idénticos por hash al inicio de esta corrección, incluidos instrumento, actividad, migraciones, 401 y paquetes. [Archivos, evidencia y comandos](docs/migracion/CABECERA_PIE_JUEGO_20261028.md).
+
+**Límites:** transporte e identidades sintéticos, sin PostgreSQL ni conexiones institucionales en esta revisión visual. No nuevas migraciones, reinicios, push ni despliegue. No hay ajustes operativos nuevos; los pendientes de la integración de actividad de la revisión anterior permanecen.
+
+## 2026-10-28 — Edición de instrumento y entrega de actividad de Competencias
+
+**Implementado:** once perfiles laborales y cuatro funciones; correspondencias explícitas con las reglas anteriores y aplicabilidad de Personal Académico. Retiradas Bookings, Viva Connections/Org Explorer, Viva Learning y Seguridad en Microsoft 365 de la edición nueva (80 herramientas; Ciberseguridad conservado). Actualización explícita y versionada de borradores con archivo exacto anterior, perfil por revisar y respuestas vigentes conservadas; no hay modificación masiva ni reapertura de definitivas. Aviso `.2`, diseño, menú y fórmulas conservados. `OperationAudit`/`AuthenticationAudit` eran locales: nueva entrega al contrato real `nexo_a{ApplicationId}_registrar_actividad(jsonb)` con cola, UUID, recibos, reintentos y distinción de actor/afectado. Comando explícito `--deliver-digital-activity`. Nueva migración exclusiva `20261028175912_DigitalActivityDelivery`; originales intactas. Paquetes y corrección de identidad/401 conservados.
+
+**Probado:** TypeScript, build React/ASP.NET; 116 pruebas existentes sin base, 95 de frontend, 49 de edición/metodología y 24 de informe/aviso/menú. Navegador con proyecciones reales y transporte sintético: edición en 1440/768/390 px y 32 grupos de regresión del informe. **48/48** con ASP.NET/PostgreSQL desechable, incluida función SQL real extraída del código Nexo sobre esquema sintético y reintentos/recibos. **20 grupos** de navegador integrado, cero errores JS. Publicación local aislada correcta con instrumentos/bundle comprobados por hash. [Archivos, comandos, capturas y límites](docs/competencias-digitales/INSTRUMENTO_ACTIVIDAD_20261028.md).
+
+**Pendiente operativo:** revisión institucional de la correspondencia explícita de perfiles, aplicar sólo la nueva migración del diagnóstico, permisos mínimos de cola y verificar función/cuenta/publicación reales en Nexo. La prueba de su SQL se realiza en esquema desechable sintético; no acredita recepción institucional. Sin acceso a bases existentes, migraciones/reinicios reales, push ni despliegues. Windows es el entorno de prueba; Ubuntu queda para verificación operativa posterior.
 
 ## 2026-10-27 — Informe personal organizado, aviso nuevo y orden publicado por Nexo
 

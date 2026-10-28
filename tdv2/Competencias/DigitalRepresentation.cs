@@ -8,7 +8,7 @@ using Tdv2.Web;
 
 namespace Tdv2.Competencias;
 
-public sealed class DigitalRepresentation(DigitalAccess access, IDigitalNexo nexo, AccessState state, DatabaseConnections connections, OperationAudit audit)
+public sealed class DigitalRepresentation(DigitalAccess access, IDigitalNexo nexo, AccessState state, DatabaseConnections connections, OperationAudit audit, DigitalActivity activity, DigitalActivityDelivery delivery)
 {
     private async Task<JsonObject> Capability(HttpContext http)
     {
@@ -47,6 +47,8 @@ public sealed class DigitalRepresentation(DigitalAccess access, IDigitalNexo nex
             await state.Set(connection, transaction, selection, http.RequestAborted);
             await audit.Write(connection, transaction, "iniciar", "representacion_competencias", selection.Id, "confirmado", http.RequestAborted, selection);
             await transaction.CommitAsync(http.RequestAborted);
+            await activity.BestEffort(() => activity.Representation(selection, false, CancellationToken.None));
+            await delivery.TryFlush();
         }
         catch
         {
@@ -70,5 +72,7 @@ public sealed class DigitalRepresentation(DigitalAccess access, IDigitalNexo nex
         await state.Set(connection, transaction, null, http.RequestAborted);
         await audit.Write(connection, transaction, "finalizar", "representacion_competencias", selection.Id, "confirmado", http.RequestAborted, selection, new { cierre_central = closed });
         await transaction.CommitAsync(http.RequestAborted);
+        await activity.BestEffort(() => activity.Representation(selection, true, CancellationToken.None));
+        await delivery.TryFlush();
     }
 }

@@ -1,0 +1,201 @@
+{
+  "database": false,
+  "migrations": false,
+  "resets": false,
+  "backendProjections": true,
+  "syntheticTransport": true,
+  "checks": [
+    {
+      "width": 1440,
+      "state": "empty"
+    },
+    {
+      "width": 1440,
+      "state": "profile"
+    },
+    {
+      "width": 1440,
+      "state": "initialized"
+    },
+    {
+      "width": 1440,
+      "state": "zero"
+    },
+    {
+      "width": 1440,
+      "state": "na"
+    },
+    {
+      "width": 1440,
+      "state": "partial"
+    },
+    {
+      "width": 1440,
+      "state": "final"
+    },
+    {
+      "width": 1440,
+      "noticeVersion": true,
+      "preservedOldConsentInSyntheticTransport": true,
+      "readOnly": true,
+      "menuRoles": true
+    },
+    {
+      "width": 768,
+      "state": "empty"
+    },
+    {
+      "width": 768,
+      "state": "profile"
+    },
+    {
+      "width": 768,
+      "state": "initialized"
+    },
+    {
+      "width": 768,
+      "state": "zero"
+    },
+    {
+      "width": 768,
+      "state": "na"
+    },
+    {
+      "width": 768,
+      "state": "partial"
+    },
+    {
+      "width": 768,
+      "state": "final"
+    },
+    {
+      "width": 768,
+      "noticeVersion": true,
+      "preservedOldConsentInSyntheticTransport": true,
+      "readOnly": true,
+      "menuRoles": true
+    },
+    {
+      "width": 390,
+      "state": "empty"
+    },
+    {
+      "width": 390,
+      "state": "profile"
+    },
+    {
+      "width": 390,
+      "state": "initialized"
+    },
+    {
+      "width": 390,
+      "state": "zero"
+    },
+    {
+      "width": 390,
+      "state": "na"
+    },
+    {
+      "width": 390,
+      "state": "partial"
+    },
+    {
+      "width": 390,
+      "state": "final"
+    },
+    {
+      "width": 390,
+      "noticeVersion": true,
+      "preservedOldConsentInSyntheticTransport": true,
+      "readOnly": true,
+      "menuRoles": true
+    },
+    {
+      "width": 320,
+      "state": "empty"
+    },
+    {
+      "width": 320,
+      "state": "profile"
+    },
+    {
+      "width": 320,
+      "state": "initialized"
+    },
+    {
+      "width": 320,
+      "state": "zero"
+    },
+    {
+      "width": 320,
+      "state": "na"
+    },
+    {
+      "width": 320,
+      "state": "partial"
+    },
+    {
+      "width": 320,
+      "state": "final"
+    },
+    {
+      "width": 320,
+      "noticeVersion": true,
+      "preservedOldConsentInSyntheticTransport": true,
+      "readOnly": true,
+      "menuRoles": true
+    }
+  ],
+  "errors": [],
+  "fonts": [
+    {
+      "width": 1440,
+      "fonts": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 7
+        }
+      ],
+      "computed": "600 12.16px / 18.24px \"Noto Sans\", \"Segoe UI\", sans-serif"
+    },
+    {
+      "width": 768,
+      "fonts": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 7
+        }
+      ],
+      "computed": "600 12.16px / 18.24px \"Noto Sans\", \"Segoe UI\", sans-serif"
+    },
+    {
+      "width": 390,
+      "fonts": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 7
+        }
+      ],
+      "computed": "600 12.16px / 18.24px \"Noto Sans\", \"Segoe UI\", sans-serif"
+    },
+    {
+      "width": 320,
+      "fonts": [
+        {
+          "familyName": "Noto Sans SemiBold",
+          "postScriptName": "NotoSans-SemiBold",
+          "isCustomFont": true,
+          "glyphCount": 7
+        }
+      ],
+      "computed": "600 12.16px / 18.24px \"Noto Sans\", \"Segoe UI\", sans-serif"
+    }
+  ],
+  "completed": true
+}

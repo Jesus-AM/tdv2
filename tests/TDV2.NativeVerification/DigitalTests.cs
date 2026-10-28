@@ -57,6 +57,10 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         await Nexo("GRANT USAGE ON SCHEMA public TO cd_native_nexo; GRANT SELECT ON nexo_aplicacion,nexo_usuarios,nexo_usuario_rol,nexo_modulos,nexo_modulo_rol,nexo_concesiones TO cd_native_nexo; GRANT EXECUTE ON FUNCTION nexo_a87_representacion(jsonb) TO cd_native_nexo");
         appConnection = new NpgsqlConnectionStringBuilder(diagnosis) { Username = "cd_native_app", Password = password }.ConnectionString;
         nexoConnection = new NpgsqlConnectionStringBuilder(directory) { Username = "cd_native_nexo", Password = password }.ConnectionString;
+        await Data("GRANT SELECT,INSERT,UPDATE ON cd_activity_events TO cd_native_app");
+        await Nexo(await File.ReadAllTextAsync(Path.Combine(shared.Workspace, "tests/TDV2.NativeVerification/nexo-activity-fixture.sql")));
+        await Nexo(await File.ReadAllTextAsync(Path.Combine(shared.Artifacts, "nexo-activity.sql")));
+        await Nexo("REVOKE ALL ON FUNCTION public.nexo_a87_registrar_actividad(jsonb) FROM PUBLIC; GRANT EXECUTE ON FUNCTION public.nexo_a87_registrar_actividad(jsonb) TO cd_native_nexo");
     }
     private async Task Reset()
     {
@@ -66,7 +70,8 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             VALUES('A31',2026,'120','Área hermana A31','A',3,'Activo',true,'0031'),('B4',2026,'210','Área ajena B4','B',4,'Activo',true,null);
             INSERT INTO sincronizacion_catalogos VALUES('sii',6,now());
             """);
-        await Data("TRUNCATE cd_surveys,cd_consents,cd_targets,cd_reset_operations");
+        await Data("TRUNCATE cd_surveys,cd_consents,cd_targets,cd_reset_operations,cd_activity_events");
+        await Nexo("TRUNCATE registro_actividad; UPDATE cuentas_postgresql SET habilitada=true");
         await Nexo("""
             TRUNCATE fixture_app,fixture_users,fixture_roles,fixture_modules,fixture_module_roles,fixture_grants,fixture_units,
               fixture_capability,fixture_representation,fixture_calls,fixture_faults RESTART IDENTITY;
@@ -127,7 +132,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
     }
     private async Task Seed(string employee, string unit, int level, bool completed)
     {
-        var instrument = new DigitalInstrument(await File.ReadAllTextAsync(Path.Combine(shared.Workspace, "tdv2/Contracts/competencias-digitales-v1.json")));
+        var instrument = new DigitalInstrument(await File.ReadAllTextAsync(Path.Combine(shared.Workspace, "tdv2/Contracts/competencias-digitales-v2.json")));
         var evaluation = instrument.Evaluate(new(), new Dictionary<string, DigitalAnswer>());
         var initial = new DigitalSurveyView(0, null, new(), new(), new(), instrument.Resource, false, evaluation, instrument.Navigation(evaluation, true));
         var input = Complete(initial, level); var report = instrument.Evaluate(input.Profile, input.Answers).Report;
@@ -149,8 +154,8 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         {
             Check(await Data("SELECT to_regclass('public.formatos_ur')::text") is DBNull);
             Check(await shared.Scalar("SELECT to_regclass('public.cd_surveys')::text") is DBNull);
-            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\"")) == 2);
-            await using var db = Db(); Check(!db.Database.HasPendingModelChanges()); Check(db.Database.GetMigrations().Count() == 2);
+            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\"")) == 3);
+            await using var db = Db(); Check(!db.Database.HasPendingModelChanges()); Check(db.Database.GetMigrations().Count() == 3);
             Check(!(bool)(await Data("SELECT has_table_privilege('cd_native_app','cd_surveys','DELETE')"))!);
             Check(!(bool)(await Nexo("SELECT has_table_privilege('cd_native_nexo','fixture_users','SELECT')"))!);
         });
@@ -256,12 +261,12 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             await Accept(client); await Accept(client); Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_consents")) == 1 && Convert.ToInt64(await Data("SELECT count(*) FROM cd_surveys")) == 1);
             await Nexo("UPDATE fixture_users SET num_empleado='0009' WHERE email='persona@uacj.mx'"); Check(!(await Survey(client)).Accepted);
         });
-        Test("Instrumento: 84 herramientas y rúbricas consecutivas, cero válido, no aplica y complementarias", async (app, client) =>
+        Test("Instrumento: 80 herramientas y rúbricas consecutivas, cero válido, no aplica y complementarias", async (app, client) =>
         {
             await Login(app, client); var view = await Accept(client); var input = Complete(view, 0); var instrument = new DigitalInstrument(view.Instrument.ToJsonString());
-            Check(instrument.Blocks.SelectMany(b => b.Tools).Count() == 84);
+            Check(instrument.Blocks.SelectMany(b => b.Tools).Count() == 80);
             Check(DigitalInstrument.ChecklistLevel("000011111111") == 0 && DigitalInstrument.ChecklistLevel("111011001111") == 1 && DigitalInstrument.ChecklistLevel("111011101110") == 3);
-            var eval = instrument.Evaluate(input.Profile, input.Answers); Check(eval.Pending.Length == 0 && eval.Progress == 100 && eval.Report.Global == 0 && eval.Total == 54);
+            var eval = instrument.Evaluate(input.Profile, input.Answers); Check(eval.Pending.Length == 0 && eval.Progress == 100 && eval.Report.Global == 0 && eval.Total == 53);
             foreach (var key in input.Answers.Keys.ToArray()) input.Answers[key] = new("na"); eval = instrument.Evaluate(input.Profile, input.Answers);
             Check(eval.Report.Global is null && eval.Report.Blocks.All(b => b.Score is null) && eval.Report.Tools.Where(t => t.Value == -1).All(t => t.Gap == 0 && !eval.Report.Route.Any(r => r.Tool == t.Id)));
             input.Answers["m-word"] = new("level", 0); input.Answers["m-excel"] = new("level", 3);
@@ -269,7 +274,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             input.Answers.Remove("m-word"); Check(instrument.Evaluate(input.Profile, input.Answers).Pending.Contains("m-word"));
             var teacherOnly = instrument.Blocks.SelectMany(b => b.Tools).First(t => t.Doc);
             input.Answers[teacherOnly.Id] = new("pending"); Check(!instrument.Evaluate(input.Profile, input.Answers).Pending.Contains(teacherOnly.Id));
-            input.Profile["puesto"] = "Personal docente"; Check(instrument.Evaluate(input.Profile, input.Answers).Pending.Contains(teacherOnly.Id));
+            input.Profile["puesto"] = "Personal Académico"; Check(instrument.Evaluate(input.Profile, input.Answers).Pending.Contains(teacherOnly.Id));
             input.Answers[teacherOnly.Id] = new("unused"); Check(!instrument.Evaluate(input.Profile, input.Answers).Pending.Contains(teacherOnly.Id));
         });
         Test("Finalización incompleta rechaza todas las preguntas saltadas y adscripción incompleta", async (app, client) =>
@@ -333,7 +338,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(!(await Survey(client)).Accepted);
             await Status(client.PutAsJsonAsync(Base + "/api/encuesta", Complete(view)), 403);
             await Status(client.PostAsJsonAsync(Base + "/api/aviso", new { generation = (await Survey(client)).Generation, version = "synthetic-notice-next" }), 200);
-            Check((await Survey(client)).Answers.Count == 48 && Convert.ToInt64(await Data("SELECT count(*) FROM cd_consents")) == 2);
+            Check((await Survey(client)).Answers.Count == view.Answers.Count && Convert.ToInt64(await Data("SELECT count(*) FROM cd_consents")) == 2);
         });
         Test("Agregados: personas únicas, nivel no excluye descendientes, promedio por persona y sin metas", async (app, client) =>
         {
@@ -368,11 +373,11 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             var csv = await (await client.GetAsync(Base + "/api/resultados/descarga")).Content.ReadAsStringAsync();
             Check(!csv.Contains("privada") && !csv.Contains("@uacj.mx") && !csv.Contains("Área ajena") && csv.Contains("Recomendación"));
             Check(!aggregate.ToJsonString().Contains("privadaB") && !aggregate.ToJsonString().Contains("Área ajena"));
-            var empty = await Json(await client.GetAsync(Base + "/api/resultados?position=" + Uri.EscapeDataString("Personal docente")));
+            var empty = await Json(await client.GetAsync(Base + "/api/resultados?position=" + Uri.EscapeDataString("Personal Académico")));
             Check(empty["summary"]!["completed"]!.GetValue<int>() == 0 && empty["summary"]!["maturity"] is null && empty["recommendations"]!.AsArray().Count == 0);
-            var filtered = await Json(await client.GetAsync(Base + "/api/resultados?position=" + Uri.EscapeDataString("Personal operativo")));
+            var filtered = await Json(await client.GetAsync(Base + "/api/resultados?position=" + Uri.EscapeDataString("Dirección")));
             Check(filtered["summary"]!["completed"]!.GetValue<int>() == 1 && filtered["summary"]!["participation"] is null);
-            var export = await (await client.GetAsync(Base + "/api/resultados/descarga?position=" + Uri.EscapeDataString("Personal docente"))).Content.ReadAsStringAsync(); Check(!export.Contains("privada") && !export.Contains("Recomendación\""));
+            var export = await (await client.GetAsync(Base + "/api/resultados/descarga?position=" + Uri.EscapeDataString("Personal Académico"))).Content.ReadAsStringAsync(); Check(!export.Contains("privada") && !export.Contains("Recomendación\""));
         });
         Test("Representación: identidad efectiva, sin permisos heredados/escrituras/anidación, salida y auditoría", async (app, client) =>
         {
@@ -489,7 +494,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(page["props"]!["auth"]!["user"]!["name"]!.ToString() == "Persona sintética");
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is null);
         });
-        AddResetTests(cases);
+        AddResetTests(cases); AddEditionActivityTests(cases);
         var results = new List<object>(); var failures = 0;
         foreach (var (name, work) in Environment.GetCommandLineArgs().Contains("--browser-only") ? [] : cases)
         {

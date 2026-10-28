@@ -1,0 +1,17 @@
+﻿[
+    {
+        "file":  "Contracts/competencias-digitales-v1.json",
+        "sha256":  "7D8FA92423C8CB949C055E2D294BE3F5C99B285D6EB991E2700412487BEA67F6",
+        "published":  true
+    },
+    {
+        "file":  "Contracts/competencias-digitales-v2.json",
+        "sha256":  "2AFB2D6FA10A8BE9E31A8DED37E9974D3F942B671FC79C426788FEE699D1E16D",
+        "published":  true
+    },
+    {
+        "file":  "wwwroot/assets/CompetenciasDigitales-BdlAgZax.js",
+        "sha256":  "369EC3C336152064B0FF0FE4E5EA1A0211F1F48DC36BA831CC1F34DE4526495C",
+        "published":  true
+    }
+]

@@ -42,15 +42,20 @@ const save = async () => { const done = page.waitForResponse(r => r.url().endsWi
 const completeBlock = async id => {
     await expect(page.getByRole('button', {name:'Guardar avance',exact:true})).toBeEnabled();
     const s = await getSurvey();
-    for (const t of s.instrument.modules.find(b => b.id === id).tools) if (!t.opt && (!t.doc || s.profile.puesto === 'Personal docente')) s.answers[t.id] ||= ['ciber','datos','sii'].includes(id) ? { state: 'level', checks: '000000000000' } : { state: 'level', level: 0 };
+    for (const t of s.instrument.modules.find(b => b.id === id).tools) if (!t.opt && (!t.doc || s.profile.puesto === 'Personal Académico')) s.answers[t.id] ||= ['ciber','datos','sii'].includes(id) ? { state: 'level', checks: '000000000000' } : { state: 'level', level: 0 };
     const r = await api('PUT', '/api/encuesta', { version:s.version, profile:s.profile, answers:s.answers }); assert.equal(r.status(),200); return r.json();
 };
 const steps = () => page.getByRole('navigation', {name:'Bloques de la encuesta'});
+const captureDocument = async (target, name) => {
+    // El informe móvil puede superar el límite de textura de Chromium: evidencia
+    // de la ventana visible; los recorridos verifican también el contenido inferior.
+    await target.screenshot({ path: path.join(artifacts, name + '.png'), fullPage: false });
+};
 const screenshot = async name => {
     await expect(page.locator('.cd-site h1')).toBeVisible();
     await page.evaluate(() => scrollTo({top:0,left:0,behavior:'instant'}));
     await page.evaluate(async () => { await document.fonts.ready; await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); });
-    await page.screenshot({ path: path.join(artifacts, name + '.png'), fullPage: true });
+    await captureDocument(page, name);
 };
 try {
     await check('portal conserva diseño y el botón inicia OAuth hacia Competencias', async () => {
@@ -105,7 +110,7 @@ try {
             else if (['antig','puesto'].includes(f.id)) await page.getByRole('combobox', { name: f.label, exact: false }).selectOption(f.options[0]);
             else await page.locator('[id="perfil:'+f.id+'"]').getByRole('radio',{name:f.options[0],exact:true}).check();
         }
-        await save(); await screenshot('competencias-perfil-desktop'); await page.reload(); assert.equal((await getSurvey()).profile.puesto, 'Personal operativo');
+        await save(); await screenshot('competencias-perfil-desktop'); await page.reload(); assert.equal((await getSurvey()).profile.puesto, 'Dirección');
     });
     await check('M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente', async () => {
         await page.getByRole('navigation', { name: 'Bloques de la encuesta' }).getByRole('button', { name: 'Microsoft 365', exact: true }).click();
@@ -242,13 +247,13 @@ try {
         for (const width of [1366,390,320]) {
             await page.setViewportSize({width,height:900}); await reference.setViewportSize({width,height:900});
             await page.goto(origin+base+'/mi-informe-ruta'); await expect(page.locator('.cd-report-blocks>.cd-card')).toHaveCount(5);
-            await expect(page.locator('.cd-report-details>.cd-report-table')).toHaveCount(5);
-            assert(await page.locator('.cd-report-overflow').evaluateAll(es=>es.every(e=>e.clientHeight>=e.scrollHeight-2)));
+            await expect(page.locator('.cd-report-tools table')).toHaveCount(width>700?1:0);
+            assert(await page.locator('.cd-report-tools').evaluateAll(es=>es.every(e=>e.clientHeight>=e.scrollHeight-2)));
             assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-            const columns=await page.locator('.cd-report-details').evaluate(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length); assert.equal(columns,width===1366?2:1);
-            await verifySignatures(page, '.cd-footer', false); await expect(page.locator('.cd-footer button,.cd-footer a,.cd-footer p')).toHaveCount(0);
+            if(width<=700) await expect(page.getByRole('combobox',{name:'Bloque del detalle'})).toBeVisible();
+            await verifySignatures(page, '.cd-footer', true); await expect(page.locator('.cd-footer button,.cd-footer a,.cd-footer p')).toHaveCount(0);
             assert.equal(await page.locator('.cd-footer').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(33, 52, 85)');
-            await screenshot('reinicio-informe-'+width); await reference.evaluate(()=>document.fonts.ready); await reference.screenshot({path:path.join(artifacts,'referencia-informe-'+width+'.png'),fullPage:true});
+            await screenshot('reinicio-informe-'+width); await reference.evaluate(()=>document.fonts.ready); await captureDocument(reference,'referencia-informe-'+width);
             const before=await getSurvey(); await openPrivacy(); const dialog=page.getByRole('dialog'); await expect(dialog.getByRole('checkbox')).toHaveCount(0);
             await page.keyboard.press('Tab'); assert(await dialog.evaluate(d=>d.contains(document.activeElement))); await page.keyboard.press('Escape'); assert.deepEqual(await getSurvey(),before);
         }

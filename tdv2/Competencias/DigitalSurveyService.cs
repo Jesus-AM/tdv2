@@ -15,13 +15,15 @@ public sealed record DigitalSave(int Version, JsonObject Profile, Dictionary<str
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalFinalize(int Version, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record DigitalUpgrade(int Version, string InstrumentVersion, Guid Generation = default);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalAccept(string Version, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalTargetInput(int? Value, int Version, Guid Generation = default);
 public sealed record DigitalSurveyView(int Version, DateTimeOffset? CompletedAt, JsonObject Institution, JsonObject Profile,
-    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default, bool HasResponses = false);
+    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default, bool HasResponses = false, DigitalEditionNotice? EditionUpdate = null);
 
-public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument instrument, DatabaseConnections connections, AccessState state)
+public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument instrument, DatabaseConnections connections, AccessState state, DigitalActivity activity, DigitalActivityDelivery delivery)
 {
     private static JsonObject Object(string value) => JsonNode.Parse(value)!.AsObject();
     private static Dictionary<string, DigitalAnswer> Answers(string value) => JsonSerializer.Deserialize<Dictionary<string, DigitalAnswer>>(value, DigitalInstrument.Json)!;
@@ -49,8 +51,9 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         // En captura se muestra el contexto vigente; al finalizar se conserva la instantánea.
         var institution = survey?.CompletedAt is not null ? Object(survey.InstitutionJson) : JsonSerializer.SerializeToNode(currentInstitution, DigitalInstrument.Json)!.AsObject();
         var resource = selected.Resource.DeepClone().AsObject(); resource["notice"] = instrument.Resource["notice"]!.DeepClone();
+        resource.Remove("previousDraft");
         return new(survey?.Version ?? 0, survey?.CompletedAt, institution, profile, answers, resource, accepted, evaluation,
-            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses);
+            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses, DigitalEditions.Notice(instrument, survey));
     }
     private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct)
     {
@@ -70,6 +73,8 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         await state.Guard(shared, session, ct);
         await transaction.CommitAsync(ct);
         await session.CommitAsync(ct);
+        await transaction.DisposeAsync();
+        await delivery.TryFlush();
         return result;
     }
     public async Task Accept(DigitalScope scope, DigitalAccept input, CancellationToken ct)
@@ -105,9 +110,10 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
     {
         await Write(scope, input.Generation, async survey =>
         {
+            RequireCurrent(survey);
             // Respuesta de red perdida después del commit: el reintento exacto no crea otra
             // revisión ni sobrescribe cambios. Un documento distinto sigue siendo conflicto.
-            if (survey is { CompletedAt: null } && survey.Version > input.Version && input.Profile is not null && input.Answers is not null
+            if (survey is { CompletedAt: null } && survey.Version >= input.Version && input.Profile is not null && input.Answers is not null
                 && JsonNode.DeepEquals(Object(survey.ProfileJson), input.Profile))
             {
                 var previous = Answers(survey.AnswersJson);
@@ -122,6 +128,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
             survey.InstitutionJson = Serialize(scope.Institution()); survey.UnitId = scope.Institution().Unit?.Id;
             survey.Email = scope.Profile.User.Email; survey.Name = scope.Profile.User.Name;
             survey.UpdatedAt = DateTimeOffset.UtcNow; survey.Version++;
+            await activity.Queue(scope, $"save:{survey.Id}:{survey.Version}", "encuesta", "guardar", "encuesta", survey.Id.ToString(), ct);
             return true;
         }, ct);
     }
@@ -131,6 +138,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         {
             // Reintento de finalización: resultado definitivo idéntico, incluso con la versión anterior.
             if (survey?.CompletedAt is not null) return true;
+            RequireCurrent(survey);
             Mutable(survey, input.Version); await RequireConsent(scope, ct);
             var institution = scope.Institution();
             if (institution.Status != "available") throw new DomainProblem(422, "La adscripción institucional está incompleta o es inconsistente. Solicita su revisión antes de finalizar.");
@@ -142,6 +150,23 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
             survey.Email = scope.Profile.User.Email; survey.Name = scope.Profile.User.Name;
             survey.ReportJson = Serialize(evaluation.Report); survey.CompletedAt = DateTimeOffset.UtcNow;
             survey.UpdatedAt = survey.CompletedAt.Value; survey.Version++;
+            await activity.Queue(scope, "final:" + survey.Id, "encuesta", "finalizar", "encuesta", survey.Id.ToString(), ct);
+            return true;
+        }, ct);
+    }
+    private void RequireCurrent(DigitalSurvey? survey)
+    {
+        if (DigitalEditions.RequiresUpdate(instrument, survey)) throw new DomainProblem(409, "El instrumento cambió. Recarga y revisa la actualización del borrador antes de continuar.");
+    }
+    public async Task Upgrade(DigitalScope scope, DigitalUpgrade input, CancellationToken ct)
+    {
+        if (input.InstrumentVersion != instrument.Version) throw new DomainProblem(409, "La edición cambió. Recarga para revisar la versión vigente.");
+        await Write(scope, input.Generation, async survey =>
+        {
+            if (survey is { CompletedAt: null } && survey.InstrumentVersion == instrument.Version) return true;
+            Mutable(survey, input.Version); await RequireConsent(scope, ct);
+            DigitalEditions.Upgrade(instrument, survey!, DateTimeOffset.UtcNow);
+            await activity.Queue(scope, $"edition:{survey!.Id}:{instrument.Version}", "encuesta", "actualizar_instrumento", "encuesta", survey.Id.ToString(), ct);
             return true;
         }, ct);
     }
@@ -162,6 +187,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
                 if (target is null) { target = new() { UnitId = unit, Version = 0 }; db.Targets.Add(target); }
                 target.Value = input.Value.Value; target.Version++; target.UpdatedAt = DateTimeOffset.UtcNow; target.UpdatedBy = scope.Profile.User.Email;
             }
+            if (target is not null) await activity.Queue(scope, "target:" + Guid.NewGuid(), "administracion", input.Value is null ? "eliminar_meta" : "guardar_meta", "meta", unit, ct);
             return true;
         }, ct);
     }

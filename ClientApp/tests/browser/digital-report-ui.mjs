@@ -65,7 +65,7 @@ for(const width of [1440,768,390,320]){
         await page.screenshot({path:path.join(output,`detalle-${width}.png`)});
       }
     }
-    await layout(page);await verifySignatures(page,'.cd-footer',false);
+    await layout(page);await verifySignatures(page,'.cd-footer',true);
     if(width!==320&&['empty','zero','partial','final'].includes(state)){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(output,`${state}-${width}.png`)});if(state==='partial'&&width===1440)await page.screenshot({path:path.join(output,'informe-completo-1440.png'),fullPage:true});}
     report.checks.push({width,state});
  }

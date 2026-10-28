@@ -26,6 +26,11 @@ internal static class EntryPoint
     }
     public static async Task<int> Main(string[] args)
     {
+        if (args is ["--verify-digital-edition", var editionDestination])
+        {
+            DigitalEditionTests.Run(editionDestination);
+            return 0;
+        }
         if (args is ["--verify-digital-presentation", var digitalDestination])
         {
             DigitalPresentationTests.Run(digitalDestination);
@@ -291,7 +296,8 @@ internal static class EntryPoint
             var html = await r.Content.ReadAsStringAsync();
             Check(html.Contains("/css/institutional.css") && html.Contains("/fonts/noto-sans/NotoSans-Regular.ttf") && !html.Contains("fonts.googleapis.com")
                 && !html.Contains("/fonts/roboto/") && html.Contains("Registrar un procedimiento institucional")
-                && html.Contains("Iniciar test"));
+                && html.Contains("Jugar Ahora") && html.Contains("¿Qué tanto sabes de Microsoft 365?")
+                && !html.Contains("Pon a prueba tus conocimientos de Microsoft 365."));
         });
         Http("ASP.NET sirve enlace profundo y bundle React generado", async (_, client) =>
         {

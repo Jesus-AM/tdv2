@@ -1,0 +1,38 @@
+{
+  "syntheticTransport": true,
+  "realBackendProjection": true,
+  "checks": [
+    {
+      "width": 1440,
+      "explicitUpgrade": true,
+      "preservedAnswers": true,
+      "profiles": 11,
+      "functions": 4,
+      "academicTools": true,
+      "reportTools": 80,
+      "zeroValid": true
+    },
+    {
+      "width": 768,
+      "explicitUpgrade": true,
+      "preservedAnswers": true,
+      "profiles": 11,
+      "functions": 4,
+      "academicTools": true,
+      "reportTools": 80,
+      "zeroValid": true
+    },
+    {
+      "width": 390,
+      "explicitUpgrade": true,
+      "preservedAnswers": true,
+      "profiles": 11,
+      "functions": 4,
+      "academicTools": true,
+      "reportTools": 80,
+      "zeroValid": true
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

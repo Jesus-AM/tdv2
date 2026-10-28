@@ -29,7 +29,7 @@ public static class DigitalGeneration
     }
 }
 
-public sealed class DigitalResetService(DigitalDbContext db, DatabaseConnections connections, AccessState state)
+public sealed class DigitalResetService(DigitalDbContext db, DatabaseConnections connections, AccessState state, DigitalActivity activity, DigitalActivityDelivery delivery)
 {
     public Task<JsonObject> Preview(DigitalScope scope, DigitalResetPreview input, CancellationToken ct) =>
         Execute(scope, "SELECT public.cd_prepare_reset($1,$2,$3,$4)", [Guid.NewGuid(), scope.Profile.User.Email, UnitDirectory.Employee(scope.Profile.User)!, input.IncludeTargets], ct);
@@ -52,8 +52,12 @@ public sealed class DigitalResetService(DigitalDbContext db, DatabaseConnections
             await using var command = new NpgsqlCommand(sql, (NpgsqlConnection)db.Database.GetDbConnection(), (NpgsqlTransaction)tx.GetDbTransaction());
             foreach (var parameter in parameters) command.Parameters.AddWithValue(parameter);
             var result = JsonNode.Parse((string)(await command.ExecuteScalarAsync(ct))!)!.AsObject();
+            var action = sql.Contains("cd_execute_reset", StringComparison.Ordinal) ? "reiniciar_encuestas" : "preparar_reinicio";
+            await activity.Queue(scope, action + ":" + parameters[0], "administracion", action, "reinicio_global", parameters[0].ToString()!, ct);
             await state.Guard(shared, session, ct);
             await tx.CommitAsync(ct); await session.CommitAsync(ct);
+            await tx.DisposeAsync();
+            await delivery.TryFlush();
             return result;
         }
         catch (PostgresException e) when (e.SqlState == "CD001")

@@ -1,0 +1,12 @@
+{
+  "localPublish": true,
+  "deployed": false,
+  "isolatedStaticTransport": true,
+  "path": "/images/logos/transformacion-digital-blanco.svg",
+  "bytes": 101457,
+  "sha256": "6030926EE658F78C39BCA7877325A624617E0A9630D31BE946E4783292D74C47",
+  "originalSourcePublishedIdentical": true,
+  "exactLowercaseName": true,
+  "httpStatus": 200,
+  "contentType": "image/svg+xml"
+}

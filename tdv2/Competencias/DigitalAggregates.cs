@@ -29,9 +29,12 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
             ids = ids.Where(id => groups.Any(root => scope.Directory.Within(id, root))).ToArray();
         }
         var positionsAvailable = instrument.Resource["profile"]!.AsArray().Single(p => p!["id"]!.ToString() == "puesto")!["options"]!.AsArray().Select(p => p!.ToString()).ToArray();
-        if (position is not null && !positionsAvailable.Contains(position)) throw new DomainProblem(422, "El tipo de puesto no pertenece al instrumento.");
         var query = db.Surveys.AsNoTracking().Where(s => s.UnitId != null && ids.Contains(s.UnitId));
         if (finalizedOnly) query = query.Where(s => s.CompletedAt != null);
+        // Los perfiles históricos sólo se ofrecen si existen dentro del alcance autorizado.
+        var historicalProfiles = await query.Select(s => s.ProfileJson).Distinct().ToListAsync(ct);
+        positionsAvailable = positionsAvailable.Concat(historicalProfiles.Select(p => JsonNode.Parse(p)?["puesto"]?.ToString()).OfType<string>()).Distinct().ToArray();
+        if (position is not null && !positionsAvailable.Contains(position)) throw new DomainProblem(422, "El perfil laboral no está disponible en este conjunto.");
         if (position is not null)
         {
             var filter = JsonSerializer.Serialize(new { puesto = position });
@@ -68,11 +71,13 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
             return new(id, name, values.Count(v => v is not null), values.Count(v => v is null), 0, levels, DigitalInstrument.Mean(values));
         }
         var blocks = instrument.Blocks.Select(b => Distribution(b.Id, b.N, completed.Select(r => r.Blocks.SingleOrDefault(x => x.Id == b.Id)?.Score))).ToArray();
-        var tools = instrument.Blocks.SelectMany(b => b.Tools).Select(t =>
+        var toolNames = instrument.Blocks.SelectMany(b => b.Tools).Select(t => new { t.Id, Name = t.N })
+            .Concat(completed.SelectMany(r => r.Tools).Select(t => new { t.Id, t.Name })).DistinctBy(t => t.Id);
+        var tools = toolNames.Select(t =>
         {
             var values = completed.SelectMany(r => r.Tools.Where(v => v.Id == t.Id)).ToArray(); var levels = new int[4];
             foreach (var v in values) if (v.Value >= 0) levels[v.Value.Value]++;
-            return new DigitalDistribution(t.Id, t.N, levels.Sum(), values.Count(v => v.Value == -1), values.Count(v => v.Value == -2), levels,
+            return new DigitalDistribution(t.Id, t.Name, levels.Sum(), values.Count(v => v.Value == -1), values.Count(v => v.Value == -2), levels,
                 DigitalInstrument.Mean(values.Where(v => v.Value >= 0).Select(v => (double?)(v.Value!.Value / 3d * 100))));
         }).ToArray();
         var positions = surveys.Where(s => s.CompletedAt is not null).GroupBy(s => JsonNode.Parse(s.ProfileJson)!["puesto"]!.ToString())

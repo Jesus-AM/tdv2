@@ -70,6 +70,9 @@ try {
     $env:TDV2_TEST_SKIP_BROWSER = if ($SkipBrowser -or $SyncOnly) { 'true' } else { 'false' }
     Push-Location $workspace
     try {
+        if ($DigitalOnly) {
+            & (Join-Path $workspace 'tests/TDV2.NativeVerification/Export-NexoActivity.ps1') -NexoSource $NexoSource -Destination (Join-Path $run 'nexo-activity.sql')
+        }
         if ($NexoDelegationOnly) {
             & $Php -n (Join-Path $workspace 'tests/TDV2.NativeVerification/Export-NexoDelegation.php') $NexoSource (Join-Path $run 'nexo-generated.json')
             if ($LASTEXITCODE -ne 0) { throw 'No se pudo generar el contrato desde el código fuente de Nexo.' }

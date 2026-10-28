@@ -1,0 +1,14 @@
+﻿[
+    {
+        "File":  "tdv2\\Security\\PostgresIdentity.cs",
+        "Unchanged":  true
+    },
+    {
+        "File":  "tdv2\\Security\\AccessState.cs",
+        "Unchanged":  true
+    },
+    {
+        "File":  "ClientApp\\resources\\js\\lib\\http.ts",
+        "Unchanged":  true
+    }
+]

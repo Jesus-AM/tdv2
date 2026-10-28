@@ -1,0 +1,29 @@
+[
+  {
+    "width": 1440,
+    "header": {
+      "background": "rgb(255, 255, 255)",
+      "border": "rgb(218, 218, 218)",
+      "backdrop": "blur(10px)",
+      "logo": "/images/logos/TRANSFORMACION_DIGITAL_logo.svg"
+    }
+  },
+  {
+    "width": 768,
+    "header": {
+      "background": "rgb(255, 255, 255)",
+      "border": "rgb(218, 218, 218)",
+      "backdrop": "blur(10px)",
+      "logo": "/images/logos/TRANSFORMACION_DIGITAL_logo.svg"
+    }
+  },
+  {
+    "width": 390,
+    "header": {
+      "background": "rgb(255, 255, 255)",
+      "border": "rgb(218, 218, 218)",
+      "backdrop": "blur(10px)",
+      "logo": "/images/logos/TRANSFORMACION_DIGITAL_logo.svg"
+    }
+  }
+]

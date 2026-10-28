@@ -35,6 +35,7 @@ export default function PersonalReport({ survey, canSurvey }: { survey: Survey; 
     const toolLevel = (t: Report['tools'][number]) => t.value === null ? unselected(t) ? 'Sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.value === -2 ? 'No utiliza' : <Level value={t.value} />;
     const toolState = (t: Report['tools'][number]) => t.value === null ? unselected(t) ? 'Complementaria sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.gap > 0 ? <span className="cd-gap"><span aria-hidden="true">⚠</span> Brecha</span> : t.value === -2 ? 'No utiliza' : t.expected > 0 && t.value >= t.expected ? <span className="cd-met">✓ Cumple</span> : 'Sin requisito';
     return <div className="cd-report">
+        {survey.editionUpdate && <Alert severity="warning">Este informe preliminar corresponde a la edición anterior. Revisa y confirma la actualización del borrador en Encuesta; las respuestas vigentes se conservarán. {goSurvey('Revisar actualización')}</Alert>}
         <section className="cd-report-summary" aria-labelledby="cd-report-title">
             {!survey.completedAt ? <Alert severity="info">Informe preliminar · Encuesta en curso. Sólo las respuestas guardadas se evalúan; los resultados pueden cambiar. {goSurvey('Continuar encuesta')}</Alert>
                 : <Alert severity="success">Informe definitivo · Finalizada el {new Date(survey.completedAt).toLocaleString('es-MX')}. Las respuestas ya no se pueden modificar.</Alert>}

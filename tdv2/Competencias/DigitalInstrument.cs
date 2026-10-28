@@ -28,9 +28,12 @@ public sealed class DigitalInstrument
     {
         Resource = JsonNode.Parse(content)!.AsObject();
         Blocks = Resource["modules"]!.Deserialize<DigitalBlock[]>(Json)!;
-        if (Blocks.Length != 5 || Blocks.SelectMany(b => b.Tools).Select(t => t.Id).Distinct().Count() != 84)
+        if (Blocks.Length != 5 || Blocks.SelectMany(b => b.Tools).Select(t => t.Id).Distinct().Count() != (Resource["toolCount"]?.GetValue<int>() ?? 84))
             throw new InvalidOperationException("Instrumento incompleto.");
     }
+    public string? RulePosition(string? position) => position is null ? null : Resource["positionRules"] is JsonObject rules
+        ? rules[position]?.GetValue<string>() ?? throw new DomainProblem(422, "Selecciona un perfil laboral vigente.") : position;
+    public bool Academic(JsonObject profile) => RulePosition(profile["puesto"]?.ToString()) == "Personal docente";
     public static int ChecklistLevel(string checks)
     {
         if (checks.Length != 12 || checks.Any(c => c is not ('0' or '1'))) throw new DomainProblem(422, "La rúbrica debe contener sus doce indicadores.");
@@ -76,6 +79,7 @@ public sealed class DigitalInstrument
     }
     public Dictionary<string, int> Requirements(string? position)
     {
+        position = RulePosition(position);
         var result = new Dictionary<string, int>();
         foreach (var f in Resource["funcs"]!.AsArray())
         {
@@ -127,7 +131,7 @@ public sealed class DigitalInstrument
             var blockValues = new List<double?>();
             foreach (var tool in block.Tools)
             {
-                if (tool.Doc && position != "Personal docente") continue;
+                if (tool.Doc && !Academic(profile)) continue;
                 var answer = answers.GetValueOrDefault(tool.Id); int? value = null;
                 // Las complementarias no seleccionadas son «No utiliza», no un cero ni un pendiente.
                 if (answer is null && tool.Opt) value = -2;
@@ -169,7 +173,7 @@ public sealed class DigitalInstrument
     private DigitalReport BuildReport(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, List<DigitalToolResult> tools,
         List<DigitalBlockResult> blocks, Dictionary<string, DigitalTool> known)
     {
-        var position = profile["puesto"]?.ToString();
+        var position = RulePosition(profile["puesto"]?.ToString());
         var global = Mean(blocks.Select(b => b.Score));
         var route = Route(profile, answers, tools, known);
         var transversal = Resource["funcs"]!.AsArray().Where(f => f!["p"]!.ToString() == position && f["t"] is not null
@@ -195,7 +199,7 @@ public sealed class DigitalInstrument
             else if (v is 1 or 2) Add(r, 2, v, v + 1, v == 1 ? "Ya la usas: consolida el nivel intermedio" : "Da el paso a especialista");
             else if (v == 0 && r.Block != "ia") Add(r, 3, 0, 1, "Explorar");
         }
-        var picks = profile["puesto"]?.ToString() == "Personal docente"
+        var picks = Academic(profile)
             ? new[] { "i-chatgpt", "i-notebooklm", "i-teachy", "i-gamma", "i-quizizz-wayground" }
             : ["i-microsoft-copilot", "i-perplexity", "i-notebooklm", "i-napkin-ai", "i-fireflies"];
         foreach (var r in results.Where(r => picks.Contains(r.Id) && r.Value is 0 or -2 && !route.Any(c => c.Tool == r.Id))) Add(r, 3, 0, 1, "Sugerida para tu perfil en el Manual de IA");
@@ -217,7 +221,7 @@ public sealed class DigitalInstrument
         var used = tools.Where(t => t.Block == "ia" && t.Value >= 1 && ia.Tools.Single(i => i.Id == t.Id).Cat != "Fundamentos del uso de IA").ToArray();
         var low = tools.Where(t => t.Block == "ia" && t.Value == 0 && ia.Tools.Single(i => i.Id == t.Id).Cat == "Fundamentos del uso de IA").ToArray();
         if (used.Length > 0 && low.Length > 0) recs.Add(new("warning", "Usas IA, pero sin los fundamentos completos", string.Join(", ", low.Select(t => t.Name)) + ". La IA es un copiloto, no un piloto automático. Verifica siempre y no subas datos de estudiantes a herramientas públicas."));
-        if (used.Length == 0) recs.Add(new("info", "Empieza pequeño con la IA", "Elige una herramienta y una tarea concreta. " + (profile["puesto"]?.ToString() == "Personal docente" ? "ChatGPT o Teachy para planear una clase" : "Copilot Chat con tu cuenta institucional para resumir y redactar documentos") + ", aplicando ROTF (Rol, Objetivo, Contexto, Formato)."));
+        if (used.Length == 0) recs.Add(new("info", "Empieza pequeño con la IA", "Elige una herramienta y una tarea concreta. " + (Academic(profile) ? "ChatGPT o Teachy para planear una clase" : "Copilot Chat con tu cuenta institucional para resumir y redactar documentos") + ", aplicando ROTF (Rol, Objetivo, Contexto, Formato)."));
         if (used.Any(t => new[] { "i-chatgpt", "i-claude", "i-gemini", "i-deepseek" }.Contains(t.Id)) && tools.Any(t => t.Id == "m-microsoft-365-copilot-chat" && t.Value == 0))
             recs.Add(new("info", "Para información institucional, consulta las herramientas autorizadas", "El prototipo recomienda Copilot Chat con la cuenta institucional. Confirma las condiciones y licencias vigentes antes de compartir información."));
         var weakest = blocks.Where(b => b.Score is not null).OrderBy(b => b.Score).FirstOrDefault();
