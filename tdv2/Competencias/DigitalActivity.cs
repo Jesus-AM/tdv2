@@ -52,6 +52,8 @@ public sealed class DigitalActivityTransport(DatabaseConnections connections, IC
 }
 public sealed class DigitalActivity(DigitalDbContext db, IConfiguration config, AccessState state, IHttpContextAccessor accessor, ILogger<DigitalActivity> logger)
 {
+    private long Application => long.TryParse(config["CompetenciasDigitales:Nexo:ApplicationId"], out var app) && app > 0
+        ? app : throw new InvalidOperationException("Falta la aplicación de Competencias.");
     public static string Digest(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
     public string Session => Digest("cd-session:" + (state.SessionHash ?? throw new InvalidOperationException("Sesión requerida.")));
     public static JsonObject Payload(Guid id, DateTimeOffset time, string actor, string name, string category, string action, string entity, string resource, string? affected = null) => new()
@@ -61,6 +63,21 @@ public sealed class DigitalActivity(DigitalDbContext db, IConfiguration config, 
         ["entidad_tipo"] = entity, ["entidad_id"] = resource, ["usuario_afectado_email"] = affected
     };
     // Requiere transacción del llamador; la escritura y el evento se confirman juntos.
+    public Task<bool> Contains(string key, CancellationToken ct)
+    {
+        var hash = Digest(Application + ":" + key);
+        return db.ActivityEvents.AsNoTracking().AnyAsync(e => e.Key == hash, ct);
+    }
+    // Los guardados automáticos conservan su bitácora TDV2 sin entrar a la cola Nexo.
+    // UUID estable por revisión: un reintento exacto no duplica el registro local.
+    public Task LocalSave(DigitalScope scope, Guid survey, int version, NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct)
+    {
+        var actor = accessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email) ?? throw new InvalidOperationException("Actor validado requerido.");
+        var id = Guid.ParseExact(Digest($"local-save:{Application}:{survey}:{version}")[..32], "N");
+        var payload = Payload(id, DateTimeOffset.UtcNow, actor, accessor.HttpContext?.User.Identity?.Name ?? actor,
+            "encuesta", "guardar", "encuesta", survey.ToString(), actor != scope.Profile.User.Email ? scope.Profile.User.Email : null);
+        return DigitalActivityLog.Write(connection, transaction, Application, payload, ct);
+    }
     public async Task Queue(DigitalScope scope, string key, string category, string action, string entity, string resource, CancellationToken ct)
     {
         var actor = accessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email) ?? throw new InvalidOperationException("Actor validado requerido.");
@@ -71,7 +88,7 @@ public sealed class DigitalActivity(DigitalDbContext db, IConfiguration config, 
     private async Task QueuePayload(string key, string session, JsonObject payload, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("La actividad requiere transacción.");
-        if (!long.TryParse(config["CompetenciasDigitales:Nexo:ApplicationId"], out var app) || app < 1) throw new InvalidOperationException("Falta la aplicación de Competencias.");
+        var app = Application;
         var id = Guid.Parse(payload["evento_uuid"]!.ToString()); var now = DateTimeOffset.UtcNow; var data = payload.ToJsonString(); var hash = Digest(app + ":" + key);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO public.cd_activity_events ("Id","ApplicationId","Key","Session","Payload","CreatedAt","NextAttemptAt","Attempts","DuplicateReceipt")
@@ -158,18 +175,27 @@ public sealed class DigitalActivityDelivery(DigitalDbContext db, DatabaseConnect
     private async Task Mirror(DigitalActivityEvent row, CancellationToken ct)
     {
         var data = JsonNode.Parse(row.Payload)!;
-        var local = data.DeepClone().AsObject(); local["aplicacion_id"] = row.ApplicationId;
         await using var connection = await connections.Open("Tdv2", ct); await using var tx = await connection.BeginTransactionAsync(ct);
+        await DigitalActivityLog.Write(connection, tx, row.ApplicationId, data, ct);
+        await tx.CommitAsync(ct);
+    }
+}
+internal static class DigitalActivityLog
+{
+    public static async Task Write(NpgsqlConnection connection, NpgsqlTransaction tx, long application, JsonNode data, CancellationToken ct)
+    {
+        var local = data.DeepClone().AsObject(); local["aplicacion_id"] = application;
+        var id = data["evento_uuid"]!.ToString();
         await using (var guard = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended($1,28102026))", connection, tx))
-        { guard.Parameters.AddWithValue(row.Id.ToString()); await guard.ExecuteNonQueryAsync(ct); }
+        { guard.Parameters.AddWithValue(id); await guard.ExecuteNonQueryAsync(ct); }
         await using var cmd = new NpgsqlCommand("""
             INSERT INTO public.activity_logs(user_email,user_name,entity,action,meta,created_at,updated_at)
             SELECT $1,$2,'competencias_digitales',$3,$4::json,timezone('UTC',now()),timezone('UTC',now())
             WHERE NOT EXISTS(SELECT 1 FROM public.activity_logs WHERE entity='competencias_digitales' AND meta->>'evento_uuid'=$5)
             """, connection, tx);
         cmd.Parameters.AddWithValue(data["actor_email"]!.ToString()); cmd.Parameters.AddWithValue(data["actor_nombre"]!.ToString());
-        cmd.Parameters.AddWithValue(data["categoria"] + ":" + data["accion"]); cmd.Parameters.AddWithValue(local.ToJsonString()); cmd.Parameters.AddWithValue(row.Id.ToString());
-        await cmd.ExecuteNonQueryAsync(ct); await tx.CommitAsync(ct);
+        cmd.Parameters.AddWithValue(data["categoria"] + ":" + data["accion"]); cmd.Parameters.AddWithValue(local.ToJsonString()); cmd.Parameters.AddWithValue(id);
+        await cmd.ExecuteNonQueryAsync(ct);
     }
 }
 

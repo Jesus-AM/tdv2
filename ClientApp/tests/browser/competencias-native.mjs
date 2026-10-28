@@ -38,7 +38,7 @@ const api = async (method, endpoint, data) => {
     return context.request.fetch(origin + base + endpoint, { method, data, headers: { 'X-CSRF-TOKEN': csrf.token, 'X-TDV2-Context': 'own' } });
 };
 const openPrivacy = async () => { await page.getByRole('button',{name:'Abrir menú de usuario'}).click(); await page.getByRole('menuitem',{name:'Aviso de privacidad',exact:true}).click(); };
-const save = async () => { const done = page.waitForResponse(r => r.url().endsWith('/api/encuesta') && r.request().method() === 'PUT'); await page.getByRole('button', { name: 'Guardar avance', exact: true }).click(); assert.equal((await done).status(), 200); await expect(page.getByText('Avance guardado. Puedes continuar desde otro dispositivo.', { exact: true })).toBeVisible(); };
+const save = async () => { const done = page.waitForResponse(r => r.url().endsWith('/api/encuesta/guardar') && r.request().method() === 'POST'); await page.getByRole('button', { name: 'Guardar avance', exact: true }).click(); assert.equal((await done).status(), 200); await expect(page.getByText('Avance guardado. Puedes continuar desde otro dispositivo.', { exact: true })).toBeVisible(); };
 const completeBlock = async id => {
     await expect(page.getByRole('button', {name:'Guardar avance',exact:true})).toBeEnabled();
     const s = await getSurvey();

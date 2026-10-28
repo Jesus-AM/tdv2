@@ -13,6 +13,8 @@ namespace Tdv2.Competencias;
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalSave(int Version, JsonObject Profile, Dictionary<string, DigitalAnswer> Answers, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record DigitalManualSave(int Version, Guid Generation, Guid Operation);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalFinalize(int Version, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalUpgrade(int Version, string InstrumentVersion, Guid Generation = default);
@@ -55,7 +57,8 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         return new(survey?.Version ?? 0, survey?.CompletedAt, institution, profile, answers, resource, accepted, evaluation,
             selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses, DigitalEditions.Notice(instrument, survey));
     }
-    private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct)
+    private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct,
+        Func<DigitalSurvey?, NpgsqlConnection, NpgsqlTransaction, Task>? localAudit = null)
     {
         // Mantener SHARE sobre la sesión evita que representación/logout se intercale con el commit
         // de la base independiente. No se intenta una FK ni transacción distribuida entre bases.
@@ -70,6 +73,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         var survey = await db.Surveys.SingleOrDefaultAsync(s => s.Employee == UnitDirectory.Employee(scope.Profile.User), ct);
         var result = await work(survey);
         await db.SaveChangesAsync(ct);
+        if (localAudit is not null) await localAudit(survey, shared, session);
         await state.Guard(shared, session, ct);
         await transaction.CommitAsync(ct);
         await session.CommitAsync(ct);
@@ -128,7 +132,23 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
             survey.InstitutionJson = Serialize(scope.Institution()); survey.UnitId = scope.Institution().Unit?.Id;
             survey.Email = scope.Profile.User.Email; survey.Name = scope.Profile.User.Name;
             survey.UpdatedAt = DateTimeOffset.UtcNow; survey.Version++;
-            await activity.Queue(scope, $"save:{survey.Id}:{survey.Version}", "encuesta", "guardar", "encuesta", survey.Id.ToString(), ct);
+            return true;
+        }, ct, (survey, connection, transaction) => activity.LocalSave(scope, survey!.Id, survey.Version, connection, transaction, ct));
+    }
+    // Confirmación explícita del botón, separada de la persistencia automática. No cambia
+    // respuestas/revisión y reutiliza el recibo durable de la cola para el mismo UUID.
+    public async Task ConfirmManualSave(DigitalScope scope, DigitalManualSave input, CancellationToken ct)
+    {
+        if (input.Operation == Guid.Empty) throw new DomainProblem(422, "Falta el identificador de la operación de guardado.");
+        await Write(scope, input.Generation, async survey =>
+        {
+            RequireCurrent(survey);
+            if (survey is null || survey.CompletedAt is not null) Mutable(survey, input.Version);
+            await RequireConsent(scope, ct);
+            var key = $"manual-save:{input.Generation}:{survey!.Id}:{input.Operation}";
+            if (await activity.Contains(key, ct)) return true;
+            Mutable(survey, input.Version);
+            await activity.Queue(scope, key, "encuesta", "guardar", "encuesta", survey.Id.ToString(), ct);
             return true;
         }, ct);
     }

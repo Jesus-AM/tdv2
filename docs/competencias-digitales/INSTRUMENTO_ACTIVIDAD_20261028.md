@@ -2,6 +2,8 @@
 
 ## Alcance y estado
 
+**Revisión posterior vigente de guardado:** el autoguardado conserva bitácora local y ya no encola eventos para Nexo. Solo «Guardar avance» confirma actividad manual con UUID idempotente, incluso sin cambios adicionales. [Contrato, concurrencia, pruebas y archivos](GUARDADO_MANUAL_ACTIVIDAD_20261028.md). Los demás eventos y la cola se conservan.
+
 Se continúa el trabajo local existente, incluido el informe organizado, aviso `.2`, menú publicado por Nexo, paquetes corregidos y validación de identidad que resolvió el 401. No se cambiaron roles, rutas existentes, fuentes, colores, conexiones ni sincronizadores. No se accedió a bases institucionales ni se ejecutaron migraciones/reinicios reales, push o despliegues.
 
 La edición vigente es **`uacj-digital-2026-10-28.1`**, recurso `tdv2/Contracts/competencias-digitales-v2.json`. La edición `uacj-digital-2026-10-27.1` y su archivo permanecen intactos. El aviso conserva exactamente su texto, URL y versión **`uacj-digital-aviso-2026-10-27.2`**; cambiar de instrumento no concede ni exige por sí solo otra aceptación del aviso.
@@ -74,7 +76,7 @@ No existía una cola de entrega para este contrato. Se añade `public.cd_activit
 | Evento | Punto de confirmación / deduplicación |
 | --- | --- |
 | Acceso | Navegación autorizada; una vez por sesión del subsitio, sin registrar cada render/poll |
-| Guardado | Sólo cambio realmente confirmado; encuesta + revisión, en la misma transacción que las respuestas |
+| Guardado manual (revisión vigente) | Sólo el botón Guardar avance tras confirmar la revisión; generación + encuesta + UUID de operación. Autoguardados y transiciones no encolan eventos de guardado |
 | Finalización | UUID de encuesta; reintentos idempotentes no repiten el evento |
 | Actualizar edición | Encuesta + edición; misma transacción que la actualización |
 | Consultar informe | Página o API, sesión + contexto representado + generación + revisión; no duplica la lectura por ambos caminos |

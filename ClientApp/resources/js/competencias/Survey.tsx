@@ -58,6 +58,8 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const progress = useRef<HTMLDivElement>(null);
     const current = useRef({ survey, profile, answers, dirty, step }); current.current = { survey, profile, answers, dirty, step };
     const saving = useRef<Promise<Survey | null> | null>(null);
+    const manualSaving = useRef<Promise<Survey | null> | null>(null);
+    const manualOperation = useRef<{ operation: string; generation: string; version: number } | null>(null);
     const disabled = readOnly || busy || !survey.accepted || !!survey.editionUpdate;
     const failed = (e: unknown) => { setError(errorText(e)); if (axios.isAxiosError(e) && e.response?.data?.reset) window.dispatchEvent(new Event('cd-generation-invalid')); };
     const change = () => { current.current.dirty = true; setDirty(true); setEdit(e => e + 1); setMessage(''); setError(''); setPending([]); };
@@ -78,6 +80,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         return () => cancelAnimationFrame(frame);
     }, [pending, busy, step]);
     function persist(force = false): Promise<Survey | null> {
+        if (manualSaving.current) return manualSaving.current;
         if (saving.current) return saving.current;
         const draft = current.current;
         if (!draft.dirty && !force) return Promise.resolve(draft.survey);
@@ -95,6 +98,28 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         })();
         return saving.current;
     }
+    function saveManually(): Promise<Survey | null> {
+        if (manualSaving.current) return manualSaving.current;
+        if (readOnly || !current.current.survey.accepted || current.current.survey.completedAt || current.current.survey.editionUpdate) return Promise.resolve(null);
+        // Primero termina el autoguardado (o persiste el borrador pendiente). La
+        // confirmación no requiere una modificación artificial de las respuestas.
+        manualSaving.current = (async () => {
+            try {
+                const saved = await persist(); if (!saved) return null;
+                setBusy(true); setError(''); setMessage('');
+                if (!manualOperation.current || manualOperation.current.generation !== saved.generation || manualOperation.current.version !== saved.version)
+                    manualOperation.current = { operation: crypto.randomUUID(), generation: saved.generation, version: saved.version };
+                const confirmed = (await axios.post<Survey>(`${base}/api/encuesta/guardar`, manualOperation.current)).data;
+                current.current = { ...current.current, survey: confirmed, profile: confirmed.profile, answers: confirmed.answers, dirty: false };
+                setSurvey(confirmed); setProfile(confirmed.profile); setAnswers(confirmed.answers); setDirty(false); manualOperation.current = null;
+                setMessage('Avance guardado. Puedes continuar desde otro dispositivo.');
+                if (!confirmed.navigation.steps.find(s => s.id === current.current.step)?.accessible) showStep(confirmed.navigation.resume);
+                return confirmed;
+            } catch (e) { failed(e); return null; }
+            finally { manualSaving.current = null; setBusy(false); }
+        })();
+        return manualSaving.current;
+    }
     const persistRef = useRef(persist); persistRef.current = persist;
     useEffect(() => {
         if (!edit || readOnly || survey.completedAt || !survey.accepted || survey.editionUpdate) return;
@@ -103,11 +128,11 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     }, [edit, readOnly, survey.accepted, survey.completedAt]);
     useEffect(() => {
         const stop = router.on('before', e => {
-            if (!current.current.dirty && !saving.current) return;
+            if (!current.current.dirty && !saving.current && !manualSaving.current) return;
             e.preventDefault();
             void persistRef.current().then(saved => { if (saved) e.detail.visit.resume?.(); });
         });
-        const unload = (e: BeforeUnloadEvent) => { if (current.current.dirty || saving.current) { e.preventDefault(); e.returnValue = ''; } };
+        const unload = (e: BeforeUnloadEvent) => { if (current.current.dirty || saving.current || manualSaving.current) { e.preventDefault(); e.returnValue = ''; } };
         window.addEventListener('beforeunload', unload); return () => { stop(); window.removeEventListener('beforeunload', unload); };
     }, []);
     useEffect(() => {
@@ -175,7 +200,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
                 {visible.some(t => t.opt) && <section><h3 className="cd-category">Complementarias que usas</h3><div className="cd-questions">{visible.filter(t => t.opt).map(t => <Question key={t.id} tool={t} block={block.id} answer={answers[t.id]} readOnly={disabled} onChange={a => answer(t.id, a)} />)}</div></section>}
             </section>}
             {pending.length > 0 && <Alert severity="warning"><p>Pendientes de esta sección:</p><div className="cd-pending">{pending.map(id => <Button key={id} onClick={() => focusPending([id, ...pending.filter(p => p !== id)])}>{name(id)}</Button>)}</div></Alert>}
-            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{busy ? 'Guardando…' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{steps[stepIndex].pending.length ? `${steps[stepIndex].pending.length} pendientes en el último guardado` : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={() => void persist(true)}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={async () => { const saved = await persist(true); if (!saved) return; const incomplete = saved.navigation.steps.find(s => !s.complete); if (incomplete) { showStep(incomplete.id); setError('Completa los campos pendientes antes de finalizar.'); focusPending(incomplete.pending); } else setFinishOpen(true); }}>Finalizar encuesta</Button>}</>}</div></div>
+            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{busy ? 'Guardando…' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{steps[stepIndex].pending.length ? `${steps[stepIndex].pending.length} pendientes en el último guardado` : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={e => { if (e.detail < 2) void saveManually(); }}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={async () => { const saved = await persist(true); if (!saved) return; const incomplete = saved.navigation.steps.find(s => !s.complete); if (incomplete) { showStep(incomplete.id); setError('Completa los campos pendientes antes de finalizar.'); focusPending(incomplete.pending); } else setFinishOpen(true); }}>Finalizar encuesta</Button>}</>}</div></div>
             </div>
         </>}
         <PrivacyNotice key={noticeOpen ? 'accept-open' : 'accept-closed'} notice={survey.instrument.notice} open={noticeOpen} onClose={() => setNoticeOpen(false)} onAccept={!survey.accepted && !survey.completedAt && !readOnly ? () => void accept() : undefined} busy={busy} />

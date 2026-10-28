@@ -494,7 +494,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(page["props"]!["auth"]!["user"]!["name"]!.ToString() == "Persona sintética");
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is null);
         });
-        AddResetTests(cases); AddEditionActivityTests(cases);
+        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases);
         var results = new List<object>(); var failures = 0;
         foreach (var (name, work) in Environment.GetCommandLineArgs().Contains("--browser-only") ? [] : cases)
         {

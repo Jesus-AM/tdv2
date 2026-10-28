@@ -45,7 +45,7 @@ internal sealed partial class DigitalTests
             Check(Convert.ToInt64(await Nexo("SELECT count(*) FROM registro_actividad WHERE accion='finalizar' AND categoria='encuesta'"))==1);
             Check(Convert.ToInt64(await Nexo("SELECT count(*) FROM registro_actividad WHERE aplicacion_origen_id<>87 OR actor_email<>'persona@uacj.mx'"))==0);
             Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events WHERE \"ReceivedAt\" IS NULL"))==0);
-            Check(Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM activity_logs WHERE entity='competencias_digitales'"))==Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events")));
+            Check(Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM activity_logs WHERE entity='competencias_digitales' AND action<>'encuesta:guardar'"))==Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events")));
             await Status(client.PostAsync("/logout",null),200);Check(Convert.ToInt64(await Nexo("SELECT count(*) FROM registro_actividad WHERE accion='cierre_sesion'"))==1);
         });
         Test("fallo central conserva captura y cola; reintento recibe duplicado sin duplicar auditoría local",async(app,client)=>
@@ -53,6 +53,8 @@ internal sealed partial class DigitalTests
             await Login(app,client);await Nexo("UPDATE cuentas_postgresql SET habilitada=false");
             var view=await Accept(client);var full=Complete(view);await Status(client.PutAsJsonAsync(Base+"/api/encuesta",new DigitalSave(view.Version,full.Profile,view.Answers,view.Generation)),200);
             var saved=await Survey(client);Check(saved.Profile["puesto"] is not null);
+            await Status(client.PostAsJsonAsync(Base+"/api/encuesta/guardar",new DigitalManualSave(saved.Version,saved.Generation,Guid.NewGuid())),200);
+            var localCount=Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM activity_logs WHERE entity='competencias_digitales'"));
             Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events WHERE \"Failure\"='nexo_rechazado' AND \"ReceivedAt\" IS NULL"))>0);
             await Nexo("UPDATE cuentas_postgresql SET habilitada=true");await Data("UPDATE cd_activity_events SET \"NextAttemptAt\"=now()");
             using(var scope=app.Services.CreateScope())await scope.ServiceProvider.GetRequiredService<DigitalActivityDelivery>().Flush(100,default);
@@ -63,7 +65,7 @@ internal sealed partial class DigitalTests
                 await Task.WhenAll(a.ServiceProvider.GetRequiredService<DigitalActivityDelivery>().Flush(100,default),b.ServiceProvider.GetRequiredService<DigitalActivityDelivery>().Flush(100,default));
             Check(Convert.ToInt64(await Nexo("SELECT count(*) FROM registro_actividad"))==count);
             Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events WHERE NOT \"DuplicateReceipt\" OR \"ReceivedAt\" IS NULL"))==0);
-            Check(Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM activity_logs WHERE entity='competencias_digitales'"))==count);
+            Check(Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM activity_logs WHERE entity='competencias_digitales'"))==localCount);
             Check(!(await Data("SELECT string_agg(\"Payload\"::text,' ') FROM cd_activity_events"))!.ToString()!.Contains("answers"));
         });
         Test("representación atribuye consulta al actor real, conserva afectado y no envía token",async(app,client)=>

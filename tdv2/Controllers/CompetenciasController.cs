@@ -86,6 +86,10 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Save([FromBody] DigitalSave input)
     { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Save(scope, input, Ct); return await Saved(scope, input.Generation); }
+    [HttpPost("api/encuesta/guardar")]
+    [EnableRateLimiting("form-writes")]
+    public async Task<IResult> ConfirmManualSave([FromBody] DigitalManualSave input)
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().ConfirmManualSave(scope, input, Ct); return await Saved(scope, input.Generation); }
     [HttpPost("api/encuesta/finalizar")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Finish([FromBody] DigitalFinalize input)

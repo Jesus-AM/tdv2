@@ -1,0 +1,11 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Navegador real y PostgreSQL aislado",
+      "passed": true
+    }
+  ]
+}

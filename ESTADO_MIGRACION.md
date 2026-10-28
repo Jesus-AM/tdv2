@@ -2,6 +2,14 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-28**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## 2026-10-28 — Actividad Nexo solo por guardado manual
+
+**Implementado:** autoguardados de perfil/respuestas y transiciones conservan persistencia/bitácora local, sin eventos de guardado en la cola Nexo. «Guardar avance» espera lo pendiente y confirma una operación UUID mediante `POST /competencias-digitales/api/encuesta/guardar`, sin modificar respuestas ni versiones para auditar. Confirmación protegida por permiso de Encuesta, CSRF, sesión real, consentimiento, generación y versión. Doble clic/reintento no duplica; representación y definitivas rechazan la operación. Cola, recibos, entrega aplazada y demás eventos intactos. No hay migraciones, configuración ni permisos nuevos; paquetes, 401, instrumento y presentación conservados.
+
+**Probado:** tipos/build React y ASP.NET Release correctos; 95 pruebas frontend; 55 casos ASP.NET/PostgreSQL desechable, incluidos siete nuevos; 16 casos nuevos de navegador sintético y 21 grupos integrados correctos tras corregir una expectativa de altura natural del arnés visual. Cero eventos automáticos en cola/registro central sintético, manual sin cambio de revisión, concurrencia/reintentos, fallo/recibo perdido de Nexo, rollback y restricciones comprobados. [Archivos, contrato, resultados, incidencias y límites](docs/competencias-digitales/GUARDADO_MANUAL_ACTIVIDAD_20261028.md).
+
+**Límites:** contrato SQL real extraído del código local de Nexo, ejecutado sobre esquema/identidades sintéticos; no acredita recepción institucional. Sin acceso a bases existentes ni cambios en Nexo. Los clústeres desechables se detuvieron. Se conservan los pendientes operativos anteriores de la cola; este ajuste no requiere otros. No se eliminaron eventos históricos, ni se hicieron push o despliegues.
+
 ## 2026-10-28 — Recuperación de cabecera azul de Competencias
 
 **Implementado:** fondo `#213455` en cabecera y navegación, con SVG blanco oficial copiado sin alteraciones a `/images/logos/transformacion-digital-blanco.svg`. Texto blanco, indicador activo amarillo y foco legible. Se conservan las dos filas, cuenta/fotografía, representación, Noto Sans, menú recibido de Nexo, cuerpo y pie aprobado. Cambios productivos limitados a CSS de cabecera, URL del logo y recurso nuevo; se preservan los demás cambios locales. Sustituye únicamente la barra blanca de la entrega anterior.

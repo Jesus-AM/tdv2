@@ -1,5 +1,7 @@
 # TDV2 · ASP.NET Core 10 + React
 
+**Actividad de guardado — 2026-10-28:** autoguardados y transiciones conservan captura y bitácora local, sin eventos de guardado en Nexo. «Guardar avance» espera la persistencia y confirma una operación manual idempotente, incluso sin cambios adicionales. Cola, reintentos y demás eventos intactos; sin nuevas migraciones. [Archivos, contrato y verificación](docs/competencias-digitales/GUARDADO_MANUAL_ACTIVIDAD_20261028.md).
+
 **Cabecera azul de Competencias — 2026-10-28:** se recupera `#213455` en identidad y navegación, con el SVG blanco oficial proporcionado, copiado sin modificaciones. Se conservan las dos filas, cuenta/foto, orden Nexo, Noto Sans, cuerpo y pie compartido. Esta revisión sustituye únicamente la barra blanca descrita a continuación. [Archivos, capturas, comprobaciones y paquete local](docs/migracion/CABECERA_AZUL_COMPETENCIAS_20261028.md).
 
 **Cabecera/pie de Competencias y acceso al juego — 2026-10-28:** barra blanca como el portal, logo oficial oscuro de Transformación Digital y estados/cuenta azules; pie con UACJ, DGTI y las cuatro subdirecciones usando el componente y estilos existentes. En el portal, sólo «¿Qué tanto sabes de Microsoft 365?» y «Jugar Ahora», conservando juego y encuesta separados. Tipos/builds, 116 pruebas de backend, 51 grupos de portal/juego/TDV2 y 11 grupos de Competencias tanto en bundles como Vite correctos con datos sintéticos. Sin cambios de lógica, migraciones, paquetes, 401 ni actividad Nexo. [Archivos, capturas y límites](docs/migracion/CABECERA_PIE_JUEGO_20261028.md).
