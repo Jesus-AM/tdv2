@@ -20,7 +20,7 @@ let scenario = 'profile', missingPhoto = false, represented = false, failSave = 
 let writes = [];
 let accessCase = 'participante';
 const menus = {
-    participante: [2,3], responsable: [0,1,2,3], supervisor: [0,1,2,3], administrador: [0,1,2,3,4], soloInforme: [3], soloReporte: [1],
+    participante: [2,3], responsable: [2,3,0,1], supervisor: [2,3,0,1], administrador: [2,3,0,1,4], soloInforme: [3], soloReporte: [1],
 };
 const slugs=['avance-dependencia','resultados-generales','encuesta','mi-informe-ruta','configuracion'];
 const names=['Avance por dependencia','Resultados generales','Encuesta','Mi informe y ruta','Configuración'];
@@ -32,7 +32,7 @@ const steps = [{ id: 'perfil', name: 'Perfil' }, ...instrument.modules.map(b => 
 function survey() {
     const done = scenario === 'report', block = scenario === 'questions';
     const tools = instrument.modules.flatMap(b => b.tools.slice(0, 3).map((t, i) => ({ id: t.id, name: t.n, block: b.id, value: i, expected: 2, gap: Math.max(0, 2-i) })));
-    return { generation: 'synthetic-generation', version: 1, completedAt: done ? '2026-10-27T12:00:00Z' : null,
+    return { hasResponses: true, generation: 'synthetic-generation', version: 1, completedAt: done ? '2026-10-27T12:00:00Z' : null,
         navigation: { current: block ? 'm365' : 'perfil', resume: block ? 'm365' : 'perfil', steps: steps.map((s, i) => ({ ...s, complete: done || block && i===0, accessible: done || i===0 || block && i===1, pending: i===0 && !block && !done ? ['perfil:antig'] : [] })) },
         institution: { status: 'available', name: represented ? 'Persona Representada Sintética' : 'Persona Sintética de Verificación', employee: '000-synthetic', unit: area, level2: unit, level3: area, ancestors: [unit, area], origin: 'Fuente sintética de prueba' },
         profile: { ...profile, antig: block || done ? profile.antig : '' }, answers: { 'm-word': { state: 'level', level: 0 } }, instrument, accepted: true,
@@ -154,7 +154,7 @@ try {
         for(const role of Object.keys(menus)) {
             accessCase=role;scenario='profile';represented=false;
             await page.goto(fixture.origin+base);
-            const order=[0,1,2,3,4].filter(i=>menus[role].includes(i));
+            const order=menus[role];
             await expect(page.locator('.cd-nav button')).toHaveText(order.map(i=>names[i]));
             await expect(page.locator('.cd-nav').getByRole('group')).toHaveCount(0);
             await expect(page.locator('.cd-nav-group')).toHaveCount(0);

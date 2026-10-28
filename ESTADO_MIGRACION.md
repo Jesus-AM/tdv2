@@ -2,6 +2,14 @@
 
 Inicio: 2026-09-30. Última adaptación: **2026-10-27**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
+## 2026-10-27 — Informe personal organizado, aviso nuevo y orden publicado por Nexo
+
+**Implementado:** resumen/recomendaciones/fases y detalle con una tabla por bloque; selector y fichas en móvil. Estado inicial sin informe cuando sólo hay perfil/autocompletado/pending; preliminar para respuestas reales, cero válido e informes definitivos persistidos sin recalcular. Aviso literal del usuario y URL visible, versión `uacj-digital-aviso-2026-10-27.2`, conservando registros anteriores y aceptación explícita vigente para captura. Menú sin grupos, preservando el orden de Nexo (`m.orden,m.id`) y las autorizaciones existentes; retirado el orden fijo del controlador.
+
+**Probado:** TypeScript, frontend y ASP.NET Release correctos. 116/116 pruebas existentes sin base; 24/24 nuevas de proyección/aviso/orden. Navegador con bundles reales/proyecciones del backend: 32 grupos en 1440/768/390/320 px; menú por seis conjuntos de concesiones en otros cuatro anchos, reportes y foco conservados. Noto Sans local efectiva comprobada, brechas #F0BD10, sin errores JS/desbordamiento. Capturas revisadas y SHA-256 de seis archivos protegidos intactos. Procesos de pruebas terminados.
+
+**Pendiente y límites:** operador debe colocar Posición en menú: Encuesta 1, Informe 2, Avance 3, Resultados 4, Configuración 5. Se respeta lo que Nexo publique; sus posiciones reales no se consultaron ni modificaron. Aceptaciones verificadas mediante transporte sintético e inspección del mecanismo, sin volver a ejecutar persistencia PostgreSQL. Sin migraciones, reinicios, bases institucionales, push ni despliegues. Advertencias NuGet conocidas; actualización pospuesta por el usuario. [Archivos, capturas, comandos y límites](docs/migracion/INFORME_AVISO_MENU_20261027.md).
+
 ## 2026-10-27 — Corrección de menú, distribución del pie TDV2 y oración pública
 
 **Implementado:** menú CD restituido a Avance/Resultados/Encuesta/Informe/Configuración, sin agrupación ni divisores, usando las concesiones ordenadas del backend. Ancho/cabecera/cuenta y demás mejoras conservados. Pie interno TDV2 con columnas de ancho natural, espacio disponible distribuido y filas adaptables, conservando letras, firmas y jerarquía; pies público/CD sin cambios. Retirada exclusivamente la oración solicitada del bloque del test.

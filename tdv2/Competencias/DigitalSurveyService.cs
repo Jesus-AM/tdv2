@@ -19,7 +19,7 @@ public sealed record DigitalAccept(string Version, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalTargetInput(int? Value, int Version, Guid Generation = default);
 public sealed record DigitalSurveyView(int Version, DateTimeOffset? CompletedAt, JsonObject Institution, JsonObject Profile,
-    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default);
+    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default, bool HasResponses = false);
 
 public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument instrument, DatabaseConnections connections, AccessState state)
 {
@@ -33,16 +33,24 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         var employee = UnitDirectory.Employee(scope.Profile.User)!;
         var survey = await db.Surveys.AsNoTracking().SingleOrDefaultAsync(s => s.Employee == employee, ct);
         var accepted = survey?.CompletedAt is not null || await db.Consents.AnyAsync(c => c.Employee == employee && c.NoticeVersion == instrument.NoticeVersion, ct);
+        return Project(instrument, survey, scope.Institution(), accepted, generation, step);
+    }
+    // Proyección sin escrituras: el informe definitivo proviene exclusivamente de su instantánea.
+    public static DigitalSurveyView Project(DigitalInstrument instrument, DigitalSurvey? survey, DigitalInstitution currentInstitution,
+        bool accepted, Guid generation, string? step = null)
+    {
         var selected = survey is null ? instrument : new DigitalInstrument(survey.InstrumentJson);
         var profile = survey is null ? new JsonObject() : Object(survey.ProfileJson);
         var answers = survey is null ? new() : Answers(survey.AnswersJson);
         var evaluation = selected.Evaluate(profile, answers);
+        var hasResponses = DigitalInstrument.HasResponses(evaluation.Report, answers);
         if (survey?.ReportJson is { } final) evaluation = evaluation with { Report = JsonSerializer.Deserialize<DigitalReport>(final, DigitalInstrument.Json)! };
+        else evaluation = evaluation with { Report = selected.PreliminaryReport(profile, answers, evaluation.Report) };
         // En captura se muestra el contexto vigente; al finalizar se conserva la instantánea.
-        var institution = survey?.CompletedAt is not null ? Object(survey.InstitutionJson) : JsonSerializer.SerializeToNode(scope.Institution(), DigitalInstrument.Json)!.AsObject();
+        var institution = survey?.CompletedAt is not null ? Object(survey.InstitutionJson) : JsonSerializer.SerializeToNode(currentInstitution, DigitalInstrument.Json)!.AsObject();
         var resource = selected.Resource.DeepClone().AsObject(); resource["notice"] = instrument.Resource["notice"]!.DeepClone();
         return new(survey?.Version ?? 0, survey?.CompletedAt, institution, profile, answers, resource, accepted, evaluation,
-            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation);
+            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses);
     }
     private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct)
     {

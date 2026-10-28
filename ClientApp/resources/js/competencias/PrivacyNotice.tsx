@@ -11,7 +11,7 @@ export default function PrivacyNotice({ notice, open, onClose, onAccept, busy = 
     return <Dialog open={open} onClose={close} maxWidth="md" fullWidth aria-labelledby="cd-notice-title" scroll="paper">
         <DialogTitle id="cd-notice-title">Aviso de privacidad</DialogTitle>
         <DialogContent dividers>{notice.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-            <p><a href={notice.institutionalUrl} target="_blank" rel="noopener noreferrer">Consultar el aviso institucional completo</a></p>
+            <p><a href={notice.institutionalUrl} target="_blank" rel="noopener noreferrer" style={{ overflowWrap: 'anywhere' }}>{notice.institutionalUrl}</a></p>
             {onAccept && <FormControlLabel control={<Checkbox checked={confirmed} disabled={busy} onChange={(_, checked) => setConfirmed(checked)} />} label={notice.confirmation} />}
         </DialogContent>
         <DialogActions>{onAccept && <Button href="/" disabled={busy}>Volver al portal</Button>}

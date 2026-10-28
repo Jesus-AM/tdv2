@@ -55,7 +55,7 @@ export default function CompetenciasDigitales() {
             {data.page === -1 && <section className="cd-card cd-welcome"><span className="cd-eyebrow">Tu diagnóstico personal</span><h2>{(data.content as Survey).completedAt ? 'Tu informe definitivo está disponible' : (data.content as Survey).version > 0 ? 'Continúa donde te quedaste' : 'Conoce tus competencias digitales'}</h2><p>Identifica tus fortalezas, las capacidades que requiere tu puesto y una ruta de capacitación en los cinco bloques.</p><p>Puedes guardar tu avance y continuar desde otro dispositivo. Al finalizar, tu respuesta será definitiva.</p>{(data.content as Survey).completedAt ? canReport && <Button variant="contained" onClick={() => router.visit(`${base}/mi-informe-ruta`)}>Consultar Mi informe y ruta</Button> : canSurvey && <Button variant="contained" onClick={() => router.visit(`${base}/encuesta`)}>{(data.content as Survey).version > 0 ? 'Continuar encuesta' : 'Comenzar encuesta'}</Button>}</section>}
             {(data.page === 0 || data.page === 1) && <AggregateView initial={data.content as Aggregates} results={data.page === 1} />}
             {data.page === 2 && <SurveyView initial={data.content as Survey} readOnly={data.readOnly} canReport={canReport} />}
-            {data.page === 3 && <PersonalReport survey={data.content as Survey} />}
+            {data.page === 3 && <PersonalReport survey={data.content as Survey} canSurvey={canSurvey} />}
             {data.page === 4 && <Configuration data={data.content as Config} readOnly={data.readOnly} />}
             </>}
         </main>

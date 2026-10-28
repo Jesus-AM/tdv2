@@ -26,6 +26,7 @@
     <Content Update="Contracts/competencias-digitales-v1.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Update="Contracts/aplicaciones-2026-10-14.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Remove="wwwroot/assets/**;wwwroot/index.html" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.22" />
   </ItemGroup>
 
   <!-- React se inicia con el perfil de solución .slnLaunch. Este proyecto es dueño del publish

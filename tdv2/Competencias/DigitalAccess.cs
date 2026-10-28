@@ -70,6 +70,9 @@ public sealed class DigitalScope(Profile profile, UnitDirectory directory)
     }
     public bool Module(int index) => Profile.Modules.Any(m => m.Path == DigitalRoutes.Base + "/" + DigitalRoutes.Slugs[index])
         && (index is 2 or 3 || index == 4 && Profile.Has("administrador") || index is 0 or 1 && (Institutional || Roots.Length > 0));
+    // PostgresNexoProfiles ya entrega m.orden, m.id; filtrar permisos conserva ese orden publicado.
+    public IEnumerable<int> MenuPages => Profile.Modules.Select(m => Array.FindIndex(DigitalRoutes.Slugs, s => m.Path == DigitalRoutes.Base + "/" + s))
+        .Where(i => i >= 0 && Module(i)).Distinct();
     public string[] Filter(string? unitId)
     {
         var allowed = Allowed;

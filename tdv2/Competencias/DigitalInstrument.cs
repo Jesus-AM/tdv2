@@ -155,13 +155,27 @@ public sealed class DigitalInstrument
             }
             var score = Mean(blockValues); blocks.Add(new(block.Id, block.N, score, ScoreLevel(score)));
         }
+        return new(answered, total, total == 0 ? 0 : answered * 100d / total, pending.ToArray(), BuildReport(profile, answers, tools, blocks, known));
+    }
+    // Sólo la proyección preliminar distingue ausencia de selección de «No utiliza» explícito.
+    // No modifica validación, avance, evaluación definitiva ni informes históricos.
+    public static bool HasResponses(DigitalReport report, IReadOnlyDictionary<string, DigitalAnswer> answers) =>
+        report.Tools.Any(t => t.Value is not null && answers.TryGetValue(t.Id, out var a) && a.State != "pending");
+    public DigitalReport PreliminaryReport(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, DigitalReport evaluated)
+    {
+        var tools = evaluated.Tools.Select(t => !answers.ContainsKey(t.Id) ? t with { Value = null, Gap = 0 } : t).ToList();
+        return BuildReport(profile, answers, tools, evaluated.Blocks.ToList(), Blocks.SelectMany(b => b.Tools).ToDictionary(t => t.Id));
+    }
+    private DigitalReport BuildReport(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, List<DigitalToolResult> tools,
+        List<DigitalBlockResult> blocks, Dictionary<string, DigitalTool> known)
+    {
+        var position = profile["puesto"]?.ToString();
         var global = Mean(blocks.Select(b => b.Score));
         var route = Route(profile, answers, tools, known);
         var transversal = Resource["funcs"]!.AsArray().Where(f => f!["p"]!.ToString() == position && f["t"] is not null
             && f["req"]!.AsArray().Any(pair => tools.Any(t => t.Id == pair![0]!.ToString() && (t.Value >= 0 || t.Value == -2) && t.Value < pair[1]!.GetValue<int>())))
             .SelectMany(f => f!["t"]!.ToString().Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)).Distinct().ToArray();
-        var report = new DigitalReport(global, ScoreLevel(global), blocks.ToArray(), tools.ToArray(), route, transversal, PersonalRecommendations(profile, tools, blocks, transversal));
-        return new(answered, total, total == 0 ? 0 : answered * 100d / total, pending.ToArray(), report);
+        return new(global, ScoreLevel(global), blocks.ToArray(), tools.ToArray(), route, transversal, PersonalRecommendations(profile, tools, blocks, transversal));
     }
     private DigitalCourse[] Route(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, List<DigitalToolResult> results, Dictionary<string, DigitalTool> known)
     {

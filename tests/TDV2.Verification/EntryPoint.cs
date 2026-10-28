@@ -26,6 +26,11 @@ internal static class EntryPoint
     }
     public static async Task<int> Main(string[] args)
     {
+        if (args is ["--verify-digital-presentation", var digitalDestination])
+        {
+            DigitalPresentationTests.Run(digitalDestination);
+            return 0;
+        }
         if (args is ["--verify-public-assets", var assetsDestination])
         {
             await PublicAssetsTests.Run(assetsDestination);

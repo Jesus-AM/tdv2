@@ -65,7 +65,7 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
                 routes = new { inicio = DigitalRoutes.Base, logout = "/logout", home = "/", connect = "/connect" },
                 digital = new { generation = pageGeneration, page = index, user = scope.Profile.User.Name, actor = access.Real.User.Name, readOnly = access.Selection is not null,
                     notice = Service<DigitalInstrument>().Resource["notice"],
-                    navigation = Enumerable.Range(0, 5).Where(scope.Module).Select(i => new { path = DigitalRoutes.Base + "/" + DigitalRoutes.Slugs[i], name = DigitalRoutes.Names[i] }), content } } });
+                    navigation = scope.MenuPages.Select(i => new { path = DigitalRoutes.Base + "/" + DigitalRoutes.Slugs[i], name = DigitalRoutes.Names[i] }), content } } });
     }
     [HttpGet("api/avance")]
     public async Task<IResult> Progress([FromQuery] string? unit, [FromQuery] int? level, [FromQuery] string? position) => Results.Json(await Service<DigitalAggregates>().Read(await access.Require(HttpContext, 0), unit, level, Ct, position));
