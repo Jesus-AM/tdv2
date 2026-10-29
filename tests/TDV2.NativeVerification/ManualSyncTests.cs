@@ -77,6 +77,7 @@ internal static partial class NativeTests
             await db.Sql("INSERT INTO fixture_users VALUES(60,60,'segunda@uacj.mx','Administradora sintética','individual','0060','A','adscripcion'); INSERT INTO fixture_roles VALUES(60,'segunda@uacj.mx',34,'administrador','Administrador')");
             using var other = app.Client(); app.Microsoft.Email = app.Microsoft.Mail = "segunda@uacj.mx";
             app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            await db.VerifiedIdentity(app.Microsoft.Id, 60);
             await Login(app, other); await Csrf(other); app.Sources.Block = "ilda";
             var responses = await Task.WhenAll(client.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }),
                 client.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }), other.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }));

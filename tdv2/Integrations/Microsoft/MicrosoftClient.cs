@@ -14,7 +14,6 @@ using Tdv2.Security;
 namespace Tdv2.Integrations.Microsoft;
 
 public sealed record MicrosoftTokens(string Access, string Refresh, long Expires, string? IdToken = null);
-public sealed record MicrosoftPerson(string ObjectId, string Email);
 
 // Conserva OAuth y Graph /me de Laravel; un claim JWT sin verificar nunca autentica.
 public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings> options)
@@ -81,7 +80,7 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
     public Task<MicrosoftPerson> PhotoIdentity(string token, CancellationToken cancellation) => ReadPerson(token, cancellation, true);
     private async Task<MicrosoftPerson> ReadPerson(string token, CancellationToken cancellation, bool photograph)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me?$select=id,mail,userPrincipalName,displayName");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName,proxyAddresses");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation);
         if (!response.IsSuccessStatusCode)
@@ -90,11 +89,7 @@ public sealed class MicrosoftClient(HttpClient http, IOptions<MicrosoftSettings>
             throw Failure();
         }
         using var document = JsonDocument.Parse(await ReadLimited(response, 65536, cancellation));
-        var id = String(document.RootElement, "id");
-        if (!Guid.TryParse(id, out var objectId)) throw Failure();
-        var mail = String(document.RootElement, "mail");
-        if (string.IsNullOrWhiteSpace(mail)) mail = String(document.RootElement, "userPrincipalName");
-        return new(objectId.ToString(), PostgresNexoProfiles.Email(mail ?? ""));
+        return MicrosoftPerson.Parse(document.RootElement);
     }
     public async Task<MicrosoftPhotoResult> Photo(string token, CancellationToken cancellation)
     {

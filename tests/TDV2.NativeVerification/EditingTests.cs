@@ -400,10 +400,16 @@ internal static partial class NativeTests
         {
             await Login(app, client); await Csrf(client); Check((await AddCollaborator(client)).IsSuccessStatusCode);
             using var helper = app.Client(); app.Microsoft.Email = app.Microsoft.Mail = "colaboradora@uacj.mx"; app.Microsoft.Id = Guid.NewGuid().ToString();
+            await database.VerifiedIdentity(app.Microsoft.Id, 50);
             await Login(app, helper); await Csrf(helper); var tab = Guid.NewGuid(); var block = await Lease(helper, tab, unit: "A3");
-            var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A3/reservas", Edit(Guid.NewGuid(), new BlockRequest("identificacion:inicial", 0))),
-                helper.PostAsJsonAsync("/formatos/A3/reservas", Edit(Guid.NewGuid(), new BlockRequest("identificacion:inicial", 0))));
+            var raceTabs = new[] { Guid.NewGuid(), Guid.NewGuid() };
+            var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A3/reservas", Edit(raceTabs[0], new BlockRequest("identificacion:inicial", 0))),
+                helper.PostAsJsonAsync("/formatos/A3/reservas", Edit(raceTabs[1], new BlockRequest("identificacion:inicial", 0))));
             Check(race.Count(r => r.IsSuccessStatusCode) == 1 && race.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1);
+            // La siguiente adquisición usa otra pestaña; liberar el ganador real de la carrera.
+            var winner = Array.FindIndex(race, r => r.IsSuccessStatusCode);
+            var lease = (await Json(race[winner]))["bloques"]![0]!["reserva"]!["id"]!.ToString();
+            Check((await (winner == 0 ? client : helper).PostAsJsonAsync("/formatos/A3/reservas/liberar", Edit(raceTabs[winner], new BlockRequest("identificacion:inicial", 0, Guid.Parse(lease))))).IsSuccessStatusCode);
             Check((await Patch(helper, Edit(tab, block with { Value = Header("Colaboradora") }), "A3")).IsSuccessStatusCode);
             var ownerTab = Guid.NewGuid();
             Check((await client.PostAsJsonAsync("/formatos/A3/reservas", Edit(ownerTab, new BlockRequest("contexto", 1)))).StatusCode == HttpStatusCode.Conflict);

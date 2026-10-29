@@ -1,5 +1,7 @@
 # Autenticación, Nexo y PostgreSQL
 
+**Actualización 2026-10-29:** resolución canónica antes de permisos mediante UPN/SMTP verificado y vínculo persistente `(tid,oid) → usuario_id`. Sustituye la búsqueda inicial exclusiva por `mail`. Nueva migración y permisos propios TDV2; ningún cambio Azure/Nexo. [Contrato real, comprobaciones, operación y límites](IDENTIDAD_MICROSOFT_ALIAS_20261029.md). La referencia a correo en roles/representación/actividad sigue siendo el correo canónico resuelto; no se prueban alias para obtener permisos.
+
 **Resolución vigente de Mi espacio:** `/accesos` comprueba el registro extensible de sitios antes de renderizar. Cero sitios conserva la sesión, uno abre su destino y varios ofrecen elección. Una consulta fallida muestra indisponibilidad y los accesos comprobados, sin decidir que existe un único sitio. [Detalle y verificación](MI_ESPACIO_SITIOS_20261028.md).
 
 Implementación y pruebas del segundo bloque, ampliadas por [delegación, representación y auditoría](DELEGACION_REPRESENTACION.md). Estado y resultados vigentes en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md). **No es autorización para conectar o migrar las bases existentes.**

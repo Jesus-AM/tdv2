@@ -166,13 +166,16 @@ internal static partial class NativeTests
                 """);
             // Ambas identidades sintéticas prefieren el índice 1: PostgreSQL debe resolver la colisión.
             app.Microsoft.Email = "color24@uacj.mx"; app.Microsoft.Mail = "color24@uacj.mx"; app.Microsoft.Id = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+            await database.VerifiedIdentity(app.Microsoft.Id, 21);
             using var other = app.Client(); await Login(app, other); await Csrf(other);
             var a = Guid.NewGuid(); var b = Guid.NewGuid();
-            await Task.WhenAll(Lease(client, a), Lease(other, b, "identificacion:inicial"));
+            var held = await Task.WhenAll(Lease(client, a), Lease(other, b, "identificacion:inicial"));
             var blocks = (await Live(client, a))["bloques"]!.AsArray();
             Check(blocks.Select(x => x!["reserva"]!["color"]!.GetValue<int>()).Distinct().Count() == 2);
-            var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A/reservas", Edit(a, new BlockRequest("preguntas:0", 0))),
-                other.PostAsJsonAsync("/formatos/A/reservas", Edit(b, new BlockRequest("preguntas:0", 0))));
+            // Competir por un bloque habilitado en la etapa vigente, después de liberarlo.
+            Check((await client.PostAsJsonAsync("/formatos/A/reservas/liberar", Edit(a, held[0]))).IsSuccessStatusCode);
+            var race = await Task.WhenAll(client.PostAsJsonAsync("/formatos/A/reservas", Edit(a, new BlockRequest("contexto", 0))),
+                other.PostAsJsonAsync("/formatos/A/reservas", Edit(b, new BlockRequest("contexto", 0))));
             Check(race.Count(r => r.IsSuccessStatusCode) == 1 && race.Count(r => r.StatusCode == HttpStatusCode.Conflict) == 1);
         });
     }

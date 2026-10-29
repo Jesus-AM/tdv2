@@ -29,6 +29,8 @@ public sealed class DigitalNexo : IDigitalNexo
         operations = new(connections, profiles, operationsLogger);
     }
     public Task<Profile> ForEmail(string email, CancellationToken ct) => profiles.ForEmail(email, ct);
+    public Task<Profile> ForUser(long userId, CancellationToken ct) => profiles.ForUser(userId, ct);
+    public Task<IReadOnlyList<NexoIdentity>> IdentitiesForAddresses(string[] addresses, CancellationToken ct) => profiles.IdentitiesForAddresses(addresses, ct);
     public Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken ct) => profiles.Grants(email, ct);
     public Task<JsonNode> Represent(string action, string actor, JsonObject? data, CancellationToken ct) => operations.Represent(action, actor, data, ct);
 }
@@ -90,7 +92,7 @@ public sealed class DigitalAccess(IDigitalNexo nexo, IFormStore catalogs, ISessi
         if (Current is not null) return Current;
         var email = http.User.FindFirstValue(ClaimTypes.Email);
         if (email is null || !await identity.Matches(http.User, http.RequestAborted)) throw new DomainProblem(401, "Inicia sesión con tu cuenta institucional.");
-        Real = await nexo.ForEmail(email, http.RequestAborted); ValidateEmployee(Real, email);
+        Real = await nexo.ForActor(http.User, http.RequestAborted); ValidateEmployee(Real, email);
         var snapshot = await state.Load(http.RequestAborted); Selection = snapshot.Selection;
         var safe = HttpMethods.IsGet(http.Request.Method) || HttpMethods.IsHead(http.Request.Method);
         if (!safe && (http.Request.Headers["X-TDV2-Context"].FirstOrDefault() ?? "own") != snapshot.Key)

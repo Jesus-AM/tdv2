@@ -25,7 +25,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
         if (Real is not null) return Real;
         if (http.User.Identity?.IsAuthenticated != true || string.IsNullOrWhiteSpace(Actor(http))
             || !await identity.Matches(http.User, http.RequestAborted)) throw new DomainProblem(401, "Inicia sesión con tu cuenta institucional de Microsoft 365.");
-        Real = await nexo.ForEmail(Actor(http), http.RequestAborted);
+        Real = await nexo.ForActor(http.User, http.RequestAborted);
         if (Real.User.Email != Actor(http) || Real.User.AccountType != "individual" || Real.Roles.Count == 0)
             throw new DomainProblem(403, ApplicationEntry.Denied("/inicio"));
         return Real;

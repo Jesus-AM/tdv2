@@ -86,7 +86,7 @@ public sealed class ParticipantPhotos(Tdv2DbContext db, RequestAccess access, Mi
                     if (photo.Status is not (MicrosoftPhotoStatus.Found or MicrosoftPhotoStatus.Missing)) return photo;
                     // Acreditar también la ausencia: un token de otra identidad no puede invalidar esta foto.
                     var person = await microsoft.PhotoIdentity(credential, operation);
-                    if (person.ObjectId != user.MicrosoftId!.Value.ToString() || person.Email != user.Email)
+                    if (person.ObjectId != user.MicrosoftId!.Value.ToString())
                         return new(MicrosoftPhotoStatus.Unavailable, Cause: "identity_mismatch");
                     return photo;
                 }

@@ -53,6 +53,7 @@ internal sealed class NativeDatabase
         await Sql("""
             GRANT USAGE ON SCHEMA public TO tdv2_native_app,tdv2_native_nexo;
             GRANT SELECT,INSERT,UPDATE,DELETE ON users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur TO tdv2_native_app;
+            GRANT SELECT,INSERT ON tdv2_identity_links TO tdv2_native_app;
             GRANT SELECT,INSERT,UPDATE,DELETE ON formato_bloques,formato_operaciones,formato_posiciones,formato_exclusiones_ilda TO tdv2_native_app;
             GRANT SELECT,INSERT ON formato_envios_etapas TO tdv2_native_app;
             GRANT SELECT,UPDATE ON configuracion_procesos TO tdv2_native_app;
@@ -73,6 +74,7 @@ internal sealed class NativeDatabase
     internal async Task Reset()
     {
         await Sql("UPDATE configuracion_procesos SET version=1,niveles=ARRAY[2,3],tipos_excluidos=ARRAY['N'],actualizado_en=NULL");
+        await Sql("TRUNCATE public.tdv2_identity_links; INSERT INTO public.tdv2_identity_links VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',20,now(),'fixture','SYNTHETIC-VERIFIED-BINDING')");
         await Sql("""
             TRUNCATE sincronizacion_configuracion,sincronizacion_ejecuciones,sincronizacion_catalogos,sincronizaciones_institucionales,ilda_informacion_area,sii_modulos,sii_aplicaciones_moviles,sii_aplicaciones_web,aplicaciones_catalogo,aplicaciones_importaciones RESTART IDENTITY;
             INSERT INTO sincronizacion_configuracion(id) VALUES(1);
@@ -102,6 +104,8 @@ internal sealed class NativeDatabase
               ('B',2026,'200','Área sintética B','0003',null,2,'Activo',true);
             """);
     }
+    // Evidencia sintética explícita. Nunca inferir este vínculo del correo ni del login.
+    internal Task VerifiedIdentity(string objectId, long canonicalId) => Sql("INSERT INTO public.tdv2_identity_links VALUES ($1,$2,$3,now(),'fixture','SYNTHETIC-VERIFIED-BINDING')", Guid.Parse(FakeMicrosoft.Tenant), Guid.Parse(objectId), canonicalId);
     internal async Task Sql(string sql, params object[] parameters)
     {
         await using var connection = new NpgsqlConnection(Admin); await connection.OpenAsync();

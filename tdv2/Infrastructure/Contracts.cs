@@ -22,6 +22,8 @@ public interface IFormStore
 public interface INexoProfiles
 {
     Task<Profile> ForEmail(string email, CancellationToken cancellation);
+    Task<Profile> ForUser(long userId, CancellationToken cancellation) => throw new DomainProblem(503, Tdv2.Web.ApplicationEntry.Unavailable);
+    Task<IReadOnlyList<NexoIdentity>> IdentitiesForAddresses(string[] addresses, CancellationToken cancellation) => throw new DomainProblem(503, Tdv2.Web.ApplicationEntry.Unavailable);
     Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken cancellation);
 }
 public interface ICollaborationListingStore

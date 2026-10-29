@@ -382,6 +382,7 @@ internal static partial class NativeTests
         RegisterToolCatalogCases(database, Test);
         RegisterFormIntegrityCases(database, Test);
         RegisterSystemModuleCases(database, Test); RegisterDeliveryCases(database, Test);
+        AddMicrosoftAliasTests(database, cases);
         if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
             cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
         // El alcance de colaboradores centrales forma parte de la autorización de captura.

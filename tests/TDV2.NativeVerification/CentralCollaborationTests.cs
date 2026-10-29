@@ -117,6 +117,7 @@ internal static partial class NativeTests
         {
             await Login(app, client); await Csrf(client); Check((await AddCollaborator(client, "dependencias")).IsSuccessStatusCode);
             using var collaborator = app.Client(); app.Microsoft.Mail = app.Microsoft.Email = "colaboradora@uacj.mx"; app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            await database.VerifiedIdentity(app.Microsoft.Id, 50);
             await Login(app, collaborator); await Csrf(collaborator);
             await database.Sql("INSERT INTO fixture_grants VALUES(101,'colaboradora@uacj.mx',31,'A4','central'); INSERT INTO fixture_roles SELECT usuario_aplicacion_id,email,31,'colaborador_local','Local' FROM fixture_users WHERE email='colaboradora@uacj.mx'");
             Check((await VisibleForms(collaborator)).SequenceEqual(new[] { "A", "A3" }));

@@ -65,8 +65,8 @@ internal static class MigrationTests
             var cs = await Fresh("baseline");
             await using var db = Context(cs);
             Check(!db.Database.HasPendingModelChanges(), "snapshot EF coincide con el modelo completo");
-            Check(db.Model.GetEntityTypes().Count() == 25 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 9, "25 entidades y nueve relaciones locales; sin esquemas institucionales");
-            Check(db.Database.GetMigrations().Count() == 13, "trece migraciones estándar descubiertas por EF");
+            Check(db.Model.GetEntityTypes().Count() == 26 && db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Count() == 9, "26 entidades y nueve relaciones locales; sin FK entre bases");
+            Check(db.Database.GetMigrations().Count() == 14, "catorce migraciones estándar descubiertas por EF");
             Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 0, "construir DbContext y consultar modelo no aplica DDL");
             await db.GetService<IMigrator>().MigrateAsync(db.Database.GetMigrations().ElementAt(7));
             await using (var diagnostic = new NpgsqlConnection(cs))
@@ -100,8 +100,8 @@ internal static class MigrationTests
                     await tx.RollbackAsync();
                 }
             }
-            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 13 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
-            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 26, "25 tablas y único historial __EFMigrationsHistory");
+            Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 14 && !(await db.Database.GetPendingMigrationsAsync()).Any(), "aplicación con cuenta sin superusuario");
+            Check(Convert.ToInt32(await Sql(cs, "SELECT count(*) FROM pg_tables WHERE schemaname='public'")) == 27, "26 tablas y único historial __EFMigrationsHistory");
             Check((bool)(await Sql(cs, "SELECT count(*)=1 AND bool_and(NOT activa AND NOT incluir_ilda AND proxima_en IS NULL AND propietario IS NULL AND reserva_hasta IS NULL) FROM sincronizacion_configuracion"))!, "configuración inicial pausada y sin reservas");
             Check(Convert.ToInt32(await Sql(cs, "SELECT (SELECT count(*) FROM users)+(SELECT count(*) FROM formatos_ur)+(SELECT count(*) FROM unidades_responsables_poa)+(SELECT count(*) FROM sincronizacion_ejecuciones)")) == 0, "migraciones sin usuarios, formatos, catálogos ni trabajos sintéticos");
             var columns = (string)(await Sql(cs, DatabaseInspection.ColumnsSql))!;
@@ -146,12 +146,12 @@ internal static class MigrationTests
                     && (await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "fallo en segunda migración revierte datos e historial");
                 await Sql(partial, "DROP TRIGGER fail_seed ON sincronizacion_configuracion; DROP FUNCTION fixture_fail_seed()");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 13, "reanudación aplica sólo la pendiente");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 14, "reanudación aplica sólo la pendiente");
                 await partialDb.GetService<IMigrator>().MigrateAsync("0");
                 Check(Convert.ToInt32(await Sql(partial, "SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename <> '__EFMigrationsHistory'")) == 0,
                     "Down revierte únicamente las tablas EF en la base desechable");
                 await partialDb.Database.MigrateAsync();
-                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 13, "Up después de Down recrea esquema y configuración pausada");
+                Check((await partialDb.Database.GetAppliedMigrationsAsync()).Count() == 14, "Up después de Down recrea esquema y configuración pausada");
             }
             var upgrade = await Fresh("upgrade");
             await using (var previous = Context(upgrade))
@@ -177,11 +177,13 @@ internal static class MigrationTests
                     && (bool)(await Sql(upgrade, "SELECT ejercicio=2025 AND version=7 AND porcentaje=25 AND enviado_en IS NULL FROM formatos_ur"))!,
                     "actualización conserva JSON, prioridad antigua, versión e historia tipo 0; completa ejercicio sin enviar");
                 await Sql(upgrade, "UPDATE formatos_ur SET enviado_en=clock_timestamp(),instantanea_envio='{}'");
-                // Sólo los catálogos nuevos vacíos pueden retirarse; la protección de enviados impide bajar de StageSubmissions.
+                // EF confirma cada migración revertida. Retira la tabla nueva vacía;
+                // RemoveUsedMedia impide continuar cuando existen formatos históricos.
                 Check(await Reject(() => previous.GetService<IMigrator>().MigrateAsync(previous.Database.GetMigrations().ElementAt(1)))
-                    && (await previous.Database.GetAppliedMigrationsAsync()).Count() == 13
+                    && (await previous.Database.GetAppliedMigrationsAsync()).SequenceEqual(previous.Database.GetMigrations().Take(13))
+                    && await Sql(upgrade, "SELECT to_regclass('public.tdv2_identity_links')::text") is DBNull
                     && Equals(original, await Sql(upgrade, "SELECT contenido::text FROM formatos_ur")),
-                    "Down rechaza retirar protección de formatos enviados y conserva contenido e historial");
+                    "Down retira sólo identidad vacía y rechaza continuar; conserva formatos y sus trece migraciones");
             }
             var concurrent = await Fresh("concurrent");
             var exclusionsUpgrade = await Fresh("exclusions");
@@ -208,6 +210,7 @@ internal static class MigrationTests
                     "exclusiones: reversión rechazada para no hacer reaparecer inventario retirado");
             }
             await RemoveUsedMediaMigrationTests.Run(await Fresh("remove_media"), Sql, Check);
+            await VerifiedIdentityMigrationTests.Run(await Fresh("identity_links"), Sql, Check);
             await CurrentRecipientsMigrationTests.Run(await Fresh("current_recipients"), database.Workspace, Sql, Check);
             var moduleConnection = await Fresh("sii_modules");
             await using (var modules = Context(moduleConnection))
@@ -230,7 +233,7 @@ internal static class MigrationTests
                 await applications.GetService<IMigrator>().MigrateAsync("20261009171656_StageSubmissions");
                 Check(await Inspect(applicationsUpgrade), "verificador reconoce diez migraciones con catálogos de aplicaciones pendientes");
                 await applications.Database.MigrateAsync();
-                Check(await Inspect(applicationsUpgrade), "verificador reconoce doce migraciones con aplicaciones y ninguna identidad local adicional");
+                Check(await Inspect(applicationsUpgrade), "verificador reconoce esquema actual con aplicaciones y tabla de vínculos vacía");
             }
             var photographUpgrade = await Fresh("photos");
             await using (var existing = Context(photographUpgrade))

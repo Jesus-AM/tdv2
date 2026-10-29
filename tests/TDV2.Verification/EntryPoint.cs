@@ -26,6 +26,11 @@ internal static class EntryPoint
     }
     public static async Task<int> Main(string[] args)
     {
+        if (args is ["--review-identity-links", var identityDestination])
+        {
+            await IdentityLinkReviewTests.Run(identityDestination);
+            return 0;
+        }
         if (args is ["--verify-digital-edition", var editionDestination])
         {
             DigitalEditionTests.Run(editionDestination);

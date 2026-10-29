@@ -39,7 +39,8 @@ internal static class RemoveUsedMediaMigrationTests
             """);
         var rejected = false;
         try { await db.Database.MigrateAsync(); } catch (PostgresException) { rejected = true; }
-        check(rejected && JsonNode.DeepEquals(before, await Snapshot()) && (await db.Database.GetPendingMigrationsAsync()).Count() == 1,
+        check(rejected && JsonNode.DeepEquals(before, await Snapshot())
+            && (await db.Database.GetPendingMigrationsAsync()).SequenceEqual(new[] { "20261016190000_RemoveUsedMedia", "20261029163206_VerifiedInstitutionalIdentityLinks" }),
             "medios: fallo tardío revierte documentos, instantáneas, reservas, recibos e historial");
         check(Convert.ToInt32(await sql(connection, "SELECT count(*) FROM pg_trigger WHERE tgname IN ('formato_enviado_inmutable','respuestas_etapas_inmutables','envio_etapa_inmutable') AND tgenabled='O'")) == 3,
             "medios: rollback restaura los tres triggers de inmutabilidad");

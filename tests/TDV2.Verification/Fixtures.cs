@@ -41,6 +41,7 @@ internal sealed class FakeNexo : INexoProfiles
     internal IReadOnlyList<Grant> CurrentGrants = [];
     public Task<Profile> ForEmail(string email, CancellationToken cancellation) => Outage
         ? throw new InvalidOperationException("SYNTHETIC_SECRET_MUST_NEVER_ESCAPE") : Task.FromResult(Current);
+    public async Task<Profile> ForUser(long userId, CancellationToken cancellation) => (await ForEmail(Current.User.Email, cancellation)) with { NexoUserId = userId };
     public Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken cancellation) => Outage
         ? throw new InvalidOperationException("SYNTHETIC_SECRET_MUST_NEVER_ESCAPE") : Task.FromResult(CurrentGrants);
 }
@@ -78,7 +79,7 @@ internal sealed class SyntheticAuthentication(IOptionsMonitor<AuthenticationSche
     {
         if (!Request.Headers.ContainsKey("X-Synthetic-Session")) return Task.FromResult(AuthenticateResult.NoResult());
         var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "synthetic-id"),
-            new Claim(ClaimTypes.Email, "persona@example.test"), new Claim(ClaimTypes.Name, "Persona sintética")], Scheme.Name));
+            new Claim(ClaimTypes.Email, "persona@example.test"), new Claim(ClaimTypes.Name, "Persona sintética"), new Claim(NexoActorIdentity.Claim, "20")], Scheme.Name));
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name)));
     }
 }

@@ -17,8 +17,9 @@ public sealed record Unit(string Id, string Code, string? Description, int Level
 public sealed record Person(string Email, string Name, string? Employee, string? UnitId,
     string Origin = "adscripcion", string AccountType = "individual");
 public sealed record Role(long Id, string Key, string Name);
+public sealed record NexoIdentity(long Id, string Email, string Name, string AccountType);
 public sealed record Module(long Id, string Key, string Name, string Path, long? Parent = null, string Icon = "mdi-view-grid-outline");
-public sealed record Profile(Person User, IReadOnlyList<Role> Roles, IReadOnlyList<Module> Modules)
+public sealed record Profile(Person User, IReadOnlyList<Role> Roles, IReadOnlyList<Module> Modules, long? NexoUserId = null)
 {
     public bool Has(string role) => Roles.Any(r => r.Key == role);
     // Alias temporal: conserva las concesiones anteriores durante la transición en Nexo.

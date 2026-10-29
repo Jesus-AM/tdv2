@@ -1,5 +1,19 @@
 # Estado de migración TDV2
 
+## 2026-10-29 — Revisión de necesidad del vínculo Microsoft–Nexo
+
+**Revisado:** los identificadores e índice único de `users` se reutilizan; no se justifica otra tabla por lectura de alias o duplicados Microsoft locales. El esquema anterior carece del ID canónico Nexo asociado permanentemente a `(tid,oid)`. Correo, sesiones, tokens, empleado y auditoría no son equivalentes. La tabla propuesta aporta ese vínculo; una columna nueva sería una alternativa que también requiere cambiar el esquema. Se mantiene `20261029163206_VerifiedInstitutionalIdentityLinks` pendiente, sin cambios al código productivo ni eliminación de trabajo anterior.
+
+**Probado ahora:** compilación sin errores/advertencias y 23 comprobaciones de metadatos EF, parser UPN/SMTP, HTTP `/accesos`/Procedimientos y servicios de acceso de Competencias, con fuentes sintéticas en memoria. Incluye acceso exclusivo, ambos/ninguno, reasignación de correo, revocación y falla temporal. Cero conexiones y migraciones ejecutadas en esta revisión; no se reetiquetan las pruebas PostgreSQL anteriores como nuevas. [Inventario, justificación, operaciones exactas, alternativas y evidencia](docs/migracion/REVISION_VINCULO_IDENTIDAD_20261029.md).
+
+## 2026-10-29 — Identidad canónica y alias Microsoft
+
+**Implementado:** selección explícita de perfil Graph, correspondencia UPN/SMTP institucional única antes de roles, identidad estable `(tid,oid)` vinculada al `usuario_id` existente de Nexo y conservación del ID local. Se integra la aclaración del usuario: no descartar por `mail` distinto ni elegir por permisos; Chat/SIP no se interpreta como SMTP. Ambigüedades, vínculos contradictorios y fallas de comprobación no amplían acceso. Foto por objeto validado, autorización independiente y Mi espacio conservados. Nueva migración propia `20261029163206_VerifiedInstitutionalIdentityLinks`, sin modificaciones a migraciones previas ni DigitalDbContext.
+
+**Verificación:** tipos/Vite y compilación completa de la solución correctos, 99 pruebas frontend, 116 de reglas/transporte, 53 PostgreSQL de identidad/reservas, 69 de Competencias, 73 de migraciones, seis de catálogos y recorridos de navegador (20 grupos Mi espacio, 24 Competencias). Repeticiones dirigidas: 16 de alias/captura/auditoría/accesos; última ejecución, 37 de identidad/OAuth/401 y cuatro de conservación de datos y auditoría correctas. Las suites se solapan, no representan casos adicionales independientes. Clústeres detenidos. Evidencias y comandos en la [guía de esta revisión](docs/migracion/IDENTIDAD_MICROSOFT_ALIAS_20261029.md). PostgreSQL/ASP.NET reales de prueba, Microsoft y publicaciones Nexo sintéticos; ninguna recepción institucional de actividad se afirma a partir de esos transportes.
+
+**Pendiente operativo:** aplicar explícitamente la migración en TDV2 y conceder SELECT/INSERT, comprobar ClientId/tenant efectivos y consentimientos del registro, y verificar el caso real con los campos seleccionados de `/me`. Nexo no publica un vínculo estable Azure: la tabla propia conserva la acreditación obtenida en login; conflictos o usuarios fuera de las publicaciones requieren revisión institucional. No se tocó Azure, Nexo ni bases institucionales, no hubo push/despliegue. **SII_LECTURA_O_INTEGRIDAD permanece sin causa confirmada.**
+
 Inicio: 2026-09-30. Última adaptación: **2026-10-29**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
 
 ## 2026-10-29 — Auditoría ampliada del costo de autoguardado

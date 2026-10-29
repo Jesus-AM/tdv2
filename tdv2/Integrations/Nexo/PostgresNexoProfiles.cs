@@ -45,24 +45,29 @@ public sealed class PostgresNexoProfiles : INexoProfiles
             : Positive(row["id"]) != expectedApplication || Text(row, "clave") == "tdv2") throw Unavailable();
         return (application = Positive(row["id"])).Value;
     }
-    public async Task<Profile> ForEmail(string email, CancellationToken cancellation)
+    public Task<Profile> ForEmail(string email, CancellationToken cancellation) => LoadProfile(Email(email), null, cancellation);
+    public Task<Profile> ForUser(long userId, CancellationToken cancellation) => userId > 0 ? LoadProfile(null, userId, cancellation) : throw Denied();
+    private async Task<Profile> LoadProfile(string? email, long? userId, CancellationToken cancellation)
     {
-        email = Email(email);
-        if (profiles.TryGetValue(email, out var existing)) return existing;
+        var key = userId is null ? "email:" + email : "id:" + userId;
+        if (profiles.TryGetValue(key, out var existing)) return existing;
         try
         {
             var app = await ApplicationId(cancellation);
             await using var connection = await connections.Open(ConnectionName, cancellation);
             JsonObject row;
-            await using (var command = new NpgsqlCommand("SELECT to_jsonb(u)::text FROM public.nexo_usuarios u WHERE email = $1 LIMIT 2", connection))
+            await using (var command = new NpgsqlCommand("SELECT to_jsonb(u)::text FROM public.nexo_usuarios u WHERE " + (userId is null ? "email" : "usuario_id") + " = $1 LIMIT 2", connection))
             {
-                command.Parameters.AddWithValue(email);
+                command.Parameters.AddWithValue(userId is null ? (object)email! : userId.Value);
                 await using var reader = await command.ExecuteReaderAsync(cancellation);
                 if (!await reader.ReadAsync(cancellation)) throw Denied();
                 row = JsonNode.Parse(reader.GetString(0))!.AsObject();
                 if (await reader.ReadAsync(cancellation)) throw Unavailable();
             }
-            if (Text(row, "email")?.Trim().ToLowerInvariant() != email || Text(row, "tipo_cuenta") != "individual") throw Denied();
+            var canonicalId = Positive(row["usuario_id"]);
+            var canonicalEmail = Email(Text(row, "email") ?? "");
+            if (userId is not null && canonicalId != userId || email is not null && canonicalEmail != email || Text(row, "tipo_cuenta") != "individual") throw Denied();
+            email = canonicalEmail;
             foreach (var field in new[] { "num_empleado", "ID_UR", "origen_ur" }) if (!row.ContainsKey(field)) throw Unavailable();
             var membership = Positive(row["usuario_aplicacion_id"]);
             var roles = new List<Role>();
@@ -84,13 +89,36 @@ public sealed class PostgresNexoProfiles : INexoProfiles
                 await using var reader = await command.ExecuteReaderAsync(cancellation);
                 while (await reader.ReadAsync(cancellation)) modules.Add(new(reader.GetInt64(0), reader.GetString(1), reader.GetString(2), reader.IsDBNull(3) ? "" : reader.GetString(3), reader.IsDBNull(4) ? null : reader.GetInt64(4), reader.IsDBNull(5) ? "mdi-view-grid-outline" : reader.GetString(5)));
             }
-            var profile = new Profile(new(email, Text(row, "nombre") ?? email, Text(row, "num_empleado"), Text(row, "ID_UR"), Text(row, "origen_ur") ?? "sin_ur"), roles, modules);
-            profiles[email] = profile;
+            var profile = new Profile(new(email, Text(row, "nombre") ?? email, Text(row, "num_empleado"), Text(row, "ID_UR"), Text(row, "origen_ur") ?? "sin_ur"), roles, modules, canonicalId);
+            profiles["email:" + email] = profile; profiles["id:" + canonicalId] = profile;
             return profile;
         }
         catch (DomainProblem) { throw; }
         catch (Exception error) when (error is not OperationCanceledException)
         { logger.LogWarning("No se pudo consultar Nexo. Tipo: {Type}", error.GetType().Name); throw Unavailable(); }
+    }
+    // Resolución de identidad antes de consultar permisos. Todas las coincidencias;
+    // nunca elegir una dirección según los roles que tenga asignados.
+    public async Task<IReadOnlyList<NexoIdentity>> IdentitiesForAddresses(string[] addresses, CancellationToken cancellation)
+    {
+        try
+        {
+            await ApplicationId(cancellation);
+            await using var connection = await connections.Open(ConnectionName, cancellation);
+            await using var command = new NpgsqlCommand("SELECT DISTINCT usuario_id::bigint,email,nombre,tipo_cuenta FROM public.nexo_usuarios WHERE email = ANY($1)", connection);
+            command.Parameters.AddWithValue(addresses.Select(Email).Distinct().ToArray());
+            await using var reader = await command.ExecuteReaderAsync(cancellation); var identities = new List<NexoIdentity>();
+            while (await reader.ReadAsync(cancellation))
+            {
+                var id = reader.GetInt64(0); if (id < 1) throw Unavailable();
+                var email = Email(reader.GetString(1));
+                identities.Add(new(id, email, reader.IsDBNull(2) ? email : reader.GetString(2), reader.IsDBNull(3) ? "" : reader.GetString(3)));
+            }
+            return identities;
+        }
+        catch (DomainProblem) { throw; }
+        catch (Exception error) when (error is not OperationCanceledException)
+        { logger.LogWarning("No se pudo comprobar la correspondencia institucional. Tipo: {Type}", error.GetType().Name); throw Unavailable(); }
     }
     public async Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken cancellation)
     {

@@ -13,7 +13,7 @@ CREATE TABLE registro_actividad(id bigserial PRIMARY KEY,evento_uuid uuid,ocurri
 INSERT INTO aplicaciones VALUES(87,'Competencias sintéticas',true);
 INSERT INTO cuentas_postgresql VALUES(1,87,'cd_native_nexo','aplicacion',true,null,null,'aplicado',1,1,true);
 INSERT INTO cuenta_postgresql_aplicacion VALUES(1,87,true);
-INSERT INTO usuarios VALUES(10,'persona@uacj.mx','Persona sintética','individual',true),(11,'otra@uacj.mx','Otra persona sintética','individual',true);
-INSERT INTO usuario_aplicacion VALUES(20,10,87,true,false),(21,11,87,true,false);
+INSERT INTO usuarios VALUES(20,'persona@uacj.mx','Persona sintética','individual',true),(21,'otra@uacj.mx','Otra persona sintética','individual',true);
+INSERT INTO usuario_aplicacion VALUES(10,20,87,true,false),(11,21,87,true,false);
 INSERT INTO roles VALUES(30,'participante','Participante',87,true),(31,'administrador','Administrador',87,true);
-INSERT INTO usuario_rol VALUES(20,30),(21,30);
+INSERT INTO usuario_rol VALUES(10,30),(11,30);

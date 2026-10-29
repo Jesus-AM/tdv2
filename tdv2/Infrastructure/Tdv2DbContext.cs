@@ -7,6 +7,7 @@ namespace Tdv2.Infrastructure;
 public sealed class Tdv2DbContext(DbContextOptions<Tdv2DbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<InstitutionalIdentityLink> IdentityLinks => Set<InstitutionalIdentityLink>();
     public DbSet<GraphToken> GraphTokens => Set<GraphToken>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
     public DbSet<ResponsibleUnit> ResponsibleUnits => Set<ResponsibleUnit>();

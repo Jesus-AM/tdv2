@@ -1,5 +1,7 @@
 # Mi espacio y selector extensible de sitios — 2026-10-28
 
+**Identidad actualizada 2026-10-29:** se conserva esta selección de sitios, pero el actor se resuelve primero mediante el vínculo Microsoft/canónico o UPN/SMTP verificado único. No se mezclan permisos de distintas cuentas encontradas por alias. [Requisitos, nueva migración propia y evidencia](IDENTIDAD_MICROSOFT_ALIAS_20261029.md).
+
 Esta revisión se aplica sobre el trabajo pendiente de acceso independiente y autoguardado fluido. No restaura archivos ni modifica encuesta, instrumento, informe, auditoría manual, permisos Nexo, conexiones, paquetes o migraciones.
 
 ## Comportamiento vigente

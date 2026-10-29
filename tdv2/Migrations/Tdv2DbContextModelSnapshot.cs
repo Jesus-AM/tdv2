@@ -544,6 +544,47 @@ namespace Tdv2.Migrations
                     b.ToTable("ilda_informacion_area", "public");
                 });
 
+            modelBuilder.Entity("Tdv2.Domain.Entities.InstitutionalIdentityLink", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("microsoft_tenant_id");
+
+                    b.Property<Guid>("ObjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("microsoft_id");
+
+                    b.Property<long>("NexoUserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("nexo_user_id");
+
+                    b.Property<string>("VerificationReference")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("verification_reference");
+
+                    b.Property<DateTimeOffset>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verified_at");
+
+                    b.Property<string>("VerifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("verified_by");
+
+                    b.HasKey("TenantId", "ObjectId");
+
+                    b.HasIndex("NexoUserId")
+                        .IsUnique();
+
+                    b.ToTable("tdv2_identity_links", "public", t =>
+                        {
+                            t.HasCheckConstraint("identity_link_verified", "nexo_user_id > 0 AND length(trim(verified_by)) > 0 AND length(trim(verification_reference)) > 0");
+                        });
+                });
+
             modelBuilder.Entity("Tdv2.Domain.Entities.InstitutionalSynchronization", b =>
                 {
                     b.Property<long>("Id")

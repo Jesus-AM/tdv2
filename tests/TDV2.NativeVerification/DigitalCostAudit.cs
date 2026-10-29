@@ -65,6 +65,7 @@ internal sealed partial class DigitalTests
                 INSERT INTO usuario_aplicacion SELECT 2000+i,1000+i,87,true,false FROM generate_series(1,25) i;
                 INSERT INTO usuario_rol SELECT 2000+i,30 FROM generate_series(1,25) i;
                 """);
+            for (var i = 1; i <= 25; i++) await shared.VerifiedIdentity($"bbbbbbbb-bbbb-4bbb-8bbb-{i:000000000000}", 1000 + i);
             phases.Add(new {name="preparar catálogo sintético",ms=setupClock.Elapsed.TotalMilliseconds,sql=await CostSqlSnapshot()});
 
             // Kestrel/HTTP y cookies reales. El marcador de transporte sólo existe en Testing.

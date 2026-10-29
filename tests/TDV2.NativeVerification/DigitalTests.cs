@@ -495,7 +495,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(page["props"]!["auth"]!["user"]!["name"]!.ToString() == "Persona sintética");
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is null);
         });
-        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases); AddApplicationEntryTests(cases); AddAutosaveMeasurements(cases); AddCostAudit(cases);
+        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases); AddApplicationEntryTests(cases); AddAutosaveMeasurements(cases); AddCostAudit(cases); AddMicrosoftIdentityTests(cases);
         if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
             cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
         var results = new List<object>(); var failures = 0;

@@ -18,6 +18,7 @@ internal static partial class NativeTests
         INSERT INTO fixture_roles VALUES(11,'encargada@uacj.mx',30,'responsable_ur','Responsable'),(12,'ajena@uacj.mx',30,'responsable_ur','Responsable');
         INSERT INTO fixture_delegation VALUES('encargada@uacj.mx','A','0001',2);
         INSERT INTO fixture_capability VALUES('persona@uacj.mx',true,true,'rama_ur','A',30);
+        INSERT INTO tdv2_identity_links VALUES('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',21,now(),'fixture','SYNTHETIC-VERIFIED-BINDING');
         """);
     private static Task<HttpResponseMessage> AddCollaborator(HttpClient client, string kind = "local", string unit = "A", string email = "colaboradora@uacj.mx", string origin = "A4") =>
         client.PostAsJsonAsync("/colaboradores", new { ur = unit, email, id_ur = origin, tipo = kind, rol_id = 999, actor_email = "forjado@uacj.mx", num_empleado = "inventado", id_ur_alcance = "B" });
@@ -65,6 +66,7 @@ internal static partial class NativeTests
             Check((await AddCollaborator(client, unit: "A")).StatusCode == HttpStatusCode.Forbidden);
             Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM colaboraciones_ur WHERE id_ur_alcance<>'A3' OR ur_otorgante<>'A3'")) == 0);
             using var helper = app.Client(); app.Microsoft.Mail = app.Microsoft.Email = "misma@uacj.mx"; app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            await database.VerifiedIdentity(app.Microsoft.Id, 70);
             await Login(app, helper);
             Check((await Json(await helper.GetAsync("/formatos/A3")))["props"]!["editable"]!.GetValue<bool>());
             foreach (var unit in new[] { "A", "A4", "B" }) Check((await helper.GetAsync("/formatos/" + unit)).StatusCode == HttpStatusCode.Forbidden);
@@ -180,6 +182,7 @@ internal static partial class NativeTests
         {
             await Login(app, client); await Csrf(client); Check((await AddCollaborator(client)).IsSuccessStatusCode);
             using var collaborator = app.Client(); app.Microsoft.Mail = app.Microsoft.Email = "colaboradora@uacj.mx"; app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            await database.VerifiedIdentity(app.Microsoft.Id, 50);
             await Login(app, collaborator); await Csrf(collaborator);
             var page = await Json(await collaborator.GetAsync("/formatos/A3")); var content = page["props"]!["contenido"]!;
             Check((await SaveAll(collaborator, "A3", 0, content )).IsSuccessStatusCode);
@@ -194,6 +197,7 @@ internal static partial class NativeTests
         {
             await Login(app, client); await Csrf(client); Check((await AddCollaborator(client, "dependencias")).IsSuccessStatusCode);
             using var collaborator = app.Client(); app.Microsoft.Mail = app.Microsoft.Email = "colaboradora@uacj.mx"; app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            await database.VerifiedIdentity(app.Microsoft.Id, 50);
             await Login(app, collaborator); await Csrf(collaborator);
             foreach (var unit in new[] { "A", "A3" })
             {

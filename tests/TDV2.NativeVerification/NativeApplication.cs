@@ -43,6 +43,10 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
     internal string PhotoPixel = Pixel;
     internal TaskCompletionSource? PhotoEntered, PhotoContinue;
     internal string? MeObjectIdOverride;
+    internal string? LastProfileSelect;
+    internal string[] ProxyAddresses = [];
+    internal bool MissingProxyAddresses;
+    internal HttpStatusCode? ProfileStatus;
     private sealed record Account(string Id, string Email, string Mail);
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Account> accounts = new();
     internal const string Pixel = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6r0sAAAAASUVORK5CYII=";
@@ -50,6 +54,7 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
     internal string LastVerifier = "";
     internal string? LoginHint = "opaque-synthetic-real-account";
     internal bool InvalidNonce, InvalidSignature;
+    internal string? IdTokenTenant;
     private readonly RsaSecurityKey signingKey = new(RSA.Create(2048)) { KeyId = "synthetic-key" };
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -84,7 +89,7 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
             if (form["grant_type"] == "authorization_code" || RotateRefresh) payload["refresh_token"] = refreshToken;
             if (form["grant_type"] == "authorization_code")
             {
-                var claims = new Dictionary<string, object> { ["oid"] = Id, ["tid"] = Tenant, ["nonce"] = InvalidNonce ? "invalid" : ProtectedValues.Hash("oidc:" + LastVerifier) };
+                var claims = new Dictionary<string, object> { ["oid"] = Id, ["tid"] = IdTokenTenant ?? Tenant, ["nonce"] = InvalidNonce ? "invalid" : ProtectedValues.Hash("oidc:" + LastVerifier) };
                 if (LoginHint is not null) claims["login_hint"] = LoginHint;
                 payload["id_token"] = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor {
                     Issuer = $"https://login.microsoftonline.com/{Tenant}/v2.0", Audience = "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
@@ -97,7 +102,13 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
         {
             if (request.Headers.Authorization?.Scheme != "Bearer") throw new InvalidOperationException("Graph must authenticate the request.");
             var account = accounts.GetValueOrDefault(request.Headers.Authorization.Parameter!) ?? new Account(Id, Email, Mail);
-            if (request.RequestUri.AbsolutePath == "/v1.0/me") { Interlocked.Increment(ref MeRequests); return Json(new { id = MeObjectIdOverride ?? account.Id, mail = account.Mail, userPrincipalName = account.Email, displayName = "Untrusted Graph display name" }); }
+            if (request.RequestUri.AbsolutePath == "/v1.0/me") {
+                Interlocked.Increment(ref MeRequests); LastProfileSelect = QueryHelpers.ParseQuery(request.RequestUri.Query)["$select"].ToString();
+                if (ProfileStatus is { } status) return Json(new { error = "synthetic_profile_failure" }, status);
+                var profile = new Dictionary<string, object> { ["id"] = MeObjectIdOverride ?? account.Id, ["mail"] = account.Mail, ["userPrincipalName"] = account.Email, ["displayName"] = "Untrusted Graph display name" };
+                if (!MissingProxyAddresses) profile["proxyAddresses"] = ProxyAddresses;
+                return Json(profile);
+            }
             if (request.RequestUri.AbsolutePath == "/v1.0/me/photos/48x48/$value") {
                 Interlocked.Increment(ref PhotoRequests);
                 if (PhotoEntered is { } entered) { entered.TrySetResult(); await PhotoContinue!.Task.WaitAsync(cancellationToken); }
@@ -334,7 +345,8 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
                         INSERT INTO fixture_users VALUES(50,50,'colaboradora@uacj.mx','Colaboradora sintética','individual','0050','A','adscripcion');
                         INSERT INTO fixture_roles VALUES(50,'colaboradora@uacj.mx',31,'colaborador_local','Colaboración central sintética');
                         INSERT INTO fixture_grants VALUES(101,'colaboradora@uacj.mx',31,'A','central');
-                        """); break;
+                        """);
+                    await database.VerifiedIdentity("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", 50); break;
                 case "/validation-history":
                     var validations = NativeTests.RetiredValidationFixture(http.RequestServices.GetRequiredService<Tdv2.Domain.FormSchema>());
                     await database.Sql("DELETE FROM formato_bloques WHERE id_ur='A'");
