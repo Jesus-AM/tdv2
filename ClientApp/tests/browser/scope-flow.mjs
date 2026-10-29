@@ -23,7 +23,7 @@ page.on('pageerror', error => errors.push(error.message));
 async function check(name, work) { await work(); checks.push({ name, passed: true }); console.log('BROWSER PASS ' + name); }
 try {
     assert.equal((await context.request.post(origin + '/__fixture/scope-level3', { headers: { 'X-Fixture-Key': key } })).status(), 200);
-    await page.goto(origin + '/connect');
+    await page.goto(origin + '/connect?returnUrl=/inicio');
     await page.getByRole('heading', { name: 'Procesos operativos', exact: true }).waitFor();
     await check('Nuevo rol: tipo N excluido, tipo 0 elegible en niveles 2 y 3; Mis áreas y Todas las áreas conservan alcance', async () => {
         await expect(page.getByRole('button', { name: 'Configuración', exact: true })).toHaveCount(0);

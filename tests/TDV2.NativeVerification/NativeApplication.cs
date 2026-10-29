@@ -129,6 +129,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     internal string PublicOrigin = "https://localhost";
     internal bool Browser, Vite, ManualProcessing;
     internal IStartupFilter? AdditionalControls;
+    internal List<Tdv2.Web.PortalSite> AdditionalSites { get; } = [];
     internal Dictionary<string, string?> DigitalConfiguration { get; set; } = new()
     {
         ["ConnectionStrings:CompetenciasDigitales"] = null,
@@ -152,6 +153,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
         }); configuration.AddInMemoryCollection(DigitalConfiguration); });
         builder.ConfigureTestServices(services =>
         {
+            foreach (var site in AdditionalSites) services.AddSingleton(site);
             if (!ManualProcessing)
             {
                 // Los escenarios históricos avanzan el coordinador explícitamente.

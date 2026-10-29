@@ -123,7 +123,7 @@ export async function verifyDirectDeletion({ check, page, context, browser, orig
         const reserveGate = new Promise(resolve => { releaseReserve = resolve; }), saveGate = new Promise(resolve => { releaseSave = resolve; });
         let arrived = 0, patches = 0; const statuses = [], pages = [page, other];
         try {
-            await other.goto(origin + '/connect'); await other.waitForURL(origin + '/inicio');
+            await other.goto(origin + '/connect?returnUrl=/inicio'); await other.waitForURL(origin + '/inicio');
             const cookie = cookies => cookies.find(c => c.name === 'tdv2.aspnet.session')?.value;
             assert.notEqual(cookie(await context.cookies()), cookie(await independent.cookies()));
             await other.goto(origin + '/formatos/A'); await header(other);

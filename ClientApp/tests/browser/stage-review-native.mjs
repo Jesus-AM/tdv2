@@ -23,7 +23,7 @@ async function session(helper = false) {
         return route.continue();
     });
     const page = await context.newPage(); page.setDefaultTimeout(20000); page.on('pageerror', error => report.errors.push(error.message));
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio'); return { page, context };
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio'); return { page, context };
 }
 const check = async (name, work) => { await work(); report.checks.push(name); console.log('STAGE PASS ' + name); };
 async function tab(page, name = 'Revisar y enviar') { await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }

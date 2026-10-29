@@ -41,7 +41,7 @@ function restricted(message: string, status: number, url: string, context?: Part
         simulacion: context?.simulacion || null, representacion: context?.representacion || null,
         contextoEdicion: context?.contextoEdicion || 'own', csrfToken: csrf,
         session: { lifetime_ms: 7200000 }, routes: { inicio: '/inicio', logout: '/logout', home: '/', connect: '/connect' },
-        access: { message, status },
+        access: context?.access ?? { message, status },
     } };
 }
 function before(resume?: () => void): boolean {
@@ -50,13 +50,23 @@ function before(resume?: () => void): boolean {
 async function visit(path: string, options: Options = {}, historyMode: 'push' | 'replace' = 'push', check = true) {
     if (check && !before(() => { void visit(path, options, historyMode); })) { options.onFinish?.(); return; }
     const ticket = ++sequence;
+    let target = path;
     try {
-        const url = localPath(path);
-        // También /connect?account=other requiere navegación completa; OAuth no es una página JSON.
-        const pathname = new URL(url, window.location.origin).pathname;
-        if (pathname === '/' || pathname === '/connect' || pathname === '/session/microsoft-logout') { window.location.assign(url); return; }
-        const { data } = await axios.get<Page>(url, { headers: { 'X-TDV2-Page': '1', Accept: 'application/json' } });
-        if (ticket !== sequence) return;
+        let url = localPath(path);
+        const visited = new Set<string>();
+        let data: Page;
+        // El servidor resuelve Mi espacio antes de publicar una vista. Sólo el destino
+        // final entra al historial; un retorno por Atrás reemplaza esa entrada.
+        while (true) {
+            if (visited.has(url) || visited.size >= 5) throw new Error('Redirección de página no válida.');
+            visited.add(url); target = url;
+            const pathname = new URL(url, window.location.origin).pathname;
+            if (pathname === '/' || pathname === '/connect' || pathname === '/session/microsoft-logout') { window.location.assign(url); return; }
+            const { data: response } = await axios.get<Page | { redirect: string }>(url, { headers: { 'X-TDV2-Page': '1', Accept: 'application/json' } });
+            if (ticket !== sequence) return;
+            if ('redirect' in response) { url = localPath(response.redirect); continue; }
+            data = response; break;
+        }
         if (!data.component || !data.props) throw new Error('Respuesta de página no válida.');
         // Reload uses the same page instance so form drafts and sync settings survive polling.
         const page = options.only && current?.component === data.component
@@ -69,8 +79,9 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
     } catch (error) {
         if (ticket !== sequence) return;
         const status = axios.isAxiosError(error) ? error.response?.status || 503 : 503;
-        if (status === 401 && new URL(path, window.location.origin).pathname.startsWith('/competencias-digitales')) {
-            window.location.assign('/connect?returnUrl=' + encodeURIComponent(localPath(path))); return;
+        try { target = localPath(target); } catch { target = window.location.pathname + window.location.search; }
+        if (status === 401) {
+            window.location.assign('/connect?returnUrl=' + encodeURIComponent(target)); return;
         }
         const message = axios.isAxiosError(error) ? error.response?.data?.message : null;
         const context = axios.isAxiosError(error) ? error.response?.data : undefined;
@@ -79,12 +90,13 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
             options.onError({ general: message || 'No se pudo actualizar el estado. Inténtalo de nuevo.' });
             return;
         }
-        setPage(restricted(message || 'No se pudo cargar la página. Inténtalo de nuevo.', status, path, context));
+        window.history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', target);
+        setPage(restricted(message || 'No se pudo cargar la página. Inténtalo de nuevo.', status, target, context));
     } finally { options.onFinish?.(); }
 }
 async function mutate(method: 'post' | 'delete', path: string, data: unknown, options: Options) {
     if (!before(() => { void mutate(method, path, data, options); })) { options.onFinish?.(); return; }
-    if (['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba', '/competencias-digitales/api/representacion'].includes(localPath(path)))
+    if (['/logout', '/session/use-another-account', '/actuar-como-usuario', '/vista-prueba', '/competencias-digitales/api/representacion'].includes(new URL(localPath(path), window.location.origin).pathname))
         events.dispatchEvent(new Event('identity-changing'));
     try {
         if (!csrf) csrf = (await axios.get<{ token: string }>('/session/csrf')).data.token;

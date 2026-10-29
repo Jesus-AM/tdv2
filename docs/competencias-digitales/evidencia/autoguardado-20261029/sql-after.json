@@ -1,0 +1,875 @@
+{
+  "isolatedPostgreSql": true,
+  "statistics": "pg_stat_statements track=all; tiempos top-level sin sumar otra vez triggers",
+  "results": [
+    {
+      "name": "perfil completo",
+      "status": 200,
+      "requestBytes": 236,
+      "responseBytes": 125456,
+      "httpMs": 322.8126,
+      "topLevelCalls": 35,
+      "sqlExecutionMs": 5.6283,
+      "surveyUpdates": 1,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_control",
+          "TopLevel": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.0217
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.036699999999999997
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.4162
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.1426
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0194
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.1542
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.2739
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.012
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SAVEPOINT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0012
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0004
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0011
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0003
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "RELEASE",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0005
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.1515
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0066
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_surveys",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 3.4117
+        }
+      ]
+    },
+    {
+      "name": "documento id\u00E9ntico",
+      "status": 200,
+      "requestBytes": 236,
+      "responseBytes": 125456,
+      "httpMs": 530.1787,
+      "topLevelCalls": 32,
+      "sqlExecutionMs": 1.9798000000000002,
+      "surveyUpdates": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.025799999999999997
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.3357
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.1205
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0162
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.15239999999999998
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.2822
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.012299999999999998
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0008
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0013
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0007
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0259
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.006
+        }
+      ]
+    },
+    {
+      "name": "respuesta cero",
+      "status": 200,
+      "requestBytes": 286,
+      "responseBytes": 126014,
+      "httpMs": 433.5731,
+      "topLevelCalls": 35,
+      "sqlExecutionMs": 5.7406999999999995,
+      "surveyUpdates": 1,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_control",
+          "TopLevel": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.022699999999999998
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.0342
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.353
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.125
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0192
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.1189
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.2716
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_surveys",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 3.494
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.0116
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SAVEPOINT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0013
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0005
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0014
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0008
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "RELEASE",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0008
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.30219999999999997
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0062
+        }
+      ]
+    },
+    {
+      "name": "r\u00E1faga agrupada",
+      "status": 200,
+      "requestBytes": 338,
+      "responseBytes": 126270,
+      "httpMs": 311.6268,
+      "topLevelCalls": 35,
+      "sqlExecutionMs": 5.6102,
+      "surveyUpdates": 1,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_control",
+          "TopLevel": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.0193
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.032600000000000004
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.3481
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.1262
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.016399999999999998
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.1225
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.2495
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_surveys",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 3.5482
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.012
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SAVEPOINT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0014
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0007
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0009
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0003
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "RELEASE",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0005
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.1467
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0042
+        }
+      ]
+    },
+    {
+      "name": "repetici\u00F3n id\u00E9ntico versi\u00F3n antigua",
+      "status": 200,
+      "requestBytes": 338,
+      "responseBytes": 126270,
+      "httpMs": 411.834,
+      "topLevelCalls": 32,
+      "sqlExecutionMs": 1.9717999999999998,
+      "surveyUpdates": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.0246
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.3902
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.1269
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0176
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.12459999999999999
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.24659999999999999
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.0118
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0007
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0007999999999999999
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0007
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0229
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0044
+        }
+      ]
+    },
+    {
+      "name": "otra pesta\u00F1a versi\u00F3n antigua",
+      "status": 409,
+      "requestBytes": 338,
+      "responseBytes": 149,
+      "httpMs": 337.1139,
+      "topLevelCalls": 18,
+      "sqlExecutionMs": 1.087,
+      "surveyUpdates": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.0132
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.6549
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0007
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.0154
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.1522
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 6,
+          "Rows": 9,
+          "ExecutionMs": 0.23819999999999997
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0042
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0005
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0077
+        }
+      ]
+    },
+    {
+      "name": "contenci\u00F3n inducida de dos escritores",
+      "waitingLocks": 2,
+      "heldMs": 323.6063,
+      "statuses": [
+        200,
+        409
+      ]
+    },
+    {
+      "name": "documento de todos los bloques",
+      "status": 200,
+      "requestBytes": 3634,
+      "responseBytes": 148487,
+      "httpMs": 418.7391,
+      "topLevelCalls": 35,
+      "sqlExecutionMs": 6.0995,
+      "surveyUpdates": 1,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_control",
+          "TopLevel": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.02
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_control",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 0.0339
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_surveys",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 2,
+          "ExecutionMs": 1.3826999999999998
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 5,
+          "Rows": 5,
+          "ExecutionMs": 0.1239
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SELECT:cd_activity_events",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.018000000000000002
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 4,
+          "Rows": 8,
+          "ExecutionMs": 0.1608
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "SELECT",
+          "TopLevel": true,
+          "Calls": 9,
+          "Rows": 11,
+          "ExecutionMs": 0.2757
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "UPDATE:cd_surveys",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 3.9137
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 3,
+          "Rows": 0,
+          "ExecutionMs": 0.013
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "SAVEPOINT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0011
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0004
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "ROLLBACK",
+          "TopLevel": true,
+          "Calls": 2,
+          "Rows": 0,
+          "ExecutionMs": 0.0013
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "COMMIT",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.001
+        },
+        {
+          "Database": "cd_native_test",
+          "Operation": "RELEASE",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.0006
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "INSERT:activity_logs",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ExecutionMs": 0.16440000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Operation": "BEGIN",
+          "TopLevel": true,
+          "Calls": 1,
+          "Rows": 0,
+          "ExecutionMs": 0.009
+        }
+      ]
+    }
+  ]
+}

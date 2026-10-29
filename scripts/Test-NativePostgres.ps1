@@ -34,6 +34,10 @@ $oldSkip = $env:TDV2_TEST_SKIP_BROWSER
 try {
     & (Join-Path $PostgresBin 'initdb.exe') -D $data -U tdv2_test_admin --auth-host=scram-sha-256 --auth-local=scram-sha-256 --encoding=UTF8 --locale=C --pwfile=$passwordFile | Out-File (Join-Path $run 'initdb.log') -Encoding utf8
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath (Join-Path $data 'PG_VERSION'))) { throw 'initdb failed; see isolated run log.' }
+    # Instrumentación optativa exclusiva del clúster nuevo y validado de pruebas.
+    if ($env:TDV2_TEST_AUTOSAVE_MEASURE -eq 'true') {
+        Add-Content -LiteralPath (Join-Path $data 'postgresql.conf') -Encoding UTF8 -Value "`nshared_preload_libraries = 'pg_stat_statements'`npg_stat_statements.track = 'all'`ntrack_io_timing = on"
+    }
     if ($DirectStart) {
         # Mismo usuario/restricciones. Evita sólo el relanzamiento con token de pg_ctl en Windows.
         $testStart = New-Object Diagnostics.ProcessStartInfo

@@ -387,6 +387,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(props["digital"]!["user"]!.ToString() == "Otra persona sintética" && props["digital"]!["readOnly"]!.GetValue<bool>());
             Check(props["digital"]!["navigation"]!.AsArray().Count == 2 && !props.ToJsonString().Contains("token"));
             client.DefaultRequestHeaders.Add("X-TDV2-Context", props["contextoEdicion"]!.ToString());
+            Check((await Json(await client.GetAsync(Tdv2.Web.ApplicationEntry.Choices)))["redirect"]!.ToString() == Base, "Mi espacio conserva el único contexto representado compatible");
             await Status(client.GetAsync(Base + "/configuracion"), 403); await Status(client.GetAsync("/inicio"), 409);
             var represented = await Survey(client); Check(represented.Institution["employee"]!.ToString() == "0002");
             await Status(client.PostAsJsonAsync(Base + "/api/aviso", new { generation = (await Survey(client)).Generation, version = represented.Instrument["notice"]!["version"]!.ToString() }), 403);
@@ -494,7 +495,9 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(page["props"]!["auth"]!["user"]!["name"]!.ToString() == "Persona sintética");
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is null);
         });
-        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases);
+        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases); AddApplicationEntryTests(cases); AddAutosaveMeasurements(cases); AddCostAudit(cases);
+        if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
+            cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
         var results = new List<object>(); var failures = 0;
         foreach (var (name, work) in Environment.GetCommandLineArgs().Contains("--browser-only") ? [] : cases)
         {
@@ -514,17 +517,38 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         await Seed("synthetic-browser-a", "A4", 1, true); await Seed("synthetic-browser-b", "B4", 3, true);
         using var cert = NativeApplication.Certificate(true);
         await using var app = new NativeApplication(shared) { DigitalConfiguration = Configuration, Browser = true };
+        var sitesOnly = Environment.GetEnvironmentVariable("TDV2_TEST_SITE_ENTRY_ONLY") == "true";
+        if (sitesOnly) for (var i = 3; i <= 8; i++)
+        {
+            var index = i; var destination = "/sitio-sintetico/" + i;
+            app.AdditionalSites.Add(new("Sitio sintético " + i, destination, i * 10,
+                _ => Task.FromResult(syntheticSiteCount >= index - 2), p => p.StartsWithSegments(destination)));
+        }
         app.AdditionalControls = new DigitalBrowserControls(this, app.ControlToken);
         app.UseKestrel(o => o.Listen(IPAddress.Loopback, 0)); using var client = app.CreateClient(new() { AllowAutoRedirect = false });
         var upstream = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single().TrimEnd('/');
         await using var proxy = await SyntheticTlsProxy.Start(shared.Workspace, upstream, app.ControlToken, cert);
         app.Services.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin = proxy.Origin;
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("TDV2_TEST_NODE") ?? "node") { WorkingDirectory = Path.Combine(shared.Workspace, "ClientApp"), UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
-        start.ArgumentList.Add("tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
+        start.ArgumentList.Add(sitesOnly ? "tests/browser/sites-native.mjs" : "tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
         using var process = Process.Start(start)!;
         async Task Forward(StreamReader reader) { while (await reader.ReadLineAsync() is { } line) Console.WriteLine(line); }
         var outputs = Task.WhenAll(Forward(process.StandardOutput), Forward(process.StandardError)); await process.WaitForExitAsync(); await outputs; Check(process.ExitCode == 0, "Falló navegador de Competencias");
+    }
+    private int syntheticSiteCount;
+    private async Task SiteScenario(string scenario)
+    {
+        Check(new[] { "td", "cd", "both", "none", "many", "unavailable", "failed" }.Contains(scenario));
+        syntheticSiteCount = scenario == "many" ? 6 : 0;
+        await Nexo("GRANT SELECT ON nexo_usuarios TO cd_native_nexo");
+        await shared.Sql("DELETE FROM fixture_roles WHERE email='persona@uacj.mx'");
+        await Nexo("DELETE FROM fixture_roles WHERE email='persona@uacj.mx'");
+        if (scenario is "td" or "both" or "many" or "unavailable")
+            await shared.Sql("INSERT INTO fixture_roles VALUES(10,'persona@uacj.mx',30,'responsable_ur','Responsable')");
+        if (scenario is "cd" or "both" or "many" or "unavailable" or "failed")
+            await Nexo("INSERT INTO fixture_roles VALUES(10,'persona@uacj.mx',30,'participante','Participante')");
+        if (scenario is "unavailable" or "failed") await Nexo("REVOKE SELECT ON nexo_usuarios FROM cd_native_nexo");
     }
     private sealed class DigitalBrowserControls(DigitalTests suite, string token) : IStartupFilter
     {
@@ -534,6 +558,10 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             {
                 if (!http.Request.Path.StartsWithSegments("/__digitalfixture", out var action)) { await rest(); return; }
                 if (!IPAddress.IsLoopback(http.Connection.RemoteIpAddress ?? IPAddress.None) || http.Request.Headers["X-Fixture-Key"] != token) { http.Response.StatusCode = 403; return; }
+                if (action.Value?.StartsWith("/sites-") == true)
+                {
+                    await suite.SiteScenario(action.Value[7..]); await http.Response.WriteAsJsonAsync(new { ok = true }); return;
+                }
                 switch (action.Value)
                 {
                     case "/admin": await suite.Role("administrador"); await suite.Nexo("UPDATE fixture_users SET num_empleado='0001' WHERE email='persona@uacj.mx'"); break;

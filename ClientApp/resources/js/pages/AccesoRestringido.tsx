@@ -1,15 +1,16 @@
 import { Head, router, usePage } from '@/lib/navigation';
 import { Box, Button, Typography, Alert } from '@mui/material';
-import { LockOutlined, HomeOutlined, Refresh } from '@mui/icons-material';
+import { LockOutlined, Refresh } from '@mui/icons-material';
 import { useState } from 'react';
 import InstitutionalFooter from '@/Components/InstitutionalFooter';
+import AccessActions from '@/Components/AccessActions';
 export default function AccesoRestringido() {
     const { props, url } = usePage();
     const digital = url.startsWith('/competencias-digitales');
     const [leaving, setLeaving] = useState(false);
     return (
         <>
-            <Head title="Acceso restringido" />
+            <Head title="Acceso no disponible" />
             <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
             <Box component="main" sx={{ flex: 1, display: 'grid', placeItems: 'center', p: 3 }}>
                 <Box className="surface" sx={{ maxWidth: 560, p: '36px!important' }}>
@@ -34,18 +35,15 @@ export default function AccesoRestringido() {
                                 Volver a mi usuario
                             </Button>
                         )}
-                        <Button variant="contained" startIcon={<HomeOutlined />} href={props.routes.home}>
-                            Portada pública
-                        </Button>
-                        <Button
+                        {props.access?.status === 503 && <Button
                             variant="outlined"
                             startIcon={<Refresh />}
                             onClick={() => router.visit(digital ? '/competencias-digitales' : props.routes.inicio)}
                         >
                             Reintentar acceso
-                        </Button>
-                        <Button href={props.routes.connect}>Iniciar sesión</Button>
+                        </Button>}
                     </div>
+                    <AccessActions destination={url} options={props.access?.options} />
                 </Box>
             </Box>
             {!digital && <InstitutionalFooter variant="internal" />}

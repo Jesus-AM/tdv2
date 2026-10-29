@@ -1,0 +1,229 @@
+{
+  "baseline": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 1440,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 1440,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 1440,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 1440,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 1440,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 1440,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 1440,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 1440,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 390,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 390,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 390,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 390,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 390,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 390,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 390,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 390,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 390,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 24.5,
+          "checked": true,
+          "scriptMs": 3.6720000000000086,
+          "layoutMs": 0.4580000000000001,
+          "commits": 1
+        },
+        {
+          "ms": 25.90000009536743,
+          "checked": true,
+          "scriptMs": 2.449999999999994,
+          "layoutMs": 0.3069999999999948,
+          "commits": 1
+        },
+        {
+          "ms": 27,
+          "checked": true,
+          "scriptMs": 2.1400000000000032,
+          "layoutMs": 0.2940000000000026,
+          "commits": 1
+        },
+        {
+          "ms": 25.699999809265137,
+          "checked": true,
+          "scriptMs": 2.044000000000004,
+          "layoutMs": 0.338999999999999,
+          "commits": 1
+        },
+        {
+          "ms": 27,
+          "checked": true,
+          "scriptMs": 1.815999999999998,
+          "layoutMs": 0.15600000000000336,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1503.4000000953674,
+        1498.4000000953674
+      ],
+      "requestMs": [
+        2018.6999998092651,
+        2019.2999997138977
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 25,
+          "checked": true,
+          "scriptMs": 3.6790000000000016,
+          "layoutMs": 0.5070000000000006,
+          "commits": 1
+        },
+        {
+          "ms": 25.299999713897705,
+          "checked": true,
+          "scriptMs": 2.396000000000002,
+          "layoutMs": 0.3270000000000009,
+          "commits": 1
+        },
+        {
+          "ms": 27.199999809265137,
+          "checked": true,
+          "scriptMs": 2.2639999999999953,
+          "layoutMs": 0.3140000000000018,
+          "commits": 1
+        },
+        {
+          "ms": 26.600000381469727,
+          "checked": true,
+          "scriptMs": 2.141000000000004,
+          "layoutMs": 0.35099999999999715,
+          "commits": 1
+        },
+        {
+          "ms": 25.199999809265137,
+          "checked": true,
+          "scriptMs": 1.8880000000000008,
+          "layoutMs": 0.16000000000000042,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1500.6999998092651,
+        1509.8000001907349
+      ],
+      "requestMs": [
+        2016.4000000953674,
+        2012.5999999046326
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

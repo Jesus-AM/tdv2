@@ -20,7 +20,7 @@ await context.route('**/*', async route => {
 const report = { synthetic: true, touchscreenEmulated: true, checks: [], errors: [] }, page = await context.newPage();
 page.on('pageerror', e => report.errors.push(e.message));
 try {
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     assert.equal((await context.request.post(origin + '/__fixture/ready-to-submit', { headers: { 'X-Fixture-Key': key } })).status(), 200);
     await page.goto(origin + '/formatos/A');
     const finish = async () => {

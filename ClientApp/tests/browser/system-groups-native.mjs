@@ -33,7 +33,7 @@ const region = () => page.getByRole('region', { name: 'Tabla de Sistemas y herra
 const ids = () => page.locator('.systems-table [data-edit-block]').evaluateAll(nodes => nodes.map(n => n.dataset.editBlock));
 let addedId;
 try {
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     await control('system-groups-seed'); await page.goto(origin + '/formatos/A'); await systems();
     await expect(heading('p8').getByRole('button', { name: 'Agregar sistema o herramienta', exact: true })).toBeEnabled();
     await check('filas intercaladas se agrupan por relación estable sin reordenar el JSON', async () => {

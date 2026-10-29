@@ -45,7 +45,7 @@ async function capture(name) {
     if (phase === 'after') { assert.equal(geometry.overflow, false, name + ': desbordamiento'); assert.equal(geometry.h1Count, 1); assert.ok(geometry.titleTop >= geometry.barBottom); }
 }
 try {
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     for (const width of [360, 768, 1366, 1920]) {
         await page.setViewportSize({ width, height: width === 1920 ? 1080 : 900 });
         for (const [name, url, title] of pages) {

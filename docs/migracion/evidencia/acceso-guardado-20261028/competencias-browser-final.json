@@ -1,0 +1,271 @@
+{
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    {
+      "name": "portal conserva diseño y el botón inicia OAuth hacia Competencias",
+      "passed": true
+    },
+    {
+      "name": "avance y resultados: rutas directas, recargas, gráficas y tablas con PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "aviso accesible: sin preselección, Escape/cierre no aceptan y captura bloqueada",
+      "passed": true
+    },
+    {
+      "name": "perfil institucional ineditable y perfil personal persistido",
+      "passed": true
+    },
+    {
+      "name": "autoguardado lento permite responder y guardar manualmente la última selección con PostgreSQL",
+      "passed": true
+    },
+    {
+      "name": "M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente",
+      "passed": true
+    },
+    {
+      "name": "rúbricas de Ciberseguridad permiten confirmación Inicial y captura por indicadores",
+      "passed": true
+    },
+    {
+      "name": "cada bloque bloquea su siguiente sección y URL/API respetan el avance",
+      "passed": true
+    },
+    {
+      "name": "móvil 390/320: cinco bloques, aviso desplazable, controles y sin desbordamiento exterior",
+      "passed": true
+    },
+    {
+      "name": "error de guardado conserva cambios y no muestra éxito",
+      "passed": true
+    },
+    {
+      "name": "respuesta perdida después de guardar: reintento no duplica y solo entonces avanza",
+      "passed": true
+    },
+    {
+      "name": "retroceso, edición anterior y salida a otro módulo conservan el borrador",
+      "passed": true
+    },
+    {
+      "name": "cuenta compartida: nombre completo, fotografía y avatar ante imagen fallida",
+      "passed": true
+    },
+    {
+      "name": "comparación visual con original en escritorio y móvil, fuentes y elementos fijos",
+      "passed": true
+    },
+    {
+      "name": "finalización completa e informe sin descarga ni acciones de edición",
+      "passed": true
+    },
+    {
+      "name": "informe por bloques, ámbar, flujo de página y footer exclusivo en escritorio/móvil",
+      "passed": true
+    },
+    {
+      "name": "configuración administra metas de adscripción directa",
+      "passed": true
+    },
+    {
+      "name": "reinicio: confirmación, resumen obsoleto, respuesta perdida y nuevas capturas protegidas",
+      "passed": true
+    },
+    {
+      "name": "representación consulta permisos efectivos sin configuración y salida siempre visible",
+      "passed": true
+    },
+    {
+      "name": "supervisor sin configuración, N2/N3 con rama y sin filtro de nivel; participante personal",
+      "passed": true
+    },
+    {
+      "name": "regresión /inicio de Procedimientos conserva vista y portada no registra errores JS",
+      "passed": true
+    },
+    {
+      "name": "participante exclusivo conserva nombre y foto sin permisos de Procedimientos",
+      "passed": true
+    },
+    {
+      "name": "entrada independiente en navegador: denegación de Procedimientos conserva sesión y acceso exclusivo a Competencias",
+      "passed": true
+    }
+  ],
+  "skipped": [],
+  "errors": [],
+  "layouts": [
+    {
+      "width": 1366,
+      "flow": {
+        "actual": {
+          "mainBottom": 1625.359375,
+          "top": 1625.359375,
+          "bottom": 1753.53125,
+          "viewport": 900,
+          "page": 1754,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "minimum": 900,
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "minimum": 900,
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "minimum": 900,
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "minimum": 900,
+            "mainBottom": 771.828125,
+            "top": 771.828125,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 390,
+      "flow": {
+        "actual": {
+          "mainBottom": 2146.0625,
+          "top": 2146.0625,
+          "bottom": 2468.625,
+          "viewport": 900,
+          "page": 2469,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "minimum": 900,
+            "mainBottom": 577.4375,
+            "top": 577.4375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "minimum": 900,
+            "mainBottom": 577.4375,
+            "top": 577.4375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "minimum": 900,
+            "mainBottom": 577.4375,
+            "top": 577.4375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "minimum": 900,
+            "mainBottom": 577.4375,
+            "top": 577.4375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          }
+        ]
+      }
+    },
+    {
+      "width": 320,
+      "flow": {
+        "actual": {
+          "mainBottom": 2576.28125,
+          "top": 2576.28125,
+          "bottom": 3029.421875,
+          "viewport": 900,
+          "page": 3029,
+          "position": "static"
+        },
+        "short": [
+          {
+            "text": "",
+            "minimum": 900,
+            "mainBottom": 446.859375,
+            "top": 446.859375,
+            "bottom": 900,
+            "viewport": 900,
+            "page": 900,
+            "position": "static"
+          },
+          {
+            "text": "Cargando…",
+            "minimum": 915.0625,
+            "mainBottom": 461.921875,
+            "top": 461.921875,
+            "bottom": 915.0625,
+            "viewport": 900,
+            "page": 915,
+            "position": "static"
+          },
+          {
+            "text": "Sin resultados",
+            "minimum": 915.0625,
+            "mainBottom": 461.921875,
+            "top": 461.921875,
+            "bottom": 915.0625,
+            "viewport": 900,
+            "page": 915,
+            "position": "static"
+          },
+          {
+            "text": "No fue posible cargar los datos. Inténtalo de nuevo.",
+            "minimum": 937.5625,
+            "mainBottom": 484.421875,
+            "top": 484.421875,
+            "bottom": 937.5625,
+            "viewport": 900,
+            "page": 938,
+            "position": "static"
+          }
+        ]
+      }
+    }
+  ],
+  "autosaveRequestMs": [
+    559.7753000000012,
+    392.47209999999905
+  ]
+}

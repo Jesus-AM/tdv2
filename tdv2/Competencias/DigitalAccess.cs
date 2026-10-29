@@ -113,7 +113,7 @@ public sealed class DigitalAccess(IDigitalNexo nexo, IFormStore catalogs, ISessi
     public static void ValidateEmployee(Profile profile, string email)
     {
         if (profile.User.Email != email || UnitDirectory.Employee(profile.User) is null || !profile.Roles.Any(r => r.Key is "administrador" or "responsable_ur_supervisor" or "responsable_ur" or "participante"))
-            throw new DomainProblem(403, "No se confirmó tu acceso como empleado a Competencias digitales en Nexo.");
+            throw new DomainProblem(403, Tdv2.Web.ApplicationEntry.Denied(DigitalRoutes.Base));
     }
     public async Task<DigitalScope> Require(HttpContext http, int module)
     {

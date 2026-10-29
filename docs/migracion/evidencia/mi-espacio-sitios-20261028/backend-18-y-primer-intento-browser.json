@@ -1,0 +1,84 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 1,
+  "results": [
+    {
+      "name": "Representaci\u00F3n: identidad efectiva, sin permisos heredados/escrituras/anidaci\u00F3n, salida y auditor\u00EDa",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: autoguardados de perfil y cinco bloques, m\u00E1s reintentos, s\u00F3lo auditan localmente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: confirmar despu\u00E9s de autoguardar no modifica encuesta y deduplica doble env\u00EDo concurrente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: reintento confirmado despu\u00E9s de otra revisi\u00F3n no vuelve a auditar ni sobrescribe",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: errores de consentimiento, generaci\u00F3n, versi\u00F3n, CSRF y secci\u00F3n no crean \u00E9xito",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: Nexo ca\u00EDdo: captura confirmada, evento manual pendiente y recibo sin duplicados",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: rollback de cola y reintento del mismo identificador",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: representaci\u00F3n y finalizadas rechazan confirmaci\u00F3n; finalizaci\u00F3n conserva su evento",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=True, Competencias=False; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=False, Competencias=True; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=True, Competencias=True; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=False, Competencias=False; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada: falla temporal distinta de denegaci\u00F3n, sin quitar sesi\u00F3n ni acceso a otra aplicaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Entrada: retorno local de ambas aplicaciones, gen\u00E9rico y p\u00FAblico; rechaza destinos externos/codificados",
+      "passed": true
+    },
+    {
+      "name": "Entrada: HTML an\u00F3nimo inicia sesi\u00F3n por destino; API mantiene 401; cambiar cuenta conserva destino y CSRF",
+      "passed": true
+    },
+    {
+      "name": "Entrada: revocaci\u00F3n elimina accesos de la elecci\u00F3n sin cerrar identidad institucional",
+      "passed": true
+    },
+    {
+      "name": "Entrada: varios m\u00F3dulos, roles y asignaciones conservan un solo sitio",
+      "passed": true
+    },
+    {
+      "name": "Entrada: registro extensible con cuatro sitios, orden, denegaci\u00F3n y falla parcial",
+      "passed": true
+    },
+    {
+      "name": "Navegador real y PostgreSQL aislado",
+      "passed": false,
+      "type": "InvalidOperationException"
+    }
+  ]
+}

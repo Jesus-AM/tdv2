@@ -22,7 +22,8 @@ public sealed class ReactPageMiddleware(RequestDelegate next, ReactShell shell)
     public async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsGet(context.Request.Method) && context.Request.Headers.Accept.Any(v => v?.Contains("text/html") == true)
-            && !context.Request.Headers.ContainsKey("X-TDV2-Page") && PagePaths.IsPage(context.Request.Path))
+            && !context.Request.Headers.ContainsKey("X-TDV2-Page") && PagePaths.IsPage(context.Request.Path)
+            && context.Request.Path != ApplicationEntry.Choices)
         {
             await shell.Write(context);
             return;

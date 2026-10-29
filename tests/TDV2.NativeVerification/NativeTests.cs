@@ -24,7 +24,7 @@ internal static partial class NativeTests
     private static async Task<JsonObject> Json(HttpResponseMessage response) => (await response.Content.ReadFromJsonAsync<JsonObject>())!;
     private static async Task<string> Start(NativeApplication app, HttpClient client)
     {
-        var response = await client.GetAsync("/connect");
+        var response = await client.GetAsync("/connect?returnUrl=/inicio");
         Check(response.StatusCode == HttpStatusCode.Redirect, "OAuth did not start.");
         var target = response.Headers.Location!;
         Check(target.Host == "login.microsoftonline.com" && target.AbsolutePath == $"/{FakeMicrosoft.Tenant}/oauth2/v2.0/authorize");
@@ -150,28 +150,30 @@ internal static partial class NativeTests
             Check((await client.GetAsync("/inicio")).IsSuccessStatusCode);
             Check((await client.GetAsync("/")).IsSuccessStatusCode);
         });
-        Test("Nexo: usuario sin aplicación no crea identidad ni tokens locales", async (app, client) =>
+        Test("Nexo: usuario sin aplicación conserva identidad Microsoft y deniega aplicaciones", async (app, client) =>
         {
             await database.Sql("DELETE FROM fixture_users");
-            Check(DeniedLogin(await Callback(client, await Start(app, client))));
-            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 0 && Convert.ToInt64(await database.Scalar("SELECT count(*) FROM ms_graph_tokens")) == 0);
+            await Login(app, client);
+            Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden && (await client.GetAsync("/")).IsSuccessStatusCode);
+            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 1 && Convert.ToInt64(await database.Scalar("SELECT count(*) FROM tdv2_sessions")) == 1);
         });
         Test("Nexo: aplicación no publicada y conexión ambigua deniegan", async (app, client) =>
         {
-            await database.Sql("DELETE FROM fixture_app"); Check(DeniedLogin(await Callback(client, await Start(app, client))));
+            await database.Sql("DELETE FROM fixture_app"); await Login(app, client); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
             await database.Sql("INSERT INTO fixture_app VALUES(47,'tdv2','x',2),(48,'tdv2','y',2)");
-            Check(DeniedLogin(await Callback(client, await Start(app, client)))); Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 0);
+            Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.ServiceUnavailable); Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 1);
         });
         Test("Nexo: clave, nivel e ID publicados deben ser válidos", async (app, client) =>
         {
+            await Login(app, client);
             foreach (var mutation in new[] { "UPDATE fixture_app SET clave='otra'", "UPDATE fixture_app SET clave='tdv2',nivel_control=1", "UPDATE fixture_app SET nivel_control=2,id=0" })
-            { await database.Sql(mutation); Check(DeniedLogin(await Callback(client, await Start(app, client)))); }
+            { await database.Sql(mutation); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.ServiceUnavailable); }
         });
         Test("Nexo: cuenta no individual o sin roles denegada", async (app, client) =>
         {
-            await database.Sql("UPDATE fixture_users SET tipo_cuenta='servicio'"); Check(DeniedLogin(await Callback(client, await Start(app, client))));
+            await database.Sql("UPDATE fixture_users SET tipo_cuenta='servicio'"); await Login(app, client); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
             await database.Sql("UPDATE fixture_users SET tipo_cuenta='individual'; DELETE FROM fixture_roles");
-            Check(DeniedLogin(await Callback(client, await Start(app, client))));
+            Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
         });
         Test("Microsoft: correo externo y object ID inválido no autentican", async (app, client) =>
         {
@@ -189,7 +191,15 @@ internal static partial class NativeTests
         Test("Sesión activa no se sustituye por otro callback", async (app, client) =>
         {
             await Login(app, client); app.Microsoft.Mail = "otra@uacj.mx";
-            Check((await Callback(client, "ignored")).Headers.Location?.OriginalString == "/inicio" && app.Microsoft.Exchanges == 1);
+            Check((await Callback(client, "ignored")).Headers.Location?.OriginalString == "/accesos" && app.Microsoft.Exchanges == 1);
+        });
+        Test("Sesión inválida vuelve a autenticar sin bucle; denegar aplicación no cierra identidad", async (app, client) =>
+        {
+            await Login(app, client);
+            await database.Sql("UPDATE users SET microsoft_id='dddddddd-dddd-4ddd-8ddd-dddddddddddd'");
+            var response = await client.GetAsync("/connect?returnUrl=/inicio");
+            Check(response.Headers.Location?.Host == "login.microsoftonline.com" && app.Microsoft.Exchanges == 1);
+            Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM tdv2_sessions")) == 0);
         });
         Test("Logout: CSRF, Nexo caído, revocación de cookie copiada y salida Microsoft", async (app, client) =>
         {

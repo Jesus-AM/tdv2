@@ -38,7 +38,7 @@ const api = async (method, endpoint, data) => {
     return context.request.fetch(origin + base + endpoint, { method, data, headers: { 'X-CSRF-TOKEN': csrf.token, 'X-TDV2-Context': 'own' } });
 };
 const openPrivacy = async () => { await page.getByRole('button',{name:'Abrir menú de usuario'}).click(); await page.getByRole('menuitem',{name:'Aviso de privacidad',exact:true}).click(); };
-const save = async () => { const done = page.waitForResponse(r => r.url().endsWith('/api/encuesta/guardar') && r.request().method() === 'POST'); await page.getByRole('button', { name: 'Guardar avance', exact: true }).click(); assert.equal((await done).status(), 200); await expect(page.getByText('Avance guardado. Puedes continuar desde otro dispositivo.', { exact: true })).toBeVisible(); };
+const save = async () => { const done = page.waitForResponse(r => r.url().endsWith('/api/encuesta/guardar') && r.request().method() === 'POST'); await page.getByRole('button', { name: 'Guardar avance', exact: true }).click(); assert.equal((await done).status(), 200); await expect(page.locator('.cd-save-status')).toHaveText('Avance guardado'); await expect(page.locator('.cd-feedback')).not.toContainText('Puedes continuar desde otro dispositivo'); };
 const completeBlock = async id => {
     await expect(page.getByRole('button', {name:'Guardar avance',exact:true})).toBeEnabled();
     const s = await getSurvey();
@@ -112,6 +112,79 @@ try {
         }
         await save(); await screenshot('competencias-perfil-desktop'); await page.reload(); assert.equal((await getSurvey()).profile.puesto, 'Dirección');
     });
+    await check('autoguardado lento permite responder y guardar manualmente la última selección con PostgreSQL', async () => {
+        await steps().getByRole('button',{name:'Microsoft 365',exact:true}).click();
+        const question=page.locator('#m-word'), first=question.getByRole('radio',{name:'Básico',exact:true}), last=question.getByRole('radio',{name:'Inicial',exact:true});
+        let release, committed, sent=0;
+        const gate=new Promise(resolve=>release=resolve), reached=new Promise(resolve=>committed=resolve);
+        await page.route('**/competencias-digitales/api/encuesta',async route=>{
+            if(route.request().method()!=='PUT')return route.continue();
+            sent++;const start=performance.now(), response=await route.fetch();
+            report.autosaveRequestMs ??= []; report.autosaveRequestMs.push(performance.now()-start);
+            if(sent===1){committed();await gate;}return route.fulfill({response});
+        });
+        try {
+            await first.check();await reached;await expect(last).toBeEnabled();
+            await question.getByRole('radio',{name:'Avanzado',exact:true}).check();await last.check();await expect(last).toBeFocused();
+            assert.equal((await getSurvey()).answers['m-word'].level,1);
+            const pending=save();await expect(page.getByRole('button',{name:'Guardar avance',exact:true})).toBeDisabled();release();await pending;
+            assert.equal(sent,2);assert.equal((await getSurvey()).answers['m-word'].level,0);
+            await page.reload();await expect(last).toBeChecked();
+            await screenshot('competencias-autoguardado-confirmado');
+        } finally {release();await page.unroute('**/competencias-digitales/api/encuesta');}
+    });
+    await check('autoguardado detenido, recuperación explícita y conflicto de otra sesión con PostgreSQL', async () => {
+        report.autosaveSessions=[];
+        for(const width of [1366,390]) {
+            await page.setViewportSize({width,height:900});await page.goto(origin+base+'/encuesta?paso=m365');
+            const radio=n=>page.locator(`#m-word input[value="${n}"]`), status=page.locator('.cd-save-status');
+            let initial=await getSurvey();
+            // Cada tamaño parte del mismo cero; la iteración anterior termina en 3.
+            // Volver a 3 sin cambios reales debe omitir el PUT, no contarse como error.
+            if(initial.answers['m-word']?.level!==0) {
+                initial.answers['m-word']={state:'level',level:0};
+                assert.equal((await api('PUT','/api/encuesta',{version:initial.version,profile:initial.profile,answers:initial.answers})).status(),200);
+                await page.reload();initial=await getSurvey();
+            }
+            let failing=true,attempts=0;const requests=[];
+            await page.route('**/competencias-digitales/api/encuesta',async route=>{
+                if(route.request().method()!=='PUT')return route.continue();attempts++;
+                if(failing)return route.abort('failed');
+                const start=performance.now(), response=await route.fetch();
+                requests.push({requestBytes:Buffer.byteLength(route.request().postData()),httpMs:performance.now()-start,status:response.status()});
+                return route.fulfill({response});
+            });
+            await radio(1).check();await expect(status).toHaveText('Sin confirmar. Usa Guardar avance.');
+            await radio(2).check();await radio(3).check();await expect(radio(3)).toBeEnabled();await expect(radio(3)).toBeFocused();
+            failing=false;await page.evaluate(()=>{dispatchEvent(new Event('online'));dispatchEvent(new Event('focus'));});
+            await page.waitForTimeout(1800);assert.equal(attempts,1);assert.deepEqual((await getSurvey()).answers,initial.answers);
+            await save();assert.equal(attempts,2);assert.equal((await getSurvey()).answers['m-word'].level,3);
+            await radio(0).check();await expect(status).toHaveText('Avance guardado');assert.equal(attempts,3);
+            await page.reload();await expect(radio(0)).toBeChecked();
+            await page.unroute('**/competencias-digitales/api/encuesta');
+            // Respuesta perdida tras commit: no replay ni borrado de lo confirmado en SQL.
+            let lost=0;
+            await page.route('**/competencias-digitales/api/encuesta',async route=>{
+                if(route.request().method()!=='PUT')return route.continue();lost++;await route.fetch();return route.abort('failed');
+            });
+            await radio(1).check();await expect(status).toHaveText('Sin confirmar. Usa Guardar avance.');await radio(2).check();
+            await page.waitForTimeout(1800);assert.equal(lost,1);assert.equal((await getSurvey()).answers['m-word'].level,1);
+            await screenshot('competencias-autoguardado-detenido-'+width);
+            await page.unroute('**/competencias-digitales/api/encuesta');
+            await save();assert.equal((await getSurvey()).answers['m-word'].level,2);
+            await page.reload();await expect(radio(2)).toBeChecked();
+            // Una sesión concurrente sí es un conflicto, no una confirmación propia perdida.
+            const other=await getSurvey();other.answers['m-word']={state:'level',level:3};
+            assert.equal((await api('PUT','/api/encuesta',{version:other.version,profile:other.profile,answers:other.answers})).status(),200);
+            await radio(0).check();await expect(status).toHaveText('Sin confirmar. Usa Guardar avance.');
+            await page.getByRole('button',{name:'Guardar avance',exact:true}).click();
+            await expect(page.locator('.cd-feedback')).toContainText('La encuesta cambió en otra sesión');
+            assert.equal((await getSurvey()).answers['m-word'].level,3);await expect(radio(0)).toBeChecked();
+            await page.reload();await expect(radio(3)).toBeChecked();
+            report.autosaveSessions.push({width,failureSession:{attempts,successfulPuts:requests.length,requests},lostConfirmationAttempts:lost});
+        }
+        await page.setViewportSize({width:1366,height:900});
+    });
     await check('M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente', async () => {
         await page.getByRole('navigation', { name: 'Bloques de la encuesta' }).getByRole('button', { name: 'Microsoft 365', exact: true }).click();
         await page.locator('#m-word').getByRole('radio', { name: 'Inicial', exact: true }).check(); await save();
@@ -155,21 +228,26 @@ try {
         await page.goto(origin + base + '/encuesta'); await page.getByRole('navigation', { name: 'Bloques de la encuesta' }).getByRole('button', { name: 'Microsoft 365', exact: true }).click();
         await page.locator('#m-word').getByRole('radio', { name: 'Básico', exact: true }).check();
         await page.route('**/competencias-digitales/api/encuesta', async route => route.request().method() === 'PUT' ? route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Guardado temporalmente no disponible.' }) }) : route.continue());
-        await page.getByRole('button', { name: 'Guardar y continuar', exact: true }).click(); await expect(page.getByText('Guardado temporalmente no disponible.', { exact: true })).toBeVisible(); await expect(page.locator('#m-word').getByRole('radio', { name: 'Básico', exact: true })).toBeChecked();
+        await page.getByRole('button', { name: 'Guardar y continuar', exact: true }).click(); await expect(page.locator('.cd-save-status')).toHaveText('Sin confirmar. Usa Guardar avance.'); await expect(page.locator('#m-word').getByRole('radio', { name: 'Básico', exact: true })).toBeChecked();
         await expect(steps().getByRole('button',{name:'Microsoft 365',exact:true})).toHaveAttribute('aria-current','step');
         await page.unroute('**/competencias-digitales/api/encuesta'); await save();
     });
-    await check('respuesta perdida después de guardar: reintento no duplica y solo entonces avanza', async () => {
+    await check('respuesta perdida: ningún replay; recuperación manual conserva commit y sólo entonces avanza', async () => {
         await page.goto(origin+base+'/encuesta?paso=m365');
+        let attempts=0;
         await page.route('**/competencias-digitales/api/encuesta',async route => {
             if(route.request().method()!=='PUT') return route.continue();
+            attempts++;
             await route.fetch(); return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'Respuesta de red perdida después del guardado.'})});
         });
         await page.locator('#m-word').getByRole('radio',{name:'Intermedio',exact:true}).check();
         await page.getByRole('button',{name:'Guardar y continuar',exact:true}).click();
-        await expect(page.getByText('Respuesta de red perdida después del guardado.',{exact:true})).toBeVisible();
+        await expect(page.locator('.cd-save-status')).toHaveText('Sin confirmar. Usa Guardar avance.');
         await expect(steps().getByRole('button',{name:'Microsoft 365',exact:true})).toHaveAttribute('aria-current','step');
         const committed=await getSurvey(); await page.unroute('**/competencias-digitales/api/encuesta');
+        await page.evaluate(()=>{dispatchEvent(new Event('online'));dispatchEvent(new Event('focus'));});
+        await page.waitForTimeout(1700);assert.equal(attempts,1);
+        await save(); assert.equal((await getSurvey()).version,committed.version);
         await page.getByRole('button',{name:'Guardar y continuar',exact:true}).click();
         await expect(steps().getByRole('button',{name:'Ciberseguridad',exact:true})).toHaveAttribute('aria-current','step');
         assert.equal((await getSurvey()).version,committed.version);
@@ -297,6 +375,9 @@ try {
         await page.getByRole('button',{name:'Abrir menú de usuario'}).click();
         await expect(page.getByRole('menu').getByText('Persona sintética',{exact:true})).toBeVisible(); await expect(page.getByRole('menu').getByText('Otra persona sintética',{exact:true})).toBeVisible(); await page.keyboard.press('Escape');
         await page.goto(origin + base + '/encuesta'); await expect(page.getByRole('dialog')).toHaveCount(0); await expect(page.getByRole('button', { name: 'Guardar avance' })).toHaveCount(0); await screenshot('competencias-representacion');
+        await page.goto(origin + '/accesos'); await page.waitForURL(origin + base); await expect(page.getByText('Consulta como Otra persona sintética')).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Volver a mi usuario', exact: true })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Procedimientos institucionales', exact: true })).toHaveCount(0);
         await page.goto(origin + '/inicio'); await expect(page.getByRole('heading', { name: 'Acceso no disponible' })).toBeVisible();
         await page.getByRole('button', { name: 'Volver a mi usuario', exact: true }).click(); await expect(page.getByText('Consulta como Otra persona sintética')).toHaveCount(0);
         await page.waitForURL(origin + base); await expect(page.locator('.cd-site h1')).toBeVisible();
@@ -316,6 +397,23 @@ try {
         await expect(page.locator('.cd-account img')).toBeVisible();
         assert.equal((await context.request.get(origin+'/inicio',{headers:{'X-TDV2-Page':'1'}})).status(),403);
         await page.getByRole('button',{name:'Abrir menú de usuario'}).click(); await expect(page.getByRole('menu').getByText('Persona sintética',{exact:true})).toBeVisible(); await page.keyboard.press('Escape');
+    });
+    await check('entrada independiente en navegador: denegación de Procedimientos conserva sesión y acceso exclusivo a Competencias', async () => {
+        for (const width of [1366,390]) {
+            await page.setViewportSize({width,height:900}); await page.goto(origin+'/inicio');
+            await expect(page.getByRole('heading',{name:'Acceso no disponible',exact:true})).toBeVisible();
+            await expect(page.getByRole('alert')).toHaveText('Tu cuenta no tiene acceso a Procedimientos institucionales.');
+            await expect(page.getByRole('link',{name:'Competencias digitales',exact:true})).toHaveAttribute('href',base);
+            assert(!/Nexo|roles|ApplicationId/.test(await page.locator('main').innerText()));
+            assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+            await captureDocument(page,'acceso-exclusivo-'+width);
+            await page.getByRole('link',{name:'Competencias digitales',exact:true}).click();
+            await expect(page.getByRole('navigation',{name:'Módulos de Competencias digitales'}).getByRole('button')).toHaveCount(2);
+            await page.goto(origin+'/connect'); await page.waitForURL(origin+base);
+            await expect(page.getByRole('heading',{name:'Elige un sitio',exact:true})).toHaveCount(0);
+            await page.locator('.cd-brandmark').click();
+            await expect(page.getByRole('link',{name:'Responder encuesta de competencias digitales',exact:true})).toBeVisible();
+        }
     });
 } catch (e) { report.failure = { message: e.message, stack: e.stack }; console.error(e); await page.screenshot({ path: path.join(artifacts, 'competencias-failure.png'), fullPage: true }).catch(() => {}); process.exitCode = 1; }
 finally { await writeFile(path.join(artifacts, 'competencias-browser.json'), JSON.stringify(report, null, 2)); await browser.close(); }

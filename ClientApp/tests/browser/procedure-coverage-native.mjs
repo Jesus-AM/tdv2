@@ -31,7 +31,7 @@ try {
         await page.goto(origin + '/');
         await expect(page.locator('#participa')).toContainText('Registro de procedimientos');
         const access = page.getByRole('link', { name: 'Registrar un procedimiento institucional', exact: true });
-        await expect(access).toHaveAttribute('href', '/connect');
+        await expect(access).toHaveAttribute('href', '/inicio');
         await expect(page.getByText('Registro de procesos', { exact: true })).toHaveCount(0);
         for (const width of [1366, 390]) {
             await page.setViewportSize({ width, height: 900 });

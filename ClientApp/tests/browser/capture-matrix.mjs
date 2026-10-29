@@ -24,7 +24,7 @@ await context.route('**/*', async route => {
 const control = (action, method = 'POST') => context.request.fetch(origin + '/__fixture/' + action, { method, headers: { 'X-Fixture-Key': key } });
 const report = { synthetic: true, phase, instrumented: true, cases: [], errors: [] };
 try {
-    const login = await context.newPage(); await login.goto(origin + '/connect'); await login.waitForURL(origin + '/inicio'); await login.close();
+    const login = await context.newPage(); await login.goto(origin + '/connect?returnUrl=/inicio'); await login.waitForURL(origin + '/inicio'); await login.close();
     for (const count of [20, 100, 200]) {
         assert.equal((await control(`performance-seed?rows=${count}&single=true`)).status(), 200);
         const page = await context.newPage(), requests = [];

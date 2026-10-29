@@ -7,6 +7,17 @@ import { base, levels, percent, unitName } from './types';
 import type { Answer, Survey, Tool } from './types';
 import PrivacyNotice from './PrivacyNotice';
 
+// El servidor puede serializar propiedades opcionales como null. Se comparan
+// valores de captura, no JSON ni el orden de sus claves.
+function sameCapture(a: Pick<Survey, 'profile' | 'answers'>, b: Pick<Survey, 'profile' | 'answers'>) {
+    return Object.keys(a.profile).length === Object.keys(b.profile).length
+        && Object.keys(a.profile).every(id => JSON.stringify(a.profile[id]) === JSON.stringify(b.profile[id]))
+        && Object.keys(a.answers).length === Object.keys(b.answers).length
+        && Object.keys(a.answers).every(id => a.answers[id].state === b.answers[id]?.state
+            && (a.answers[id].level ?? null) === (b.answers[id]?.level ?? null)
+            && (a.answers[id].checks ?? null) === (b.answers[id]?.checks ?? null));
+}
+
 function ProfileFields({ survey, profile, disabled, onChange }: { survey: Survey; profile: Survey['profile']; disabled: boolean; onChange: (id: string, value: string | string[]) => void }) {
     const institution = survey.institution;
     const label = (unit: typeof institution.unit) => unit ? unitName(unit) : institution.status === 'available' ? 'No aplica' : 'Información institucional pendiente';
@@ -53,6 +64,8 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const [survey, setSurvey] = useState(initial), [profile, setProfile] = useState(initial.profile), [answers, setAnswers] = useState(initial.answers);
     const [step, setStep] = useState(initial.navigation.current), [dirty, setDirty] = useState(false), [edit, setEdit] = useState(0);
     const [error, setError] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false);
+    const [savingNow, setSavingNow] = useState(false);
+    const [saveStopped, setSaveStopped] = useState(false);
     const [noticeOpen, setNoticeOpen] = useState(!initial.accepted && !initial.completedAt && !readOnly);
     const [finishOpen, setFinishOpen] = useState(false), [pending, setPending] = useState<string[]>([]);
     const progress = useRef<HTMLDivElement>(null);
@@ -60,9 +73,21 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const saving = useRef<Promise<Survey | null> | null>(null);
     const manualSaving = useRef<Promise<Survey | null> | null>(null);
     const manualOperation = useRef<{ operation: string; generation: string; version: number } | null>(null);
+    const revision = useRef(0), lastEdit = useRef(0), autoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const mounted = useRef(true);
+    const autoStopped = useRef(false);
+    // Sólo evidencia para comparar un commit incierto al recuperar manualmente.
+    // Nunca se reenvía esta instantánea ni constituye una cola de escrituras.
+    const unconfirmed = useRef<{ generation: string; version: number; profile: Survey['profile']; answers: Survey['answers'] } | null>(null);
     const disabled = readOnly || busy || !survey.accepted || !!survey.editionUpdate;
     const failed = (e: unknown) => { setError(errorText(e)); if (axios.isAxiosError(e) && e.response?.data?.reset) window.dispatchEvent(new Event('cd-generation-invalid')); };
-    const change = () => { current.current.dirty = true; setDirty(true); setEdit(e => e + 1); setMessage(''); setError(''); setPending([]); };
+    const change = () => { revision.current++; lastEdit.current = Date.now(); current.current.dirty = true; setDirty(true); setEdit(e => e + 1); setMessage(''); if (!autoStopped.current) setError(''); setPending([]); };
+    function stopAuto(e?: unknown) {
+        autoStopped.current = true; setSaveStopped(true); clearTimeout(autoTimer.current);
+        // El error de conexión ocupa el indicador estable, sin insertar una alerta
+        // que desplace las preguntas. Los rechazos del servidor conservan su detalle.
+        if (axios.isAxiosError(e) && e.response && e.response.status < 500) failed(e);
+    }
     const showStep = (id: string) => {
         current.current.step = id; setStep(id); setPending([]);
         window.history.replaceState(null, '', `${base}/encuesta?paso=${id}`);
@@ -79,43 +104,99 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         });
         return () => cancelAnimationFrame(frame);
     }, [pending, busy, step]);
-    function persist(force = false): Promise<Survey | null> {
-        if (manualSaving.current) return manualSaving.current;
+    function saveOnce(force = false): Promise<Survey | null> {
         if (saving.current) return saving.current;
         const draft = current.current;
-        if (!draft.dirty && !force) return Promise.resolve(draft.survey);
-        setBusy(true); setError(''); setMessage('');
+        if (!force && sameCapture(draft, draft.survey)) {
+            current.current.dirty = false; setDirty(false);
+            return Promise.resolve(draft.survey);
+        }
+        const request = { edit: revision.current, body: { generation: draft.survey.generation, version: draft.survey.version, profile: draft.profile, answers: draft.answers } };
+        setSavingNow(true); setError(''); setMessage('');
         saving.current = (async () => {
             try {
-                const saved = (await axios.put<Survey>(`${base}/api/encuesta`, { generation: draft.survey.generation, version: draft.survey.version, profile: draft.profile, answers: draft.answers })).data;
-                current.current = { ...current.current, survey: saved, profile: saved.profile, answers: saved.answers, dirty: false };
-                setSurvey(saved); setProfile(saved.profile); setAnswers(saved.answers); setDirty(false);
-                setMessage('Avance guardado. Puedes continuar desde otro dispositivo.');
-                if (!saved.navigation.steps.find(s => s.id === current.current.step)?.accessible) showStep(saved.navigation.resume);
+                const saved = (await axios.put<Survey>(`${base}/api/encuesta`, request.body)).data;
+                const newer = revision.current !== request.edit;
+                // Saved relee el estado persistido. Si otra sesión escribió entre commit y
+                // lectura, no usamos su versión para sobrescribirla con nuestro borrador.
+                if (!sameCapture(saved, request.body)) {
+                    unconfirmed.current = null; stopAuto();
+                    setError('La encuesta cambió en otra sesión. Tus cambios siguen en pantalla; revisa la otra sesión antes de recargar.');
+                    return null;
+                }
+                unconfirmed.current = null;
+                current.current = { ...current.current, survey: saved, dirty: newer,
+                    profile: newer ? current.current.profile : saved.profile, answers: newer ? current.current.answers : saved.answers };
+                setSurvey(saved); setProfile(current.current.profile); setAnswers(current.current.answers); setDirty(newer);
+                // El autoguardado no mueve el foco, el desplazamiento ni la sección abierta.
+                // La navegación explícita sigue validándose contra el estado del backend.
                 return saved;
-            } catch (e) { failed(e); return null; }
-            finally { saving.current = null; setBusy(false); }
+            } catch (e) {
+                unconfirmed.current = axios.isAxiosError(e) && (!e.response || e.response.status >= 500) ? request.body : null;
+                stopAuto(e); return null;
+            }
+            finally { saving.current = null; setSavingNow(false); }
         })();
         return saving.current;
+    }
+    async function flush(force = false): Promise<Survey | null> {
+        clearTimeout(autoTimer.current);
+        let saved: Survey | null;
+        do { saved = await saveOnce(force); force = false; } while (saved && current.current.dirty);
+        return saved;
+    }
+    function persist(force = false): Promise<Survey | null> {
+        return manualSaving.current ?? (autoStopped.current ? Promise.resolve(null) : flush(force));
+    }
+    function scheduleAuto() {
+        clearTimeout(autoTimer.current);
+        if (autoStopped.current) return;
+        autoTimer.current = setTimeout(async () => {
+            const draft = current.current;
+            if (!mounted.current || autoStopped.current || readOnly || manualSaving.current || !draft.dirty || draft.survey.completedAt || !draft.survey.accepted || draft.survey.editionUpdate) return;
+            const saved = await saveOnce();
+            if (saved && mounted.current && current.current.dirty) scheduleAuto();
+        }, Math.max(0, 1500 - (Date.now() - lastEdit.current)));
+    }
+    async function recoverManually(): Promise<boolean> {
+        // Consulta explícita del estado real. Sólo adopta una revisión que ya
+        // conocíamos o el commit exacto cuya confirmación se perdió; nunca una
+        // versión ajena para sobreescribir otra pestaña con nuestro documento.
+        const saved = (await axios.get<Survey>(`${base}/api/encuesta`)).data;
+        const known = current.current.survey, attempted = unconfirmed.current;
+        const unchanged = saved.version === known.version && sameCapture(saved, known);
+        const ourCommit = attempted && saved.version === attempted.version + 1 && sameCapture(saved, attempted);
+        if (saved.generation !== known.generation || saved.completedAt || (!unchanged && !ourCommit)) {
+            setError('La encuesta cambió en otra sesión. Tus cambios siguen en pantalla; revisa la otra sesión antes de recargar.');
+            return false;
+        }
+        current.current.survey = saved;
+        current.current.dirty = !sameCapture(current.current, saved);
+        setSurvey(saved); setDirty(current.current.dirty); unconfirmed.current = null;
+        return true;
     }
     function saveManually(): Promise<Survey | null> {
         if (manualSaving.current) return manualSaving.current;
         if (readOnly || !current.current.survey.accepted || current.current.survey.completedAt || current.current.survey.editionUpdate) return Promise.resolve(null);
         // Primero termina el autoguardado (o persiste el borrador pendiente). La
         // confirmación no requiere una modificación artificial de las respuestas.
+        clearTimeout(autoTimer.current); setBusy(true); setError(''); setMessage('');
         manualSaving.current = (async () => {
             try {
-                const saved = await persist(); if (!saved) return null;
-                setBusy(true); setError(''); setMessage('');
+                if (autoStopped.current && !await recoverManually()) return null;
+                const saved = await flush(); if (!saved) return null;
                 if (!manualOperation.current || manualOperation.current.generation !== saved.generation || manualOperation.current.version !== saved.version)
                     manualOperation.current = { operation: crypto.randomUUID(), generation: saved.generation, version: saved.version };
                 const confirmed = (await axios.post<Survey>(`${base}/api/encuesta/guardar`, manualOperation.current)).data;
+                if (!sameCapture(confirmed, saved)) {
+                    stopAuto(); setError('La encuesta cambió en otra sesión. Revisa la otra sesión antes de recargar.'); return null;
+                }
                 current.current = { ...current.current, survey: confirmed, profile: confirmed.profile, answers: confirmed.answers, dirty: false };
                 setSurvey(confirmed); setProfile(confirmed.profile); setAnswers(confirmed.answers); setDirty(false); manualOperation.current = null;
-                setMessage('Avance guardado. Puedes continuar desde otro dispositivo.');
+                autoStopped.current = false; setSaveStopped(false);
                 if (!confirmed.navigation.steps.find(s => s.id === current.current.step)?.accessible) showStep(confirmed.navigation.resume);
                 return confirmed;
-            } catch (e) { failed(e); return null; }
+            } catch (e) { stopAuto(e); return null; }
             finally { manualSaving.current = null; setBusy(false); }
         })();
         return manualSaving.current;
@@ -123,17 +204,18 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const persistRef = useRef(persist); persistRef.current = persist;
     useEffect(() => {
         if (!edit || readOnly || survey.completedAt || !survey.accepted || survey.editionUpdate) return;
-        const timer = window.setTimeout(() => { if (current.current.dirty) void persistRef.current(); }, 1500);
-        return () => clearTimeout(timer);
+        scheduleAuto();
+        return () => clearTimeout(autoTimer.current);
     }, [edit, readOnly, survey.accepted, survey.completedAt]);
     useEffect(() => {
+        mounted.current = true;
         const stop = router.on('before', e => {
             if (!current.current.dirty && !saving.current && !manualSaving.current) return;
             e.preventDefault();
             void persistRef.current().then(saved => { if (saved) e.detail.visit.resume?.(); });
         });
         const unload = (e: BeforeUnloadEvent) => { if (current.current.dirty || saving.current || manualSaving.current) { e.preventDefault(); e.returnValue = ''; } };
-        window.addEventListener('beforeunload', unload); return () => { stop(); window.removeEventListener('beforeunload', unload); };
+        window.addEventListener('beforeunload', unload); return () => { mounted.current = false; clearTimeout(autoTimer.current); stop(); window.removeEventListener('beforeunload', unload); };
     }, []);
     useEffect(() => {
         const element = progress.current, site = element?.closest<HTMLElement>('.cd-site');
@@ -142,14 +224,18 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         observer.observe(element); return () => observer.disconnect();
     }, [survey.completedAt]);
     async function navigate(target: string, continuing = false) {
-        const saved = await persist(continuing); if (!saved) return;
-        const thisStep = saved.navigation.steps.find(s => s.id === current.current.step)!;
-        if (continuing && !thisStep.complete) { setMessage(''); setError('Completa los campos pendientes de esta sección para continuar.'); focusPending(thisStep.pending); return; }
-        if (!saved.navigation.steps.find(s => s.id === target)?.accessible) {
-            setError('Completa y guarda las secciones anteriores para abrir este bloque.');
-            showStep(saved.navigation.resume); focusPending(saved.navigation.steps.find(s => s.id === saved.navigation.resume)!.pending); return;
-        }
-        showStep(target); setError('');
+        if (busy) return;
+        setBusy(true);
+        try {
+            const saved = await persist(continuing); if (!saved) return;
+            const thisStep = saved.navigation.steps.find(s => s.id === current.current.step)!;
+            if (continuing && !thisStep.complete) { setMessage(''); setError('Completa los campos pendientes de esta sección para continuar.'); focusPending(thisStep.pending); return; }
+            if (!saved.navigation.steps.find(s => s.id === target)?.accessible) {
+                setError('Completa y guarda las secciones anteriores para abrir este bloque.');
+                showStep(saved.navigation.resume); focusPending(saved.navigation.steps.find(s => s.id === saved.navigation.resume)!.pending); return;
+            }
+            showStep(target); setError('');
+        } finally { setBusy(false); }
     }
     async function accept() {
         if (busy) return; setBusy(true); setError('');
@@ -158,12 +244,24 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         } catch (e) { failed(e); } finally { setBusy(false); }
     }
     async function finish() {
-        const saved = await persist(); if (!saved) { setFinishOpen(false); return; }
-        setBusy(true); setError('');
+        if (busy) return;
+        setBusy(true);
+        const saved = await persist(); if (!saved) { setFinishOpen(false); setBusy(false); return; }
+        setError('');
         try { const final = (await axios.post<Survey>(`${base}/api/encuesta/finalizar`, { generation: saved.generation, version: saved.version })).data;
             setSurvey(final); current.current.survey = final; setMessage('Encuesta finalizada correctamente.');
         } catch (e) { failed(e); const id = saved.navigation.resume; showStep(id); focusPending(saved.navigation.steps.find(s => s.id === id)!.pending); }
         finally { setBusy(false); setFinishOpen(false); }
+    }
+    async function prepareFinish() {
+        if (busy) return;
+        setBusy(true);
+        try {
+            const saved = await persist(true); if (!saved) return;
+            const incomplete = saved.navigation.steps.find(s => !s.complete);
+            if (incomplete) { showStep(incomplete.id); setError('Completa los campos pendientes antes de finalizar.'); focusPending(incomplete.pending); }
+            else setFinishOpen(true);
+        } finally { setBusy(false); }
     }
     async function updateEdition() {
         if (!survey.editionUpdate || busy || readOnly) return;
@@ -185,7 +283,8 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
         {survey.completedAt ? <section className="cd-card"><h2>Tu encuesta ya fue completada</h2><p>Finalizada el {new Date(survey.completedAt).toLocaleString('es-MX')}. La respuesta es definitiva.</p>{canReport && <Button variant="contained" onClick={() => router.visit(`${base}/mi-informe-ruta`)}>Ver mi informe</Button>}</section> : <>
             <nav className="cd-steps" aria-label="Bloques de la encuesta">{steps.map((s, i) => <button key={s.id} className={s.complete ? 'cd-done' : ''} aria-current={step === s.id ? 'step' : undefined} aria-label={s.name} disabled={busy || !s.accessible} title={!s.accessible ? 'Completa y guarda los pasos anteriores' : s.complete ? 'Sección completa' : 'Sección pendiente'} onClick={() => void navigate(s.id)}><span className="cd-dot" aria-hidden="true" />{i + 1}. {s.name}{s.complete && <span className="cd-sr-only"> · Completa</span>}</button>)}</nav>
             <div className="cd-progress" ref={progress}><span>Paso {stepIndex + 1} de 6 · {steps[stepIndex].name}</span><LinearProgress variant="determinate" value={survey.evaluation.progress} aria-label="Progreso de llenado guardado" /><strong>{percent(survey.evaluation.progress)}</strong><small>{survey.evaluation.answered}/{survey.evaluation.total} respuestas guardadas</small></div>
-            <div className="cd-feedback" aria-live="polite">{error && <Alert severity="error">{error}</Alert>}{message && <p className="cd-saved" role="status">{message}</p>}{busy && <p role="status">Guardando…</p>}</div>
+            <div className="cd-feedback" aria-live="polite">{error && <Alert severity="error">{error}</Alert>}{message && <p className="cd-saved" role="status">{message}</p>}</div>
+            <p className="cd-save-status" role="status">{savingNow || busy ? 'Guardando…' : saveStopped ? 'Sin confirmar. Usa Guardar avance.' : error ? 'Guardado sin confirmar' : dirty ? 'Cambios pendientes de guardar' : 'Avance guardado'}</p>
             {!survey.accepted && !readOnly && <Alert severity="info" action={<Button onClick={() => setNoticeOpen(true)}>Leer y confirmar</Button>}>Confirma el aviso de privacidad antes de comenzar.</Alert>}
             {survey.editionUpdate && <Alert severity="warning"><h3>El instrumento tiene una nueva edición</h3><p>Antes de continuar, revisa y confirma la actualización de este borrador. Se conservarán las respuestas vigentes y una copia de la captura anterior. No cambia tu aceptación del aviso de privacidad.</p>
                 <p>Se retiran: {survey.editionUpdate.removedTools.join(', ')}.</p>{survey.editionUpdate.reviewFields.length > 0 && <p>Revisa estos datos anteriores; las opciones retiradas no se reclasificarán automáticamente: {survey.editionUpdate.reviewFields.join(' · ')}.</p>}
@@ -200,7 +299,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
                 {visible.some(t => t.opt) && <section><h3 className="cd-category">Complementarias que usas</h3><div className="cd-questions">{visible.filter(t => t.opt).map(t => <Question key={t.id} tool={t} block={block.id} answer={answers[t.id]} readOnly={disabled} onChange={a => answer(t.id, a)} />)}</div></section>}
             </section>}
             {pending.length > 0 && <Alert severity="warning"><p>Pendientes de esta sección:</p><div className="cd-pending">{pending.map(id => <Button key={id} onClick={() => focusPending([id, ...pending.filter(p => p !== id)])}>{name(id)}</Button>)}</div></Alert>}
-            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{busy ? 'Guardando…' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{steps[stepIndex].pending.length ? `${steps[stepIndex].pending.length} pendientes en el último guardado` : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={e => { if (e.detail < 2) void saveManually(); }}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={async () => { const saved = await persist(true); if (!saved) return; const incomplete = saved.navigation.steps.find(s => !s.complete); if (incomplete) { showStep(incomplete.id); setError('Completa los campos pendientes antes de finalizar.'); focusPending(incomplete.pending); } else setFinishOpen(true); }}>Finalizar encuesta</Button>}</>}</div></div>
+            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{savingNow || busy ? 'Guardando…' : saveStopped || error ? 'Guardado sin confirmar' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{steps[stepIndex].pending.length ? `${steps[stepIndex].pending.length} pendientes en el último guardado` : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={e => { if (e.detail < 2) void saveManually(); }}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={() => void prepareFinish()}>Finalizar encuesta</Button>}</>}</div></div>
             </div>
         </>}
         <PrivacyNotice key={noticeOpen ? 'accept-open' : 'accept-closed'} notice={survey.instrument.notice} open={noticeOpen} onClose={() => setNoticeOpen(false)} onAccept={!survey.accepted && !survey.completedAt && !readOnly ? () => void accept() : undefined} busy={busy} />

@@ -1,6 +1,10 @@
 # Autenticación, Nexo y PostgreSQL
 
+**Resolución vigente de Mi espacio:** `/accesos` comprueba el registro extensible de sitios antes de renderizar. Cero sitios conserva la sesión, uno abre su destino y varios ofrecen elección. Una consulta fallida muestra indisponibilidad y los accesos comprobados, sin decidir que existe un único sitio. [Detalle y verificación](MI_ESPACIO_SITIOS_20261028.md).
+
 Implementación y pruebas del segundo bloque, ampliadas por [delegación, representación y auditoría](DELEGACION_REPRESENTACION.md). Estado y resultados vigentes en [ESTADO_MIGRACION.md](../../ESTADO_MIGRACION.md). **No es autorización para conectar o migrar las bases existentes.**
+
+**Revisión vigente 2026-10-28:** identidad Microsoft separada de la autorización de cada aplicación. El portal es público; `/accesos` requiere sólo identidad y ofrece aplicaciones comprobadas. Una denegación no cierra sesión. Retorno local permitido, cambio de cuenta con CSRF y mensajes sin detalles internos. [Contrato, archivos, pruebas y límites](ACCESO_POR_APLICACION_Y_MENSAJES_20261028.md).
 
 ## Contratos tomados de Herd
 
@@ -13,9 +17,9 @@ Implementación y pruebas del segundo bloque, ampliadas por [delegación, repres
 | Services/TDV2/FormAccess.php y directorio UR | Domain/FormAccess, UnitDirectory y Web/AccessBoundary.cs |
 | Formatos y validación canónica | Domain/FormSchema.cs e Infrastructure/PostgresFormStore.cs |
 
-El inicio usa código OAuth con state y PKCE, conforme al contrato actual de Laravel. La prueba de identidad es la respuesta HTTPS autenticada de Graph /me después de canjear el código en el tenant configurado. No se consume un ID token para autenticar ni se aceptan sus claims sin verificar. No se implementó un segundo protocolo OIDC basado en ID token/nonce.
+El inicio usa código OAuth con state y PKCE. La identidad se comprueba mediante Graph /me después del canje en el tenant configurado. El flujo vigente valida además firma, issuer, audience, vigencia, tenant, object ID y nonce del ID token antes de conservar su login_hint opaco para los flujos existentes de cuenta/salida; nunca se aceptan claims sin verificar.
 
-El nombre local procede de Nexo. Los claims del ticket contienen ID local, correo, nombre, tenant, object ID y versión de sesión; no almacenan roles, módulos ni alcance autorizante. Nexo se consulta nuevamente en cada solicitud protegida. La pertenencia a la aplicación se obtiene de sus vistas publicadas para la cuenta PostgreSQL, nunca de React.
+El nombre local procede de Nexo cuando la aplicación solicitada o la otra aplicación ofrece un perfil válido. Sin él, el correo Microsoft validado sirve como nombre alterno para permanecer en el portal; no se inventa adscripción ni se conceden permisos. Los claims del ticket contienen ID local, correo, nombre, tenant, object ID y versión de sesión; no almacenan roles, módulos ni alcance autorizante. Nexo se consulta nuevamente en cada solicitud protegida y su falla deniega esa aplicación. La pertenencia se obtiene de sus vistas publicadas para la cuenta PostgreSQL, nunca de React.
 
 Las UR siguen procediendo del catálogo local replicado desde SII: adscripción/origen publicados por Nexo y num_empleado textual se resuelven contra ese catálogo. Nexo publica la jerarquía de módulos, que se valida por clave, padre y ruta exacta. No se convierte una adscripción en responsabilidad institucional.
 
@@ -32,7 +36,7 @@ La aplicación no contiene valores reales. Configuración mediante el proveedor 
 | ConnectionStrings:Tdv2 | ConnectionStrings__Tdv2 | Base de TDV2 nueva/aislada preparada explícitamente; usuario de ejecución sin DDL |
 | ConnectionStrings:Nexo | ConnectionStrings__Nexo | Cuenta publicada por Nexo para tdv2: SELECT de vistas y EXECUTE de funciones delegadas/representación; sin escritura directa en tablas internas |
 
-El callback se calcula como PublicOrigin + /connect. Registrar exactamente ese destino en Microsoft antes de validar con una cuenta real. La vuelta del logout usa PublicOrigin + /. Los scopes solicitados son openid, profile, offline_access y User.Read. No existe parámetro de navegador para cambiar tenant, aplicación Nexo o destino de redirección.
+El callback se calcula como PublicOrigin + /connect. Registrar exactamente ese destino en Microsoft antes de validar con una cuenta real. La vuelta del logout usa PublicOrigin + /. Los scopes solicitados son openid, profile, offline_access y User.Read. El navegador no puede cambiar tenant ni aplicación Nexo. `returnUrl` admite exclusivamente rutas locales permitidas de interfaz, vinculadas al state mediante la cookie protegida; no modifica el callback Microsoft ni permite redirecciones externas.
 
 La clave de aplicación Nexo es **tdv2**, no un ID configurable desde React. El adaptador exige exactamente una fila en nexo_aplicacion, con ID positivo y nivel_control=2. El ID numérico se deriva de esa fila; las pruebas usan 47 para evitar depender de un ID histórico. Consulta public.nexo_* y exige columnas de identidad institucional num_empleado, ID_UR y origen_ur. Roles se filtran por correo y usuario_aplicacion_id; módulos por roles y aplicacion_id.
 

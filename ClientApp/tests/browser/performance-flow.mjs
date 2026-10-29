@@ -27,7 +27,7 @@ const page = await context.newPage(), errors = [], report = { phase, synthetic: 
 page.on('pageerror', e => errors.push(e.message));
 try {
     assert.equal((await context.request.post(origin + '/__fixture/performance-seed', { headers: { 'X-Fixture-Key': key } })).status(), 200);
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     const start = performance.now(); await page.goto(origin + '/formatos/A');
     await expect(page.getByRole('tab', { name: 'Contexto', exact: true })).toBeVisible();
     report.mountMs = performance.now() - start;

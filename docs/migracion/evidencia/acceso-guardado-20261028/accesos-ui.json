@@ -1,0 +1,98 @@
+{
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "elección",
+      "options": []
+    },
+    {
+      "width": 1440,
+      "case": "elección",
+      "options": [
+        "Procedimientos institucionales"
+      ]
+    },
+    {
+      "width": 1440,
+      "case": "elección",
+      "options": [
+        "Competencias digitales"
+      ]
+    },
+    {
+      "width": 1440,
+      "case": "elección",
+      "options": [
+        "Procedimientos institucionales",
+        "Competencias digitales"
+      ]
+    },
+    {
+      "width": 1440,
+      "case": "denegación específica y cambio de cuenta por teclado con CSRF/retorno",
+      "application": "Procedimientos institucionales"
+    },
+    {
+      "width": 1440,
+      "case": "denegación específica y cambio de cuenta por teclado con CSRF/retorno",
+      "application": "Competencias digitales"
+    },
+    {
+      "width": 1440,
+      "case": "error temporal diferenciado, conserva acceso comprobado a la otra aplicación"
+    },
+    {
+      "width": 1440,
+      "case": "lista parcial explícita sin inferir permiso cuando falla comprobación"
+    },
+    {
+      "width": 390,
+      "case": "elección",
+      "options": []
+    },
+    {
+      "width": 390,
+      "case": "elección",
+      "options": [
+        "Procedimientos institucionales"
+      ]
+    },
+    {
+      "width": 390,
+      "case": "elección",
+      "options": [
+        "Competencias digitales"
+      ]
+    },
+    {
+      "width": 390,
+      "case": "elección",
+      "options": [
+        "Procedimientos institucionales",
+        "Competencias digitales"
+      ]
+    },
+    {
+      "width": 390,
+      "case": "denegación específica y cambio de cuenta por teclado con CSRF/retorno",
+      "application": "Procedimientos institucionales"
+    },
+    {
+      "width": 390,
+      "case": "denegación específica y cambio de cuenta por teclado con CSRF/retorno",
+      "application": "Competencias digitales"
+    },
+    {
+      "width": 390,
+      "case": "error temporal diferenciado, conserva acceso comprobado a la otra aplicación"
+    },
+    {
+      "width": 390,
+      "case": "lista parcial explícita sin inferir permiso cuando falla comprobación"
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

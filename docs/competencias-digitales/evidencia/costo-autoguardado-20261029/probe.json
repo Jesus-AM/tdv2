@@ -1,0 +1,3188 @@
+{
+  "sourceRun": "native-postgres-20261029-073935-f6798c0f",
+  "omitted": [],
+  "complete": true,
+  "probe": true,
+  "rounds": 1,
+  "real": "ASP.NET Kestrel, cookies/CSRF, EF/Npgsql, PostgreSQL 18 y SQL de actividad publicado",
+  "synthetic": "Microsoft OAuth/Graph, vistas de permisos Nexo, empleados/catálogos, identidades, esquema HTTPS sobre transporte loopback HTTP de prueba",
+  "pooling": false,
+  "statistics": "pg_stat_statements track=all; SQL cliente por Activity traceparent; p95 rango más cercano",
+  "phases": [
+    {
+      "name": "preparar catálogo sintético",
+      "ms": 25.9344,
+      "sql": [
+        {
+          "Database": "cd_nexo_test",
+          "Category": "actividad_nexo_interna",
+          "Purpose": "contrato central: INSERT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 5,
+          "Rows": 125,
+          "ServerMs": 2.1959999999999997
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.3321
+        }
+      ]
+    },
+    {
+      "name": "autenticación inicial y CSRF (fuera del guardado)",
+      "ms": 500.6892,
+      "sql": [
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.8262999999999999
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 1.3984
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.2789
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0069
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0392
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0153
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "INSERT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 3,
+          "ServerMs": 2.9149999999999996
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "DELETE",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0553
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.008199999999999999
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0606
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0013
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0072
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0574
+        }
+      ]
+    },
+    {
+      "name": "consentimiento, perfil y calentamiento (fuera del guardado)",
+      "ms": 1596.104,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "trigger incrementa revisión global",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 3,
+          "ServerMs": 0.0702
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 7,
+          "Rows": 7,
+          "ServerMs": 0.11220000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 8,
+          "Rows": 5,
+          "ServerMs": 6.1857
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 8,
+          "Rows": 8,
+          "ServerMs": 1.8682999999999998
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 7,
+          "Rows": 7,
+          "ServerMs": 0.0761
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.2934
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0409
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 5,
+          "ServerMs": 0.16999999999999998
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "concurrencia",
+          "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 4,
+          "Rows": 4,
+          "ServerMs": 0.1764
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 9,
+          "Rows": 0,
+          "ServerMs": 0.21940000000000004
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 5,
+          "ServerMs": 0.071
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 5,
+          "ServerMs": 0.1003
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 30,
+          "ServerMs": 0.18219999999999997
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 9,
+          "Rows": 0,
+          "ServerMs": 0.0451
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "SAVEPOINT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0023
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0006000000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 7,
+          "Rows": 0,
+          "ServerMs": 0.0048000000000000004
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.01
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 5,
+          "ServerMs": 0.2004
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0007
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "RELEASE",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0021000000000000003
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.14400000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0119
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 5,
+          "ServerMs": 0.29760000000000003
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "respuestas",
+          "Purpose": "actualizar captura y revisión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 3.7843999999999998
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "serialización por empleado",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0126
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 5,
+          "Rows": 25,
+          "ServerMs": 0.2551
+        }
+      ]
+    },
+    {
+      "name": "verificar probe/1/cambios (fuera del guardado)",
+      "ms": 201.9325,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.013600000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.6696
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0465
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0109
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.4039
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.034999999999999996
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0424
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0143
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0206
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.0375
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0063
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0009
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0491
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0674
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0562
+        }
+      ]
+    },
+    {
+      "name": "verificar probe/1/identico_forzado_api (fuera del guardado)",
+      "ms": 300.5175,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0135
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.7435999999999999
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0431
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0129
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.28650000000000003
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0331
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0371
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0157
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0196
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.036399999999999995
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0069
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0011
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0483
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.057
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0563
+        }
+      ]
+    },
+    {
+      "name": "verificar probe/1/manual_sin_cambios (fuera del guardado)",
+      "ms": 317.4882,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.013699999999999999
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.6949000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0444
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.011600000000000001
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.3178
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0334
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.044
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.015000000000000001
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.019700000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.037200000000000004
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0071
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0013
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0412
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.061
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0458
+        }
+      ]
+    },
+    {
+      "name": "verificar probe/1/selecciones_rapidas (fuera del guardado)",
+      "ms": 201.7061,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0152
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.6934
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0418
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.011899999999999999
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.2967
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0351
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0419
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0135
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0211
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.035800000000000005
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0063
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0005
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.047299999999999995
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0583
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0527
+        }
+      ]
+    }
+  ],
+  "batches": [
+    {
+      "pass": "probe",
+      "users": 1,
+      "mode": "cambios",
+      "sampleCount": 1,
+      "batchMs": 429.6716,
+      "http": {
+        "n": 1,
+        "p50": 411.2041,
+        "p95": 411.2041,
+        "min": 411.2041,
+        "max": 411.2041,
+        "mean": 411.2041
+      },
+      "beforeSend": {
+        "n": 1,
+        "p50": 0.3432,
+        "p95": 0.3432,
+        "min": 0.3432,
+        "max": 0.3432,
+        "mean": 0.3432
+      },
+      "sqlClient": {
+        "n": 1,
+        "p50": 47.693400000000004,
+        "p95": 47.693400000000004,
+        "min": 47.693400000000004,
+        "max": 47.693400000000004,
+        "mean": 47.693400000000004
+      },
+      "sqlServerMs": 5.575599999999999,
+      "statements": 35,
+      "queued": 0,
+      "received": 0,
+      "errors": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "trigger incrementa revisión global",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0207
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0347
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 1.388
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 18,
+          "Rows": 174,
+          "ServerMs": 2.5348
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.094
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0214
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0192
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0342
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "concurrencia",
+          "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.08610000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "respuestas",
+          "Purpose": "actualizar captura y revisión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 3.4401
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.052
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0159
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.016399999999999998
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.041699999999999994
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.013600000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "SAVEPOINT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0003
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0015999999999999999
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0072
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0499
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0007
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "RELEASE",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0005
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.1499
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0043
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0554
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "serialización por empleado",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0066
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0409
+        }
+      ],
+      "waits": {
+        "samples": 13,
+        "peakWaiting": 0,
+        "waitingBackendSamples": 0,
+        "events": {},
+        "instrumentationSqlClientMs": 14.869800000000003,
+        "pollMs": 25
+      },
+      "samples": [
+        {
+          "Actor": 1,
+          "Status": 200,
+          "BeforeSendMs": 0.3432,
+          "HttpMs": 411.2041,
+          "RequestBytes": 286,
+          "ResponseBytes": 126121,
+          "Commands": [
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "ticket de sesión vigente",
+              "Fingerprint": "1E81993E4DCB",
+              "ClientMs": 2.4505
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "vínculo usuario Microsoft y versión de sesión",
+              "Fingerprint": "A60F32EB5410",
+              "ClientMs": 3.3445
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "validar aplicación publicada",
+              "Fingerprint": "6E4CFABB7037",
+              "ClientMs": 1.7791
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "identidad y empleado publicados",
+              "Fingerprint": "947F637171AF",
+              "ClientMs": 1.9052
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "roles vigentes",
+              "Fingerprint": "276A75925465",
+              "ClientMs": 1.225
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "módulos permitidos y orden",
+              "Fingerprint": "812B1593735A",
+              "ClientMs": 1.772
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 2.1578
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "catalogo",
+              "Purpose": "jerarquía y fecha del catálogo local SII",
+              "Fingerprint": "52C7037FD7B6",
+              "ClientMs": 4.1183
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 2.7796
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.8705
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 1.276
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.6689
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "serialización por empleado",
+              "Fingerprint": "EFC0A48BF295",
+              "ClientMs": 0.5258
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "BA2871C1C51C",
+              "ClientMs": 3.0372
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "AB3723F2A00E",
+              "ClientMs": 1.4735
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "SAVEPOINT",
+              "Fingerprint": "6AAD0490EE4E",
+              "ClientMs": 0.5525
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "respuestas",
+              "Purpose": "actualizar captura y revisión",
+              "Fingerprint": "D948DD4DD1A6",
+              "ClientMs": 4.357
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "RELEASE",
+              "Fingerprint": "6475C9AB0973",
+              "ClientMs": 0.4731
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "bloqueo de deduplicación del evento",
+              "Fingerprint": "D9564A0B889E",
+              "ClientMs": 0.6
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "insertar revisión/evento si no existe",
+              "Fingerprint": "4365A3DC1561",
+              "ClientMs": 1.8037
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 0.2237
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.1163
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+              "Fingerprint": "35D846B6D9FC",
+              "ClientMs": 3.2539
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 0.4852
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.4719
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "1216828F46B1",
+              "ClientMs": 2.9395
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "BE9A1E9DBAFE",
+              "ClientMs": 1.0327
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "probe",
+      "users": 1,
+      "mode": "identico_forzado_api",
+      "sampleCount": 1,
+      "batchMs": 522.3387,
+      "http": {
+        "n": 1,
+        "p50": 520.645,
+        "p95": 520.645,
+        "min": 520.645,
+        "max": 520.645,
+        "mean": 520.645
+      },
+      "beforeSend": {
+        "n": 1,
+        "p50": 0.08,
+        "p95": 0.08,
+        "min": 0.08,
+        "max": 0.08,
+        "mean": 0.08
+      },
+      "sqlClient": {
+        "n": 1,
+        "p50": 43.318799999999996,
+        "p95": 43.318799999999996,
+        "min": 43.318799999999996,
+        "max": 43.318799999999996,
+        "mean": 43.318799999999996
+      },
+      "sqlServerMs": 1.9456999999999998,
+      "statements": 32,
+      "queued": 0,
+      "received": 0,
+      "errors": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.030399999999999996
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 1.2957
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 17,
+          "Rows": 1,
+          "ServerMs": 1.2598000000000003
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0963
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.025
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.010499999999999999
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0347
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "concurrencia",
+          "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0947
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.0601
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.017
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0183
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.0415
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.014700000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0013
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0019000000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0078
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.05
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0008
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.030000000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0077
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0532
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "serialización por empleado",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0068000000000000005
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.047299999999999995
+        }
+      ],
+      "waits": {
+        "samples": 16,
+        "peakWaiting": 0,
+        "waitingBackendSamples": 0,
+        "events": {},
+        "instrumentationSqlClientMs": 19.182399999999998,
+        "pollMs": 25
+      },
+      "samples": [
+        {
+          "Actor": 1,
+          "Status": 200,
+          "BeforeSendMs": 0.08,
+          "HttpMs": 520.645,
+          "RequestBytes": 286,
+          "ResponseBytes": 126121,
+          "Commands": [
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "ticket de sesión vigente",
+              "Fingerprint": "1E81993E4DCB",
+              "ClientMs": 2.7808
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "vínculo usuario Microsoft y versión de sesión",
+              "Fingerprint": "A60F32EB5410",
+              "ClientMs": 3.2647
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "validar aplicación publicada",
+              "Fingerprint": "6E4CFABB7037",
+              "ClientMs": 1.6158
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "identidad y empleado publicados",
+              "Fingerprint": "947F637171AF",
+              "ClientMs": 1.848
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "roles vigentes",
+              "Fingerprint": "276A75925465",
+              "ClientMs": 1.2645
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "módulos permitidos y orden",
+              "Fingerprint": "812B1593735A",
+              "ClientMs": 1.7955
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 1.8552
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "catalogo",
+              "Purpose": "jerarquía y fecha del catálogo local SII",
+              "Fingerprint": "52C7037FD7B6",
+              "ClientMs": 3.931
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 3.1719
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.8969
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 1.5071
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.8436
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "serialización por empleado",
+              "Fingerprint": "EFC0A48BF295",
+              "ClientMs": 0.6823
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "BA2871C1C51C",
+              "ClientMs": 3.4427
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "AB3723F2A00E",
+              "ClientMs": 1.5291
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "bloqueo de deduplicación del evento",
+              "Fingerprint": "D9564A0B889E",
+              "ClientMs": 0.6794
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "insertar revisión/evento si no existe",
+              "Fingerprint": "4365A3DC1561",
+              "ClientMs": 1.8994
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 0.3258
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.2239
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+              "Fingerprint": "35D846B6D9FC",
+              "ClientMs": 2.6489
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 0.4678
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.3578
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "1216828F46B1",
+              "ClientMs": 3.3211
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "BE9A1E9DBAFE",
+              "ClientMs": 0.9656
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "probe",
+      "users": 1,
+      "mode": "manual_sin_cambios",
+      "sampleCount": 1,
+      "batchMs": 662.9375,
+      "http": {
+        "n": 1,
+        "p50": 661.3862,
+        "p95": 661.3862,
+        "min": 661.3862,
+        "max": 661.3862,
+        "mean": 661.3862
+      },
+      "beforeSend": {
+        "n": 1,
+        "p50": 0.0581,
+        "p95": 0.0581,
+        "min": 0.0581,
+        "max": 0.0581,
+        "mean": 0.0581
+      },
+      "sqlClient": {
+        "n": 1,
+        "p50": 76.966,
+        "p95": 76.966,
+        "min": 76.966,
+        "max": 76.966,
+        "mean": 76.966
+      },
+      "sqlServerMs": 25.904400000000006,
+      "statements": 44,
+      "queued": 1,
+      "received": 1,
+      "errors": 0,
+      "sql": [
+        {
+          "Database": "cd_nexo_test",
+          "Category": "actividad_nexo_interna",
+          "Purpose": "contrato central: EXISTS(SELECT",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.034
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0294
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 1.3557000000000001
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 22,
+          "Rows": 1,
+          "ServerMs": 1.6471
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "actividad_nexo_interna",
+          "Purpose": "contrato central: INSERT",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 1,
+          "ServerMs": 0.3367
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.10830000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0229
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "actividad_nexo_interna",
+          "Purpose": "contrato central: SELECT",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 6,
+          "Rows": 4,
+          "ServerMs": 0.1553
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 1,
+          "ServerMs": 0.10719999999999999
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "actividad_nexo",
+          "Purpose": "entregar y confirmar recibo central",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 23.186
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.033800000000000004
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "concurrencia",
+          "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.09900000000000002
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.0575
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.013900000000000001
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.018099999999999998
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.018000000000000002
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "comprobar recibo manual existente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0033
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.0427
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 4,
+          "Rows": 0,
+          "ServerMs": 0.0167
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "SAVEPOINT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0009
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0011
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0018
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0084
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0751
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "encolar evento manual idempotente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.3626
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "RELEASE",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0006
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "persistir intento y recibo",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0618
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.1614
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0104
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0743
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "serialización por empleado",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0063
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.044199999999999996
+        }
+      ],
+      "waits": {
+        "samples": 21,
+        "peakWaiting": 0,
+        "waitingBackendSamples": 0,
+        "events": {},
+        "instrumentationSqlClientMs": 24.5337,
+        "pollMs": 25
+      },
+      "samples": [
+        {
+          "Actor": 1,
+          "Status": 200,
+          "BeforeSendMs": 0.0581,
+          "HttpMs": 661.3862,
+          "RequestBytes": 116,
+          "ResponseBytes": 126121,
+          "Commands": [
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "ticket de sesión vigente",
+              "Fingerprint": "1E81993E4DCB",
+              "ClientMs": 2.4004
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "vínculo usuario Microsoft y versión de sesión",
+              "Fingerprint": "A60F32EB5410",
+              "ClientMs": 3.3785
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "validar aplicación publicada",
+              "Fingerprint": "6E4CFABB7037",
+              "ClientMs": 1.7225
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "identidad y empleado publicados",
+              "Fingerprint": "947F637171AF",
+              "ClientMs": 1.7208
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "roles vigentes",
+              "Fingerprint": "276A75925465",
+              "ClientMs": 1.0892
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "módulos permitidos y orden",
+              "Fingerprint": "812B1593735A",
+              "ClientMs": 1.5863
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 1.773
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "catalogo",
+              "Purpose": "jerarquía y fecha del catálogo local SII",
+              "Fingerprint": "52C7037FD7B6",
+              "ClientMs": 4.0232
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 3.1962
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.7327
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 1.1618
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.6596
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "serialización por empleado",
+              "Fingerprint": "EFC0A48BF295",
+              "ClientMs": 0.6326
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "BA2871C1C51C",
+              "ClientMs": 3.2452
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "AB3723F2A00E",
+              "ClientMs": 1.4385
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "comprobar recibo manual existente",
+              "Fingerprint": "CE1A57FB88A8",
+              "ClientMs": 1.8559
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "encolar evento manual idempotente",
+              "Fingerprint": "434FAAED8270",
+              "ClientMs": 1.1093
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 0.2801
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.3605
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+              "Fingerprint": "35D846B6D9FC",
+              "ClientMs": 3.4587
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "bloqueo de deduplicación del evento",
+              "Fingerprint": "D9564A0B889E",
+              "ClientMs": 0.9085
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "insertar revisión/evento si no existe",
+              "Fingerprint": "4365A3DC1561",
+              "ClientMs": 2.6087
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "validar aplicación publicada",
+              "Fingerprint": "6E4CFABB7037",
+              "ClientMs": 1.3186
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "actividad_nexo",
+              "Purpose": "entregar y confirmar recibo central",
+              "Fingerprint": "13D093276ADF",
+              "ClientMs": 24.8478
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "SAVEPOINT",
+              "Fingerprint": "6AAD0490EE4E",
+              "ClientMs": 0.5155
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "persistir intento y recibo",
+              "Fingerprint": "D055BF2D26AD",
+              "ClientMs": 0.7692
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "RELEASE",
+              "Fingerprint": "6475C9AB0973",
+              "ClientMs": 0.5338
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+              "Fingerprint": "35D846B6D9FC",
+              "ClientMs": 2.5564
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 0.5327
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.5132
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "1216828F46B1",
+              "ClientMs": 2.8885
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "BE9A1E9DBAFE",
+              "ClientMs": 1.1481
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pass": "probe",
+      "users": 1,
+      "mode": "selecciones_rapidas",
+      "sampleCount": 1,
+      "batchMs": 416.881,
+      "http": {
+        "n": 1,
+        "p50": 415.4306,
+        "p95": 415.4306,
+        "min": 415.4306,
+        "max": 415.4306,
+        "mean": 415.4306
+      },
+      "beforeSend": {
+        "n": 1,
+        "p50": 0.064,
+        "p95": 0.064,
+        "min": 0.064,
+        "max": 0.064,
+        "mean": 0.064
+      },
+      "sqlClient": {
+        "n": 1,
+        "p50": 54.25590000000001,
+        "p95": 54.25590000000001,
+        "min": 54.25590000000001,
+        "max": 54.25590000000001,
+        "mean": 54.25590000000001
+      },
+      "sqlServerMs": 5.595000000000001,
+      "statements": 35,
+      "queued": 0,
+      "received": 0,
+      "errors": 0,
+      "sql": [
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "trigger incrementa revisión global",
+          "TopLevel": false,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0198
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "leer generación vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0319
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "encuesta",
+          "Purpose": "leer captura/versión antes de escribir y después del commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 1.3493
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "otro",
+          "Purpose": "SELECT",
+          "TopLevel": true,
+          "Excluded": true,
+          "Calls": 14,
+          "Rows": 1,
+          "ServerMs": 1.0071
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "privacidad",
+          "Purpose": "consentimiento vigente en escritura y respuesta",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0958
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "bloqueo compartido de generación",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0172
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "actividad_nexo",
+          "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0351
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "identidad y empleado publicados",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0356
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "concurrencia",
+          "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 2,
+          "ServerMs": 0.0793
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "respuestas",
+          "Purpose": "actualizar captura y revisión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 3.5421
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "representacion",
+          "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.0456
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "roles vigentes",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0145
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "vínculo usuario Microsoft y versión de sesión",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0149
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "catalogo",
+          "Purpose": "jerarquía y fecha del catálogo local SII",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 6,
+          "ServerMs": 0.0287
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 3,
+          "Rows": 0,
+          "ServerMs": 0.010700000000000001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "SAVEPOINT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0011
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.001
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "ROLLBACK",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 2,
+          "Rows": 0,
+          "ServerMs": 0.0023
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "bloqueo de deduplicación del evento",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0078
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "validar aplicación publicada",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0286
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "COMMIT",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0003
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "transaccion",
+          "Purpose": "RELEASE",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0006
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "auditoria_local",
+          "Purpose": "insertar revisión/evento si no existe",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.14809999999999998
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "transaccion",
+          "Purpose": "BEGIN",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 0,
+          "ServerMs": 0.0035
+        },
+        {
+          "Database": "tdv2_native_test",
+          "Category": "identidad",
+          "Purpose": "ticket de sesión vigente",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0477
+        },
+        {
+          "Database": "cd_native_test",
+          "Category": "concurrencia",
+          "Purpose": "serialización por empleado",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 1,
+          "ServerMs": 0.0065
+        },
+        {
+          "Database": "cd_nexo_test",
+          "Category": "autorizacion",
+          "Purpose": "módulos permitidos y orden",
+          "TopLevel": true,
+          "Excluded": false,
+          "Calls": 1,
+          "Rows": 5,
+          "ServerMs": 0.0468
+        }
+      ],
+      "waits": {
+        "samples": 13,
+        "peakWaiting": 0,
+        "waitingBackendSamples": 0,
+        "events": {},
+        "instrumentationSqlClientMs": 14.893899999999999,
+        "pollMs": 25
+      },
+      "samples": [
+        {
+          "Actor": 1,
+          "Status": 200,
+          "BeforeSendMs": 0.064,
+          "HttpMs": 415.4306,
+          "RequestBytes": 286,
+          "ResponseBytes": 126109,
+          "Commands": [
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "ticket de sesión vigente",
+              "Fingerprint": "1E81993E4DCB",
+              "ClientMs": 2.3298
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "identidad",
+              "Purpose": "vínculo usuario Microsoft y versión de sesión",
+              "Fingerprint": "A60F32EB5410",
+              "ClientMs": 2.98
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "validar aplicación publicada",
+              "Fingerprint": "6E4CFABB7037",
+              "ClientMs": 1.7544
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "identidad y empleado publicados",
+              "Fingerprint": "947F637171AF",
+              "ClientMs": 7.2826
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "roles vigentes",
+              "Fingerprint": "276A75925465",
+              "ClientMs": 1.4129
+            },
+            {
+              "Database": "cd_nexo_test",
+              "Category": "autorizacion",
+              "Purpose": "módulos permitidos y orden",
+              "Fingerprint": "812B1593735A",
+              "ClientMs": 1.6114
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 2.0139
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "catalogo",
+              "Purpose": "jerarquía y fecha del catálogo local SII",
+              "Fingerprint": "52C7037FD7B6",
+              "ClientMs": 3.6252
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 3.126
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.8318
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 1.2723
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.8733
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "serialización por empleado",
+              "Fingerprint": "EFC0A48BF295",
+              "ClientMs": 0.6162
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "BA2871C1C51C",
+              "ClientMs": 2.9797
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "AB3723F2A00E",
+              "ClientMs": 1.3971
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "SAVEPOINT",
+              "Fingerprint": "6AAD0490EE4E",
+              "ClientMs": 0.5322
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "respuestas",
+              "Purpose": "actualizar captura y revisión",
+              "Fingerprint": "D948DD4DD1A6",
+              "ClientMs": 4.6226
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "transaccion",
+              "Purpose": "RELEASE",
+              "Fingerprint": "6475C9AB0973",
+              "ClientMs": 0.6186
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "bloqueo de deduplicación del evento",
+              "Fingerprint": "D9564A0B889E",
+              "ClientMs": 0.8214
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "auditoria_local",
+              "Purpose": "insertar revisión/evento si no existe",
+              "Fingerprint": "4365A3DC1561",
+              "ClientMs": 2.2619
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "concurrencia",
+              "Purpose": "sesión vigente bloqueada antes de escribir/commit",
+              "Fingerprint": "B4D8C34CBF7A",
+              "ClientMs": 0.2722
+            },
+            {
+              "Database": "tdv2_native_test",
+              "Category": "representacion",
+              "Purpose": "contexto efectivo inicial y validaciones transaccionales",
+              "Fingerprint": "642017F48AB1",
+              "ClientMs": 0.1397
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "actividad_nexo",
+              "Purpose": "buscar entrega pendiente con SKIP LOCKED",
+              "Fingerprint": "35D846B6D9FC",
+              "ClientMs": 2.8612
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "bloqueo compartido de generación",
+              "Fingerprint": "206F79CBA41E",
+              "ClientMs": 0.6222
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "concurrencia",
+              "Purpose": "leer generación vigente",
+              "Fingerprint": "9BA4B158F9A0",
+              "ClientMs": 1.4365
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "encuesta",
+              "Purpose": "leer captura/versión antes de escribir y después del commit",
+              "Fingerprint": "1216828F46B1",
+              "ClientMs": 3.7794
+            },
+            {
+              "Database": "cd_native_test",
+              "Category": "privacidad",
+              "Purpose": "consentimiento vigente en escritura y respuesta",
+              "Fingerprint": "BE9A1E9DBAFE",
+              "ClientMs": 1.1814
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "traceTagNames": [
+    "db.namespace",
+    "db.npgsql.connection_id",
+    "db.npgsql.data_source",
+    "db.query.text",
+    "db.system.name",
+    "server.address",
+    "server.port"
+  ]
+}

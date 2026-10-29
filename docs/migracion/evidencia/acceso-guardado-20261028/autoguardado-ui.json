@@ -1,0 +1,189 @@
+{
+  "baseline": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 1440,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 1440,
+      "case": "error conserva respuestas nuevas, reintento manual"
+    },
+    {
+      "width": 1440,
+      "case": "respuesta de red perdida: reintento exacto antes de persistir cambios posteriores"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 1440,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 1440,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 390,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 390,
+      "case": "error conserva respuestas nuevas, reintento manual"
+    },
+    {
+      "width": 390,
+      "case": "respuesta de red perdida: reintento exacto antes de persistir cambios posteriores"
+    },
+    {
+      "width": 390,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 390,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 390,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 23.199999809265137,
+          "checked": true,
+          "scriptMs": 4.157999999999995,
+          "layoutMs": 0.5019999999999956,
+          "commits": 1
+        },
+        {
+          "ms": 23.300000190734863,
+          "checked": true,
+          "scriptMs": 2.9730000000000034,
+          "layoutMs": 0.4009999999999986,
+          "commits": 1
+        },
+        {
+          "ms": 20.300000190734863,
+          "checked": true,
+          "scriptMs": 3.3170000000000006,
+          "layoutMs": 0.4600000000000021,
+          "commits": 1
+        },
+        {
+          "ms": 21,
+          "checked": true,
+          "scriptMs": 3.0899999999999954,
+          "layoutMs": 0.4870000000000013,
+          "commits": 1
+        },
+        {
+          "ms": 21.09999990463257,
+          "checked": true,
+          "scriptMs": 2.563999999999997,
+          "layoutMs": 0.28399999999999953,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "requestMs": [
+        2016.5,
+        2011.5
+      ],
+      "requests": 2,
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 25.800000190734863,
+          "checked": true,
+          "scriptMs": 3.913000000000007,
+          "layoutMs": 0.5299999999999958,
+          "commits": 1
+        },
+        {
+          "ms": 23,
+          "checked": true,
+          "scriptMs": 2.4699999999999998,
+          "layoutMs": 0.6320000000000006,
+          "commits": 1
+        },
+        {
+          "ms": 26.90000009536743,
+          "checked": true,
+          "scriptMs": 2.3749999999999885,
+          "layoutMs": 0.3470000000000001,
+          "commits": 1
+        },
+        {
+          "ms": 26.199999809265137,
+          "checked": true,
+          "scriptMs": 2.2940000000000045,
+          "layoutMs": 0.3799999999999984,
+          "commits": 1
+        },
+        {
+          "ms": 26.09999990463257,
+          "checked": true,
+          "scriptMs": 2.018000000000006,
+          "layoutMs": 0.17400000000000054,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "requestMs": [
+        2012.3000001907349,
+        2024.1999998092651
+      ],
+      "requests": 2,
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

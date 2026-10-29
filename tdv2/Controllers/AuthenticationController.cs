@@ -15,18 +15,12 @@ namespace Tdv2.Controllers;
 
 public sealed class AuthenticationController(IOptions<MicrosoftSettings> settings, PostgresOAuthAttempts attempts,
     MicrosoftClient microsoft, MicrosoftLoginService login, SessionTerminationService termination,
-    AuthenticationAudit audit, AccessState state, ProtectedValues crypto, ILogger<AuthenticationController> logger, ParticipantPhotos photos) : ControllerBase
+    AuthenticationAudit audit, AccessState state, ProtectedValues crypto, ILogger<AuthenticationController> logger, ParticipantPhotos photos, ISessionIdentity identity, PortalSites sites) : ControllerBase
 {
     private const string BrowserCookie = "__Host-tdv2.oauth";
     private const string HintCookie = "__Host-tdv2.microsoft-hint";
     private const string LogoutCookie = "__Host-tdv2.microsoft-logout";
     private const string ReturnCookie = "__Host-tdv2.oauth-return";
-    private static string SafeReturn(string? value)
-    {
-        if (value is null || value.Length > 2048 || !value.StartsWith('/') || value.StartsWith("//") || value.Contains('\\') || value.Any(char.IsControl)) return "/inicio";
-        var path = value.Split('?', '#')[0];
-        return Tdv2.Competencias.DigitalRoutes.Page(path) ? value : "/inicio";
-    }
     private string? Hint(string cookie)
     {
         try
@@ -54,13 +48,19 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
     [EnableRateLimiting("microsoft-login")]
     public async Task<IResult> Connect()
     {
-        if (User.Identity?.IsAuthenticated == true) return Results.Redirect(SafeReturn(Request.Query["returnUrl"]));
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (await identity.Matches(User, HttpContext.RequestAborted)) return Results.Redirect(sites.SafeReturn(Request.Query["returnUrl"]));
+            // Un ticket inválido no debe volver indefinidamente al destino protegido.
+            // Carecer de acceso a una aplicación nunca entra por esta rama.
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
         settings.Value.Validate();
         var ct = HttpContext.RequestAborted;
         if (!Request.Query.ContainsKey("code") && !Request.Query.ContainsKey("error"))
         {
             var attempt = await attempts.Create(ct);
-            StoreHint(ReturnCookie, attempt.State + "|" + SafeReturn(Request.Query["returnUrl"]));
+            StoreHint(ReturnCookie, attempt.State + "|" + sites.SafeReturn(Request.Query["returnUrl"]));
             Response.Cookies.Append(BrowserCookie, attempt.Browser, BrowserOptions());
             return Results.Redirect(microsoft.Authorize(attempt.State, attempt.Challenge, attempt.Nonce,
                 Hint(HintCookie), Request.Query["account"] == "other"));
@@ -77,10 +77,10 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
             var code = Request.Query["code"];
             if (Request.Query.ContainsKey("error") || code.Count != 1 || string.IsNullOrWhiteSpace(code) || code.ToString().Length > 16384)
                 return Results.Redirect("/?authError=invalid");
-            var destination = "/inicio";
+            var destination = ApplicationEntry.Choices;
             var storedReturn = Hint(ReturnCookie);
             if (storedReturn is not null && storedReturn.StartsWith(stateValue.ToString() + "|", StringComparison.Ordinal))
-                destination = SafeReturn(storedReturn[(stateValue.ToString().Length + 1)..]);
+                destination = sites.SafeReturn(storedReturn[(stateValue.ToString().Length + 1)..]);
             Response.Cookies.Delete(ReturnCookie, BrowserOptions());
             var authenticated = await login.Complete(code.ToString(), verifier, ct, destination.StartsWith("/competencias-digitales", StringComparison.Ordinal));
             email = authenticated.Email;
@@ -140,7 +140,9 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         Response.Cookies.Delete(HintCookie, BrowserOptions()); Response.Cookies.Delete(LogoutCookie, BrowserOptions());
         Response.Cookies.Delete(BrowserCookie, BrowserOptions()); Response.Cookies.Delete("tdv2.aspnet.csrf");
-        return Results.Json(new { redirect = "/connect?account=other" });
+        var redirect = "/connect?account=other";
+        if (Request.Query.ContainsKey("returnUrl")) redirect += "&returnUrl=" + Uri.EscapeDataString(sites.SafeReturn(Request.Query["returnUrl"]));
+        return Results.Json(new { redirect });
     }
 
     [HttpGet("/user/photo")]

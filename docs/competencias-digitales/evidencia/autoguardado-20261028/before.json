@@ -1,0 +1,120 @@
+{
+  "baseline": true,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 21.40000009536743,
+          "checked": true,
+          "scriptMs": 5.689,
+          "layoutMs": 0.6270000000000026,
+          "commits": 1
+        },
+        {
+          "ms": 23.699999809265137,
+          "checked": true,
+          "scriptMs": 2.826000000000009,
+          "layoutMs": 0.4860000000000003,
+          "commits": 1
+        },
+        {
+          "ms": 16.5,
+          "checked": true,
+          "scriptMs": 3.0820000000000016,
+          "layoutMs": 0.3290000000000029,
+          "commits": 1
+        },
+        {
+          "ms": 23.199999809265137,
+          "checked": true,
+          "scriptMs": 2.783999999999995,
+          "layoutMs": 0.41799999999999476,
+          "commits": 1
+        },
+        {
+          "ms": 25.300000190734863,
+          "checked": true,
+          "scriptMs": 2.0949999999999998,
+          "layoutMs": 0.15600000000000336,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": false,
+        "saveEnabled": false
+      },
+      "disabledMs": 2016.5999999046326,
+      "maxShift": 34.5,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": null,
+      "requestMs": [
+        2018.1999998092651
+      ],
+      "requests": 1,
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 22.5,
+          "checked": true,
+          "scriptMs": 4.613000000000006,
+          "layoutMs": 1.128999999999998,
+          "commits": 1
+        },
+        {
+          "ms": 24.59999990463257,
+          "checked": true,
+          "scriptMs": 2.828999999999998,
+          "layoutMs": 0.40699999999999764,
+          "commits": 1
+        },
+        {
+          "ms": 23.40000009536743,
+          "checked": true,
+          "scriptMs": 4.070000000000004,
+          "layoutMs": 0.46600000000000114,
+          "commits": 1
+        },
+        {
+          "ms": 25.100000381469727,
+          "checked": true,
+          "scriptMs": 2.4010000000000002,
+          "layoutMs": 0.5530000000000048,
+          "commits": 1
+        },
+        {
+          "ms": 23.800000190734863,
+          "checked": true,
+          "scriptMs": 2.5029999999999912,
+          "layoutMs": 0.2669999999999964,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": false,
+        "saveEnabled": false
+      },
+      "disabledMs": 2018.1999998092651,
+      "maxShift": 52.78125,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": null,
+      "requestMs": [
+        2021.5
+      ],
+      "requests": 1,
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

@@ -27,6 +27,17 @@ public sealed class SessionController(RequestAccess access, AccessState state) :
     public async Task<IResult> Restricted()
     {
         await state.Load(HttpContext.RequestAborted);
-        return PageResponse.Page(HttpContext, "AccesoRestringido", new() { ["access"] = new { message = "No tienes acceso a este recurso.", status = 403 } });
+        return PageResponse.Page(HttpContext, "AccesoRestringido", new() { ["access"] = new { message = ApplicationEntry.NoApplications, status = 403 } });
+    }
+
+    [HttpGet("/accesos")]
+    public async Task<IResult> Choices([FromServices] ReactShell shell)
+    {
+        var available = await ApplicationEntry.Find(HttpContext);
+        var html = Request.Headers.Accept.Any(v => v?.Contains("text/html") == true) && !Request.Headers.ContainsKey("X-TDV2-Page");
+        if (available.DirectDestination is { } destination)
+            return html ? Results.LocalRedirect(destination) : Results.Json(new { redirect = destination });
+        if (html) { await shell.Write(HttpContext); return Results.Empty; }
+        return PageResponse.Page(HttpContext, "Accesos", new() { ["available"] = available });
     }
 }

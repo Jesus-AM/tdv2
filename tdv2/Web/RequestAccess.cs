@@ -27,7 +27,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
             || !await identity.Matches(http.User, http.RequestAborted)) throw new DomainProblem(401, "Inicia sesión con tu cuenta institucional de Microsoft 365.");
         Real = await nexo.ForEmail(Actor(http), http.RequestAborted);
         if (Real.User.Email != Actor(http) || Real.User.AccountType != "individual" || Real.Roles.Count == 0)
-            throw new DomainProblem(403, "No tienes un acceso vigente en Nexo.");
+            throw new DomainProblem(403, ApplicationEntry.Denied("/inicio"));
         return Real;
     }
     public async Task<Profile> Profile(HttpContext http, string? module = null)
@@ -109,7 +109,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
             || data["escritura"] is not JsonValue write || !write.TryGetValue<bool>(out _)
             || !DateTimeOffset.TryParse(NexoOperations.Text(data, "expira_en"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var expiry)
             || expiry <= DateTimeOffset.UtcNow || requireToken && (string.IsNullOrWhiteSpace(token) || token.Length > 8192))
-            throw new DomainProblem(503, "Nexo no confirmó una representación válida.");
+            throw new DomainProblem(503, ApplicationEntry.Unavailable);
         return new("representation", id!, actor, email, NexoOperations.Text(data, "nombre") ?? email,
             NexoOperations.Text(data, "id_ur"), NexoOperations.Flag(data, "escritura"), expiry, token, Reason: NexoOperations.Text(data, "motivo"));
     }

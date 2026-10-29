@@ -435,7 +435,7 @@
     </nav>
     @if (User.Identity?.IsAuthenticated == true) {
       <div class="session-actions">
-      <a class="btn btn-dark" href="/inicio">Ir a mi espacio <span class="ar">→</span></a>
+      <a class="btn btn-dark" href="/accesos">Ir a mi espacio <span class="ar">→</span></a>
       <form method="POST" action="/logout">
         @Html.AntiForgeryToken()
         <button class="btn" type="submit">Cerrar sesión</button>
@@ -638,7 +638,7 @@
           <li>Riesgos y necesidades de seguridad</li>
           <li>Propuestas de mejora o automatización</li>
         </ul>
-        <a class="btn btn-dark registration-cta" href="@(User.Identity?.IsAuthenticated == true ? "/inicio" : "/connect")"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
+        <a class="btn btn-dark registration-cta" href="/inicio"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
       </section>
 
       <!-- Beneficios -->

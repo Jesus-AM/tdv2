@@ -1,0 +1,88 @@
+{
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    {
+      "width": 1366,
+      "case": "intención genérica anónima se conserva tras OAuth y entra directamente sin renderizar selector"
+    },
+    {
+      "width": 1366,
+      "case": "Mi espacio: td; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 1366,
+      "case": "Mi espacio: cd; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 1366,
+      "case": "Mi espacio: both; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 1366,
+      "case": "Mi espacio: none; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 1366,
+      "case": "ocho sitios desde registro del servidor, orden, teclado, filas naturales y pie sin superposición"
+    },
+    {
+      "width": 1366,
+      "case": "falla unavailable: muestra sólo comprobados, no interpreta error como ausencia ni redirige"
+    },
+    {
+      "width": 1366,
+      "case": "falla failed: muestra sólo comprobados, no interpreta error como ausencia ni redirige"
+    },
+    {
+      "width": 1366,
+      "case": "revocación reevalúa y deja un sitio; URL específica denegada no cambia destino; /connect genérico directo"
+    },
+    {
+      "width": 1366,
+      "case": "enlace específico conserva destino tras OAuth aunque haya un único sitio"
+    },
+    {
+      "width": 390,
+      "case": "intención genérica anónima se conserva tras OAuth y entra directamente sin renderizar selector"
+    },
+    {
+      "width": 390,
+      "case": "Mi espacio: td; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 390,
+      "case": "Mi espacio: cd; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 390,
+      "case": "Mi espacio: both; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 390,
+      "case": "Mi espacio: none; sólo sitios autorizados y Atrás regresa al portal"
+    },
+    {
+      "width": 390,
+      "case": "ocho sitios desde registro del servidor, orden, teclado, filas naturales y pie sin superposición"
+    },
+    {
+      "width": 390,
+      "case": "falla unavailable: muestra sólo comprobados, no interpreta error como ausencia ni redirige"
+    },
+    {
+      "width": 390,
+      "case": "falla failed: muestra sólo comprobados, no interpreta error como ausencia ni redirige"
+    },
+    {
+      "width": 390,
+      "case": "revocación reevalúa y deja un sitio; URL específica denegada no cambia destino; /connect genérico directo"
+    },
+    {
+      "width": 390,
+      "case": "enlace específico conserva destino tras OAuth aunque haya un único sitio"
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

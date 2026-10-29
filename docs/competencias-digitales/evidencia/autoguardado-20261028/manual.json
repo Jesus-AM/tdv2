@@ -1,0 +1,72 @@
+{
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "perfil/pregunta/transición: sin confirmación manual"
+    },
+    {
+      "width": 1440,
+      "case": "manual después de autoguardar sin cambios ni revisión artificial"
+    },
+    {
+      "width": 1440,
+      "case": "botón guarda borrador y espera confirmación de persistencia antes de auditar"
+    },
+    {
+      "width": 1440,
+      "case": "autoguardado en curso coordinado con botón"
+    },
+    {
+      "width": 1440,
+      "case": "doble clic: una confirmación"
+    },
+    {
+      "width": 1440,
+      "case": "respuesta perdida: mismo UUID/recibo; revisión concurrente conserva datos y pasos accesibles"
+    },
+    {
+      "width": 1440,
+      "case": "fallo de captura: sin evento, respuestas conservadas y reintento"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto de confirmación: sin éxito ni recibo hasta reintento"
+    },
+    {
+      "width": 390,
+      "case": "perfil/pregunta/transición: sin confirmación manual"
+    },
+    {
+      "width": 390,
+      "case": "manual después de autoguardar sin cambios ni revisión artificial"
+    },
+    {
+      "width": 390,
+      "case": "botón guarda borrador y espera confirmación de persistencia antes de auditar"
+    },
+    {
+      "width": 390,
+      "case": "autoguardado en curso coordinado con botón"
+    },
+    {
+      "width": 390,
+      "case": "doble clic: una confirmación"
+    },
+    {
+      "width": 390,
+      "case": "respuesta perdida: mismo UUID/recibo; revisión concurrente conserva datos y pasos accesibles"
+    },
+    {
+      "width": 390,
+      "case": "fallo de captura: sin evento, respuestas conservadas y reintento"
+    },
+    {
+      "width": 390,
+      "case": "conflicto de confirmación: sin éxito ni recibo hasta reintento"
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { chromium, expect } from '@playwright/test';
 import { systemFixture } from './system-ui-fixture.mjs';
 
-const output=path.resolve('../.artifacts/manual-save-20261028/browser');await mkdir(output,{recursive:true});
+const output=path.resolve('../.artifacts/manual-save-20261029/browser');await mkdir(output,{recursive:true});
 const instrument=JSON.parse(await readFile('../tdv2/Contracts/competencias-digitales-v2.json','utf8'));
 const base='/competencias-digitales', fixture=await systemFixture(), browser=await chromium.launch({channel:'msedge',headless:true});
 const fullProfile=Object.fromEntries(instrument.profile.map(f=>[f.id,f.multiple?[f.options[0]]:f.options[0]]));
@@ -49,7 +49,7 @@ try {
   const page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));
   const save=page.getByRole('button',{name:'Guardar avance',exact:true});const antig=page.locator('[id="perfil:antig"]');
   async function fresh(){reset();await page.goto(fixture.origin+base+'/encuesta');await expect(save).toBeEnabled();}
-  async function saved(){await expect(save).toBeEnabled();await expect(page.locator('.cd-feedback')).toContainText('Avance guardado.');}
+  async function saved(){await expect(save).toBeEnabled();await expect(page.locator('.cd-save-status')).toHaveText('Avance guardado');}
 
   await fresh();await antig.selectOption(instrument.profile.find(f=>f.id==='antig').options[1]);
   await expect.poll(()=>autos().length).toBe(1);await saved();
@@ -69,23 +69,20 @@ try {
   report.checks.push({width,case:'botón guarda borrador y espera confirmación de persistencia antes de auditar'});
 
   await fresh();gate=new Promise(resolve=>release=resolve);await antig.selectOption(instrument.profile.find(f=>f.id==='antig').options[1]);
-  await expect.poll(()=>autos().length).toBe(1);await expect(save).toBeDisabled();assert.equal(manuals().length,0);
-  release();gate=null;await saved();await save.click();await saved();assert.equal(manuals().length,1);assert.equal(manuals()[0].body.version,view.version);
+  await expect.poll(()=>autos().length).toBe(1);await expect(save).toBeEnabled();assert.equal(manuals().length,0);
+  await save.click();await expect(save).toBeDisabled();release();gate=null;await saved();assert.equal(manuals().length,1);assert.equal(manuals()[0].body.version,view.version);
   report.checks.push({width,case:'autoguardado en curso coordinado con botón'});
 
   await fresh();await save.dblclick();await saved();assert.equal(manuals().length,1);assert.equal(receipts.size,1);
   report.checks.push({width,case:'doble clic: una confirmación'});
 
   await fresh();await page.getByRole('button',{name:'Microsoft 365',exact:true}).click();await page.route('**/api/encuesta/guardar',async route=>{await route.fetch();await route.abort('failed');},{times:1});
-  await save.click();await expect(page.locator('.cd-feedback').getByRole('alert')).toBeVisible();assert.equal(receipts.size,1);const id=manuals()[0].body.operation;
-  // Otra sesión deja Perfil pendiente antes de recuperar la confirmación perdida.
-  view.profile={};view.version=2;view.navigation.resume='perfil';view.navigation.steps=view.navigation.steps.map((s,i)=>({...s,complete:false,accessible:i===0}));
-  await save.click();await saved();assert.equal(manuals().length,2);assert.equal(manuals()[1].body.operation,id);assert.equal(receipts.size,1);assert.equal(view.version,2);
-  await expect(page.getByRole('button',{name:'Perfil',exact:true})).toHaveAttribute('aria-current','step');await expect(antig).toHaveValue('');
-  report.checks.push({width,case:'respuesta perdida: mismo UUID/recibo; revisión concurrente conserva datos y pasos accesibles'});
+  await save.click();await expect(page.locator('.cd-save-status')).toHaveText('Sin confirmar. Usa Guardar avance.');assert.equal(receipts.size,1);const id=manuals()[0].body.operation;
+  await save.click();await saved();assert.equal(manuals().length,2);assert.equal(manuals()[1].body.operation,id);assert.equal(receipts.size,1);assert.equal(view.version,1);
+  report.checks.push({width,case:'respuesta perdida: recuperación explícita, mismo UUID y un recibo'});
 
   await fresh();rejectPut=true;await antig.selectOption(instrument.profile.find(f=>f.id==='antig').options[1]);await save.click();
-  await expect(page.locator('.cd-feedback')).toContainText('Fallo de guardado sintético.');assert.equal(manuals().length,0);await expect(antig).toHaveValue(instrument.profile.find(f=>f.id==='antig').options[1]);
+  await expect(page.locator('.cd-save-status')).toHaveText('Sin confirmar. Usa Guardar avance.');assert.equal(manuals().length,0);await expect(antig).toHaveValue(instrument.profile.find(f=>f.id==='antig').options[1]);
   rejectPut=false;await save.click();await saved();assert.equal(receipts.size,1);
   report.checks.push({width,case:'fallo de captura: sin evento, respuestas conservadas y reintento'});
 
@@ -93,6 +90,9 @@ try {
   assert.equal(receipts.size,0);await expect(page.locator('.cd-feedback')).not.toContainText('Avance guardado.');const rejectedId=manuals()[0].body.operation;
   rejectManual=false;await save.click();await saved();assert.equal(manuals()[1].body.operation,rejectedId);assert.equal(receipts.size,1);
   report.checks.push({width,case:'conflicto de confirmación: sin éxito ni recibo hasta reintento'});
+  // Capturar desde arriba: fullPage conserva la posición de elementos sticky si se toma tras enfocar el botón inferior.
+  await page.evaluate(async()=>{scrollTo({top:0,left:0,behavior:'instant'});await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));});
+  await expect(page.locator('.cd-feedback')).not.toContainText('Puedes continuar desde otro dispositivo');
   await page.screenshot({path:path.join(output,`guardado-manual-${width}.png`),fullPage:true});await context.close();
  }
  assert.deepEqual(report.errors,[]);report.completed=true;

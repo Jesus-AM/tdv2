@@ -9,6 +9,7 @@ public static class AccessBoundary
     public static async Task Validate(HttpContext http)
     {
         var path = http.Request.Path;
+        if (path == ApplicationEntry.Choices) { await ApplicationEntry.RequireIdentity(http); return; }
         if (path.StartsWithSegments(Tdv2.Competencias.DigitalRoutes.Base))
         {
             if (path == "/competencias-digitales/api/representacion" && HttpMethods.IsDelete(http.Request.Method)) return;
@@ -55,5 +56,12 @@ public static class AccessBoundary
         else if (path == "/user/photo" && http.Request.Headers["X-TDV2-Application"] == "competencias-digitales")
             await http.RequestServices.GetRequiredService<Tdv2.Competencias.DigitalAccess>().Resolve(http);
         else if (path.StartsWithSegments("/user")) await access.Profile(http);
+        else if (http.RequestServices.GetRequiredService<PortalSites>().ForPath(path) is { } site)
+        {
+            // Un sitio futuro conserva la comprobación en URL directa, no sólo en el selector.
+            // Sus endpoints deben aplicar además los alcances y reglas propios del recurso.
+            await ApplicationEntry.RequireIdentity(http);
+            if (!await site.CanOpen(http)) throw new DomainProblem(403, $"Tu cuenta no tiene acceso a {site.Name}.");
+        }
     }
 }

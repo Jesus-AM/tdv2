@@ -20,8 +20,8 @@ public sealed class PostgresNexoProfiles : INexoProfiles
     { this.connections = connections; this.logger = logger; ConnectionName = connectionName; expectedApplication = applicationId; }
     private readonly Dictionary<string, Profile> profiles = new(StringComparer.Ordinal);
     private long? application;
-    private static DomainProblem Denied() => new(403, "Tu cuenta no tiene un acceso y un rol vigentes para Transformación Digital en Nexo.");
-    private static DomainProblem Unavailable() => new(503, "No fue posible comprobar el acceso con Nexo. Inténtalo más tarde.");
+    private static DomainProblem Denied() => new(403, Tdv2.Web.ApplicationEntry.NoApplications);
+    private static DomainProblem Unavailable() => new(503, Tdv2.Web.ApplicationEntry.Unavailable);
     private static string? Text(JsonObject row, string key) => row[key] is JsonValue v && v.TryGetValue<string>(out var s) ? s : null;
     private static long Positive(JsonNode? node) => long.TryParse(node?.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var id) && id > 0 ? id : throw Unavailable();
     public static string Email(string email)

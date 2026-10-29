@@ -1,0 +1,112 @@
+{
+  "utc": "2026-10-28T21:21:47.9715232+00:00",
+  "postgres": "PostgreSQL 18.6 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit",
+  "realPostgreSql": true,
+  "microsoft": "simulated HTTP peer",
+  "nexo": "synthetic publisher via PostgreSQL views and published functions; no institutional service",
+  "sources": "SQL Server/MySQL ADO.NET readers simulated; production SELECT/mapping code; no institutional connectivity",
+  "passed": 20,
+  "failed": 0,
+  "results": [
+    {
+      "name": "OAuth: tenant institucional, state, PKCE y cookie segura",
+      "passed": true,
+      "milliseconds": 2929
+    },
+    {
+      "name": "OAuth: tenant common es rechazado antes de crear intento",
+      "passed": true,
+      "milliseconds": 2587
+    },
+    {
+      "name": "OAuth: state ajeno no consume intento leg\u00EDtimo",
+      "passed": true,
+      "milliseconds": 3468
+    },
+    {
+      "name": "OAuth: callback sin cookie de navegador no autentica",
+      "passed": true,
+      "milliseconds": 2409
+    },
+    {
+      "name": "OAuth: caducidad y error del proveedor no canjean c\u00F3digo",
+      "passed": true,
+      "milliseconds": 2618
+    },
+    {
+      "name": "OAuth: callback concurrente se consume una sola vez en PostgreSQL",
+      "passed": true,
+      "milliseconds": 2770
+    },
+    {
+      "name": "Microsoft simulado \u002B Nexo SQL: identidad, tokens cifrados y sesi\u00F3n revocable",
+      "passed": true,
+      "milliseconds": 5145
+    },
+    {
+      "name": "Nexo: usuario sin aplicaci\u00F3n conserva identidad Microsoft y deniega aplicaciones",
+      "passed": true,
+      "milliseconds": 3768
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n no publicada y conexi\u00F3n ambigua deniegan",
+      "passed": true,
+      "milliseconds": 3740
+    },
+    {
+      "name": "Nexo: clave, nivel e ID publicados deben ser v\u00E1lidos",
+      "passed": true,
+      "milliseconds": 4043
+    },
+    {
+      "name": "Nexo: cuenta no individual o sin roles denegada",
+      "passed": true,
+      "milliseconds": 3385
+    },
+    {
+      "name": "Microsoft: correo externo y object ID inv\u00E1lido no autentican",
+      "passed": true,
+      "milliseconds": 2889
+    },
+    {
+      "name": "Microsoft: mismo correo no permite sustituir object ID local",
+      "passed": true,
+      "milliseconds": 3448
+    },
+    {
+      "name": "Sesi\u00F3n activa no se sustituye por otro callback",
+      "passed": true,
+      "milliseconds": 2877
+    },
+    {
+      "name": "Sesi\u00F3n inv\u00E1lida vuelve a autenticar sin bucle; denegar aplicaci\u00F3n no cierra identidad",
+      "passed": true,
+      "milliseconds": 3115
+    },
+    {
+      "name": "Logout: CSRF, Nexo ca\u00EDdo, revocaci\u00F3n de cookie copiada y salida Microsoft",
+      "passed": true,
+      "milliseconds": 3300
+    },
+    {
+      "name": "CSRF previo a login no autoriza guardados de nueva identidad",
+      "passed": true,
+      "milliseconds": 4217
+    },
+    {
+      "name": "Nexo: permisos se revocan al siguiente request sin cierre de sesi\u00F3n",
+      "passed": true,
+      "milliseconds": 3678
+    },
+    {
+      "name": "Sesi\u00F3n PostgreSQL: expiraci\u00F3n y cambio de identidad local invalidan acceso",
+      "passed": true,
+      "milliseconds": 3161
+    },
+    {
+      "name": "Edici\u00F3n/OIDC rechaza firma y nonce ajenos, no fuerza selector habitual y usa logout_hint opaco",
+      "passed": true,
+      "milliseconds": 4648
+    }
+  ]
+}

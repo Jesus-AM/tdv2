@@ -198,7 +198,7 @@ try {
         const other = await independent.newPage();
         other.on('pageerror', error => errors.push(error.message));
         try {
-            await other.goto(origin + '/connect'); await other.waitForURL(origin + '/inicio');
+            await other.goto(origin + '/connect?returnUrl=/inicio'); await other.waitForURL(origin + '/inicio');
             const session = cookies => cookies.find(cookie => cookie.name === 'tdv2.aspnet.session')?.value;
             assert.notEqual(session(await context.cookies()), session(await independent.cookies()));
             await other.goto(origin + '/formatos/A');

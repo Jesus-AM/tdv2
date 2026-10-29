@@ -1,6 +1,10 @@
 # Guardado de encuesta y actividad Nexo — 2026-10-28
 
+**Recuperación vigente, 2026-10-29:** se detienen los envíos de captura tras un fallo. Guardar avance consulta el estado real y guarda los datos actuales sin replay automático; conserva el UUID/recibo de confirmación cuando corresponda. [Política y verificación SQL/navegador](AUTOGUARDADO_POSTGRES_Y_RECUPERACION_20261029.md). Esta restricción no afecta a los reintentos de la cola de actividad descritos aquí.
+
 ## Comportamiento vigente
+
+Actualización de mensajes: Guardar avance ya no añade una explicación larga sobre continuar desde otro dispositivo. Permanece `Avance guardado` en el indicador discreto estable; errores y cambios pendientes siguen visibles. No cambia la confirmación manual ni la cola. [Revisión de mensajes y acceso independiente](../migracion/ACCESO_POR_APLICACION_Y_MENSAJES_20261028.md).
 
 La persistencia de la encuesta y la actividad de guardado manual quedan separadas. El autoguardado sigue almacenando perfil y respuestas, validando secciones, consentimiento, generación y versión. **No crea eventos de guardado para Nexo.** Esto incluye cambios de campos/preguntas, guardados al cambiar de sección o módulo, «Guardar y continuar», preparación de la finalización y reintentos de esas operaciones.
 
@@ -36,7 +40,7 @@ El ejemplo describe los campos; los dos UUID deben ser válidos, no esas cadenas
 
 La clave durable de la cola es el resumen SHA-256 existente de aplicación + `manual-save:{generacion}:{encuesta}:{operacion}`. Incluye la encuesta del usuario validado y la generación, no un ID de persona enviado por el navegador. La restricción única de `cd_activity_events.Key`, el bloqueo por empleado y la consulta de operación previa impiden duplicados concurrentes. La confirmación no toca `cd_surveys.Version`, respuestas, fechas de captura, informe ni `cd_control.Revision`.
 
-El frontend conserva una sola operación manual en curso y bloquea controles durante escrituras. Espera el autoguardado activo antes de confirmar y conserva el UUID cuando pierde la respuesta o falla la confirmación. Una revisión/generación distinta inicia otra operación. El guardado por navegación espera también la operación pendiente; salir del formulario no lanza otra confirmación manual. No se añade localStorage ni un contador artificial.
+El frontend conserva una sola operación manual en curso. Desde la [corrección de autoguardado](AUTOGUARDADO_FLUIDO_20261028.md), las escrituras automáticas permiten seguir respondiendo; las operaciones explícitas coordinan y esperan toda la captura pendiente antes de confirmar. Conserva el UUID cuando pierde la respuesta o falla la confirmación. Una revisión/generación distinta inicia otra operación. El guardado por navegación espera también la operación pendiente; salir del formulario no lanza otra confirmación manual. No se añade localStorage ni un contador artificial de persistencia.
 
 ## Bitácora local, entrega y fallos
 

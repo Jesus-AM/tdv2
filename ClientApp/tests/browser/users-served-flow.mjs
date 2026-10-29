@@ -23,7 +23,7 @@ async function session() {
     const page = await context.newPage();
     page.on('pageerror', e => report.errors.push(e.message));
     page.on('request', r => { if (r.method() === 'POST' && r.url().endsWith('/reservas/liberar')) requests.push(r.url()); });
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     await page.goto(origin + '/formatos/A'); await header(page);
     return { context, page };
 }

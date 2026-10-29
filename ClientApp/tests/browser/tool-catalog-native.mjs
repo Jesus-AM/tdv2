@@ -36,7 +36,7 @@ const add = async procedure => {
 const complete = async id => { await choose(id, 'uso', 'Consultar información'); await choose(id, 'estado', 'Funciona bien'); await finish(); };
 let a, b, c;
 try {
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     await control('tool-catalog-seed'); await control('systems-sync'); await control('applications-names');
     await page.goto(origin + '/formatos/A'); await tab('Revisar y enviar');
     await check('procedimientos sin herramientas listos y Medios ausente', async () => {

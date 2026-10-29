@@ -1,0 +1,11 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Entrada: registro extensible con cuatro sitios, orden, denegaci\u00F3n y falla parcial",
+      "passed": true
+    }
+  ]
+}

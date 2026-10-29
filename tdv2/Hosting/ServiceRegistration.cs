@@ -24,6 +24,7 @@ public static class ServiceRegistration
     public static void AddTdv2(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllersWithViews(options => options.Filters.Add<RequestModelValidation>());
+        PortalSites.Register(builder.Services);
         builder.Services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
             .AddRequirements(new InstitutionalAccessRequirement()).Build());
         builder.Services.AddScoped<IAuthorizationHandler, InstitutionalAccessHandler>();

@@ -52,6 +52,32 @@ test('navegación usa JSON ASP.NET y no guarda props en historial', async () => 
     assert.equal(calls[0].headers.get('Accept'), 'application/json');
     assert.equal(history.at(-1)[1], '/formatos/A');
 });
+
+test('Mi espacio resuelve un sitio sin publicar selector ni añadir historial intermedio', async () => {
+    const beforeHistory = history.length; calls = [];
+    answer = config => config.url === '/accesos' ? { redirect: '/competencias-digitales' } : { component: 'CompetenciasDigitales', url: config.url, props: props() };
+    await nextPage(() => router.visit('/accesos'));
+    assert.equal(published.component, 'CompetenciasDigitales');
+    assert.deepEqual(calls.map(c => c.url), ['/accesos','/competencias-digitales']);
+    assert.deepEqual(history.slice(beforeHistory), [['pushState','/competencias-digitales']]);
+    // Al volver a una entrada cuya autorización cambió, reemplazar sin crear un bucle.
+    address = new URL('/accesos', address); const beforeBack = history.length;
+    await nextPage(() => events.dispatchEvent(new Event('popstate')));
+    assert.deepEqual(history.slice(beforeBack), [['replaceState','/competencias-digitales']]);
+    answer = config => ({ component: 'Inicio', url: config.url, props: props() });
+    await nextPage(() => router.visit('/inicio'));
+});
+
+test('redirecciones de entrada rechazan ciclos y destinos externos', async () => {
+    for (const redirect of ['/accesos', 'https://external.test/']) {
+        calls = []; answer = () => ({ redirect });
+        await nextPage(() => router.visit('/accesos'));
+        assert.equal(published.component, 'AccesoRestringido'); assert.equal(calls.length, 1);
+        assert.equal(address.origin, 'https://tdv2.example.test');
+    }
+    answer = config => ({ component: 'Inicio', url: config.url, props: props() });
+    await nextPage(() => router.visit('/inicio'));
+});
 test('recarga parcial conserva borrador y actualiza identidad/contexto', async () => {
     answer = config => ({ component: 'Inicio', url: config.url, props: { ...props(), contextoEdicion: 'effective-2',
         photoContext: 'photo-context-two', estado: { revision: 2 }, configuracion: { draft: 'servidor' } } });
@@ -163,6 +189,29 @@ test('fallo temporal de recarga conserva página/borrador y comunica el error', 
     assert.equal(published, previous);
     assert.match(message, /actualizar/);
     assert.equal(success, false);
+});
+
+test('401 de ambas aplicaciones conserva destino en inicio de sesión completo', async () => {
+    answer = config => { throw new axios.AxiosError('expired', 'ERR_BAD_REQUEST', config, null,
+        { data: { message: 'Sesión vencida' }, status: 401, headers: {}, config }); };
+    for (const target of ['/inicio', '/competencias-digitales/encuesta?paso=m365']) {
+        router.visit(target); await new Promise(resolve => setImmediate(resolve));
+        assert.equal(address.pathname, '/connect'); assert.equal(address.searchParams.get('returnUrl'), target);
+    }
+});
+
+test('denegación conserva alternativas verificadas y la URL solicitada; cambiar cuenta conserva retorno', async () => {
+    const access = { message: 'Tu cuenta no tiene acceso a Procedimientos institucionales.', status: 403, options: [{name:'Competencias digitales',path:'/competencias-digitales'}] };
+    answer = config => { throw new axios.AxiosError('denied', 'ERR_BAD_REQUEST', config, null,
+        { data: { message: access.message, access }, status: 403, headers: {}, config }); };
+    await nextPage(() => router.visit('/inicio'));
+    assert.equal(address.pathname, '/inicio'); assert.deepEqual(published.props.access, access);
+    let changed=false; const off=router.on('identity-changing',()=>changed=true);
+    answer = () => ({redirect:'/connect?account=other&returnUrl=%2Finicio'});
+    await new Promise(resolve=>router.post('/session/use-another-account?returnUrl=%2Finicio',{}, {onFinish:resolve}));
+    assert(changed); assert.equal(address.searchParams.get('returnUrl'),'/inicio'); off();
+    answer = config => ({ component: 'Inicio', url: config.url, props: props() });
+    await nextPage(() => router.visit('/inicio'));
 });
 
 test('revocación elimina props privadas también al refrescar con callback de error', async () => {

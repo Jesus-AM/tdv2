@@ -74,3 +74,4 @@
 .cd-site .cd-tool-card dt{font-size:.85rem;color:var(--uacj-muted)}
 .cd-site .cd-tool-card dd{margin:0;font-size:.9rem}
 @media(min-width:701px) and (max-width:1000px){.cd-site .cd-report-tools th,.cd-site .cd-report-tools td{padding:12px}.cd-site .cd-tool-name-col{width:40%}}
+.cd-site .cd-save-status{min-height:1.5em;line-height:1.5;margin:0 0 12px;font-size:.85rem;color:var(--uacj-muted)}

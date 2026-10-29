@@ -1,0 +1,11 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Costo autoguardado: aislamiento, 1/10/25 actores y desglose",
+      "passed": true
+    }
+  ]
+}

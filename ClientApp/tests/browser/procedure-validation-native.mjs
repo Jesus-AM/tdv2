@@ -37,7 +37,7 @@ try {
     await check('portal: texto completo y alineado a 1440, 390 y 320 px; acceso conserva autenticación', async () => {
         await page.goto(origin);
         const link = page.getByRole('link', { name: 'Registrar un procedimiento institucional', exact: true });
-        await expect(link).toHaveAttribute('href', '/connect');
+        await expect(link).toHaveAttribute('href', '/inicio');
         for (const width of [1440, 390, 320]) {
             await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 }); await link.scrollIntoViewIfNeeded();
             const layout = await link.evaluate(e => {

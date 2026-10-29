@@ -24,7 +24,7 @@ async function session(who) {
         return route.continue();
     });
     const page = await context.newPage(); page.setDefaultTimeout(20000); page.on('pageerror', e => report.errors.push(e.message));
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio'); return { context, page };
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio'); return { context, page };
 }
 async function tab(page, name) { await page.getByRole('tab', { name, exact: true }).click(); await expect(page.getByLabel('Cargando estado de colaboración')).toHaveCount(0); }
 const row = (page, id) => page.locator(`[data-edit-block="${id}"]`);

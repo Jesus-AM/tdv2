@@ -43,7 +43,7 @@ const row = () => page.getByRole('table', { name: 'Historial de sincronizaciones
 const running = () => expect(page.getByText('Sincronizando… ILDA', { exact: true })).toBeVisible();
 const complete = () => expect(row()).toContainText('Completada');
 try {
-    await page.goto(origin + '/connect'); await page.goto(origin + syncPath);
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.goto(origin + syncPath);
     await check('SQL Server muestra únicamente UR y módulos; aplicaciones fuera de operación e ILDA independiente', async () => {
         await expect(page.locator('[data-catalog]')).toHaveCount(3);
         await expect(page.locator('[data-catalog="sii"]')).toBeVisible();

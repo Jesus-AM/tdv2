@@ -1,0 +1,221 @@
+{
+  "baseline": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 1440,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 1440,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 1440,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 1440,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 1440,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 1440,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 1440,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 1440,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 390,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 390,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 390,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 390,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 390,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 390,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 390,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 390,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 390,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 24.5,
+          "checked": true,
+          "scriptMs": 3.902999999999997,
+          "layoutMs": 0.47399999999999526,
+          "commits": 1
+        },
+        {
+          "ms": 24.899999618530273,
+          "checked": true,
+          "scriptMs": 2.4310000000000027,
+          "layoutMs": 0.3160000000000038,
+          "commits": 1
+        },
+        {
+          "ms": 22.59999990463257,
+          "checked": true,
+          "scriptMs": 2.221000000000001,
+          "layoutMs": 0.3060000000000007,
+          "commits": 1
+        },
+        {
+          "ms": 27.09999990463257,
+          "checked": true,
+          "scriptMs": 2.014000000000002,
+          "layoutMs": 0.341000000000001,
+          "commits": 1
+        },
+        {
+          "ms": 23.5,
+          "checked": true,
+          "scriptMs": 1.7549999999999928,
+          "layoutMs": 0.15499999999999542,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "requestMs": [
+        2008.0999999046326,
+        2009.5999999046326
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 25.09999990463257,
+          "checked": true,
+          "scriptMs": 3.927,
+          "layoutMs": 0.5090000000000026,
+          "commits": 1
+        },
+        {
+          "ms": 25.09999990463257,
+          "checked": true,
+          "scriptMs": 2.5359999999999965,
+          "layoutMs": 0.3449999999999981,
+          "commits": 1
+        },
+        {
+          "ms": 26.09999990463257,
+          "checked": true,
+          "scriptMs": 2.277000000000001,
+          "layoutMs": 0.32200000000000284,
+          "commits": 1
+        },
+        {
+          "ms": 25.40000009536743,
+          "checked": true,
+          "scriptMs": 2.270000000000008,
+          "layoutMs": 0.3419999999999951,
+          "commits": 1
+        },
+        {
+          "ms": 25.300000190734863,
+          "checked": true,
+          "scriptMs": 2.0519999999999983,
+          "layoutMs": 0.17000000000000348,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "requestMs": [
+        2017.5,
+        2011.7000002861023
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

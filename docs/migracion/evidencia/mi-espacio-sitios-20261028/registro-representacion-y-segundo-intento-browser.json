@@ -1,0 +1,20 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 1,
+  "results": [
+    {
+      "name": "Representaci\u00F3n: identidad efectiva, sin permisos heredados/escrituras/anidaci\u00F3n, salida y auditor\u00EDa",
+      "passed": true
+    },
+    {
+      "name": "Entrada: registro extensible con cuatro sitios, orden, denegaci\u00F3n y falla parcial",
+      "passed": true
+    },
+    {
+      "name": "Navegador real y PostgreSQL aislado",
+      "passed": false,
+      "type": "InvalidOperationException"
+    }
+  ]
+}

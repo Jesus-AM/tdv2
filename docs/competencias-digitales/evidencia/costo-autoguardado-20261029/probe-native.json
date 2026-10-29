@@ -1,0 +1,47 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Dos pesta\u00F1as/sesiones: versi\u00F3n evita sobrescrituras y borrador retoma en otro cliente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: autoguardados de perfil y cinco bloques, m\u00E1s reintentos, s\u00F3lo auditan localmente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: confirmar despu\u00E9s de autoguardar no modifica encuesta y deduplica doble env\u00EDo concurrente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: reintento confirmado despu\u00E9s de otra revisi\u00F3n no vuelve a auditar ni sobrescribe",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: errores de consentimiento, generaci\u00F3n, versi\u00F3n, CSRF y secci\u00F3n no crean \u00E9xito",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: Nexo ca\u00EDdo: captura confirmada, evento manual pendiente y recibo sin duplicados",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: rollback de cola y reintento del mismo identificador",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: representaci\u00F3n y finalizadas rechazan confirmaci\u00F3n; finalizaci\u00F3n conserva su evento",
+      "passed": true
+    },
+    {
+      "name": "Autoguardado SQL: solicitudes, cambios reales, conflictos y bloqueos",
+      "passed": true
+    },
+    {
+      "name": "Costo autoguardado: aislamiento, 1/10/25 actores y desglose",
+      "passed": true
+    }
+  ]
+}

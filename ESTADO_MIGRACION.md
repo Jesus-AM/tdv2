@@ -1,6 +1,48 @@
 # Estado de migración TDV2
 
-Inicio: 2026-09-30. Última adaptación: **2026-10-28**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+Inicio: 2026-09-30. Última adaptación: **2026-10-29**. Proyecto convencional ASP.NET Core 10/EF Core/PostgreSQL/React implementado y verificado en el alcance descrito. **La aceptación institucional y el despliegue Ubuntu continúan pendientes; no se declara terminada la sustitución operativa de Laravel.**
+
+## 2026-10-29 — Auditoría ampliada del costo de autoguardado
+
+**Implementado:** arnés optativo con correlación por solicitud, estadísticas SQL por base/contexto, separación de preparación/login/verificación, carga con identidades distintas y muestreo de bloqueos. Sólo pruebas/documentación; no se modifican consultas, modelos, conexiones ni comportamiento de producción. Se conservan los cambios locales previos y la política de detener envíos tras un fallo.
+
+**Probado:** 4.320 solicitudes de carga con PostgreSQL/Kestrel aislados (1/10/25 personas, dos pasadas sin pool y una con pool), cero errores. Las 35 sentencias de un PUT con cambios son TDV2 12 + diagnóstico 19 + Nexo sintético 4; incluyen transacciones, excluyen preparación y no equivalen a 35 escrituras. Documento idéntico: 32 sentencias, cero UPDATE; manual sin cambios y entrega: 44. Pooling agrega mantenimiento SQL, reduce la latencia y expone contención en el control global del reinicio; no se retira esa protección. Tipos/Vite/.NET correctos, 99 pruebas frontend, 10 casos dirigidos PostgreSQL, 22 escenarios de navegador y 16 manuales correctos. [Desglose, tiempos P50/P95, antes/después, fuentes, archivos y evidencia](docs/competencias-digitales/COSTO_AUTOGUARDADO_20261029.md).
+
+**Conclusión y límites:** no hay evidencia de actualizaciones redundantes ni de una consulta de seguridad que deba eliminarse. La configuración de pool se alteró exclusivamente en el arnés; no se inspeccionó ni modificó la real. Autoguardados sin nuevos eventos Nexo, manuales con recibos únicos y entrega diferida conservada. Catálogos/usuarios sintéticos, sin TLS/red institucional ni aceptación Nexo real. Pendiente sólo si se requiere capacidad operativa: medir con volumen/red representativos y analizar el contrato de respuesta completo, sin debilitar versiones/generación. Clústeres detenidos, sin nuevas migraciones, reinicios reales, push o despliegue.
+
+## 2026-10-29 — Autoguardado medido y recuperación explícita
+
+**Implementado:** Competencias detiene envíos y temporizadores al fallar un guardado; selecciones posteriores, foco y conexión no reactivan ni acumulan operaciones. Guardar avance lee el estado real, conserva datos actuales y versiones, recupera una confirmación perdida sin reenviar la instantánea antigua y reactiva únicamente después de confirmarse. Se omiten PUT sin cambios reales. Indicador breve/estable y captura fluida; Nexo conserva cero eventos automáticos, confirmación manual idempotente y su cola de entrega. No se modifica persistencia de producción, paquetes, 401, esquema ni configuración.
+
+**Probado:** TypeScript/Vite y ASP.NET Release correctos; 99 pruebas frontend, 22 escenarios de autoguardado controlado, 16 manuales, 66 casos de backend PostgreSQL aislado y 24 grupos de navegador integrado. El primer recorrido móvil tenía una expectativa errónea sobre un valor idéntico; se corrigió su precondición y la repetición integrada pasó. [Guía, sentencias/bytes/duraciones, archivos, resultados íntegros y capturas](docs/competencias-digitales/AUTOGUARDADO_POSTGRES_Y_RECUPERACION_20261029.md). Medición SQL: 35 sentencias de nivel superior y una actualización de encuesta por cambio; documentos idénticos sin actualización. El trigger de control se mide por separado. No se infiere optimización de base a partir de fluidez del navegador. Clústeres detenidos; ninguna comprobación pendiente en ejecución.
+
+**Límites:** fuentes e identidades sintéticas; recepción Nexo institucional, latencia operativa y Ubuntu sin verificar. Sin migraciones nuevas, bases institucionales, reinicios reales, push ni despliegues. Esta política sustituye el reintento automático de captura de la entrada 2026-10-28; conserva la entrega diferida de auditoría.
+
+## 2026-10-28 — Mi espacio y selector extensible de sitios
+
+**Implementado:** Mi espacio y entradas genéricas conservan intención durante OAuth y resuelven en backend: ningún sitio muestra un estado claro; uno abre directamente antes de renderizar HTML/React; varios ofrecen **Elige un sitio**. Sólo opciones autorizadas, una por sitio; fallas temporales explícitas, sin inferir denegación ni entrada automática. Registro `PortalSite` con nombre, destino, orden, verificador real y ámbito de rutas; sitios futuros reutilizan selección y comprobación en URL directa. Retorno específico, representación, autorización, autoguardado y actividad manual conservados. Sin cambios de Nexo ni migraciones.
+
+**Probado:** tipos/builds correctos, 99 pruebas frontend, 116 del verificador .NET, 18 casos funcionales de PostgreSQL aislado con repeticiones dirigidas del registro/representación correctas, 20 grupos Edge/ASP.NET/PostgreSQL y 14 con transporte simulado. Cero/uno/dos/cuatro/ocho sitios, deduplicación por sitio, revocación, errores, OAuth, URL directa, teclado, Atrás sin ciclo y escritorio/móvil. La intercepción OAuth del nuevo fixture requirió corrección antes del recorrido final; los informes preservan las interrupciones. [Archivos, resultados, capturas y comandos](docs/migracion/MI_ESPACIO_SITIOS_20261028.md).
+
+**Pendiente/límites:** aceptación institucional y despliegue; Microsoft/Nexo y sitios adicionales de pruebas son sintéticos. Clústeres desechables detenidos; sin bases institucionales, push, despliegue ni cambios operativos nuevos. Las evidencias de la revisión anterior permanecen.
+
+## 2026-10-28 — Acceso independiente y mensajes de guardado
+
+**Implementado:** retirado el mensaje largo posterior a Guardar avance, conservando el indicador breve estable, autoguardado fluido y confirmación manual. Identidad Microsoft separada del permiso de cada aplicación; portal público, `/accesos` como elección genérica y retorno local permitido vinculado al state. Denegaciones específicas sin detalles internos, cambio de cuenta existente con CSRF y enlace a la otra aplicación sólo tras comprobarla. No se cierra sesión por carecer de acceso a una aplicación. Sin cambios en permisos, conexiones, instrumento, informes, cola, paquetes ni migraciones.
+
+**Probado:** tipos y builds correctos; 97 pruebas frontend, 116 del verificador .NET y 20 de autenticación/OAuth/CSRF en PostgreSQL aislado. 55 casos anteriores de Competencias y 8 nuevos de acceso correctos (repetición dirigida tras ajustar un caso que excedía el límite de solicitudes OAuth). Matriz de ambas aplicaciones, una sola o ninguna, revocación y fallas temporales verificada mediante ASP.NET y publicaciones sintéticas. 48 grupos de navegador con transporte controlado y 23 recorridos de Edge/ASP.NET/PostgreSQL correctos, incluido acceso exclusivo, captura fluida, guardado manual e informe. Incidencias de los fixtures, archivos, resultados y capturas en la [guía de esta revisión](docs/migracion/ACCESO_POR_APLICACION_Y_MENSAJES_20261028.md).
+
+**Pendiente/límites:** aceptación con Microsoft/Nexo reales y despliegue Ubuntu. Todas las identidades, vistas publicadas y capturas de las pruebas son sintéticas; no se consultaron bases institucionales ni se ejecutaron migraciones o reinicios institucionales, push o despliegue. Se conserva el trabajo pendiente de la revisión anterior.
+
+## 2026-10-28 — Autoguardado de Competencias sin parpadeo ni bloqueo
+
+**Implementado:** se separa el estado de autoguardado del bloqueo de operaciones explícitas. Las selecciones se actualizan inmediatamente mientras se guarda, con debounce de 1500 ms, un PUT en curso y conservación de ediciones posteriores. Reintento exacto ante respuesta perdida, sin rebasar conflictos de otra sesión. Indicador estable, sin mover foco/paso/scroll por autoguardar. Guardar avance, navegación y finalización esperan toda la captura y validación del backend; auditoría manual UUID/cola intacta. Sin modificaciones del servidor, paquetes, 401, instrumento, aviso, permisos, diseño general ni migraciones.
+
+**Causa y medición:** el estado `busy` deshabilitaba todo el formulario durante cada solicitud y los mensajes alternantes desplazaban la sección. No se observaron remontajes ni renderizado costoso. Con 2000 ms controlados, antes había unos 2017 ms de bloqueo y 34,5/52,78 px de desplazamiento (escritorio/móvil); después ambos son cero, con foco y última respuesta conservados. JavaScript por selección permanece en pocos milisegundos. No se afirma haber acelerado la red institucional.
+
+**Probado:** tipos y builds Vite/ASP.NET correctos; 95 pruebas frontend, 16 escenarios nuevos + 16 de guardado manual, 55 casos backend con PostgreSQL desechable y 22 grupos de navegador integrado correctos. Se probó continuar respondiendo tras un commit retenido, confirmar manualmente la última selección, recargar, errores/reintentos, conflictos entre sesiones, validación de bloques, inmutabilidad y auditoría sin duplicados. Cero errores JS. Clúster aislado detenido. [Archivos, mediciones antes/después, capturas, resultados y comandos](docs/competencias-digitales/AUTOGUARDADO_FLUIDO_20261028.md).
+
+**Límites:** fuentes/autenticación Nexo sintéticas; no se midió recepción o latencia institucional ni se ejecutó en Ubuntu. Sin bases institucionales, push o despliegue; no requiere cambios operativos de permisos, secretos o migraciones.
 
 ## 2026-10-28 — Actividad Nexo solo por guardado manual
 

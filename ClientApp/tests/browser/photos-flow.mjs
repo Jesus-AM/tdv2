@@ -59,7 +59,7 @@ async function renew(minutes, mode = 'ok', extra = '') {
 }
 try {
     await page.clock.install();
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio');
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio');
     await expect(avatar()).toHaveCount(1); const original = await avatar().getAttribute('src');
     await check('Navegación SPA entre módulo y submódulos conserva imagen sin nuevas peticiones', async () => {
         const before = photoRequests;
@@ -110,7 +110,7 @@ try {
         await control('photo-control?minutes=37&target=true&changed=true');
         const targetContext = await browser.newContext({ ignoreHTTPSErrors: true });
         await targetContext.route('**/*', intercept); const target = await targetContext.newPage();
-        await target.goto(origin + '/connect'); await target.waitForURL(origin + '/inicio');
+        await target.goto(origin + '/connect?returnUrl=/inicio'); await target.waitForURL(origin + '/inicio');
         await expect(avatar(target)).toHaveCount(1); const targetPhoto = await avatar(target).getAttribute('src');
         assert.notEqual(targetPhoto, updated);
         await page.reload(); await expect(avatar()).toHaveAttribute('src', targetPhoto);

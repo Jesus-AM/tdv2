@@ -20,7 +20,7 @@ async function session() {
         return route.continue();
     });
     const page = await context.newPage(); page.setDefaultTimeout(15000); page.on('pageerror', e => report.errors.push(e.message));
-    await page.goto(origin + '/connect'); await page.waitForURL(origin + '/inicio'); return { context, page };
+    await page.goto(origin + '/connect?returnUrl=/inicio'); await page.waitForURL(origin + '/inicio'); return { context, page };
 }
 const row = page => page.locator('[data-edit-block="sistemas:inicial"]');
 const field = (page, label) => page.getByRole('combobox', { name: label + ' 1', exact: true });
