@@ -24,6 +24,33 @@ public sealed class DigitalSurvey
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
+    public int Revision { get; set; } = 1;
+    public int MinimumVersion { get; set; } = 1;
+    public DateTimeOffset? ReopenedAt { get; set; }
+}
+public sealed class DigitalSubmission
+{
+    public Guid Id { get; set; }
+    public Guid SurveyId { get; set; }
+    public string Employee { get; set; } = "";
+    public string? UnitId { get; set; }
+    public Guid Generation { get; set; }
+    public int Revision { get; set; }
+    public DateTimeOffset CompletedAt { get; set; }
+    public string SnapshotJson { get; set; } = "{}";
+}
+public sealed class DigitalReopenOperation
+{
+    public Guid Id { get; set; }
+    public Guid SurveyId { get; set; }
+    public Guid SubmissionId { get; set; }
+    public Guid Generation { get; set; }
+    public string Actor { get; set; } = "";
+    public string ActorEmployee { get; set; } = "";
+    public string Employee { get; set; } = "";
+    public int PreviousVersion { get; set; }
+    public int ResultVersion { get; set; }
+    public DateTimeOffset CompletedAt { get; set; }
 }
 public sealed class DigitalConsent
 {
@@ -69,6 +96,8 @@ public sealed class DigitalDbContext(DbContextOptions<DigitalDbContext> options)
     public DbSet<DigitalControl> Control => Set<DigitalControl>();
     public DbSet<DigitalResetOperation> ResetOperations => Set<DigitalResetOperation>();
     public DbSet<DigitalActivityEvent> ActivityEvents => Set<DigitalActivityEvent>();
+    public DbSet<DigitalSubmission> Submissions => Set<DigitalSubmission>();
+    public DbSet<DigitalReopenOperation> ReopenOperations => Set<DigitalReopenOperation>();
     protected override void OnModelCreating(ModelBuilder model)
     {
         var s = model.Entity<DigitalSurvey>();
@@ -79,6 +108,14 @@ public sealed class DigitalDbContext(DbContextOptions<DigitalDbContext> options)
         s.Property(x => x.InstrumentVersion).HasMaxLength(80);
         foreach (var key in new[] { nameof(DigitalSurvey.InstitutionJson), nameof(DigitalSurvey.ProfileJson), nameof(DigitalSurvey.AnswersJson), nameof(DigitalSurvey.InstrumentJson), nameof(DigitalSurvey.ReportJson) }) s.Property<string>(key).HasColumnType("jsonb");
         s.Property(x => x.Version).IsConcurrencyToken();
+        s.Property(x => x.Revision).HasDefaultValue(1); s.Property(x => x.MinimumVersion).HasDefaultValue(1);
+        var history = model.Entity<DigitalSubmission>(); history.ToTable("cd_submissions"); history.HasKey(x => x.Id);
+        history.Property(x => x.Id).ValueGeneratedNever(); history.Property(x => x.Employee).HasMaxLength(32);
+        history.Property(x => x.UnitId).HasMaxLength(32);
+        history.Property(x => x.SnapshotJson).HasColumnType("jsonb"); history.HasIndex(x => new { x.SurveyId, x.Revision }).IsUnique(); history.HasIndex(x => x.Employee);
+        var reopen = model.Entity<DigitalReopenOperation>(); reopen.ToTable("cd_reopen_operations"); reopen.HasKey(x => x.Id);
+        reopen.Property(x => x.Id).ValueGeneratedNever(); reopen.Property(x => x.Actor).HasMaxLength(254);
+        reopen.Property(x => x.ActorEmployee).HasMaxLength(32); reopen.Property(x => x.Employee).HasMaxLength(32);
         var c = model.Entity<DigitalConsent>(); c.ToTable("cd_consents"); c.HasKey(x => new { x.Employee, x.NoticeVersion });
         c.Property(x => x.Employee).HasMaxLength(32); c.Property(x => x.NoticeVersion).HasMaxLength(80); c.Property(x => x.Email).HasMaxLength(254);
         var t = model.Entity<DigitalTarget>(); t.ToTable("cd_targets", b => b.HasCheckConstraint("cd_target_nonnegative", "\"Value\" >= 0"));

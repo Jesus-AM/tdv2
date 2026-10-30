@@ -127,13 +127,16 @@ internal static partial class NativeTests
         Test("Participación/enviado conserva instantánea tras exclusión y reactivación", async (app, client) =>
         {
             await ConfigurationAdmin(database); await Login(app, client); await Csrf(client);
-            Check((await Save(client, 0, Complete(app))).IsSuccessStatusCode);
-            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(Guid.NewGuid(), Guid.NewGuid(), 1))).IsSuccessStatusCode);
-            var before = await database.Scalar("SELECT instantanea_envio::text FROM formatos_ur WHERE id_ur='A'");
+            // La creación de códigos pertenece al servidor. Preparar la captura
+            // explícita del fixture y enviar por el API vigente, sin falsificarlos con SaveAll.
+            await SeedStage(database, Complete(app));
+            Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(Guid.NewGuid(), Guid.NewGuid(), 0))).IsSuccessStatusCode);
+            var before = await database.Scalar("SELECT instantanea::text FROM formato_envios_etapas WHERE id_ur='A' AND etapa=1");
+            Check(before is string { Length: > 0 }, "Debe existir una instantánea real de la etapa enviada.");
             Check((await Configure(client, await Preview(client, 1, [3], ["N"]))).IsSuccessStatusCode);
             Check((await Configure(client, await Preview(client, 2, [2,3], ["N"]))).IsSuccessStatusCode);
             Check(!(await Live(client, Guid.NewGuid()))["editable"]!.GetValue<bool>());
-            Check(Equals(before, await database.Scalar("SELECT instantanea_envio::text FROM formatos_ur WHERE id_ur='A'")));
+            Check(Equals(before, await database.Scalar("SELECT instantanea::text FROM formato_envios_etapas WHERE id_ur='A' AND etapa=1")));
         });
         Test("Participación/reservas y cambios concurrentes se serializan sin escrituras posteriores a exclusión", async (app, client) =>
         {

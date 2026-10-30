@@ -30,7 +30,7 @@ internal sealed partial class DigitalTests
             Check((await Data("SELECT row_to_json(s)::text FROM cd_surveys s"))!.ToString()==before);
             try {await Data("UPDATE cd_surveys SET \"InstrumentVersion\"='uacj-digital-2026-10-28.1'");throw new InvalidOperationException("Se modificó una definitiva");}catch(PostgresException e)when(e.SqlState=="P0001"){}
             try {await using var db=Db();await db.GetService<IMigrator>().MigrateAsync("20261027131404_AdministrativeDigitalReset");throw new InvalidOperationException("Se retiró auditoría");}catch(PostgresException e)when(e.SqlState=="P0001"){}
-            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\""))==3);
+            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\""))==4);
         });
         Test("función Nexo real confirma aplicación/actor y deduplica navegación, lectura y guardado idéntico",async(app,client)=>
         {

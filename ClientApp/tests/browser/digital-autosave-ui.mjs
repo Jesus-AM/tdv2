@@ -6,7 +6,7 @@ import { chromium, expect } from '@playwright/test';
 import { systemFixture } from './system-ui-fixture.mjs';
 
 const baseline=process.argv.includes('--baseline');
-const output=path.resolve('../.artifacts/digital-autosave-20261029',baseline?'before':'after');await mkdir(output,{recursive:true});
+const output=path.resolve(process.env.TDV2_VISUAL_ARTIFACTS||'../.artifacts/digital-autosave-20261029',baseline?'before':'after');await mkdir(output,{recursive:true});
 const instrument=JSON.parse(await readFile('../tdv2/Contracts/competencias-digitales-v2.json','utf8'));
 const base='/competencias-digitales',fixture=await systemFixture(),browser=await chromium.launch({channel:'msedge',headless:true});
 const profile=Object.fromEntries(instrument.profile.map(f=>[f.id,f.multiple?[f.options[0]]:f.options[0]]));
@@ -136,6 +136,39 @@ try{
   await checks.nth(0).check();await expect.poll(()=>autos().length).toBe(1);await checks.nth(1).check();await checks.nth(2).check();await checks.nth(0).uncheck();await settled();
   assert.equal(view.answers[id].checks,'011000000000');await expect(checks.nth(0)).not.toBeChecked();await expect(checks.nth(1)).toBeChecked();await expect(checks.nth(2)).toBeChecked();assert.equal(manuals().length,0);assert.equal(maxActive,1);
   report.checks.push({width,case:'rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual'});
+  for(const block of instrument.modules){
+   reset();view.navigation.current=block.id;view.navigation.resume=block.id;view.navigation.steps.forEach(s=>s.accessible=true);
+   await page.goto(fixture.origin+base+'/encuesta');await expect(page.locator('.cd-block-intro h2')).toHaveText(block.n);
+   await expect(page.locator('.cd-block-intro')).toHaveCount(1);await expect(page.locator('.cd-instructions')).toHaveCount(2);
+   await expect(page.locator('.cd-block-intro .cd-instructions')).toHaveCount(2);await expect(page.locator('.cd-category-help')).toHaveCount(0);
+   await expect(page.locator('.cd-block')).not.toContainText(/No hay preguntas sin responder|Se marcarán|Se marcará|No modifica otras categorías/);
+   const rubric=['ciber','datos','sii'].includes(block.id),questions=page.locator('.cd-question');
+   for(const question of await questions.all()){
+    await expect(question.getByRole(rubric?'button':'radio',{name:'Inicial',exact:true})).toHaveCount(1);
+    await expect(question.getByRole(rubric?'button':'radio',{name:'No aplica',exact:true})).toHaveCount(1);
+   }
+   assert(!(await page.locator('.cd-question-actions').allTextContents()).some(t=>/Aún no|No corresponde/.test(t)));
+   await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:path.join(output,`instrucciones-${block.id}-${width}.png`)});
+   const category=page.locator('.cd-question-category').first();
+   await category.evaluate(e=>scrollTo({top:scrollY+e.getBoundingClientRect().top-document.querySelector('.cd-header').getBoundingClientRect().height-document.querySelector('.cd-progress').getBoundingClientRect().height-12,behavior:'instant'}));
+   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+   await page.screenshot({path:path.join(output,`categoria-${block.id}-${width}.png`)});
+   report.checks.push({width,case:`${block.n}: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría`});
+  }
+  reset();view.navigation.current='ciber';view.navigation.steps[2].accessible=true;
+  const tools=instrument.modules.find(b=>b.id==='ciber').tools.filter(t=>!t.opt&&!t.doc),cat=tools.find(t=>tools.filter(x=>x.cat===t.cat).length>=3).cat,group=tools.filter(t=>t.cat===cat);
+  view.answers[group[0].id]={state:'level',checks:'100000000000'};view.answers[group[1].id]={state:'na'};
+  await page.goto(fixture.origin+base+'/encuesta');
+  const category=page.getByRole('region',{name:cat,exact:true}),bulk=category.getByRole('button',{name:'Marcar pendientes como Inicial',exact:true});
+  await expect(bulk).toBeEnabled();await bulk.click();await expect(bulk).toBeDisabled();await settled();
+  assert.equal(autos().length,1);assert.equal(manuals().length,0);
+  assert.equal(view.answers[group[0].id].checks,'100000000000');assert.equal(view.answers[group[1].id].state,'na');
+  assert(group.slice(2).every(t=>view.answers[t.id].checks==='000000000000'));assert(tools.filter(t=>t.cat!==cat).every(t=>!view.answers[t.id]));
+  await expect(category.locator('.cd-category-help')).toHaveCount(0);await save.click();await settled();assert.equal(receipts.size,1);
+  await page.reload();await expect(bulk).toBeDisabled();await expect(page.locator('#'+group[0].id).getByRole('checkbox').first()).toBeChecked();
+  await expect(page.locator('#'+group[1].id).getByRole('button',{name:'Responder la rúbrica',exact:true})).toBeVisible();
+  await page.locator('#'+group[2].id).getByRole('checkbox').first().check();await settled();assert.equal(view.answers[group[2].id].checks,'100000000000');assert.equal(receipts.size,1);
+  report.checks.push({width,case:'Inicial masivo: sólo vacíos propios, sin leyenda al deshabilitar; conserva NA/parcial, recarga y edición; un PUT y una confirmación manual'});
   await context.close();
  }
  assert.deepEqual(report.errors,[]);report.completed=true;

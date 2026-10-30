@@ -1,0 +1,61 @@
+{
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "mode": "pending",
+      "canonicalUsers": 80,
+      "completed": null,
+      "inProgress": 0,
+      "notStarted": null,
+      "percentage": null
+    },
+    {
+      "width": 1440,
+      "mode": "resolved",
+      "canonicalUsers": 80,
+      "completed": 8,
+      "inProgress": 0,
+      "notStarted": 72,
+      "percentage": 10
+    },
+    {
+      "width": 900,
+      "mode": "pending",
+      "canonicalUsers": 80,
+      "completed": null,
+      "inProgress": 0,
+      "notStarted": null,
+      "percentage": null
+    },
+    {
+      "width": 900,
+      "mode": "resolved",
+      "canonicalUsers": 80,
+      "completed": 8,
+      "inProgress": 0,
+      "notStarted": 72,
+      "percentage": 10
+    },
+    {
+      "width": 390,
+      "mode": "pending",
+      "canonicalUsers": 80,
+      "completed": null,
+      "inProgress": 0,
+      "notStarted": null,
+      "percentage": null
+    },
+    {
+      "width": 390,
+      "mode": "resolved",
+      "canonicalUsers": 80,
+      "completed": 8,
+      "inProgress": 0,
+      "notStarted": 72,
+      "percentage": 10
+    }
+  ],
+  "errors": []
+}

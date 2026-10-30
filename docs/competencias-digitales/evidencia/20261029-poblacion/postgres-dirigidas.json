@@ -1,0 +1,55 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Agregados: personas \u00FAnicas, nivel no excluye descendientes, promedio por persona y sin metas",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: 10 personas, 6 finalizadas, 2 en curso, 2 sin iniciar; roles duplicados y sin usuarios locales",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: adscripci\u00F3n vigente, revocaci\u00F3n y resultados congelados separados",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: opciones sin nivel 1 ni tipo N conservan descendientes y alcances 2/3",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: poblaci\u00F3n ambigua o fuente ca\u00EDda no se presenta como cero; captura independiente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: autoguardados de perfil y cinco bloques, m\u00E1s reintentos, s\u00F3lo auditan localmente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: confirmar despu\u00E9s de autoguardar no modifica encuesta y deduplica doble env\u00EDo concurrente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: reintento confirmado despu\u00E9s de otra revisi\u00F3n no vuelve a auditar ni sobrescribe",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: errores de consentimiento, generaci\u00F3n, versi\u00F3n, CSRF y secci\u00F3n no crean \u00E9xito",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: Nexo ca\u00EDdo: captura confirmada, evento manual pendiente y recibo sin duplicados",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: rollback de cola y reintento del mismo identificador",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: representaci\u00F3n y finalizadas rechazan confirmaci\u00F3n; finalizaci\u00F3n conserva su evento",
+      "passed": true
+    }
+  ]
+}

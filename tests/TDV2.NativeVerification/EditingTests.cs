@@ -46,12 +46,18 @@ internal static partial class NativeTests
             foreach (var key in content[section]![0]!.AsObject().Select(p => p.Key).ToArray())
                 if (key != "id") content[section]![0]![key] = "Respuesta sintética";
         content["identificacion"]![0]!["codigo"] = "PO-01"; content["identificacion"]![0]!["prioridad"] = "5"; content["identificacion"]![0]!["validacion"] = "V";
+        content["identificacion"]![0]!["fuente"] = "Nuevo";
         content["identificacion"]![0]!["usuario"] = new JsonArray("Docentes");
-        content["sistemas"]![0]!["proceso"] = "PO-01"; content["sistemas"]![0]!["estado"] = "Funciona";
+        // Valores del catálogo vigente: el fixture completo no debe introducir
+        // pendientes ajenos al caso ni depender de herramientas históricas retiradas.
+        content["sistemas"]![0]!["proceso"] = "PO-01"; content["sistemas"]![0]!["sistema"] = "limesurvey";
+        content["sistemas"]![0]!["uso"] = "consultar"; content["sistemas"]![0]!["estado"] = "bien";
+        foreach (var field in SystemAnswers.Details) content["sistemas"]![0]![field] = "";
         content["datos"]![0]!["proceso"] = "PO-01"; content["datos"]![0]!["origen"] = "Se origina en este proceso";
         content["acuerdos"]![0]!["fecha"] = "2026-10-10";
         foreach (var row in content["preguntas"]!.AsArray()) row!["respuesta"] = row["opciones"] is JsonArray choices ? choices[0]!.DeepClone() : JsonValue.Create("Respuesta sintética");
         content["evaluaciones"]!["PO-01"] = new JsonArray(schema.Definition()["criterios"]!.AsArray().Select(c => (JsonNode)new JsonObject { ["criterio"] = c!.DeepClone(), ["valor"] = "5", ["obs"] = "" }).ToArray());
+        Check(FormCapture.Review(content).listo, "El fixture Complete debe satisfacer todos los requisitos vigentes de captura.");
         return content;
     }
     private static void RegisterEditingCases(NativeDatabase database, Action<string, Func<NativeApplication, HttpClient, Task>> Test)
@@ -76,7 +82,7 @@ internal static partial class NativeTests
             Check(codes.All(c => content["evaluaciones"]![c]!.AsArray().Count == 9));
             Check(live["bloques"]!.AsArray().Count(b => b!["key"]!.ToString().StartsWith("evaluaciones:") && b["version"]!.GetValue<int>() == 1) == 18);
             var system = Complete(app)["sistemas"]![0]!.DeepClone(); system["proceso"] = codes[0];
-            system["sistema"] = "excel"; system["uso"] = "consultar"; system["estado"] = "bien";
+            system["sistema"] = "limesurvey"; system["uso"] = "consultar"; system["estado"] = "bien";
             var link = await Lease(client, first, "sistemas:inicial");
             Check((await Patch(client, Edit(first, link with { Value = system }))).IsSuccessStatusCode);
             // Un código confirmado no se renombra ni deja vínculos huérfanos.
@@ -91,6 +97,9 @@ internal static partial class NativeTests
         Test("Edición/regresión: un vínculo inválido histórico no paraliza otro registro ni se limpia al guardarlo", async (app, client) =>
         {
             await FinalStage(database);
+            // Los formatos nuevos ya no contienen una herramienta vacía. Este
+            // escenario requiere explícitamente una captura histórica con esa fila.
+            await SeedStage(database, Complete(app));
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             var agreement = await Lease(client, tab, "acuerdos:inicial");
             // Fixture sintético de la incidencia previa; nunca se ejecuta sobre una conexión institucional.
@@ -100,7 +109,7 @@ internal static partial class NativeTests
             Check((await Patch(client, Edit(tab, agreement with { Value = row }))).IsSuccessStatusCode);
             var after = (await Live(client, tab))["contenido"]!;
             Check(JsonNode.DeepEquals(after["sistemas"], original["sistemas"]));
-            var system = after["sistemas"]![0]!.DeepClone(); system["sistema"] = "excel";
+            var system = after["sistemas"]![0]!.DeepClone(); system["fallas"] = "Comentario sin alterar el vínculo histórico";
             var lease = await Lease(client, tab, "sistemas:inicial");
             Check((await Patch(client, Edit(tab, lease with { Value = system }))).IsSuccessStatusCode);
             Check((await Live(client, tab))["contenido"]!["sistemas"]![0]!["proceso"]!.ToString() == "PO-99");
@@ -112,12 +121,14 @@ internal static partial class NativeTests
             await FinalStage(database);
             await Login(app, client); await Csrf(client); var tab = Guid.NewGuid();
             var content = (await Live(client, tab))["contenido"]!;
-            var system = content["sistemas"]![0]!.DeepClone(); system["proceso"] = "PO-01";
+            Check(content["sistemas"]!.AsArray().Count == 0, "Un formato nuevo no crea herramientas automáticas.");
+            var system = Complete(app)["sistemas"]![0]!.DeepClone(); system["proceso"] = "PO-01";
             var agreement = content["acuerdos"]![0]!.DeepClone(); agreement["acuerdo"] = "Respuesta independiente";
             var a = await Lease(client, tab, "sistemas:inicial"); var b = await Lease(client, tab, "acuerdos:inicial");
             var rejected = await Patch(client, Edit(tab, a with { Value = system }, b with { Value = agreement }));
             Check(rejected.StatusCode == HttpStatusCode.UnprocessableEntity);
             Check((await Json(rejected))["validation"]![0]!["field"]!.ToString() == "proceso");
+            Check((await Live(client, tab))["contenido"]!["sistemas"]!.AsArray().Count == 0);
             Check((await Live(client, tab))["contenido"]!["acuerdos"]![0]!["acuerdo"]!.ToString() == "");
             // Misma sesión, testigos y versiones vigentes: es validación de referencias, no concurrencia.
             system["proceso"] = "";

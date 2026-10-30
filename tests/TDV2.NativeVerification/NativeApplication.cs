@@ -25,7 +25,8 @@ namespace Tdv2.NativeVerification;
 internal sealed class SyntheticClock : TimeProvider
 {
     internal TimeSpan Offset;
-    public override DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow + Offset;
+    internal DateTimeOffset? FixedUtc;
+    public override DateTimeOffset GetUtcNow() => FixedUtc ?? DateTimeOffset.UtcNow + Offset;
 }
 
 internal sealed class FakeMicrosoft : HttpMessageHandler
@@ -139,6 +140,7 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     internal string ControlToken { get; } = ProtectedValues.Random();
     internal string PublicOrigin = "https://localhost";
     internal bool Browser, Vite, ManualProcessing;
+    internal string? PublishedRoot;
     internal IStartupFilter? AdditionalControls;
     internal List<Tdv2.Web.PortalSite> AdditionalSites { get; } = [];
     internal Dictionary<string, string?> DigitalConfiguration { get; set; } = new()
@@ -150,6 +152,13 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        if (PublishedRoot is not null)
+        {
+            var root = Path.GetFullPath(PublishedRoot);
+            if (!root.StartsWith(Path.Combine(database.Workspace, ".artifacts") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("El paquete de prueba debe estar en .artifacts.");
+            builder.UseContentRoot(root).UseWebRoot(Path.Combine(root, "wwwroot"));
+        }
         builder.ConfigureLogging(logging => { logging.ClearProviders(); logging.AddProvider(Diagnostics); });
         builder.ConfigureAppConfiguration((host, configuration) => {
             // El builder se crea en Testing y nunca carga User Secrets. Sólo esta prueba habilita

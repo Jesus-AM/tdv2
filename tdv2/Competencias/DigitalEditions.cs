@@ -4,7 +4,7 @@ namespace Tdv2.Competencias;
 public sealed record DigitalEditionNotice(string Previous, string Current, string[] RemovedTools, string[] ReviewFields);
 public static class DigitalEditions
 {
-    public static bool RequiresUpdate(DigitalInstrument current, DigitalSurvey? survey) => survey is { CompletedAt: null } && survey.InstrumentVersion != current.Version;
+    public static bool RequiresUpdate(DigitalInstrument current, DigitalSurvey? survey) => survey is { CompletedAt: null, ReopenedAt: null } && survey.InstrumentVersion != current.Version;
     public static DigitalEditionNotice? Notice(DigitalInstrument current, DigitalSurvey? survey)
     {
         if (!RequiresUpdate(current, survey)) return null;

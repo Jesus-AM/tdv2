@@ -80,7 +80,8 @@ internal sealed class SyntheticAuthentication(IOptionsMonitor<AuthenticationSche
         if (!Request.Headers.ContainsKey("X-Synthetic-Session")) return Task.FromResult(AuthenticateResult.NoResult());
         var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "synthetic-id"),
             new Claim(ClaimTypes.Email, "persona@example.test"), new Claim(ClaimTypes.Name, "Persona sintética"), new Claim(NexoActorIdentity.Claim, "20")], Scheme.Name));
-        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name)));
+        var properties=SessionLifetime.Start(principal,TimeProvider.System);
+        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal,properties,Scheme.Name)));
     }
 }
 internal sealed class Application : WebApplicationFactory<global::Program>

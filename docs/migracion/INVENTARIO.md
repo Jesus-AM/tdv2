@@ -1,3 +1,7 @@
+# Actualización 2026-10-30 — Sesión compartida y reportes
+
+Inicio original protegido, cookie sin renovación deslizante, límite exacto de dos horas en servidor y salida coordinada a `/` en ambos sitios. Sin esquema ni configuración nueva. Textos de reportes simplificados; cálculo y alcance conservados. [Inventario de archivos, compatibilidad, comandos, evidencia y límites](SESIONES_DOS_HORAS_Y_REPORTES_20261030.md).
+
 # Actualización vigente 2026-10-27 — Competencias digitales UACJ
 
 **Identidad visual posterior vigente:** [Guía e inventario 2026-10-27](IDENTIDAD_VISUAL_20261027.md). Noto Sans local, tokens institucionales comunes, nueva fotografía local y pies ordenados con DGTI en Competencias. Las referencias posteriores a Inter/Roboto o pie CD de cuatro firmas son históricas. Sin modificaciones de persistencia ni permisos.

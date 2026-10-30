@@ -1,0 +1,51 @@
+{"phase":"configuration","status":"OK","data":{"readOnly":true}}
+{"phase":"configuration.Tdv2","status":"OK","data":{"readOnly":true}}
+{"phase":"configuration.CompetenciasDigitales","status":"OK","data":{"readOnly":true}}
+{"phase":"configuration.CompetenciasDigitalesNexo","status":"OK","data":{"readOnly":true}}
+{"phase":"connection.Tdv2","status":"OK","data":{"readOnly":true}}
+{"phase":"connection.CompetenciasDigitales","status":"OK","data":{"readOnly":true}}
+{"phase":"connection.CompetenciasDigitalesNexo","status":"OK","data":{"readOnly":true}}
+{"phase":"object.unidades_responsables_poa","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"id_ur":"text","cve_ur":"text","tipo_ur":"text","nivel_ur":"integer","presente":"boolean","estatus_ur":"text","id_ur_pertenece":"text"}}}
+{"phase":"object.Tdv2.unidades_responsables_poa","status":"OK","data":{"readOnly":true}}
+{"phase":"object.__EFMigrationsHistory","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"MigrationId":"text"}}}
+{"phase":"object.Tdv2.__EFMigrationsHistory","status":"OK","data":{"readOnly":true}}
+{"phase":"object.nexo_aplicacion","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"id":"bigint","clave":"text","nombre":"text","nivel_control":"integer"}}}
+{"phase":"object.CompetenciasDigitalesNexo.nexo_aplicacion","status":"OK","data":{"readOnly":true}}
+{"phase":"object.nexo_usuarios","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"ID_UR":"text","email":"text","nombre":"text","origen_ur":"text","usuario_id":"bigint","tipo_cuenta":"text","num_empleado":"text","usuario_aplicacion_id":"bigint"}}}
+{"phase":"object.CompetenciasDigitalesNexo.nexo_usuarios","status":"OK","data":{"readOnly":true}}
+{"phase":"object.nexo_usuario_rol","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"email":"text","rol_id":"bigint","rol_clave":"text","rol_nombre":"text","usuario_aplicacion_id":"bigint"}}}
+{"phase":"object.CompetenciasDigitalesNexo.nexo_usuario_rol","status":"OK","data":{"readOnly":true}}
+{"phase":"object.nexo_modulos","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"id":"bigint","ruta":"text","clave":"text","icono":"text","orden":"integer","nombre":"text","aplicacion_id":"bigint","modulo_padre_id":"bigint"}}}
+{"phase":"object.CompetenciasDigitalesNexo.nexo_modulos","status":"OK","data":{"readOnly":true}}
+{"phase":"object.nexo_modulo_rol","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"rol_id":"bigint","modulo_id":"bigint"}}}
+{"phase":"object.CompetenciasDigitalesNexo.nexo_modulo_rol","status":"OK","data":{"readOnly":true}}
+{"phase":"object.cd_surveys","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"UnitId":"text","Employee":"text","ReportJson":"jsonb","AnswersJson":"jsonb","CompletedAt":"timestamp with time zone","ProfileJson":"jsonb"}}}
+{"phase":"object.CompetenciasDigitales.cd_surveys","status":"OK","data":{"readOnly":true}}
+{"phase":"object.cd_control","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"Id":"integer","Revision":"bigint","Generation":"uuid"}}}
+{"phase":"object.CompetenciasDigitales.cd_control","status":"OK","data":{"readOnly":true}}
+{"phase":"object.cd_submissions","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"Generation":"uuid"}}}
+{"phase":"object.CompetenciasDigitales.cd_submissions","status":"OK","data":{"readOnly":true}}
+{"phase":"object.cd_reopen_operations","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"Id":"uuid"}}}
+{"phase":"object.CompetenciasDigitales.cd_reopen_operations","status":"OK","data":{"readOnly":true}}
+{"phase":"object.__CDMigrationsHistory","status":"COUNTS","data":{"exists":true,"select":true,"columns":{"MigrationId":"text","ProductVersion":"text"}}}
+{"phase":"object.CompetenciasDigitales.__CDMigrationsHistory","status":"OK","data":{"readOnly":true}}
+{"phase":"nexo.application","status":"COUNTS","data":{"publishedRows":1,"matchesConfiguredId":1,"isProceduresPublication":0}}
+{"phase":"nexo.application","status":"OK","data":{"readOnly":true}}
+{"phase":"nexo.membership","status":"COUNTS","data":{"individuals":10,"publishedUsers":10,"withoutAcceptedRole":0,"eligibleApplicationUsers":10}}
+{"phase":"nexo.membership","status":"OK","data":{"readOnly":true}}
+{"phase":"catalog.hierarchy","status":"COUNTS","data":{"present":5,"active":5,"validChains":5,"invalidChains":0,"level2Groups":2,"level2AndDependents":4,"cumulativeNodes":2,"outsideLevel2":1,"chainReasons":{"valid":5}}}
+{"phase":"catalog.hierarchy","status":"OK","data":{"readOnly":true}}
+{"phase":"population.validation","status":"COUNTS","data":{"Candidates":10,"Issues":{"employee":0,"canonical_id":0,"unit_missing":1,"unit_or_chain":0,"origin_multiple":1,"employee_conflict":0,"canonical_conflict":0,"origin_missing_or_unknown":0,"email":0},"verified":false}}
+{"phase":"population.validation","status":"INCIDENCE","data":"POPULATION_INTEGRITY: una incidencia basta para impedir certificar el total. No se excluyen personas ni se publica un subconjunto."}
+{"phase":"population.validation","status":"OK","data":{"readOnly":true}}
+{"phase":"schema.migrations","status":"COUNTS","data":{"appliedKnown":4,"unknownCount":0,"pending":[]}}
+{"phase":"schema.migrations","status":"OK","data":{"readOnly":true}}
+{"phase":"survey.generation","status":"COUNTS","data":{"controlRows":1,"validControlRows":1}}
+{"phase":"survey.generation","status":"OK","data":{"readOnly":true}}
+{"phase":"survey.counts","status":"COUNTS","data":{"stored":9,"matchedRows":9,"unmatchedRows":0,"unstartedRows":1,"finalizedStored":6,"level2Finalized":6,"inProgressStored":2,"level2InProgress":2,"level2NotStarted":1,"level2Population":9,"matchedFinalized":6,"matchedInProgress":2,"matchingAvailable":true,"populationVerified":false,"duplicateEmployeeRows":0,"inconsistentFinalReport":0}}
+{"phase":"survey.counts","status":"OK","data":{"readOnly":true}}
+{"phase":"survey.counts","status":"UNVERIFIED","data":"Conteos almacenados independientes. Cruces no certificados: no son poblaci\u00F3n ni participaci\u00F3n verificadas; unmatched no demuestra revocaci\u00F3n."}
+{"phase":"survey.historical","status":"COUNTS","data":{"currentGeneration":0,"archivedSubmissions":0}}
+{"phase":"survey.historical","status":"OK","data":{"readOnly":true}}
+{"phase":"survey.generationStable","status":"OK","data":{"readOnly":true}}
+{"phase":"result","status":"INCOMPLETE","data":"S\u00F3lo lecturas SQL; no sesi\u00F3n HTTP/OAuth. No se iniciaron servidores, trabajadores, migraciones ni auditor\u00EDa. No se imprimen identidades ni respuestas."}

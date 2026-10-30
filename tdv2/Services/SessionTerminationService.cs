@@ -8,6 +8,27 @@ namespace Tdv2.Services;
 /// <summary>Revoca la sesión y audita ambas identidades, incluso si Nexo está caído.</summary>
 public sealed class SessionTerminationService(AccessState state, DatabaseConnections connections, NexoOperations nexo, OperationAudit audit, Tdv2.Competencias.IDigitalNexo digital)
 {
+    public async Task Expire(string? email,CancellationToken ct)
+    {
+        if(state.SessionHash is null) return;
+        await using var c=await connections.Open("Tdv2",ct);
+        await using var tx=await c.BeginTransactionAsync(ct);
+        await using(var q=new Npgsql.NpgsqlCommand("SELECT id_hash FROM public.tdv2_sessions WHERE id_hash=$1 FOR UPDATE",c,tx))
+        { q.Parameters.AddWithValue(state.SessionHash); if(await q.ExecuteScalarAsync(ct) is null) return; }
+        var snapshot=await state.Load(ct); var closed=false;
+        if(snapshot.Selection is { Kind:"representation" } selection && selection.ActorEmail==email)
+        {
+            using var deadline=CancellationTokenSource.CreateLinkedTokenSource(ct); deadline.CancelAfter(TimeSpan.FromSeconds(4));
+            try {
+                if(selection.Application=="competencias-digitales") await digital.Represent("finalizar",email!,new(){["token"]=selection.Token},deadline.Token);
+                else await nexo.Represent("finalizar",email!,new(){["token"]=selection.Token},deadline.Token);
+                closed=true;
+            } catch(Exception) when(!ct.IsCancellationRequested) { /* Cierre local aun si falla el servicio central. */ }
+        }
+        await PostgresTicketStore.Revoke(c,tx,state.SessionHash,ct);
+        await audit.Write(c,tx,"logout","auth","sesion","confirmado",ct,snapshot.Selection,new{motivo="vencimiento",cierre_central=closed});
+        await tx.CommitAsync(ct);
+    }
     public async Task Revoke(string? email, CancellationToken ct)
     {
         if (state.SessionHash is null) return;

@@ -43,7 +43,8 @@ internal static partial class NativeTests
                 """);
             using var scope = app.Services.CreateScope(); var catalogs = scope.ServiceProvider.GetRequiredService<ILocalCatalog>();
             Unit[] units = [new("A", "06000", "Área", 2, null, 2026), new("B", "6000", "Otra", 2, null, 2026)];
-            app.Reads.Count = 0; var many = await catalogs.Inventories(units, default); Check(app.Reads.Count == 2);
+            app.Reads.Count = 0; var many = await catalogs.Inventories(units, default); var initialCommands = app.Reads.Count;
+            Check(initialCommands == 3, "Metadatos, inventario y exclusiones se consultan una vez por conjunto.");
             Check(many["A"].Rows.Count == 200 && many["A"].Notice is not null && many["B"].Rows.Count == 1);
             foreach (var unit in units)
             {
@@ -51,6 +52,15 @@ internal static partial class NativeTests
                 Check(one.State == many[unit.Id].State && one.Notice == many[unit.Id].Notice
                     && one.Rows.Select(r => r.ToJsonString()).SequenceEqual(many[unit.Id].Rows.Select(r => r.ToJsonString())));
             }
+            await SeedStage(database, Complete(app));
+            await database.Sql("INSERT INTO formato_exclusiones_ilda(id_ur,ejercicio,registro,creado_en,actor,efectivo) VALUES('A',2026,'ilda:1',now(),'persona@uacj.mx','persona@uacj.mx')");
+            var large = units.Concat(Enumerable.Range(1, 100).Select(i => new Unit("sintetica-"+i, "06000", "Área sintética", 2, null, 2026))).ToArray();
+            app.Reads.Count = 0; var batched = await catalogs.Inventories(large, default); var largeCommands = app.Reads.Count;
+            Check(largeCommands == initialCommands, "Agregar áreas no debe añadir una lectura por área.");
+            Check(batched["A"].Rows.Count == 199 && batched["A"].Rows.All(r => r["id"]!.ToString() != "ilda:1"));
+            Check(batched["sintetica-1"].Rows.Count == 200 && batched["B"].Rows.Count == 1);
+            await File.WriteAllTextAsync(Path.Combine(database.Artifacts, "ilda-performance.json"), JsonSerializer.Serialize(new {
+                synthetic = true, units = units.Length, commands = initialCommands, largeUnits = large.Length, largeCommands, excludedRows = 1 }));
         });
     }
 }

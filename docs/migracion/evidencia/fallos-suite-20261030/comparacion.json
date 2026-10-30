@@ -1,0 +1,67 @@
+{
+    "commit":  "06e307c7c5ff5a947b7b1d259900e1b2a9deaea9",
+    "sources":  "synthetic",
+    "realPostgreSql":  true,
+    "cases":  [
+                  {
+                      "name":  "Central/concesión sin rol no habilita; formato enviado continúa inmutable",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Rendimiento/ILDA por conjuntos conserva igualdad exacta, orden y límite independiente de 200",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Participación/enviado conserva instantánea tras exclusión y reactivación",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Sync/web: doble solicitud y dos administradores distintos crean un solo trabajo",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/regresión: códigos y criterios confirmados atómicamente para dos altas simultáneas",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/regresión: un vínculo inválido histórico no paraliza otro registro ni se limpia al guardarlo",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/reproducción: referencia a código local no confirmado rechaza incluso un bloque independiente",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/usuarios múltiples: colección vacía pendiente, validación estricta, guardado y recarga sin limpieza",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/usuarios: envío rechaza colección vacía y acepta opciones confirmadas sin alterar prioridad",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  },
+                  {
+                      "name":  "Edición/revisión omite sesión, recalcula borradores sin escribir y conserva historia al enviar",
+                      "baselinePassed":  false,
+                      "beforePassed":  false,
+                      "afterPassed":  true
+                  }
+              ]
+}

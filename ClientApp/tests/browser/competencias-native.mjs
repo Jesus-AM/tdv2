@@ -198,7 +198,7 @@ try {
     });
     await check('rúbricas de Ciberseguridad permiten confirmación Inicial y captura por indicadores', async () => {
         await page.getByRole('navigation', { name: 'Bloques de la encuesta' }).getByRole('button', { name: 'Ciberseguridad', exact: true }).click();
-        const questions = page.locator('.cd-question'); await questions.first().getByRole('button', { name: 'No realizo ninguna · Inicial' }).click();
+        const questions = page.locator('.cd-question'); await questions.first().getByRole('button', { name: 'Inicial', exact: true }).click();
         for (let i = 0; i < 3; i++) await questions.nth(1).getByRole('checkbox').nth(i).check();
         await save(); const survey = await getSurvey(); const block = survey.instrument.modules.find(m => m.id === 'ciber');
         assert.equal(survey.answers[block.tools[0].id].checks, '000000000000'); assert.equal(survey.answers[block.tools[1].id].checks.slice(0, 4), '1110');
@@ -338,12 +338,14 @@ try {
         await page.setViewportSize({width:1366,height:900}); await reference.close();
         const gap=page.locator('.cd-gap').first(); if(await gap.count()) assert.equal(await gap.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(240, 189, 16)');
     });
-    await check('configuración administra metas de adscripción directa', async () => {
-        await page.goto(origin + base + '/configuracion'); const input = page.getByRole('combobox', { name: 'Unidad responsable de la meta' }); await input.fill('100'); await page.getByRole('option', { name: '100 · Área sintética A', exact: true }).click();
-        await page.getByRole('spinbutton', { name: 'Meta de adscripción directa' }).fill('10'); const response = page.waitForResponse(r => r.url().endsWith('/api/metas/A') && r.request().method() === 'PUT'); await page.getByRole('button', { name: 'Guardar meta' }).click(); assert.equal((await response).status(), 200);
+    await check('configuración conserva metas históricas sin editor manual', async () => {
+        await control('historic-target'); await page.goto(origin + base + '/configuracion');
+        await expect(page.getByRole('heading', { name: 'Población de participación' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Guardar meta' })).toHaveCount(0);
+        await page.getByText('Consultar metas manuales históricas', { exact: true }).click(); await expect(page.getByRole('region', { name: 'Metas históricas' })).toContainText('10');
     });
     await check('reinicio: confirmación, resumen obsoleto, respuesta perdida y nuevas capturas protegidas', async () => {
-        await page.goto(origin+base+'/configuracion'); const stale = await context.newPage(); await stale.goto(origin+base+'/mi-informe-ruta');
+        await page.goto(origin+base+'/configuracion/encuestas'); const stale = await context.newPage(); await stale.goto(origin+base+'/mi-informe-ruta');
         await expect(page.getByRole('checkbox',{name:'Eliminar también las metas de participación'})).not.toBeChecked();
         await page.getByRole('button',{name:'Revisar reinicio global'}).click(); let dialog=page.getByRole('dialog');
         const destroy=()=>dialog.getByRole('button',{name:'Eliminar encuestas de toda la aplicación'});
@@ -351,7 +353,7 @@ try {
         await dialog.getByRole('button',{name:'Cancelar'}).click(); assert((await getSurvey()).completedAt);
         await page.getByRole('button',{name:'Revisar reinicio global'}).click();
         const config=(await (await context.request.get(origin+base+'/configuracion',{headers:{'X-TDV2-Page':'1'}})).json()).props.digital.content;
-        const t=config.targets.find(t=>t.unitId==='A'); assert.equal((await api('PUT','/api/metas/A',{value:11,version:t.version})).status(),200);
+        await control('change-historic-target');
         await dialog.getByRole('textbox').fill('REINICIAR ENCUESTAS'); await destroy().click(); await expect(dialog.getByRole('button',{name:'Revisar nuevo resumen'})).toBeVisible();
         await dialog.getByRole('button',{name:'Revisar nuevo resumen'}).click(); await expect(dialog.getByRole('textbox')).toBeEnabled();
         await dialog.getByRole('textbox').fill('REINICIAR ENCUESTAS'); await screenshot('reinicio-confirmacion-desktop');
@@ -364,11 +366,11 @@ try {
         await dialog.getByRole('button',{name:'Cerrar y actualizar'}).click(); await expect(page.getByRole('dialog')).toHaveCount(0);
         await page.setViewportSize({width:390,height:844}); await page.getByRole('checkbox',{name:'Eliminar también las metas de participación'}).check(); await page.getByRole('button',{name:'Revisar reinicio global'}).click();
         await dialog.getByRole('textbox').fill('REINICIAR ENCUESTAS'); await screenshot('reinicio-confirmacion-mobile'); await destroy().click(); await expect(dialog.getByRole('heading',{name:'Reinicio confirmado'})).toBeVisible(); await dialog.getByRole('button',{name:'Cerrar y actualizar'}).click();
-        await expect(page.getByText('No se han configurado metas.')).toBeVisible(); await page.goto(origin+base+'/encuesta'); await expect(page.getByRole('dialog').getByRole('checkbox')).not.toBeChecked();
+        await expect(page.getByText('Consultar metas manuales históricas', { exact: true })).toHaveCount(0); await page.goto(origin+base+'/encuesta'); await expect(page.getByRole('dialog').getByRole('checkbox')).not.toBeChecked();
         assert.deepEqual((await getSurvey()).profile,{}); assert.equal((await getSurvey()).navigation.current,'perfil'); await page.keyboard.press('Escape'); await page.setViewportSize({width:1366,height:900});
     });
     await check('representación consulta permisos efectivos sin configuración y salida siempre visible', async () => {
-        await page.goto(origin + base + '/configuracion'); await page.getByRole('textbox', { name: 'Buscar persona por nombre o correo' }).fill('otra'); await page.getByRole('button', { name: 'Buscar', exact: true }).click();
+        await page.goto(origin + base + '/configuracion/actuar-como-usuario'); await page.getByRole('textbox', { name: 'Buscar persona por nombre o correo' }).fill('otra'); await page.getByRole('button', { name: 'Buscar', exact: true }).click();
         await page.getByRole('combobox', { name: 'Persona representada' }).click(); await page.getByRole('option', { name: /Otra persona sintética/ }).click(); await page.getByRole('textbox', { name: 'Motivo de la consulta' }).fill('Comprobar navegación de consulta'); await page.getByRole('button', { name: 'Iniciar representación de consulta' }).click();
         await expect(page.getByText('Consulta como Otra persona sintética')).toBeVisible(); await expect(page.getByRole('navigation', { name: 'Módulos de Competencias digitales' }).getByRole('button')).toHaveCount(2);
         await expect(page.locator('.cd-account .MuiAvatar-root')).toHaveText('Op');

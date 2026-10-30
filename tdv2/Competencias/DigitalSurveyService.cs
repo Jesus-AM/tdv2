@@ -23,21 +23,40 @@ public sealed record DigitalAccept(string Version, Guid Generation = default);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DigitalTargetInput(int? Value, int Version, Guid Generation = default);
 public sealed record DigitalSurveyView(int Version, DateTimeOffset? CompletedAt, JsonObject Institution, JsonObject Profile,
-    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default, bool HasResponses = false, DigitalEditionNotice? EditionUpdate = null);
+    Dictionary<string, DigitalAnswer> Answers, JsonObject Instrument, bool Accepted, DigitalEvaluation Evaluation, DigitalNavigation Navigation, Guid Generation = default, bool HasResponses = false, DigitalEditionNotice? EditionUpdate = null,
+    int Revision = 1, DateTimeOffset? ReopenedAt = null, DigitalSubmissionInfo[]? History = null, bool Historical = false, int MinimumVersion = 1);
+public sealed record DigitalSubmissionInfo(Guid Id, int Revision, DateTimeOffset CompletedAt);
 
 public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument instrument, DatabaseConnections connections, AccessState state, DigitalActivity activity, DigitalActivityDelivery delivery)
 {
     private static JsonObject Object(string value) => JsonNode.Parse(value)!.AsObject();
     private static Dictionary<string, DigitalAnswer> Answers(string value) => JsonSerializer.Deserialize<Dictionary<string, DigitalAnswer>>(value, DigitalInstrument.Json)!;
     private static string Serialize<T>(T value) => JsonSerializer.Serialize(value, DigitalInstrument.Json);
-    public async Task<DigitalSurveyView> Read(DigitalScope scope, CancellationToken ct, string? step = null)
+    public async Task<DigitalSurveyView> Read(DigitalScope scope, CancellationToken ct, string? step = null, bool history = false)
     {
-        await using var read = await db.Database.BeginTransactionAsync(ct);
+        await using var read = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
         var generation = await DigitalGeneration.Shared(db, ct);
         var employee = UnitDirectory.Employee(scope.Profile.User)!;
         var survey = await db.Surveys.AsNoTracking().SingleOrDefaultAsync(s => s.Employee == employee, ct);
         var accepted = survey?.CompletedAt is not null || await db.Consents.AnyAsync(c => c.Employee == employee && c.NoticeVersion == instrument.NoticeVersion, ct);
-        return Project(instrument, survey, scope.Institution(), accepted, generation, step);
+        var view = Project(instrument, survey, scope.Institution(), accepted, generation, step);
+        return history ? view with { History = await db.Submissions.AsNoTracking().Where(s => s.Employee == employee && s.Generation == generation).OrderByDescending(s => s.Revision).Select(s => new DigitalSubmissionInfo(s.Id, s.Revision, s.CompletedAt)).ToArrayAsync(ct) } : view;
+    }
+    public async Task<DigitalSurveyView> Historical(DigitalScope scope, Guid id, CancellationToken ct)
+    {
+        await using var read = await db.Database.BeginTransactionAsync(ct);
+        var generation = await DigitalGeneration.Shared(db, ct);
+        var row = await db.Submissions.AsNoTracking().SingleOrDefaultAsync(s => s.Id == id && s.Employee == UnitDirectory.Employee(scope.Profile.User) && s.Generation == generation, ct)
+            ?? throw new DomainProblem(404, "No se encontró este informe.");
+        var survey = RestoreSnapshot(row.SnapshotJson);
+        return Project(instrument, survey, scope.Institution(), true, generation) with { Historical = true };
+    }
+    public static DigitalSurvey RestoreSnapshot(string snapshot)
+    {
+        var row = Object(snapshot);
+        foreach (var key in new[] { "InstitutionJson", "ProfileJson", "AnswersJson", "InstrumentJson", "ReportJson" })
+            if (row[key] is { } value) row[key] = value.ToJsonString();
+        return JsonSerializer.Deserialize<DigitalSurvey>(row.ToJsonString(), DigitalInstrument.Json)!;
     }
     // Proyección sin escrituras: el informe definitivo proviene exclusivamente de su instantánea.
     public static DigitalSurveyView Project(DigitalInstrument instrument, DigitalSurvey? survey, DigitalInstitution currentInstitution,
@@ -55,7 +74,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         var resource = selected.Resource.DeepClone().AsObject(); resource["notice"] = instrument.Resource["notice"]!.DeepClone();
         resource.Remove("previousDraft");
         return new(survey?.Version ?? 0, survey?.CompletedAt, institution, profile, answers, resource, accepted, evaluation,
-            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses, DigitalEditions.Notice(instrument, survey));
+            selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses, DigitalEditions.Notice(instrument, survey), survey?.Revision ?? 1, survey?.ReopenedAt, MinimumVersion: survey?.MinimumVersion ?? 1);
     }
     private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct,
         Func<DigitalSurvey?, NpgsqlConnection, NpgsqlTransaction, Task>? localAudit = null)
@@ -110,10 +129,15 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         if (survey.CompletedAt is not null) throw new DomainProblem(409, "La encuesta ya fue finalizada y no admite cambios.");
         if (survey.Version != version) throw new DomainProblem(409, "La encuesta cambió en otra pestaña o sesión. Recarga para continuar.");
     }
+    private static void CurrentRevision(DigitalSurvey? survey, int version)
+    {
+        if (survey is { Revision: > 1 } && version < survey.MinimumVersion) throw new DomainProblem(409, "La encuesta fue reabierta. Recarga antes de guardar o enviar esta revisión.");
+    }
     public async Task Save(DigitalScope scope, DigitalSave input, CancellationToken ct)
     {
         await Write(scope, input.Generation, async survey =>
         {
+            CurrentRevision(survey, input.Version);
             RequireCurrent(survey);
             // Respuesta de red perdida después del commit: el reintento exacto no crea otra
             // revisión ni sobrescribe cambios. Un documento distinto sigue siendo conflicto.
@@ -142,6 +166,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         if (input.Operation == Guid.Empty) throw new DomainProblem(422, "Falta el identificador de la operación de guardado.");
         await Write(scope, input.Generation, async survey =>
         {
+            CurrentRevision(survey, input.Version);
             RequireCurrent(survey);
             if (survey is null || survey.CompletedAt is not null) Mutable(survey, input.Version);
             await RequireConsent(scope, ct);
@@ -156,6 +181,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
     {
         await Write(scope, input.Generation, async survey =>
         {
+            CurrentRevision(survey, input.Version);
             // Reintento de finalización: resultado definitivo idéntico, incluso con la versión anterior.
             if (survey?.CompletedAt is not null) return true;
             RequireCurrent(survey);
@@ -170,7 +196,7 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
             survey.Email = scope.Profile.User.Email; survey.Name = scope.Profile.User.Name;
             survey.ReportJson = Serialize(evaluation.Report); survey.CompletedAt = DateTimeOffset.UtcNow;
             survey.UpdatedAt = survey.CompletedAt.Value; survey.Version++;
-            await activity.Queue(scope, "final:" + survey.Id, "encuesta", "finalizar", "encuesta", survey.Id.ToString(), ct);
+            await activity.Queue(scope, "final:" + survey.Id + (survey.Revision == 1 ? "" : ":" + survey.Revision), "encuesta", "finalizar", "encuesta", survey.Id.ToString(), ct);
             return true;
         }, ct);
     }
@@ -183,6 +209,8 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         if (input.InstrumentVersion != instrument.Version) throw new DomainProblem(409, "La edición cambió. Recarga para revisar la versión vigente.");
         await Write(scope, input.Generation, async survey =>
         {
+            CurrentRevision(survey, input.Version);
+            if (survey?.ReopenedAt is not null) throw new DomainProblem(409, "La revisión reabierta conserva su instrumento original.");
             if (survey is { CompletedAt: null } && survey.InstrumentVersion == instrument.Version) return true;
             Mutable(survey, input.Version); await RequireConsent(scope, ct);
             DigitalEditions.Upgrade(instrument, survey!, DateTimeOffset.UtcNow);
@@ -190,25 +218,11 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
             return true;
         }, ct);
     }
-    public async Task Target(DigitalScope scope, string unit, DigitalTargetInput input, CancellationToken ct)
+    public Task Target(DigitalScope scope, string unit, DigitalTargetInput input, CancellationToken ct)
     {
-        if (!scope.Profile.Has("administrador") || !scope.Module(4)) throw new DomainProblem(403, "Solo el administrador de esta aplicación puede editar metas.");
+        if (!scope.Profile.Has("administrador") || !scope.Module(4)) throw new DomainProblem(403, "Solo el administrador puede consultar esta configuración.");
         scope.Filter(unit);
-        if (input.Value is < 0 or > 1000000) throw new DomainProblem(422, "La meta debe ser un número entre 0 y 1000000.");
-        await Write(scope, input.Generation, async _ =>
-        {
-            // Serialización de metas entre administradores distintos.
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({unit},27102027))", ct);
-            var target = await db.Targets.SingleOrDefaultAsync(t => t.UnitId == unit, ct);
-            if ((target?.Version ?? 0) != input.Version) throw new DomainProblem(409, "La meta cambió. Recarga antes de guardar.");
-            if (input.Value is null) { if (target is not null) db.Targets.Remove(target); }
-            else
-            {
-                if (target is null) { target = new() { UnitId = unit, Version = 0 }; db.Targets.Add(target); }
-                target.Value = input.Value.Value; target.Version++; target.UpdatedAt = DateTimeOffset.UtcNow; target.UpdatedBy = scope.Profile.User.Email;
-            }
-            if (target is not null) await activity.Queue(scope, "target:" + Guid.NewGuid(), "administracion", input.Value is null ? "eliminar_meta" : "guardar_meta", "meta", unit, ct);
-            return true;
-        }, ct);
+        // Compatibilidad de pestañas antiguas: no borrar ni modificar las metas históricas.
+        throw new DomainProblem(410, "La participación se obtiene del acceso vigente a la encuesta. Las metas manuales son históricas y no se editan.");
     }
 }

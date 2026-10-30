@@ -9,7 +9,7 @@ namespace Tdv2.Controllers;
 
 /// <summary>Canal de consulta. Ningún mensaje SignalR concede una reserva ni escribe respuestas.</summary>
 public sealed class FormHub(IServiceScopeFactory scopes, FormNotifications notifications, IHttpContextAccessor accessor,
-    ILogger<FormHub> logger) : Hub
+    ILogger<FormHub> logger,TimeProvider clock) : Hub
 {
     public async IAsyncEnumerable<object> Watch(string ur, string context, Guid tab,
         [EnumeratorCancellation] CancellationToken cancellation)
@@ -40,6 +40,7 @@ public sealed class FormHub(IServiceScopeFactory scopes, FormNotifications notif
                         try
                         {
                             var state = scope.ServiceProvider.GetRequiredService<AccessState>();
+                            SessionLifetime.Require(principal,clock);
                             var current = await state.Load(token);
                             if (current.Key != context || revision is not null && current.Revision != revision)
                                 throw new DomainProblem(409, "El contexto cambió.");
@@ -66,6 +67,7 @@ public sealed class FormHub(IServiceScopeFactory scopes, FormNotifications notif
                     || Context.ConnectionAborted.IsCancellationRequested && error.CancellationToken == Context.ConnectionAborted)
                 { break; }
                 if (token.IsCancellationRequested) break;
+                SessionLifetime.Require(principal,clock);
                 yield return result;
                 // La comprobación periódica detecta revocaciones y cambios de otra instancia.
                 // Consultar NO renueva reservas; únicamente una actividad explícita del editor lo hace.

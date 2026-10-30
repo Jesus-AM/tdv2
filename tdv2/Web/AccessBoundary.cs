@@ -1,4 +1,5 @@
 using Tdv2.Domain;
+using Tdv2.Security;
 using Microsoft.Extensions.Options;
 using Tdv2.Integrations.Microsoft;
 namespace Tdv2.Web;
@@ -9,6 +10,11 @@ public static class AccessBoundary
     public static async Task Validate(HttpContext http)
     {
         var path = http.Request.Path;
+        if(path=="/session/status" || path=="/session/expire")
+        {
+            if(http.User.Identity?.IsAuthenticated!=true) throw new DomainProblem(401,"Inicia sesión con tu cuenta institucional.");
+            SessionLifetime.Require(http.User,http.RequestServices.GetRequiredService<TimeProvider>()); return;
+        }
         if (path == ApplicationEntry.Choices) { await ApplicationEntry.RequireIdentity(http); return; }
         if (path.StartsWithSegments(Tdv2.Competencias.DigitalRoutes.Base))
         {

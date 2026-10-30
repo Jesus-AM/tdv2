@@ -17,6 +17,9 @@ internal static class DigitalEditionTests
         var profiles = current.Resource["positionRules"]!.AsObject();
         var names = new[] { "Dirección", "Subdirección", "Coordinación", "Jefatura de departamento", "Jefatura de función", "Responsable", "Personal Académico", "Asistente Profesional", "Apoyo Técnico", "Auxiliar administrativo", "Personal Manual" };
         Check(profiles.Select(p=>p.Key).SequenceEqual(names), "Once perfiles en orden exacto");
+        var rules = new[] { "Dirección", "Subdirección", "Jefatura de función", "Jefatura de función", "Jefatura de función", "Jefatura de función", "Personal docente", "Personal operativo", "Personal operativo", "Personal operativo", "Personal operativo" };
+        Check(names.Select(current.RulePosition).SequenceEqual(rules), "Equivalencias explícitas, Dirección/Subdirección separadas y Manual conservado");
+        Check(current.Requirements("Dirección")["m-outlook"] == 3 && current.Requirements("Subdirección")["m-outlook"] == 1 && current.Requirements("Dirección")["m-word"] == 1 && current.Requirements("Subdirección")["m-word"] == 2, "Requisitos originales distintos: Outlook y Word, sin fusionar Dirección/Subdirección");
         var fields = current.Resource["profile"]!.AsArray();
         Check(fields.Single(f=>f!["id"]!.ToString()=="funciones")!["options"]!.AsArray().Select(o=>o!.ToString()).SequenceEqual(["Académica","Administrativa","Directiva","Otra"]), "Cuatro funciones exactas");
         var profile = new JsonObject();
@@ -41,6 +44,16 @@ internal static class DigitalEditionTests
         foreach(var b in current.Blocks)foreach(var t in b.Tools)answers[t.Id]=b.Id is "ciber" or "datos" or "sii"?new("level",Checks:"000000000000"):new("level",0);
         var complete=current.Evaluate(profile,answers);
         Check(complete.Pending.Length==0&&complete.Progress==100&&complete.Report.Global==0,"Instrumento académico completo con cero válido");
+        Check(DigitalInstrument.ChecklistLevel("110011111111") == 0 && DigitalInstrument.ChecklistLevel("111011001111") == 1 && DigitalInstrument.ChecklistLevel("111011101110") == 3, "Tres de cuatro por nivel, sin saltar el anterior");
+        var rubric = current.Blocks.Single(b => b.Id == "ciber").Tools.Take(2).ToArray();
+        answers[rubric[0].Id] = new("level", Checks:"100000000000"); answers[rubric[1].Id] = new("level", Checks:"110000000000");
+        var separate = current.Evaluate(profile, answers);
+        Check(separate.Report.Tools.Where(t => rubric.Any(r => r.Id == t.Id)).All(t => t.Value == 0), "No suma actividades de rúbricas distintas");
+        answers[rubric[0].Id] = new("na"); answers.Remove(rubric[1].Id);
+        var distinct = current.Evaluate(profile, answers);
+        Check(distinct.Report.Tools.Single(t => t.Id == rubric[0].Id) is { Value: -1, Gap: 0 } && distinct.Pending.Contains(rubric[1].Id) && !distinct.Pending.Contains(rubric[0].Id), "No aplica excluido del puntaje y pendiente real separado");
+        Check(!DigitalAggregates.Started("{}", "{}") && !DigitalAggregates.Started("{}", "{\"x\":{\"state\":\"pending\"}}") && DigitalAggregates.Started("{}", "{\"x\":{\"state\":\"level\",\"level\":0}}"), "Inicio requiere captura real; cero sí cuenta");
+        foreach (var t in rubric) answers[t.Id] = new("level", Checks:"000000000000");
         Check(current.Blocks.Sum(b=>b.Tools.Length)==80 && current.Blocks.Single(b=>b.Id=="ciber").Tools.Length==old.Blocks.Single(b=>b.Id=="ciber").Tools.Length,"80 herramientas, Ciberseguridad intacto");
         Check(!complete.Report.Tools.Any(t=>retired.Contains(t.Id))&&!complete.Report.Route.Any(c=>retired.Contains(c.Tool))&&!complete.Pending.Intersect(retired).Any(),"Retiradas fuera de pendientes, resultados y capacitación");
         Check(JsonNode.DeepEquals(current.Resource["notice"],old.Resource["notice"]),"Aviso y versión de consentimiento intactos");

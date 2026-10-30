@@ -17,10 +17,11 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
 {
     private CancellationToken Ct => HttpContext.RequestAborted;
     private T Service<T>() where T : notnull => HttpContext.RequestServices.GetRequiredService<T>();
-    private async Task<IResult> Saved(DigitalScope scope, Guid generation)
+    private async Task<IResult> Saved(DigitalScope scope, Guid generation, int? version = null)
     {
         var view = await Service<DigitalSurveyService>().Read(scope, Ct);
         DigitalGeneration.Require(view.Generation, generation);
+        if (view.Revision > 1 && version < view.MinimumVersion) throw new DomainProblem(409, "La encuesta fue reabierta. Recarga para consultar la revisión vigente.");
         return Results.Json(view);
     }
     [HttpGet("")]
@@ -29,10 +30,13 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
     [HttpGet("encuesta")]
     [HttpGet("mi-informe-ruta")]
     [HttpGet("configuracion")]
+    [HttpGet("configuracion/encuestas")]
+    [HttpGet("configuracion/actuar-como-usuario")]
     public async Task<IResult> Page([FromQuery] string? unit, [FromQuery] int? level, [FromQuery] string? position, [FromQuery] string? paso)
     {
-        var slug = Request.Path.Value!.TrimEnd('/').Split('/').Last(); var index = Array.IndexOf(DigitalRoutes.Slugs, slug);
-        var scope = index < 0 ? await access.Resolve(HttpContext) : await access.Require(HttpContext, index);
+        var child = DigitalRoutes.Configuration.FirstOrDefault(c => c.Path == Request.Path);
+        var slug = Request.Path.Value!.TrimEnd('/').Split('/').Last(); var index = child.Key is not null ? 4 : Array.IndexOf(DigitalRoutes.Slugs, slug);
+        var scope = child.Key is not null ? await access.RequireConfiguration(HttpContext, child.Key) : index < 0 ? await access.Resolve(HttpContext) : await access.Require(HttpContext, index);
         var pageGeneration = await Service<DigitalDbContext>().Control.AsNoTracking().Select(c => c.Generation).SingleAsync(Ct);
         object? content = null;
         if (index is 0 or 1) content = await Service<DigitalAggregates>().Read(scope, unit, level, Ct, position, finalizedOnly: index == 1);
@@ -42,7 +46,7 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
             var digitalDb = Service<DigitalDbContext>();
             await using var read = await digitalDb.Database.BeginTransactionAsync(Ct);
             var generation = await DigitalGeneration.Shared(digitalDb, Ct);
-            content = new { generation, units = scope.Allowed.OrderBy(u => u.Code).Select(DigitalUnitOption.From), targets = await Service<DigitalDbContext>().Targets.AsNoTracking().Select(t => new { t.UnitId, t.Value, t.Version, t.UpdatedAt }).ToArrayAsync(Ct),
+            content = new { generation, section = child.Key, sections = DigitalRoutes.Configuration.Where(c => scope.ConfigurationModule(c.Key)).Select(c => new { c.Key, c.Name, c.Path }), units = scope.Allowed.OrderBy(u => u.Code).Select(DigitalUnitOption.From), targets = await Service<DigitalDbContext>().Targets.AsNoTracking().Select(t => new { t.UnitId, t.Value, t.Version, t.UpdatedAt }).ToArrayAsync(Ct),
                 catalog = new { source = "SII · catálogo local compartido de Transformación Digital", available = catalog is not null,
                     completedAt = catalog is null ? (DateTimeOffset?)null : new DateTimeOffset(DateTime.SpecifyKind(catalog.CompletedAt, DateTimeKind.Utc)) },
                 nexoRoles = scope.Profile.Roles.Select(r => new { r.Key, r.Name }), nexoModules = scope.Profile.Modules.Select(m => new { m.Key, m.Name, m.Path }) };
@@ -55,7 +59,7 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
                 .Select(s => new { version = s.Version, completedAt = s.CompletedAt }).SingleOrDefaultAsync(Ct)
                 ?? new { version = 0, completedAt = (DateTimeOffset?)null };
         }
-        else content = await Service<DigitalSurveyService>().Read(scope, Ct, paso);
+        else content = await Service<DigitalSurveyService>().Read(scope, Ct, paso, history: index == 3);
         var activity = Service<DigitalActivity>();
         await activity.BestEffort(() => activity.Visit(scope, index == 3, (content as DigitalSurveyView)?.Version ?? 0, pageGeneration, Ct));
         await Service<DigitalActivityDelivery>().TryFlush();
@@ -64,7 +68,7 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
             props = new { name = "Competencias digitales UACJ", csrfToken = csrf.RequestToken, contextoEdicion = state.Loaded?.Key ?? "own",
                 photoContext = PhotoContext.Key(HttpContext, state, scope.Profile.User.Email, "competencias-digitales"), photoApplication = "competencias-digitales",
                 auth = new { user = new { id = User.FindFirstValue(ClaimTypes.NameIdentifier), name = access.Real!.User.Name, email = access.Real.User.Email }, roles = scope.Profile.Roles, modules = Array.Empty<object>(), canPreview = false, canRepresent = false },
-                representacion = access.Selection?.Representation(), simulacion = (object?)null, session = new { lifetime_ms = 7200000 },
+                representacion = access.Selection?.Representation(), simulacion = (object?)null, session = SessionLifetime.Client(HttpContext),
                 routes = new { inicio = DigitalRoutes.Base, logout = "/logout", home = "/", connect = "/connect" },
                 digital = new { generation = pageGeneration, page = index, user = scope.Profile.User.Name, actor = access.Real.User.Name, readOnly = access.Selection is not null,
                     notice = Service<DigitalInstrument>().Resource["notice"],
@@ -85,29 +89,43 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
     [HttpPut("api/encuesta")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Save([FromBody] DigitalSave input)
-    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Save(scope, input, Ct); return await Saved(scope, input.Generation); }
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Save(scope, input, Ct); return await Saved(scope, input.Generation, input.Version); }
     [HttpPost("api/encuesta/guardar")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> ConfirmManualSave([FromBody] DigitalManualSave input)
-    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().ConfirmManualSave(scope, input, Ct); return await Saved(scope, input.Generation); }
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().ConfirmManualSave(scope, input, Ct); return await Saved(scope, input.Generation, input.Version); }
     [HttpPost("api/encuesta/finalizar")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Finish([FromBody] DigitalFinalize input)
-    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Finalize(scope, input, Ct); return await Saved(scope, input.Generation); }
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Finalize(scope, input, Ct); return await Saved(scope, input.Generation, input.Version); }
     [HttpPost("api/encuesta/actualizar-instrumento")]
     [EnableRateLimiting("form-writes")]
     public async Task<IResult> Upgrade([FromBody] DigitalUpgrade input)
-    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Upgrade(scope, input, Ct); return await Saved(scope, input.Generation); }
+    { var scope = await access.Require(HttpContext, 2); await Service<DigitalSurveyService>().Upgrade(scope, input, Ct); return await Saved(scope, input.Generation, input.Version); }
     [HttpGet("api/informe")]
     public async Task<IResult> Report()
     {
         var scope = await access.Require(HttpContext, 3);
-        var view = await Service<DigitalSurveyService>().Read(scope, Ct);
+        var view = await Service<DigitalSurveyService>().Read(scope, Ct, history: true);
         var activity = Service<DigitalActivity>();
         await activity.BestEffort(() => activity.Visit(scope, true, view.Version, view.Generation, Ct));
         await Service<DigitalActivityDelivery>().TryFlush();
         return Results.Json(view);
     }
+    [HttpGet("api/informe/historial/{id:guid}")]
+    public async Task<IResult> Historical(Guid id)
+    {
+        var scope = await access.Require(HttpContext, 3); var view = await Service<DigitalSurveyService>().Historical(scope, id, Ct);
+        var activity = Service<DigitalActivity>();
+        await activity.BestEffort(() => activity.Visit(scope, true, view.Version, view.Generation, Ct, id));
+        await Service<DigitalActivityDelivery>().TryFlush(); return Results.Json(view);
+    }
+    [HttpGet("api/gestion-encuestas/personas")]
+    [EnableRateLimiting("representation-search")]
+    public async Task<IResult> SurveyPeople([FromQuery] string q = "") => Results.Json(await Service<DigitalReopenService>().Search(await access.RequireConfiguration(HttpContext, DigitalRoutes.Management), q, Ct));
+    [HttpPost("api/gestion-encuestas/reabrir")]
+    [EnableRateLimiting("form-writes")]
+    public async Task<IResult> Reopen([FromBody] DigitalReopen input) => Results.Json(await Service<DigitalReopenService>().Reopen(await access.RequireConfiguration(HttpContext, DigitalRoutes.Management), input, Ct));
     [HttpPut("api/metas/{unit}")]
     public async Task<IResult> Target(string unit, [FromBody] DigitalTargetInput input)
     { await Service<DigitalSurveyService>().Target(await access.Require(HttpContext, 4), unit, input, Ct); return Results.Json(new { saved = true }); }
@@ -116,10 +134,10 @@ public sealed class CompetenciasController(DigitalAccess access, AccessState sta
     { var scope = await access.Resolve(HttpContext); if (!Enumerable.Range(0, 5).Any(scope.Module)) throw new DomainProblem(403, "No tienes módulos autorizados."); return Results.Json(new { generation = await Service<DigitalDbContext>().Control.AsNoTracking().Select(c => c.Generation).SingleAsync(Ct) }); }
     [HttpPost("api/reinicio/resumen")]
     [EnableRateLimiting("form-writes")]
-    public async Task<IResult> ResetPreview([FromBody] DigitalResetPreview input) => Results.Json(await Service<DigitalResetService>().Preview(await access.Require(HttpContext, 4), input, Ct));
+    public async Task<IResult> ResetPreview([FromBody] DigitalResetPreview input) => Results.Json(await Service<DigitalResetService>().Preview(await access.RequireConfiguration(HttpContext, DigitalRoutes.Management), input, Ct));
     [HttpPost("api/reinicio")]
     [EnableRateLimiting("form-writes")]
-    public async Task<IResult> Reset([FromBody] DigitalResetConfirm input) => Results.Json(await Service<DigitalResetService>().Confirm(await access.Require(HttpContext, 4), input, Ct));
+    public async Task<IResult> Reset([FromBody] DigitalResetConfirm input) => Results.Json(await Service<DigitalResetService>().Confirm(await access.RequireConfiguration(HttpContext, DigitalRoutes.Management), input, Ct));
     [HttpGet("api/representacion/personas")]
     [EnableRateLimiting("representation-search")]
     public async Task<IResult> Search([FromQuery] string q = "", [FromQuery] int page = 1) => Results.Json(await Service<DigitalRepresentation>().Search(HttpContext, q, page));

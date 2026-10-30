@@ -41,7 +41,7 @@ public sealed class DigitalResetService(DigitalDbContext db, DatabaseConnections
     }
     private async Task<JsonObject> Execute(DigitalScope scope, string sql, object[] parameters, CancellationToken ct)
     {
-        if (!scope.Profile.Has("administrador") || !scope.Module(4) || state.Loaded?.Selection is not null)
+        if (!scope.ConfigurationModule(DigitalRoutes.Management) || state.Loaded?.Selection is not null)
             throw new DomainProblem(403, "Solo el administrador real de Competencias digitales puede reiniciar encuestas, fuera de representación.");
         await using var shared = await connections.Open("Tdv2", ct);
         await using var session = await shared.BeginTransactionAsync(ct);

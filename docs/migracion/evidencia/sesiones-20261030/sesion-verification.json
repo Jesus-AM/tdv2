@@ -1,0 +1,27 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Sesi\u00F3n dos horas: l\u00EDmite exacto compartido, polling no renueva, conserva respuestas y vuelve al portal",
+      "passed": true
+    },
+    {
+      "name": "Sesi\u00F3n dos horas: dos sitios y representaci\u00F3n no reinician inicio; vencimiento termina s\u00F3lo su contexto",
+      "passed": true
+    },
+    {
+      "name": "Sesi\u00F3n dos horas: 403 y 503 no cierran sesi\u00F3n; nueva entrada expl\u00EDcita y petici\u00F3n vieja no cierra sesi\u00F3n nueva",
+      "passed": true
+    },
+    {
+      "name": "Sesi\u00F3n dos horas: ticket anterior sin inicio fiable se invalida; no cierra otra sesi\u00F3n m\u00E1s reciente",
+      "passed": true
+    },
+    {
+      "name": "Sesi\u00F3n dos horas: renovar no ampl\u00EDa inicio/SQL y nunca recrea una sesi\u00F3n revocada",
+      "passed": true
+    }
+  ]
+}

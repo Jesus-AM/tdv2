@@ -11,18 +11,22 @@ const history = [];
 const alerts = [];
 globalThis.window = {
     get location() { return { origin: address.origin, pathname: address.pathname, search: address.search,
-        href: address.href, assign: value => { address = new URL(value, address); } }; },
+        href: address.href, assign: value => { address = new URL(value, address); }, replace: value => { address = new URL(value, address); } }; },
     history: Object.fromEntries(['pushState', 'replaceState'].map(method => [method, (state, _, path) => {
         assert.equal(state, null, 'browser history must never contain page data');
         address = new URL(path, address); history.push([method, address.pathname]);
     }])),
     addEventListener: events.addEventListener.bind(events), removeEventListener: events.removeEventListener.bind(events),
-    alert: value => alerts.push(value),
+    alert: value => alerts.push(value), dispatchEvent: events.dispatchEvent.bind(events),
 };
+globalThis.document={ visibilityState: 'visible', addEventListener: events.addEventListener.bind(events), removeEventListener: events.removeEventListener.bind(events) };
+const moduleUrl=(name)=>{const code=readFileSync(new URL('../../resources/js/lib/'+name+'.ts',import.meta.url),'utf8'); let js=ts.transpileModule(code,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText; if(name==='session-lifetime-client')js=js.replaceAll("from './session-deadline'", 'from '+JSON.stringify(moduleUrl('session-deadline'))); return 'data:text/javascript;base64,'+Buffer.from(js).toString('base64');};
 const source = readFileSync(new URL('../../resources/js/lib/navigation.tsx', import.meta.url), 'utf8');
 const javascript = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText
     .replaceAll("from 'react'", `from '${import.meta.resolve('react')}'`)
-    .replaceAll("from 'axios'", `from '${import.meta.resolve('axios')}'`);
+    .replaceAll("from 'axios'", `from '${import.meta.resolve('axios')}'`)
+    .replaceAll("from 'react-dom'", `from '${import.meta.resolve('react-dom')}'`)
+    .replaceAll("from './session-lifetime-client'", `from '${moduleUrl('session-lifetime-client')}'`);
 const { router, startNavigation } = await import(`data:text/javascript;base64,${Buffer.from(javascript).toString('base64')}`);
 const props = () => ({ name: 'TDV2', auth: { user: null, roles: [], modules: [], canPreview: false, canRepresent: false },
     csrfToken: 'synthetic-csrf', contextoEdicion: 'own', simulacion: null, representacion: null,
@@ -191,15 +195,6 @@ test('fallo temporal de recarga conserva página/borrador y comunica el error', 
     assert.equal(success, false);
 });
 
-test('401 de ambas aplicaciones conserva destino en inicio de sesión completo', async () => {
-    answer = config => { throw new axios.AxiosError('expired', 'ERR_BAD_REQUEST', config, null,
-        { data: { message: 'Sesión vencida' }, status: 401, headers: {}, config }); };
-    for (const target of ['/inicio', '/competencias-digitales/encuesta?paso=m365']) {
-        router.visit(target); await new Promise(resolve => setImmediate(resolve));
-        assert.equal(address.pathname, '/connect'); assert.equal(address.searchParams.get('returnUrl'), target);
-    }
-});
-
 test('denegación conserva alternativas verificadas y la URL solicitada; cambiar cuenta conserva retorno', async () => {
     const access = { message: 'Tu cuenta no tiene acceso a Procedimientos institucionales.', status: 403, options: [{name:'Competencias digitales',path:'/competencias-digitales'}] };
     answer = config => { throw new axios.AxiosError('denied', 'ERR_BAD_REQUEST', config, null,
@@ -222,5 +217,14 @@ test('revocación elimina props privadas también al refrescar con callback de e
     assert.equal(published.props.access.status, 403);
     assert.equal(published.props.auth.user, null);
     assert.equal(published.props.configuracion, undefined);
+
+});
+
+test('401 regresa al portal, borra la página privada y no inicia OAuth ni permite nuevos envíos', async () => {
+    answer = config => { throw new axios.AxiosError('expired', 'ERR_BAD_REQUEST', config, null,
+        { data: { message: 'Sesión vencida' }, status: 401, headers: {}, config }); };
+    router.visit('/competencias-digitales/encuesta?paso=m365'); await new Promise(resolve => setImmediate(resolve));
+    assert.equal(address.pathname, '/'); assert.equal(published, null);
+    calls=[]; await new Promise(resolve => router.post('/vista-prueba', {}, {onFinish:resolve})); assert.equal(calls.length,0);
     stop();
 });

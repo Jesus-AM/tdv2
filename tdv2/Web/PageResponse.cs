@@ -32,7 +32,7 @@ public static class PageResponse
         props["representacion"] = selection?.Representation();
         props["contextoEdicion"] = state.Loaded?.Key ?? "own";
         props["photoContext"] = PhotoContext.Key(http, state, profile?.User.Email);
-        props["session"] = new { lifetime_ms = 7_200_000 };
+        props["session"] = SessionLifetime.Client(http);
         props["routes"] = new { inicio = "/inicio", logout = "/logout", home = "/", connect = "/connect" };
         props["csrfToken"] = token.RequestToken;
         return Results.Json(new { component, props, url = http.Request.Path + http.Request.QueryString });

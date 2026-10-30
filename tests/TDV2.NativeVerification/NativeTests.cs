@@ -71,8 +71,10 @@ internal static partial class NativeTests
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--digital-population-readonly")) return await DigitalPopulationReadOnly.Run(privateEmployeeConflicts: args.Contains("--private-employee-conflicts"));
         if (args.Contains("--database-check")) return await DatabaseInspection.Run(args);
         var database = new NativeDatabase();
+        if (args.Contains("--population-diagnosis-tests")) return await DigitalPopulationDiagnosticTests.Run(database);
         if (args.Contains("--sync-once-child"))
         {
             await database.Attach(); await using var cli = new NativeApplication(database);
@@ -177,8 +179,10 @@ internal static partial class NativeTests
         });
         Test("Microsoft: correo externo y object ID inválido no autentican", async (app, client) =>
         {
-            app.Microsoft.Mail = "persona@external.test"; Check(DeniedLogin(await Callback(client, await Start(app, client))));
-            app.Microsoft.Mail = "persona@uacj.mx"; app.Microsoft.Id = "invalid";
+            // Una cuenta totalmente externa; mail distinto con UPN institucional
+            // verificado sí está admitido por la corrección de alias vigente.
+            app.Microsoft.Mail = app.Microsoft.Email = "persona@external.test"; Check(DeniedLogin(await Callback(client, await Start(app, client))));
+            app.Microsoft.Mail = app.Microsoft.Email = "persona@uacj.mx"; app.Microsoft.Id = "invalid";
             Check(DeniedLogin(await Callback(client, await Start(app, client)))); Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 0);
         });
         Test("Microsoft: mismo correo no permite sustituir object ID local", async (app, client) =>

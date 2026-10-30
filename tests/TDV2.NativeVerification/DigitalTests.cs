@@ -58,6 +58,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         appConnection = new NpgsqlConnectionStringBuilder(diagnosis) { Username = "cd_native_app", Password = password }.ConnectionString;
         nexoConnection = new NpgsqlConnectionStringBuilder(directory) { Username = "cd_native_nexo", Password = password }.ConnectionString;
         await Data("GRANT SELECT,INSERT,UPDATE ON cd_activity_events TO cd_native_app");
+        await Data("GRANT SELECT ON cd_submissions,cd_reopen_operations TO cd_native_app; GRANT EXECUTE ON FUNCTION public.cd_reopen_survey(uuid,text,text,uuid,integer,uuid) TO cd_native_app");
         await Nexo(await File.ReadAllTextAsync(Path.Combine(shared.Workspace, "tests/TDV2.NativeVerification/nexo-activity-fixture.sql")));
         await Nexo(await File.ReadAllTextAsync(Path.Combine(shared.Artifacts, "nexo-activity.sql")));
         await Nexo("REVOKE ALL ON FUNCTION public.nexo_a87_registrar_actividad(jsonb) FROM PUBLIC; GRANT EXECUTE ON FUNCTION public.nexo_a87_registrar_actividad(jsonb) TO cd_native_nexo");
@@ -70,7 +71,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             VALUES('A31',2026,'120','Área hermana A31','A',3,'Activo',true,'0031'),('B4',2026,'210','Área ajena B4','B',4,'Activo',true,null);
             INSERT INTO sincronizacion_catalogos VALUES('sii',6,now());
             """);
-        await Data("TRUNCATE cd_surveys,cd_consents,cd_targets,cd_reset_operations,cd_activity_events");
+        await Data("TRUNCATE cd_surveys,cd_consents,cd_targets,cd_reset_operations,cd_activity_events,cd_submissions,cd_reopen_operations");
         await Nexo("TRUNCATE registro_actividad; UPDATE cuentas_postgresql SET habilitada=true");
         await Nexo("""
             TRUNCATE fixture_app,fixture_users,fixture_roles,fixture_modules,fixture_module_roles,fixture_grants,fixture_units,
@@ -86,6 +87,12 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         {
             await Nexo("INSERT INTO fixture_modules VALUES($1,87,$2,$3,$4,null,$5,null)", 100L + i, "synthetic_module_" + i, DigitalRoutes.Names[i], Base + "/" + DigitalRoutes.Slugs[i], i);
             await Nexo("INSERT INTO fixture_module_roles VALUES(30,$1),(31,$1)", 100L + i);
+        }
+        for (var i = 0; i < DigitalRoutes.Configuration.Length; i++)
+        {
+            var child = DigitalRoutes.Configuration[i];
+            await Nexo("INSERT INTO fixture_modules VALUES($1,87,$2,$3,$4,null,$5,104)", 105L+i, child.Key, child.Name, child.Path, i+1);
+            await Nexo("INSERT INTO fixture_module_roles VALUES(30,$1),(31,$1)",105L+i);
         }
     }
     private Task<object?> Role(string key) => Nexo("UPDATE fixture_roles SET rol_clave=$1 WHERE email='persona@uacj.mx'", key);
@@ -154,8 +161,8 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         {
             Check(await Data("SELECT to_regclass('public.formatos_ur')::text") is DBNull);
             Check(await shared.Scalar("SELECT to_regclass('public.cd_surveys')::text") is DBNull);
-            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\"")) == 3);
-            await using var db = Db(); Check(!db.Database.HasPendingModelChanges()); Check(db.Database.GetMigrations().Count() == 3);
+            Check(Convert.ToInt64(await Data("SELECT count(*) FROM \"__CDMigrationsHistory\"")) == 4);
+            await using var db = Db(); Check(!db.Database.HasPendingModelChanges()); Check(db.Database.GetMigrations().Count() == 4);
             Check(!(bool)(await Data("SELECT has_table_privilege('cd_native_app','cd_surveys','DELETE')"))!);
             Check(!(bool)(await Nexo("SELECT has_table_privilege('cd_native_nexo','fixture_users','SELECT')"))!);
         });
@@ -214,9 +221,9 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Test(role + ": consulta institucional; Configuración exclusiva del administrador", async (app, client) =>
             {
                 await Role(role); await Login(app, client); var aggregate = await Json(await client.GetAsync(Base + "/api/avance"));
-                Check(aggregate["options"]!.AsArray().Count == 6 && aggregate["levels"]!.AsArray().Count == 3);
+                Check(aggregate["options"]!.AsArray().Count == 6 && aggregate["levels"]!.AsArray().Count == 4);
                 await Status(client.GetAsync(Base + "/configuracion"), role == "administrador" ? 200 : 403);
-                await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new { generation = (await Survey(client)).Generation, value = 10, version = 0 }), role == "administrador" ? 200 : 403);
+                await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new { generation = (await Survey(client)).Generation, value = 10, version = 0 }), role == "administrador" ? 410 : 403);
             });
         foreach (var (employee, expected) in new[] { ("0001", new[] { "A", "A3", "A4", "A31" }), ("0002", new[] { "A3", "A4" }), ("0031", new[] { "A31" }) })
             Test("Responsable " + employee + ": rama exacta, sin nivel institucional ni filtros ajenos", async (app, client) =>
@@ -343,6 +350,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         Test("Agregados: personas únicas, nivel no excluye descendientes, promedio por persona y sin metas", async (app, client) =>
         {
             await Seed("p1", "A", 3, true); await Seed("p2", "A3", 0, true); await Seed("p3", "A4", 0, true); await Seed("p4", "A4", 0, false); await Seed("p5", "B", 1, true);
+            await PopulationPerson(101, "p1", "A"); await PopulationPerson(102, "p2", "A3"); await PopulationPerson(103, "p3", "A4"); await PopulationPerson(104, "p4", "A4");
             await Role("administrador"); await Login(app, client);
             var data = await Json(await client.GetAsync(Base + "/api/resultados?unit=A&level=2"));
             Check(data["summary"]!["completed"]!.GetValue<int>() == 3 && data["summary"]!["inProgress"]!.GetValue<int>() == 0);
@@ -357,14 +365,12 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             var lower = await Json(await client.GetAsync(Base + "/api/resultados?unit=A&level=3"));
             Check(lower["summary"]!["completed"]!.GetValue<int>() == 2 && lower["summary"]!["maturity"]!.GetValue<double>() == 0);
         });
-        Test("Metas directas: suma sin duplicar, ausencia/0 explícito, edición concurrente", async (app, client) =>
+        Test("Metas manuales históricas no cambian población ni permiten edición", async (app, client) =>
         {
-            await Seed("p1", "A4", 1, true); await Role("administrador"); await Login(app, client);
-            foreach (var (id, value) in new[] { ("A", 2), ("A3", 3), ("A4", 5) }) await Status(client.PutAsJsonAsync(Base + "/api/metas/" + id, new { generation = (await Survey(client)).Generation, value, version = 0 }), 200);
-            var incomplete = await Json(await client.GetAsync(Base + "/api/avance?unit=A")); Check(incomplete["summary"]!["target"] is null);
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A31", new { generation = (await Survey(client)).Generation, value = 0, version = 0 }), 200);
-            var result = await Json(await client.GetAsync(Base + "/api/avance?unit=A")); Check(result["summary"]!["target"]!.GetValue<int>() == 10 && result["summary"]!["participation"]!.GetValue<double>() == 10);
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new { generation = (await Survey(client)).Generation, value = 9, version = 0 }), 409);
+            await HistoricalTarget(50); await Role("administrador"); await Login(app, client); await Accept(client);
+            var result = await Json(await client.GetAsync(Base + "/api/avance?unit=A")); Check(result["summary"]!["target"]!.GetValue<int>() == 2 && result["summary"]!["notStarted"]!.GetValue<int>() == 2);
+            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new { generation = (await Survey(client)).Generation, value = 9, version = 1 }), 410);
+            Check(Convert.ToInt64(await Data("SELECT \"Value\" FROM cd_targets WHERE \"UnitId\"='A'")) == 50);
         });
         Test("Alcance aplicado a opciones, totales, recomendaciones, puestos, herramientas y exportación", async (app, client) =>
         {
@@ -495,7 +501,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             Check(page["props"]!["auth"]!["user"]!["name"]!.ToString() == "Persona sintética");
             Check((await Json(await client.GetAsync("/user/photo")))["photo"] is null);
         });
-        AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases); AddApplicationEntryTests(cases); AddAutosaveMeasurements(cases); AddCostAudit(cases); AddMicrosoftIdentityTests(cases);
+        AddReopenTests(cases); AddPopulationTests(cases); AddResetTests(cases); AddEditionActivityTests(cases); AddManualSaveTests(cases); AddApplicationEntryTests(cases); AddAutosaveMeasurements(cases); AddCostAudit(cases); AddMicrosoftIdentityTests(cases); AddSessionLifetimeTests(cases);
         if (Environment.GetEnvironmentVariable("TDV2_TEST_CASE_PREFIX") is { Length: > 0 } prefix)
             cases.RemoveAll(c => !prefix.Split('|').Any(p => c.Item1.StartsWith(p, StringComparison.Ordinal)));
         var results = new List<object>(); var failures = 0;
@@ -516,7 +522,10 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
     {
         await Seed("synthetic-browser-a", "A4", 1, true); await Seed("synthetic-browser-b", "B4", 3, true);
         using var cert = NativeApplication.Certificate(true);
-        await using var app = new NativeApplication(shared) { DigitalConfiguration = Configuration, Browser = true };
+        var populationOnly = Environment.GetEnvironmentVariable("TDV2_DIGITAL_POPULATION_UI") == "1";
+        if (populationOnly) await BrowserPopulation();
+        await using var app = new NativeApplication(shared) { DigitalConfiguration = Configuration, Browser = true,
+            Vite = Environment.GetEnvironmentVariable("TDV2_DIGITAL_VITE") == "1", PublishedRoot = Environment.GetEnvironmentVariable("TDV2_TEST_PUBLISHED_ROOT") };
         var sitesOnly = Environment.GetEnvironmentVariable("TDV2_TEST_SITE_ENTRY_ONLY") == "true";
         if (sitesOnly) for (var i = 3; i <= 8; i++)
         {
@@ -530,7 +539,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         await using var proxy = await SyntheticTlsProxy.Start(shared.Workspace, upstream, app.ControlToken, cert);
         app.Services.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin = proxy.Origin;
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("TDV2_TEST_NODE") ?? "node") { WorkingDirectory = Path.Combine(shared.Workspace, "ClientApp"), UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
-        start.ArgumentList.Add(sitesOnly ? "tests/browser/sites-native.mjs" : "tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
+        start.ArgumentList.Add(Environment.GetEnvironmentVariable("TDV2_TEST_SESSION_UI")=="1" ? "tests/browser/session-expiry-native.mjs" : populationOnly ? "tests/browser/digital-population-ui.mjs" : sitesOnly ? "tests/browser/sites-native.mjs" : "tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
         using var process = Process.Start(start)!;
         async Task Forward(StreamReader reader) { while (await reader.ReadLineAsync() is { } line) Console.WriteLine(line); }
@@ -564,6 +573,12 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
                 }
                 switch (action.Value)
                 {
+                    case "/population-unavailable": await suite.Nexo("UPDATE fixture_users SET origen_ur='multiple',\"ID_UR\"=NULL WHERE usuario_id=21"); break;
+                    case "/population-available": await suite.Nexo("UPDATE fixture_users SET origen_ur='adscripcion',\"ID_UR\"='A3' WHERE usuario_id=21"); break;
+                    case "/population-n3": await suite.PopulationResponsibility(); break;
+                    case "/audit-count": await http.Response.WriteAsJsonAsync(new { saves = Convert.ToInt64(await suite.Data("SELECT count(*) FROM cd_activity_events WHERE \"Payload\"->>'accion'='guardar'")) }); return;
+                    case "/historic-target": await suite.HistoricalTarget(10); break;
+                    case "/change-historic-target": await suite.Data("UPDATE cd_targets SET \"Value\"=11,\"Version\"=\"Version\"+1"); break;
                     case "/admin": await suite.Role("administrador"); await suite.Nexo("UPDATE fixture_users SET num_empleado='0001' WHERE email='persona@uacj.mx'"); break;
                     case "/supervisor": await suite.Role("responsable_ur_supervisor"); break;
                     case "/n2": await suite.Role("responsable_ur"); await suite.Nexo("UPDATE fixture_users SET num_empleado='0001' WHERE email='persona@uacj.mx'"); break;

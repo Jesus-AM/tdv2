@@ -1,0 +1,172 @@
+{
+  "mode": "published",
+  "syntheticSources": true,
+  "realPostgreSql": true,
+  "checks": [
+    "población 10 = 6 + 2 + 2; indicadores y tabla, filtros sin nivel 1 ni N",
+    "colores calculados, dos filas, logotipo blanco, cuenta y foco con cinco y dos módulos",
+    "fuente no disponible y conjunto sin población no muestran cero ni cien artificial",
+    "Inicial masivo sólo pendientes de categoría, preserva parcial/NA; guardado coordinado y recarga",
+    "responsable N3 conserva contexto acumulativo sin ofrecerlo como filtro y vuelve al total"
+  ],
+  "colors": [
+    {
+      "role": "admin",
+      "width": 1440,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "role": "admin",
+      "width": 900,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "role": "admin",
+      "width": 390,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "role": "participant",
+      "width": 1440,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "role": "participant",
+      "width": 900,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "role": "participant",
+      "width": 390,
+      "nav": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "header": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "footer": {
+        "background": "rgb(33, 52, 85)",
+        "image": "none",
+        "opacity": "1"
+      },
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "logo": "/images/logos/transformacion-digital-blanco.svg",
+      "focus": {
+        "style": "solid",
+        "color": "rgb(255, 255, 255)"
+      }
+    }
+  ],
+  "errors": [],
+  "developmentHmrUnavailable": 0
+}

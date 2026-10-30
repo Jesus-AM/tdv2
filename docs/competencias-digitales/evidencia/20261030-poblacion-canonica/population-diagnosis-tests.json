@@ -1,0 +1,60 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "migrationsExecuted": false,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Diagn\u00F3stico completo: s\u00F3lo lecturas, cat\u00E1logo activo, aplicaci\u00F3n y conteos 10=6\u002B2\u002B2",
+      "passed": true
+    },
+    {
+      "name": "Reporte real conserva nivel 2, dependientes N, cero v\u00E1lido y acceso sin m\u00F3dulo Encuesta",
+      "passed": true
+    },
+    {
+      "name": "Una adscripci\u00F3n incompleta se identifica y no oculta las encuestas almacenadas",
+      "passed": true
+    },
+    {
+      "name": "Permiso y contrato ca\u00EDdos conservan SQLSTATE original y fase sin datos privados",
+      "passed": true
+    },
+    {
+      "name": "Esquema pendiente se informa sin aplicar migraciones ni impedir conteos b\u00E1sicos",
+      "passed": true
+    },
+    {
+      "name": "Identificador incorrecto y correos/roles duplicados no ampl\u00EDan la poblaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Conexi\u00F3n impone s\u00F3lo lectura incluso a propietario; saneado de errores no filtra mensajes",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n vac\u00EDa comprobada se distingue de empleados o cadenas incompletos",
+      "passed": true
+    },
+    {
+      "name": "Tres conflictos son tres grupos de empleados; roles/filas/asignaciones repetidas no inventan can\u00F3nicos",
+      "passed": true
+    },
+    {
+      "name": "Conteos registrados conservan alcance por UR aunque falle la poblaci\u00F3n; sin denominador sustituto",
+      "passed": true
+    },
+    {
+      "name": "Revisi\u00F3n reabierta sint\u00E9tica cambia conteos registrados y conserva el definitivo hist\u00F3rico",
+      "passed": true
+    },
+    {
+      "name": "80 can\u00F3nicos, tres empleados compartidos sin encuestas afectadas: 8 \u002B 0 \u002B 72 y 10 %",
+      "passed": true
+    },
+    {
+      "name": "Encuesta ambigua: total visible; v\u00EDnculo Microsoft previo resuelve s\u00F3lo su due\u00F1o, sin duplicarla",
+      "passed": true
+    }
+  ]
+}

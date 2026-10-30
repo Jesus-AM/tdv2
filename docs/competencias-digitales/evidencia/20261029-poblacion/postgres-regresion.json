@@ -1,0 +1,299 @@
+{
+  "syntheticSources": true,
+  "isolatedPostgreSql": true,
+  "failures": 0,
+  "results": [
+    {
+      "name": "Conexiones: dos historias EF, tablas y permisos separados; repetici\u00F3n sin cambios",
+      "passed": true
+    },
+    {
+      "name": "Sin configuraci\u00F3n del subsitio: portal, /inicio y autorizaci\u00F3n TDV2 conservados",
+      "passed": true
+    },
+    {
+      "name": "Migraciones equivocadas rechazan tablas ajenas y configuraci\u00F3n nunca reutiliza TDV2",
+      "passed": true
+    },
+    {
+      "name": "OAuth: empleado de Competencias sin roles TDV2 y destino profundo conservado",
+      "passed": true
+    },
+    {
+      "name": "An\u00F3nimo conserva destino, rutas profundas y recargas requieren autorizaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Roles de otra aplicaci\u00F3n no conceden permisos; empleado obligatorio y m\u00F3dulos reales",
+      "passed": true
+    },
+    {
+      "name": "Nexo: aplicaci\u00F3n incorrecta y ca\u00EDda deniegan sin secreto ni permiso en cach\u00E9",
+      "passed": true
+    },
+    {
+      "name": "administrador: consulta institucional; Configuraci\u00F3n exclusiva del administrador",
+      "passed": true
+    },
+    {
+      "name": "responsable_ur_supervisor: consulta institucional; Configuraci\u00F3n exclusiva del administrador",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0001: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0002: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable 0031: rama exacta, sin nivel institucional ni filtros ajenos",
+      "passed": true
+    },
+    {
+      "name": "Responsable de otros niveles y adscripci\u00F3n sin responsabilidad conservan solo capacidades personales",
+      "passed": true
+    },
+    {
+      "name": "Responsabilidades m\u00FAltiples forman una uni\u00F3n autorizada sin hermanos ni duplicados",
+      "passed": true
+    },
+    {
+      "name": "Perfil: antecesoras exactas, adscripci\u00F3n N2 sin N3, m\u00FAltiples/incompletas/ciclos",
+      "passed": true
+    },
+    {
+      "name": "Privacidad: API sin consentimiento, CSRF, versi\u00F3n, idempotencia y aislamiento por empleado",
+      "passed": true
+    },
+    {
+      "name": "Instrumento: 80 herramientas y r\u00FAbricas consecutivas, cero v\u00E1lido, no aplica y complementarias",
+      "passed": true
+    },
+    {
+      "name": "Finalizaci\u00F3n incompleta rechaza todas las preguntas saltadas y adscripci\u00F3n incompleta",
+      "passed": true
+    },
+    {
+      "name": "Guardado no admite identidad, porcentajes, estados ni niveles de r\u00FAbrica inventados",
+      "passed": true
+    },
+    {
+      "name": "Dos pesta\u00F1as/sesiones: versi\u00F3n evita sobrescrituras y borrador retoma en otro cliente",
+      "passed": true
+    },
+    {
+      "name": "Finalizaci\u00F3n transaccional idempotente; doble clic, reintentos y guardados atrasados inmutables",
+      "passed": true
+    },
+    {
+      "name": "Informe y contexto final permanecen tras traslado; sin acceso por ID ajeno",
+      "passed": true
+    },
+    {
+      "name": "Nueva versi\u00F3n t\u00E9cnica o aviso no permiten segundo intento ni reabren el definitivo",
+      "passed": true
+    },
+    {
+      "name": "Cambio de aviso en captura exige confirmaci\u00F3n vigente conservando respuestas",
+      "passed": true
+    },
+    {
+      "name": "Agregados: personas \u00FAnicas, nivel no excluye descendientes, promedio por persona y sin metas",
+      "passed": true
+    },
+    {
+      "name": "Metas manuales hist\u00F3ricas no cambian poblaci\u00F3n ni permiten edici\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Alcance aplicado a opciones, totales, recomendaciones, puestos, herramientas y exportaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Representaci\u00F3n: identidad efectiva, sin permisos heredados/escrituras/anidaci\u00F3n, salida y auditor\u00EDa",
+      "passed": true
+    },
+    {
+      "name": "Guardado: reintento id\u00E9ntico tras respuesta perdida es idempotente; documento distinto no sobrescribe",
+      "passed": true
+    },
+    {
+      "name": "Secuencia: seis campos del perfil obligatorios; URL y API no saltan secciones",
+      "passed": true
+    },
+    {
+      "name": "Secuencia: cada bloque exige todas sus respuestas; cero, NA y complemento seleccionado",
+      "passed": true
+    },
+    {
+      "name": "Secuencia: retroceso conserva respuestas posteriores y vuelve a bloquear tras editar perfil",
+      "passed": true
+    },
+    {
+      "name": "Secuencia: adscripci\u00F3n incompleta bloquea perfil; nivel 2 sin nivel 3 es v\u00E1lido",
+      "passed": true
+    },
+    {
+      "name": "Foto: participante exclusivo usa cuenta compartida; contexto de otra aplicaci\u00F3n se rechaza",
+      "passed": true
+    },
+    {
+      "name": "Foto: representaci\u00F3n usa identidad objetivo y nunca fotograf\u00EDa del administrador",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: 10 personas, 6 finalizadas, 2 en curso, 2 sin iniciar; roles duplicados y sin usuarios locales",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: adscripci\u00F3n vigente, revocaci\u00F3n y resultados congelados separados",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: opciones sin nivel 1 ni tipo N conservan descendientes y alcances 2/3",
+      "passed": true
+    },
+    {
+      "name": "Poblaci\u00F3n: poblaci\u00F3n ambigua o fuente ca\u00EDda no se presenta como cero; captura independiente",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: roles, representaci\u00F3n y CSRF no pueden ejecutar la excepci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: resumen cambiado, vencido o de otro administrador exige revisar",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: limpia datos propios, conserva metas por defecto, UUID, cat\u00E1logos e historia",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: doble env\u00EDo y reintento no borran la nueva captura; metas opcionales",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: rollback de limpieza, generaci\u00F3n y auditor\u00EDa ante fallo SQL",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: permisos m\u00EDnimos, search_path seguro y definitivas siguen protegidas",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: guardados y finalizaciones esperan el reinicio y rechazan generaci\u00F3n antigua",
+      "passed": true
+    },
+    {
+      "name": "Reinicio: un guardado en curso termina primero e invalida el resumen confirmado",
+      "passed": true
+    },
+    {
+      "name": "Edici\u00F3n/actividad: hist\u00F3rico conserva perfil, herramientas y resultado congelados; no admite actualizaci\u00F3n ni downgrade con auditor\u00EDa",
+      "passed": true
+    },
+    {
+      "name": "Edici\u00F3n/actividad: funci\u00F3n Nexo real confirma aplicaci\u00F3n/actor y deduplica navegaci\u00F3n, lectura y guardado id\u00E9ntico",
+      "passed": true
+    },
+    {
+      "name": "Edici\u00F3n/actividad: fallo central conserva captura y cola; reintento recibe duplicado sin duplicar auditor\u00EDa local",
+      "passed": true
+    },
+    {
+      "name": "Edici\u00F3n/actividad: representaci\u00F3n atribuye consulta al actor real, conserva afectado y no env\u00EDa token",
+      "passed": true
+    },
+    {
+      "name": "Edici\u00F3n/actividad: borrador anterior se actualiza expl\u00EDcitamente, archiva respuestas y rechaza pesta\u00F1a antigua",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: autoguardados de perfil y cinco bloques, m\u00E1s reintentos, s\u00F3lo auditan localmente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: confirmar despu\u00E9s de autoguardar no modifica encuesta y deduplica doble env\u00EDo concurrente",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: reintento confirmado despu\u00E9s de otra revisi\u00F3n no vuelve a auditar ni sobrescribe",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: errores de consentimiento, generaci\u00F3n, versi\u00F3n, CSRF y secci\u00F3n no crean \u00E9xito",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: Nexo ca\u00EDdo: captura confirmada, evento manual pendiente y recibo sin duplicados",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: rollback de cola y reintento del mismo identificador",
+      "passed": true
+    },
+    {
+      "name": "Guardado manual: representaci\u00F3n y finalizadas rechazan confirmaci\u00F3n; finalizaci\u00F3n conserva su evento",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=True, Competencias=False; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=False, Competencias=True; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=True, Competencias=True; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada independiente: Procedimientos=False, Competencias=False; sesi\u00F3n y portal conservados",
+      "passed": true
+    },
+    {
+      "name": "Entrada: falla temporal distinta de denegaci\u00F3n, sin quitar sesi\u00F3n ni acceso a otra aplicaci\u00F3n",
+      "passed": true
+    },
+    {
+      "name": "Entrada: retorno local de ambas aplicaciones, gen\u00E9rico y p\u00FAblico; rechaza destinos externos/codificados",
+      "passed": true
+    },
+    {
+      "name": "Entrada: HTML an\u00F3nimo inicia sesi\u00F3n por destino; API mantiene 401; cambiar cuenta conserva destino y CSRF",
+      "passed": true
+    },
+    {
+      "name": "Entrada: revocaci\u00F3n elimina accesos de la elecci\u00F3n sin cerrar identidad institucional",
+      "passed": true
+    },
+    {
+      "name": "Entrada: varios m\u00F3dulos, roles y asignaciones conservan un solo sitio",
+      "passed": true
+    },
+    {
+      "name": "Entrada: registro extensible con cuatro sitios, orden, denegaci\u00F3n y falla parcial",
+      "passed": true
+    },
+    {
+      "name": "Identidad Microsoft: alias y acceso exclusivo conservan borrador, consentimiento, foto y auditor\u00EDa can\u00F3nica",
+      "passed": true
+    },
+    {
+      "name": "Identidad Microsoft: cambio de correo Microsoft no modifica informe definitivo ni crea otra encuesta",
+      "passed": true
+    },
+    {
+      "name": "Identidad Microsoft: sin acceso no sustituye identidad por otra cuenta autorizada entre alias",
+      "passed": true
+    },
+    {
+      "name": "Identidad Microsoft: representaci\u00F3n conserva actor can\u00F3nico y objetivo sin escrituras",
+      "passed": true
+    }
+  ]
+}

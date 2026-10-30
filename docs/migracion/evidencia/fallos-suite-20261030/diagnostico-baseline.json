@@ -1,0 +1,27 @@
+{
+    "source":  "Consola saneada de la copia aislada 06e307c",
+    "synthetic":  true,
+    "run":  "native-postgres-20261030-093112-9aadc124",
+    "facts":  [
+                  {
+                      "case":  "Central/concesión sin rol",
+                      "http":  422,
+                      "fixturePendingFields":  [
+                                                   "sistema",
+                                                   "uso",
+                                                   "estado"
+                                               ]
+                  },
+                  {
+                      "case":  "Participación/enviado",
+                      "http":  422,
+                      "validationField":  "codigo"
+                  },
+                  {
+                      "case":  "Sync/web: doble solicitud",
+                      "sqlState":  "23505",
+                      "constraint":  "PK_tdv2_identity_links",
+                      "table":  "tdv2_identity_links"
+                  }
+              ]
+}

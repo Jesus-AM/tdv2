@@ -78,12 +78,12 @@ public sealed class DigitalActivity(DigitalDbContext db, IConfiguration config, 
             "encuesta", "guardar", "encuesta", survey.ToString(), actor != scope.Profile.User.Email ? scope.Profile.User.Email : null);
         return DigitalActivityLog.Write(connection, transaction, Application, payload, ct);
     }
-    public async Task Queue(DigitalScope scope, string key, string category, string action, string entity, string resource, CancellationToken ct)
+    public async Task Queue(DigitalScope scope, string key, string category, string action, string entity, string resource, CancellationToken ct, string? affected = null)
     {
         var actor = accessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email) ?? throw new InvalidOperationException("Actor validado requerido.");
         var name = accessor.HttpContext?.User.Identity?.Name ?? actor;
         await QueuePayload(key, Session, Payload(Guid.NewGuid(), DateTimeOffset.UtcNow, actor, name, category, action, entity, resource,
-            state.Loaded?.Selection is { Kind: "representation" } rep ? rep.Email : actor != scope.Profile.User.Email ? scope.Profile.User.Email : null), ct);
+            affected ?? (state.Loaded?.Selection is { Kind: "representation" } rep ? rep.Email : actor != scope.Profile.User.Email ? scope.Profile.User.Email : null)), ct);
     }
     private async Task QueuePayload(string key, string session, JsonObject payload, CancellationToken ct)
     {
@@ -95,13 +95,13 @@ public sealed class DigitalActivity(DigitalDbContext db, IConfiguration config, 
             VALUES ({id},{app},{hash},{session},{data}::jsonb,{now},{now},0,false) ON CONFLICT ("Key") DO NOTHING
             """, ct);
     }
-    public async Task Visit(DigitalScope scope, bool report, int version, Guid generation, CancellationToken ct)
+    public async Task Visit(DigitalScope scope, bool report, int version, Guid generation, CancellationToken ct, Guid? submission = null)
     {
         // Sólo navegación explícita; ni lecturas/autoguardados de fondo ni cada render.
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var context = state.Loaded?.Selection?.Id ?? "own";
         await Queue(scope, "access:" + Session, "competencias", "acceder", "aplicacion", "competencias-digitales", ct);
-        if (report) await Queue(scope, $"report:{Session}:{context}:{generation}:{version}", "informe", context == "own" ? "consultar" : "consultar_representado", "informe", version.ToString(CultureInfo.InvariantCulture), ct);
+        if (report) await Queue(scope, $"report:{Session}:{context}:{generation}:{version}" + (submission is null ? "" : ":" + submission), "informe", context == "own" ? "consultar" : "consultar_representado", "informe", submission?.ToString() ?? version.ToString(CultureInfo.InvariantCulture), ct);
         await tx.CommitAsync(ct);
     }
     public async Task Representation(AccessSelection selection, bool end, CancellationToken ct)

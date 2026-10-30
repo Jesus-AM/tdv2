@@ -1,0 +1,69 @@
+{
+  "syntheticMicrosoftAndNexo": true,
+  "realAspNet": true,
+  "realPostgreSql": true,
+  "controlledClock": true,
+  "checks": [
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "portal": true,
+      "twoTabs": true,
+      "noAutomaticOAuth": true,
+      "noPendingWrites": true,
+      "history": true,
+      "newExplicitLogin": true
+    }
+  ],
+  "errors": []
+}

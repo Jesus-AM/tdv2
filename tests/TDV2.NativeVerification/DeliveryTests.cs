@@ -51,9 +51,13 @@ internal static partial class NativeTests
             var old = content["sistemas"]![0]!.DeepClone(); old["fallas"] = "Sólo comentario";
             var rowLease = await Lease(client, tab, "sistemas:inicial");
             Check((await Patch(client, Edit(tab, rowLease with { Value = old }) with { Release = true })).IsSuccessStatusCode);
-            var newRow = old.DeepClone(); newRow["id"] = "nueva"; newRow["sistema"] = "excel"; newRow["uso"] = "consultar"; newRow["estado"] = "bien";
+            // Una herramienta vigente y distinta de la existente: el caso prueba
+            // elegibilidad del procedimiento, no un catálogo retirado ni un duplicado.
+            var newRow = old.DeepClone(); newRow["id"] = "nueva"; newRow["sistema"] = "power_bi"; newRow["uso"] = "consultar"; newRow["estado"] = "bien";
             var newLease = await Lease(client, tab, "sistemas:nueva");
-            Check((await Patch(client, Edit(tab, newLease with { Value = newRow }))).StatusCode == HttpStatusCode.UnprocessableEntity);
+            var rejected = await Patch(client, Edit(tab, newLease with { Value = newRow }));
+            Check(rejected.StatusCode == HttpStatusCode.UnprocessableEntity);
+            Check((await Json(rejected))["validation"]![0]!["field"]!.ToString() == "proceso");
             Check((await client.PostAsJsonAsync("/formatos/A/enviar", new SubmitRequest(tab, Guid.NewGuid(), after["version"]!.GetValue<int>() + 1))).StatusCode == HttpStatusCode.UnprocessableEntity);
             procedure["resultado"] = "Entrega confirmada"; reserve = await Lease(other, otherTab, "identificacion:inicial", 1);
             Check((await Patch(other, Edit(otherTab, reserve with { Value = procedure }) with { Release = true })).IsSuccessStatusCode);

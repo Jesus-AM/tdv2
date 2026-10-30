@@ -41,7 +41,7 @@ internal sealed partial class DigitalTests
             preview = await Prepare(client); await Data("UPDATE cd_reset_operations SET \"Actor\"='otro-administrador@uacj.mx' WHERE \"Id\"=$1", Guid.Parse(preview["operation"]!.ToString()));
             await Status(Confirm(client, preview), 403);
             preview = await Prepare(client); var generation = (await Survey(client)).Generation;
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new DigitalTargetInput(9, 0, generation)), 200);
+            await HistoricalTarget(9);
             await Status(Confirm(client, preview), 409);
         });
         Test("limpia datos propios, conserva metas por defecto, UUID, catálogos e historia", async (app, client) =>
@@ -49,7 +49,7 @@ internal sealed partial class DigitalTests
             await Role("administrador"); await Login(app, client); var view = await CompleteAndSave(client);
             await Status(client.PostAsJsonAsync(Base + "/api/encuesta/finalizar", new DigitalFinalize(view.Version, view.Generation)), 200);
             await Seed("0099", "A3", 0, false);
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new DigitalTargetInput(8, 0, view.Generation)), 200);
+            await HistoricalTarget(8);
             var catalogs = await shared.Scalar("SELECT jsonb_agg(to_jsonb(u) ORDER BY id_ur)::text FROM unidades_responsables_poa u");
             var forms = await shared.Scalar("SELECT count(*) FROM formatos_ur");
             var identities = await Nexo("SELECT jsonb_agg(to_jsonb(u) ORDER BY usuario_id)::text FROM fixture_users u");
@@ -71,7 +71,7 @@ internal sealed partial class DigitalTests
         Test("doble envío y reintento no borran la nueva captura; metas opcionales", async (app, client) =>
         {
             await Role("administrador"); await Login(app, client); var old = await Accept(client);
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new DigitalTargetInput(12, 0, old.Generation)), 200);
+            await HistoricalTarget(12);
             var preview = await Prepare(client, true); var responses = await Task.WhenAll(Confirm(client, preview), Confirm(client, preview));
             var first = await Json(responses[0]); var second = await Json(responses[1]); Check(first.ToJsonString() == second.ToJsonString());
             Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_targets")) == 0);
@@ -81,7 +81,7 @@ internal sealed partial class DigitalTests
             await Status(client.PutAsJsonAsync(Base + "/api/encuesta", Complete(old)), 409);
             await Status(client.PostAsJsonAsync(Base + "/api/encuesta/finalizar", new DigitalFinalize(1, old.Generation)), 409);
             await Status(client.PostAsJsonAsync(Base + "/api/aviso", new DigitalAccept(old.Instrument["notice"]!["version"]!.ToString(), old.Generation)), 409);
-            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new DigitalTargetInput(9, 0, old.Generation)), 409);
+            await Status(client.PutAsJsonAsync(Base + "/api/metas/A", new DigitalTargetInput(9, 0, old.Generation)), 410);
             Check(Equals(snapshot, await Data("SELECT row_to_json(s)::text FROM cd_surveys s")));
             var newId = await Data("SELECT \"Id\" FROM cd_surveys"); Check(newId is Guid);
         });

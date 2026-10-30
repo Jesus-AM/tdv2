@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
+import { flushSync } from 'react-dom';
+import { sessionIsEnding, sessionLifetimeClient } from './session-lifetime-client';
 import type { Page } from '@/types/page';
 
 export const PageContext = createContext<Page | null>(null);
@@ -19,13 +21,30 @@ const events = new EventTarget();
 let current: Page | null = null;
 let csrf = '';
 let sequence = 0;
-let publish: (page: Page) => void = () => {};
+let publish: (page: Page | null) => void = () => {};
+const lifetime = sessionLifetimeClient(() => {
+    ++sequence; csrf = ''; current = null;
+    events.dispatchEvent(new Event('identity-changing'));
+    window.dispatchEvent(new Event('tdv2-session-expired'));
+    flushSync(() => publish(null));
+    window.location.replace('/');
+}, () => csrf);
 
 // Identity and permissions never come from this transport. Context only rejects stale writes.
 axios.interceptors.request.use(config => {
+    if (lifetime.blocked()) throw new axios.CanceledError('La sesión terminó.');
+    if (lifetime.id()) config.headers.set('X-TDV2-Session', lifetime.id());
+    config.signal = config.signal ? AbortSignal.any([config.signal as AbortSignal, lifetime.signal()]) : lifetime.signal();
     config.headers.set('X-TDV2-Context', current?.props.contextoEdicion || 'own');
     if (!['get', 'head', 'options'].includes(config.method || 'get')) config.headers.set('X-CSRF-TOKEN', csrf);
     return config;
+});
+axios.interceptors.response.use(response => {
+    if (lifetime.blocked()) throw new axios.CanceledError('La sesión terminó.');
+    return response;
+}, error => {
+    if (axios.isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 409 && error.response.data?.sessionChanged)) lifetime.finish();
+    return Promise.reject(error);
 });
 function localPath(path: string) {
     const target = new URL(path, window.location.origin);
@@ -33,6 +52,8 @@ function localPath(path: string) {
     return target.pathname + target.search + target.hash;
 }
 function setPage(page: Page) {
+    lifetime.configure(page.props.session);
+    if (lifetime.blocked()) return;
     current = page; csrf = page.props.csrfToken || csrf; publish(page);
 }
 function restricted(message: string, status: number, url: string, context?: Partial<Page['props']>): Page {
@@ -77,11 +98,12 @@ async function visit(path: string, options: Options = {}, historyMode: 'push' | 
         setPage(page);
         options.onSuccess?.();
     } catch (error) {
+        if (axios.isCancel(error) || sessionIsEnding()) return;
         if (ticket !== sequence) return;
         const status = axios.isAxiosError(error) ? error.response?.status || 503 : 503;
         try { target = localPath(target); } catch { target = window.location.pathname + window.location.search; }
         if (status === 401) {
-            window.location.assign('/connect?returnUrl=' + encodeURIComponent(target)); return;
+            lifetime.finish(); return;
         }
         const message = axios.isAxiosError(error) ? error.response?.data?.message : null;
         const context = axios.isAxiosError(error) ? error.response?.data : undefined;
@@ -104,6 +126,7 @@ async function mutate(method: 'post' | 'delete', path: string, data: unknown, op
         if (response.data.redirect) await visit(response.data.redirect, {}, 'replace', false);
         else await visit(window.location.pathname, {}, 'replace', false);
     } catch (error) {
+        if (axios.isCancel(error) || sessionIsEnding()) return;
         const payload = axios.isAxiosError(error) ? error.response?.data : null;
         const errors: Record<string, string | string[]> = payload?.errors || payload?.details?.errors || { general: payload?.message || 'No se pudo completar la operación.' };
         const normalized = Object.fromEntries(Object.entries(errors).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]));
@@ -124,8 +147,9 @@ export const router = {
         return () => events.removeEventListener(name, handler);
     },
 };
-export function startNavigation(onPage: (page: Page) => void) {
+export function startNavigation(onPage: (page: Page | null) => void) {
     publish = onPage;
+    const stopLifetime = lifetime.start();
     const pop = () => {
         const target = window.location.pathname + window.location.search;
         if (before(() => { void visit(target, {}, 'replace'); })) void visit(target, {}, 'replace', false);
@@ -133,7 +157,7 @@ export function startNavigation(onPage: (page: Page) => void) {
     };
     window.addEventListener('popstate', pop);
     void visit(window.location.pathname + window.location.search, {}, 'replace', false);
-    return () => window.removeEventListener('popstate', pop);
+    return () => { stopLifetime(); window.removeEventListener('popstate', pop); };
 }
 export function useForm<T extends Record<string, unknown>>(initial: T) {
     const [data, set] = useState(initial);

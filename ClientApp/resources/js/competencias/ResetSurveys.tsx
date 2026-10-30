@@ -7,7 +7,7 @@ import { base } from './types';
 
 interface ResetSummary {
     operation: string; scope: string; includeTargets: boolean; expiresAt?: string; completedAt: string | null;
-    counts: { drafts: number; completed: number; profiles: number; answers: number; reports: number; consents: number; targets: number };
+    counts: { submissions?: number; drafts: number; completed: number; profiles: number; answers: number; reports: number; consents: number; targets: number };
 }
 export default function ResetSurveys({ readOnly }: { readOnly: boolean }) {
     const [targets, setTargets] = useState(false), [summary, setSummary] = useState<ResetSummary | null>(null);
@@ -44,7 +44,7 @@ export default function ResetSurveys({ readOnly }: { readOnly: boolean }) {
             <DialogTitle id="cd-reset-title">{summary?.completedAt ? 'Reinicio confirmado' : 'Confirmar reinicio global'}</DialogTitle>
             <DialogContent>{summary && <>
                 <p><strong>{summary.scope}</strong></p>
-                <dl className="cd-reset-counts">{Object.entries({ 'Encuestas en captura': summary.counts.drafts, 'Encuestas finalizadas': summary.counts.completed, 'Perfiles capturados': summary.counts.profiles, 'Respuestas por herramienta o tema': summary.counts.answers, 'Informes definitivos': summary.counts.reports, 'Confirmaciones del aviso': summary.counts.consents, [summary.includeTargets ? 'Metas que se eliminarán' : 'Metas que se conservarán']: summary.counts.targets }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+                <dl className="cd-reset-counts">{Object.entries({ 'Encuestas en captura': summary.counts.drafts, 'Encuestas finalizadas': summary.counts.completed, 'Perfiles capturados': summary.counts.profiles, 'Respuestas por herramienta o tema': summary.counts.answers, 'Informes definitivos': summary.counts.reports, 'Envíos históricos': summary.counts.submissions ?? 0, 'Confirmaciones del aviso': summary.counts.consents, [summary.includeTargets ? 'Metas que se eliminarán' : 'Metas que se conservarán']: summary.counts.targets }).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
                 <p>Los perfiles, respuestas e informes están incluidos en las encuestas; los conteos no deben sumarse como registros independientes.</p>
                 <Alert severity={summary.completedAt ? 'success' : 'warning'}>{summary.completedAt ? `Operación ${summary.operation} completada el ${new Date(summary.completedAt).toLocaleString('es-MX')}.` : 'Se perderán todas las respuestas e informes. No hay deshacer desde la aplicación; la recuperación requiere un respaldo institucional previo.'}</Alert>
                 {!summary.completedAt && <><p>Resumen válido hasta {new Date(summary.expiresAt!).toLocaleTimeString('es-MX')}. Cualquier cambio en los datos exige revisarlo nuevamente.</p><TextField autoFocus fullWidth margin="normal" label="Escribe REINICIAR ENCUESTAS" value={phrase} disabled={busy || review} onChange={e => setPhrase(e.target.value)} autoComplete="off" /></>}

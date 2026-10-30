@@ -1,3 +1,4 @@
+import { sessionIsEnding } from '@/lib/session-lifetime-client';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Alert, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, ListItemText, MenuItem, Select, Typography } from '@mui/material';
@@ -19,7 +20,7 @@ export default function ConfiguracionProcesos({ settings, levels, types }: { set
     const [impact, setImpact] = useState<Impact | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
     const dirty = JSON.stringify(saved) !== JSON.stringify(draft);
     useEffect(() => {
-        const prevent = (event: BeforeUnloadEvent) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } };
+        const prevent = (event: BeforeUnloadEvent) => { if (!sessionIsEnding() && dirty) { event.preventDefault(); event.returnValue = ''; } };
         window.addEventListener('beforeunload', prevent); return () => window.removeEventListener('beforeunload', prevent);
     }, [dirty]);
     async function preview() {

@@ -72,24 +72,6 @@ export default function AuthenticatedLayout({ children }: { children: ReactNode 
     }, []);
     const [open, setOpen] = useState(false),
         [busy, setBusy] = useState(false);
-    const last = useRef(Date.now());
-    useEffect(() => {
-        const activity = () => {
-            last.current = Date.now();
-        };
-        const check = () => {
-            if (Date.now() - last.current >= props.session.lifetime_ms) window.location.assign(routes.inicio);
-        };
-        const events = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
-        events.forEach((e) => window.addEventListener(e, activity, { passive: true }));
-        document.addEventListener('visibilitychange', check);
-        const timer = setInterval(check, 10000);
-        return () => {
-            clearInterval(timer);
-            events.forEach((e) => window.removeEventListener(e, activity));
-            document.removeEventListener('visibilitychange', check);
-        };
-    }, [props.session.lifetime_ms, routes.inicio]);
     const exit = () => {
         if (busy) return;
         setBusy(true);

@@ -12,7 +12,7 @@ public sealed class DigitalRepresentation(DigitalAccess access, IDigitalNexo nex
 {
     private async Task<JsonObject> Capability(HttpContext http)
     {
-        var scope = await access.Require(http, 4);
+        var scope = await access.RequireConfiguration(http, DigitalRoutes.Representation);
         if (state.Loaded?.Selection is not null) throw new DomainProblem(409, "Sal de la representación antes de iniciar otra.");
         var result = (await nexo.Represent("capacidad", scope.Profile.User.Email, null, http.RequestAborted)).AsObject();
         if (!NexoOperations.Flag(result, "permitido")) throw new DomainProblem(403, "Nexo no autorizó Actuar como usuario en Competencias digitales.");

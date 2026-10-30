@@ -15,7 +15,7 @@ namespace Tdv2.Controllers;
 
 public sealed class AuthenticationController(IOptions<MicrosoftSettings> settings, PostgresOAuthAttempts attempts,
     MicrosoftClient microsoft, MicrosoftLoginService login, SessionTerminationService termination,
-    AuthenticationAudit audit, AccessState state, ProtectedValues crypto, ILogger<AuthenticationController> logger, ParticipantPhotos photos, ISessionIdentity identity, PortalSites sites) : ControllerBase
+    AuthenticationAudit audit, AccessState state, ProtectedValues crypto, ILogger<AuthenticationController> logger, ParticipantPhotos photos, ISessionIdentity identity, PortalSites sites, TimeProvider clock) : ControllerBase
 {
     private const string BrowserCookie = "__Host-tdv2.oauth";
     private const string HintCookie = "__Host-tdv2.microsoft-hint";
@@ -85,8 +85,9 @@ public sealed class AuthenticationController(IOptions<MicrosoftSettings> setting
             var authenticated = await login.Complete(code.ToString(), verifier, ct, destination.StartsWith("/competencias-digitales", StringComparison.Ordinal));
             email = authenticated.Email;
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, authenticated.Principal,
-                new AuthenticationProperties { IsPersistent = false, IssuedUtc = DateTimeOffset.UtcNow, ExpiresUtc = DateTimeOffset.UtcNow.AddHours(2) });
+                SessionLifetime.Start(authenticated.Principal,clock));
             Response.Cookies.Delete("tdv2.aspnet.csrf");
+            Response.Cookies.Delete(SessionExpiryMiddleware.Marker);
             StoreHint(HintCookie, authenticated.Principal.FindFirstValue("tdv2.microsoft_login_hint") ?? authenticated.Email);
             await audit.Record("login", email, authenticated.Name, ct);
             return Results.Redirect(destination);

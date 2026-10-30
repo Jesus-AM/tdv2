@@ -10,6 +10,8 @@ public static class DomainProblemResponse
 {
     public static async Task Write(HttpContext context, DomainProblem problem, ReactShell shell)
     {
+        if(problem.Status==401 && (context.User.Identity?.IsAuthenticated==true || context.Request.Cookies.ContainsKey(SessionExpiryMiddleware.Marker)))
+        { await SessionExpiryMiddleware.End(context); await SessionExpiryMiddleware.Reply(context); return; }
         await context.RequestServices.GetRequiredService<OperationAudit>().Failure(context, problem.Status);
         var sites = context.RequestServices.GetRequiredService<PortalSites>();
         var page = PagePaths.IsPage(context.Request.Path) || sites.IsLanding(context.Request.Path);

@@ -6,13 +6,14 @@ using Tdv2.Domain;
 using Tdv2.Infrastructure;
 namespace Tdv2.Security;
 
-public sealed class AccessState(DatabaseConnections connections, ProtectedValues crypto, IHttpContextAccessor accessor)
+public sealed class AccessState(DatabaseConnections connections, ProtectedValues crypto, IHttpContextAccessor accessor, TimeProvider clock)
 {
     public const string Claim = "tdv2.session_hash";
     public string? SessionHash => accessor.HttpContext?.User.FindFirstValue(Claim);
     public AccessSnapshot? Loaded { get; private set; }
     public async Task CheckRead(CancellationToken ct)
     {
+        SessionLifetime.Require(accessor.HttpContext!.User,clock);
         // Una descarga Graph lenta no puede devolver la foto del contexto previo a logout/representación.
         if (SessionHash is null || Loaded is null) throw new DomainProblem(401, "Inicia sesión nuevamente para continuar.");
         await using var connection = await connections.Open("Tdv2", ct);
@@ -46,6 +47,7 @@ public sealed class AccessState(DatabaseConnections connections, ProtectedValues
     /// <remarks>Debe ejecutarse dentro de la misma transacción que el cambio y la auditoría.</remarks>
     public async Task Guard(NpgsqlConnection connection, NpgsqlTransaction transaction, CancellationToken ct, bool change = false)
     {
+        SessionLifetime.Require(accessor.HttpContext!.User,clock);
         if (SessionHash is null) throw new DomainProblem(401, "Inicia sesión nuevamente para continuar.");
         await using var command = new NpgsqlCommand("SELECT id_hash FROM tdv2_sessions WHERE id_hash=$1 AND expires_at>clock_timestamp() FOR " + (change ? "UPDATE" : "SHARE"), connection, transaction);
         command.Parameters.AddWithValue(SessionHash);

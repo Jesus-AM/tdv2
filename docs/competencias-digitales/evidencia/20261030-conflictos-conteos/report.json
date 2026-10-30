@@ -1,0 +1,31 @@
+{
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "stored": 9,
+      "completedRegistered": 8,
+      "inProgressRegistered": 0,
+      "certifiedPopulation": false,
+      "participation": null
+    },
+    {
+      "width": 900,
+      "stored": 9,
+      "completedRegistered": 8,
+      "inProgressRegistered": 0,
+      "certifiedPopulation": false,
+      "participation": null
+    },
+    {
+      "width": 390,
+      "stored": 9,
+      "completedRegistered": 8,
+      "inProgressRegistered": 0,
+      "certifiedPopulation": false,
+      "participation": null
+    }
+  ],
+  "errors": []
+}

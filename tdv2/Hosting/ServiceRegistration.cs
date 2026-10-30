@@ -75,12 +75,16 @@ public static class ServiceRegistration
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.ExpireTimeSpan = TimeSpan.FromHours(2);
-            options.SlidingExpiration = true;
+            options.SlidingExpiration = false;
             options.Events.OnRedirectToLogin = context => { context.Response.StatusCode = 401; return Task.CompletedTask; };
             options.Events.OnRedirectToAccessDenied = context => { context.Response.StatusCode = 403; return Task.CompletedTask; };
         });
         builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
             .Configure<PostgresTicketStore>((options, store) => options.SessionStore = store);
+        builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+            .PostConfigure<TimeProvider>((options,clock)=> {
+                options.TimeProvider=clock; options.ExpireTimeSpan=SessionLifetime.Duration; options.SlidingExpiration=false;
+            });
         builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-CSRF-TOKEN";
@@ -122,6 +126,7 @@ public static class ServiceRegistration
         builder.Services.AddScoped<DigitalAggregates>();
         builder.Services.AddScoped<DigitalSurveyService>();
         builder.Services.AddScoped<DigitalResetService>();
+        builder.Services.AddScoped<DigitalReopenService>();
         builder.Services.AddScoped<DigitalRepresentation>();
         builder.Services.AddScoped<DigitalActivity>();
         builder.Services.AddScoped<DigitalActivityDelivery>();

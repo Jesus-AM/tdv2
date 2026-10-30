@@ -13,7 +13,7 @@ export interface SharedProps {
     photoContext?: string | null;
     photoApplication?: string;
     csrfToken: string;
-    session: { lifetime_ms: number };
+    session: import('../lib/session-deadline').SessionTiming;
     routes: { inicio: string; logout: string; home: string; connect: string };
     access?: { message: string; status: number; options?: ApplicationOption[] };
     available?: { options: ApplicationOption[]; unavailable: boolean };

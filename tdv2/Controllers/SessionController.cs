@@ -8,6 +8,20 @@ namespace Tdv2.Controllers;
 
 public sealed class SessionController(RequestAccess access, AccessState state) : ControllerBase
 {
+    [HttpGet("/session/status")]
+    public IResult Status()=>User.Identity?.IsAuthenticated==true ? Results.Json(SessionLifetime.Client(HttpContext)) : Results.Json(new{sessionExpired=true,redirect="/"},statusCode:401);
+
+    public sealed record ExpiryCheck(string Id);
+    [HttpPost("/session/expire")]
+    public IResult Expire([FromBody] ExpiryCheck input)
+    {
+        var ticket=HttpContext.Items[SessionLifetime.TicketKey] as Microsoft.AspNetCore.Authentication.AuthenticationTicket;
+        if(ticket is null || SessionLifetime.Item(ticket.Properties,SessionLifetime.IdKey)!=input.Id)
+            return Results.Json(new{sessionChanged=true,redirect="/"},statusCode:409);
+        // Si llegó unos milisegundos antes, devuelve el reloj/deadline real. Nunca
+        // cierra una sesión nueva iniciada desde otra pestaña.
+        return Results.Json(SessionLifetime.Client(HttpContext));
+    }
     [HttpGet("/health/live")]
     public IResult Live() => Results.Json(new { status = "ok", databaseChecked = false });
 

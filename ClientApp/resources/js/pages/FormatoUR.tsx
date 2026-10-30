@@ -1,3 +1,4 @@
+import { sessionIsEnding } from '@/lib/session-lifetime-client';
 import { toolCatalog, toolUsed, reassignmentConflict } from '@/lib/system-catalog';
 import StableCaptureBody from '@/Components/StableCaptureBody';
 import { groupSystems, type SystemGroup } from '@/lib/system-groups';
@@ -330,7 +331,7 @@ function Editor(props: Props) {
         .map(r => ({ value: r.codigo, label: `${r.codigo} · ${r.tramite}` }));
     useEffect(() => {
         const before = (e: BeforeUnloadEvent) => {
-            if (engine.state.dirty || engine.state.saving) {
+            if (!sessionIsEnding() && (engine.state.dirty || engine.state.saving)) {
                 e.preventDefault();
                 e.returnValue = '';
             }

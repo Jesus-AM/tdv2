@@ -11,13 +11,19 @@ namespace Tdv2.Competencias;
 public static class DigitalRoutes
 {
     public const string Base = "/competencias-digitales";
+    public const string Management = "gestion_encuestas", Representation = "actuar_como_usuario";
+    public static readonly (string Key, string Name, string Path)[] Configuration = [
+        (Management, "Gestión de encuestas", Base + "/configuracion/encuestas"),
+        (Representation, "Actuar como usuario", Base + "/configuracion/actuar-como-usuario")];
     public static readonly string[] Slugs = ["avance-dependencia", "resultados-generales", "encuesta", "mi-informe-ruta", "configuracion"];
     public static readonly string[] Names = ["Avance por dependencia", "Resultados generales", "Encuesta", "Mi informe y ruta", "Configuración"];
-    public static bool Page(PathString path) => path == Base || Slugs.Any(s => path == Base + "/" + s);
+    public static bool Page(PathString path) => path == Base || Slugs.Any(s => path == Base + "/" + s) || Configuration.Any(c => path == c.Path);
 }
 public interface IDigitalNexo : INexoProfiles
 {
     Task<JsonNode> Represent(string action, string actor, JsonObject? data, CancellationToken ct);
+    Task<NexoPopulationPerson[]> Population(string[] units, string[] validUnits, CancellationToken ct)
+        => throw new DomainProblem(503, "No está disponible la población con acceso a la encuesta.");
 }
 public sealed class DigitalNexo : IDigitalNexo
 {
@@ -32,9 +38,11 @@ public sealed class DigitalNexo : IDigitalNexo
     public Task<Profile> ForUser(long userId, CancellationToken ct) => profiles.ForUser(userId, ct);
     public Task<IReadOnlyList<NexoIdentity>> IdentitiesForAddresses(string[] addresses, CancellationToken ct) => profiles.IdentitiesForAddresses(addresses, ct);
     public Task<IReadOnlyList<Grant>> Grants(string email, CancellationToken ct) => profiles.Grants(email, ct);
+    public Task<NexoPopulationPerson[]> Population(string[] units, string[] validUnits, CancellationToken ct)
+        => profiles.Population(DigitalAccess.EmployeeRoles, units, validUnits, ct);
     public Task<JsonNode> Represent(string action, string actor, JsonObject? data, CancellationToken ct) => operations.Represent(action, actor, data, ct);
 }
-public sealed record DigitalUnitOption(string Id, string Code, string? Description, int Level, string? Parent, bool LevelKnown)
+public sealed record DigitalUnitOption(string Id, string Code, string? Description, int Level, string? Parent, bool LevelKnown, string[]? Ancestors = null, string? ParentName = null)
 {
     public static DigitalUnitOption From(Unit unit) => new(unit.Id, unit.Code, unit.Description, unit.Level, unit.Parent, unit.LevelKnown);
 }
@@ -72,6 +80,8 @@ public sealed class DigitalScope(Profile profile, UnitDirectory directory)
     }
     public bool Module(int index) => Profile.Modules.Any(m => m.Path == DigitalRoutes.Base + "/" + DigitalRoutes.Slugs[index])
         && (index is 2 or 3 || index == 4 && Profile.Has("administrador") || index is 0 or 1 && (Institutional || Roots.Length > 0));
+    public bool ConfigurationModule(string key) => Module(4) && DigitalRoutes.Configuration.Any(c => c.Key == key &&
+        Profile.Modules.Any(m => m.Key == key && m.Path == c.Path && Profile.Modules.Any(p => p.Id == m.Parent && p.Path == DigitalRoutes.Base + "/configuracion")));
     // PostgresNexoProfiles ya entrega m.orden, m.id; filtrar permisos conserva ese orden publicado.
     public IEnumerable<int> MenuPages => Profile.Modules.Select(m => Array.FindIndex(DigitalRoutes.Slugs, s => m.Path == DigitalRoutes.Base + "/" + s))
         .Where(i => i >= 0 && Module(i)).Distinct();
@@ -84,6 +94,7 @@ public sealed class DigitalScope(Profile profile, UnitDirectory directory)
 }
 public sealed class DigitalAccess(IDigitalNexo nexo, IFormStore catalogs, ISessionIdentity identity, AccessState state, OperationAudit audit)
 {
+    public static readonly string[] EmployeeRoles = ["administrador", "responsable_ur_supervisor", "responsable_ur", "participante"];
     public Profile? Real { get; private set; }
     public DigitalScope? Current { get; private set; }
     public AccessSelection? Selection { get; private set; }
@@ -102,7 +113,7 @@ public sealed class DigitalAccess(IDigitalNexo nexo, IFormStore catalogs, ISessi
         {
             if (selection.Application != "competencias-digitales" || selection.Kind != "representation") throw new DomainProblem(409, "Sal del contexto activo antes de entrar a Competencias digitales.");
             if (!safe) throw new DomainProblem(403, "La representación permite únicamente consultas.");
-            if (!Real.Has("administrador") || !Real.Modules.Any(m => m.Path == DigitalRoutes.Base + "/configuracion") || selection.ActorEmail != email || selection.ExpiresAt <= DateTimeOffset.UtcNow)
+            if (!new DigitalScope(Real, new UnitDirectory([])).ConfigurationModule(DigitalRoutes.Representation) || selection.ActorEmail != email || selection.ExpiresAt <= DateTimeOffset.UtcNow)
                 throw new DomainProblem(403, "La representación ya no está autorizada. Vuelve a tu usuario.");
             var result = (await nexo.Represent("validar", email, new() { ["token"] = selection.Token, ["requiere_escritura"] = false }, http.RequestAborted)).AsObject();
             var validated = RequestAccess.ParseRepresentation(result, email, selection.Email);
@@ -114,13 +125,19 @@ public sealed class DigitalAccess(IDigitalNexo nexo, IFormStore catalogs, ISessi
     }
     public static void ValidateEmployee(Profile profile, string email)
     {
-        if (profile.User.Email != email || UnitDirectory.Employee(profile.User) is null || !profile.Roles.Any(r => r.Key is "administrador" or "responsable_ur_supervisor" or "responsable_ur" or "participante"))
+        if (profile.User.Email != email || UnitDirectory.Employee(profile.User) is null || !profile.Roles.Any(r => EmployeeRoles.Contains(r.Key)))
             throw new DomainProblem(403, Tdv2.Web.ApplicationEntry.Denied(DigitalRoutes.Base));
     }
     public async Task<DigitalScope> Require(HttpContext http, int module)
     {
         var scope = await Resolve(http);
         if (!scope.Module(module)) throw new DomainProblem(403, "No tienes acceso a este módulo de Competencias digitales.");
+        return scope;
+    }
+    public async Task<DigitalScope> RequireConfiguration(HttpContext http, string key)
+    {
+        var scope = await Require(http, 4);
+        if (Selection is not null || !scope.ConfigurationModule(key)) throw new DomainProblem(403, "No tienes acceso a esta opción de Configuración.");
         return scope;
     }
 }

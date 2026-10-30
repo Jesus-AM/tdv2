@@ -1,6 +1,8 @@
 ﻿import { useState } from 'react';
 import { Alert, Button, MenuItem, Tab, Tabs, TextField, useMediaQuery } from '@mui/material';
 import { router } from '@/lib/navigation';
+import axios from 'axios';
+import { errorText } from '@/lib/http';
 import { base, levels, percent, unitName } from './types';
 import type { Report, Survey } from './types';
 import { Recommendations } from './Aggregates';
@@ -16,7 +18,20 @@ function Course({ course: c, block }: { course: Report['route'][number]; block: 
         {c.missing.length > 0 && <p>Por desarrollar: {c.missing.join(' · ')}</p>}{c.license && <small>{c.license}</small>}
     </article>;
 }
-export default function PersonalReport({ survey, canSurvey }: { survey: Survey; canSurvey: boolean }) {
+export default function PersonalReport({ survey: current, canSurvey }: { survey: Survey; canSurvey: boolean }) {
+    const [previous, setPrevious] = useState<Survey | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState('');
+    async function history(id: string) {
+        setLoading(true); setError('');
+        try { setPrevious((await axios.get<Survey>(`${base}/api/informe/historial/${id}`)).data); } catch(e) { setError(errorText(e)); } finally { setLoading(false); }
+    }
+    return <>
+        {current.reopenedAt && !current.completedAt && <Alert severity="info">Encuesta reabierta · Puedes corregir tu captura y volver a enviarla. El envío anterior se conserva como histórico.</Alert>}
+        {!!current.history?.length && <section className="cd-card"><h2>Envíos anteriores</h2><p>Informes definitivos conservados; no sustituyen el estado de la captura actual.</p><div className="cd-config-nav"><Button disabled={loading || !previous} onClick={() => setPrevious(null)}>Ver estado actual</Button>{current.history.map(h => <Button key={h.id} variant="outlined" disabled={loading} onClick={() => void history(h.id)}>Envío {h.revision} · {new Date(h.completedAt).toLocaleDateString('es-MX')}</Button>)}</div>{error && <Alert severity="error">{error}</Alert>}</section>}
+        {previous && <Alert severity="info">Informe histórico del envío {previous.revision}. Su contenido permanece inmutable.</Alert>}
+        <ReportContent key={previous ? `history-${previous.revision}` : 'current'} survey={previous || current} canSurvey={!previous && canSurvey} />
+    </>;
+}
+function ReportContent({ survey, canSurvey }: { survey: Survey; canSurvey: boolean }) {
     // El servidor proyecta respuestas reales; el informe definitivo proviene de su instantánea.
     const r = survey.evaluation.report, institution = survey.institution;
     const [blockId, setBlockId] = useState(r.blocks[0]?.id ?? 'm365');

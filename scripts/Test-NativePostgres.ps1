@@ -1,7 +1,8 @@
 param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin', [switch]$SkipBrowser, [switch]$BrowserOnly, [switch]$SyncOnly, [switch]$TransitionOnly, [switch]$MigrationsOnly, [switch]$EditingOnly, [switch]$DirectStart, [switch]$DigitalOnly,
     [switch]$NoBuild, [switch]$NexoDelegationOnly, [string]$NexoSource = 'C:\Users\Jesus Arenas\Herd\nexo',
-    [string]$Php = 'C:\Users\Jesus Arenas\.config\herd\bin\php84\php.exe')
+    [string]$Php = 'C:\Users\Jesus Arenas\.config\herd\bin\php84\php.exe', [switch]$PopulationDiagnosisOnly)
 $ErrorActionPreference = 'Stop'
+if ($PopulationDiagnosisOnly -and ($DigitalOnly -or $MigrationsOnly -or $NexoDelegationOnly -or $SyncOnly -or $TransitionOnly -or $EditingOnly -or $BrowserOnly)) { throw 'PopulationDiagnosisOnly es una selección independiente sin migraciones.' }
 if ($NexoDelegationOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly -or $TransitionOnly -or $MigrationsOnly)) { throw 'NexoDelegationOnly es una selección independiente.' }
 if ($MigrationsOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly -or $TransitionOnly)) { throw 'MigrationsOnly es una selección independiente.' }
 if ($TransitionOnly -and ($SkipBrowser -or $BrowserOnly -or $SyncOnly)) { throw 'TransitionOnly es una selección independiente.' }
@@ -83,6 +84,7 @@ try {
         }
         $testArguments = if ($DigitalOnly) { @('--', '--digital-only') } elseif ($EditingOnly) { @('--', '--editing-only') } elseif ($NexoDelegationOnly) { @('--', '--nexo-delegation-only') } elseif ($MigrationsOnly) { @('--', '--migrations-only') } elseif ($TransitionOnly) { @('--', '--transition-only') } elseif ($BrowserOnly) { @('--', '--browser-only') } elseif ($SyncOnly) { @('--', '--sync-only') } else { @() }
         if ($DigitalOnly -and $BrowserOnly) { $testArguments += '--browser-only' }
+        if ($PopulationDiagnosisOnly) { $testArguments = @('--', '--population-diagnosis-tests') }
         # Usar Release sin apphost evita disputar el ejecutable Debug abierto por F5 en Visual Studio.
         if ($NoBuild) {
             $runtimeArguments = @($testArguments | Select-Object -Skip 1)

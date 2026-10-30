@@ -8,7 +8,7 @@ namespace Tdv2.Integrations.Nexo;
 
 // Las vistas compartidas están filtradas por la cuenta PostgreSQL publicada por Nexo.
 // Ningún ID de aplicación, rol, módulo o UR enviado por el navegador concede permisos.
-public sealed class PostgresNexoProfiles : INexoProfiles
+public sealed partial class PostgresNexoProfiles : INexoProfiles
 {
     private readonly DatabaseConnections connections;
     private readonly ILogger<PostgresNexoProfiles> logger;

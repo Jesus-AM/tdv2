@@ -76,8 +76,11 @@ internal static partial class NativeTests
             await SetupSync(db); await Login(app, client); await Csrf(client);
             await db.Sql("INSERT INTO fixture_users VALUES(60,60,'segunda@uacj.mx','Administradora sintética','individual','0060','A','adscripcion'); INSERT INTO fixture_roles VALUES(60,'segunda@uacj.mx',34,'administrador','Administrador')");
             using var other = app.Client(); app.Microsoft.Email = app.Microsoft.Mail = "segunda@uacj.mx";
-            app.Microsoft.Id = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+            // SetupAccess ya acredita eeee… para el canónico 21. La segunda
+            // administradora es otra identidad; no sustituir aquel vínculo verificado.
+            app.Microsoft.Id = "f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0";
             await db.VerifiedIdentity(app.Microsoft.Id, 60);
+            Check(Convert.ToInt64(await db.Scalar("SELECT nexo_user_id FROM tdv2_identity_links WHERE microsoft_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'")) == 21);
             await Login(app, other); await Csrf(other); app.Sources.Block = "ilda";
             var responses = await Task.WhenAll(client.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }),
                 client.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }), other.PostAsJsonAsync(SyncPath + "/ejecutar", new { fuentes = "ambas" }));

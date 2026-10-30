@@ -1,0 +1,107 @@
+﻿{
+    "syntheticSources":  true,
+    "realPostgreSql":  true,
+    "checks":  [
+                   {
+                       "name":  "portal conserva diseño y el botón inicia OAuth hacia Competencias",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "avance y resultados: rutas directas, recargas, gráficas y tablas con PostgreSQL",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "aviso accesible: sin preselección, Escape/cierre no aceptan y captura bloqueada",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "perfil institucional ineditable y perfil personal persistido",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "autoguardado lento permite responder y guardar manualmente la última selección con PostgreSQL",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "autoguardado detenido, recuperación explícita y conflicto de otra sesión con PostgreSQL",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "M365 conserva rúbricas y Inicial cero; complementaria no elegida no es pendiente",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "rúbricas de Ciberseguridad permiten confirmación Inicial y captura por indicadores",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "cada bloque bloquea su siguiente sección y URL/API respetan el avance",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "móvil 390/320: cinco bloques, aviso desplazable, controles y sin desbordamiento exterior",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "error de guardado conserva cambios y no muestra éxito",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "respuesta perdida: ningún replay; recuperación manual conserva commit y sólo entonces avanza",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "retroceso, edición anterior y salida a otro módulo conservan el borrador",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "cuenta compartida: nombre completo, fotografía y avatar ante imagen fallida",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "comparación visual con original en escritorio y móvil, fuentes y elementos fijos",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "finalización completa e informe sin descarga ni acciones de edición",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "informe por bloques, ámbar, flujo de página y footer exclusivo en escritorio/móvil",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "configuración conserva metas históricas sin editor manual",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "representación consulta permisos efectivos sin configuración y salida siempre visible",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "supervisor sin configuración, N2/N3 con rama y sin filtro de nivel; participante personal",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "regresión /inicio de Procedimientos conserva vista y portada no registra errores JS",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "participante exclusivo conserva nombre y foto sin permisos de Procedimientos",
+                       "passed":  true
+                   },
+                   {
+                       "name":  "entrada independiente en navegador: denegación de Procedimientos conserva sesión y acceso exclusivo a Competencias",
+                       "passed":  true
+                   }
+               ],
+    "skipped":  [
+                    {
+                        "name":  "reinicio: confirmación, resumen obsoleto, respuesta perdida y nuevas capturas protegidas",
+                        "reason":  "Revisión de presentación: no ejecutar reinicios."
+                    }
+                ],
+    "errors":  [
+
+               ]
+}
