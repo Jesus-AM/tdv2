@@ -1,0 +1,3687 @@
+{
+  "realReactAndEdge": true,
+  "compiledFrontend": true,
+  "syntheticIdentityAndPermissions": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1920,
+      "cssWidth": 1920,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 260,
+        "right": 1660,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 292,
+        "right": 502,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1436.828125,
+        "right": 1628,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 852.921875,
+        "right": 1085.90625,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 260,
+        "right": 1660,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 852.921875,
+          "right": 939.046875,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 941.046875,
+          "right": 1085.90625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 32,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1920,
+      "cssWidth": 1920,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 260,
+        "right": 1660,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 292,
+        "right": 502,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1352,
+        "right": 1628,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 810.5,
+        "right": 1043.484375,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 260,
+        "right": 1660,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 810.5,
+          "right": 896.625,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 898.625,
+          "right": 1043.484375,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 32,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1920,
+      "cssWidth": 1920,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 260,
+        "right": 1660,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 292,
+        "right": 502,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1436.828125,
+        "right": 1628,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 604.3125,
+        "right": 1334.5,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 260,
+        "right": 1660,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 604.3125,
+          "right": 690.4375,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 692.4375,
+          "right": 837.296875,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 839.296875,
+          "right": 1036.1875,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 1038.1875,
+          "right": 1211.53125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 1213.53125,
+          "right": 1334.5,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 32,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1920,
+      "cssWidth": 1920,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 260,
+        "right": 1660,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 292,
+        "right": 502,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1352,
+        "right": 1628,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 561.90625,
+        "right": 1292.09375,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 260,
+        "right": 1660,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 561.90625,
+          "right": 648.03125,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 650.03125,
+          "right": 794.890625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 796.890625,
+          "right": 993.78125,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 995.78125,
+          "right": 1169.125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 1171.125,
+          "right": 1292.09375,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 32,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 1440,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 20,
+        "right": 1420,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 51.671875,
+        "right": 261.671875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1197.15625,
+        "right": 1388.328125,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 612.921875,
+        "right": 845.90625,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 20,
+        "right": 1420,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 612.921875,
+          "right": 699.046875,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 701.046875,
+          "right": 845.90625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 31.68,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 1440,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 20,
+        "right": 1420,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 51.671875,
+        "right": 261.671875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1112.328125,
+        "right": 1388.328125,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 570.5,
+        "right": 803.484375,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 20,
+        "right": 1420,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 570.5,
+          "right": 656.625,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 658.625,
+          "right": 803.484375,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 31.68,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 1440,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 20,
+        "right": 1420,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 51.671875,
+        "right": 261.671875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1197.15625,
+        "right": 1388.328125,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 364.3125,
+        "right": 1094.5,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 20,
+        "right": 1420,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 364.3125,
+          "right": 450.4375,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 452.4375,
+          "right": 597.296875,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 599.296875,
+          "right": 796.1875,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 798.1875,
+          "right": 971.53125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 973.53125,
+          "right": 1094.5,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 31.68,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 1440,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 20,
+        "right": 1420,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 51.671875,
+        "right": 261.671875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1112.328125,
+        "right": 1388.328125,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 321.90625,
+        "right": 1052.09375,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 20,
+        "right": 1420,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1400,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 321.90625,
+          "right": 408.03125,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 410.03125,
+          "right": 554.890625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 556.890625,
+          "right": 753.78125,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 755.78125,
+          "right": 929.125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 931.125,
+          "right": 1052.09375,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 31.68,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1280,
+      "cssWidth": 1280,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 0,
+        "right": 1280,
+        "top": 0,
+        "bottom": 72,
+        "width": 1280,
+        "height": 72
+      },
+      "logo": {
+        "left": 28.15625,
+        "right": 238.15625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1060.671875,
+        "right": 1251.84375,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 532.921875,
+        "right": 765.90625,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1280,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1280,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 532.921875,
+          "right": 619.046875,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 621.046875,
+          "right": 765.90625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 28.16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1280,
+      "cssWidth": 1280,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 0,
+        "right": 1280,
+        "top": 0,
+        "bottom": 72,
+        "width": 1280,
+        "height": 72
+      },
+      "logo": {
+        "left": 28.15625,
+        "right": 238.15625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 975.84375,
+        "right": 1251.84375,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 490.5,
+        "right": 723.484375,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1280,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1280,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 490.5,
+          "right": 576.625,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 578.625,
+          "right": 723.484375,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 28.16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1280,
+      "cssWidth": 1280,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 0,
+        "right": 1280,
+        "top": 0,
+        "bottom": 72,
+        "width": 1280,
+        "height": 72
+      },
+      "logo": {
+        "left": 28.15625,
+        "right": 238.15625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1060.671875,
+        "right": 1251.84375,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 284.3125,
+        "right": 1014.5,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1280,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1280,
+        "height": 1233
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 284.3125,
+          "right": 370.4375,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 372.4375,
+          "right": 517.296875,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 519.296875,
+          "right": 716.1875,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 718.1875,
+          "right": 891.53125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 893.53125,
+          "right": 1014.5,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 28.16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1280,
+      "cssWidth": 1280,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "compact-account",
+      "bar": {
+        "left": 0,
+        "right": 1280,
+        "top": 0,
+        "bottom": 72,
+        "width": 1280,
+        "height": 72
+      },
+      "logo": {
+        "left": 28.15625,
+        "right": 238.15625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1183.84375,
+        "right": 1251.84375,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 345.90625,
+        "right": 1076.09375,
+        "top": 0,
+        "bottom": 72,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1280,
+        "top": 157.265625,
+        "bottom": 1390.265625,
+        "width": 1280,
+        "height": 1233
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 345.90625,
+          "right": 432.03125,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 434.03125,
+          "right": 578.890625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 580.890625,
+          "right": 777.78125,
+          "top": 0,
+          "bottom": 72,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 779.78125,
+          "right": 953.125,
+          "top": 0,
+          "bottom": 72,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 955.125,
+          "right": 1076.09375,
+          "top": 0,
+          "bottom": 72,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 28.16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1100,
+      "cssWidth": 1100,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 0,
+        "right": 1100,
+        "top": 0,
+        "bottom": 72,
+        "width": 1100,
+        "height": 72
+      },
+      "logo": {
+        "left": 24.1875,
+        "right": 234.1875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 884.640625,
+        "right": 1075.8125,
+        "top": 14,
+        "bottom": 58,
+        "width": 191.171875,
+        "height": 44
+      },
+      "links": {
+        "left": 442.921875,
+        "right": 675.90625,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1100,
+        "top": 157.265625,
+        "bottom": 1430.90625,
+        "width": 1100,
+        "height": 1273.640625
+      },
+      "nameVisible": true,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 442.921875,
+          "right": 529.046875,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 531.046875,
+          "right": 675.90625,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 24.2,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1100,
+      "cssWidth": 1100,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "full",
+      "bar": {
+        "left": 0,
+        "right": 1100,
+        "top": 0,
+        "bottom": 72,
+        "width": 1100,
+        "height": 72
+      },
+      "logo": {
+        "left": 24.1875,
+        "right": 234.1875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 799.8125,
+        "right": 1075.8125,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 400.5,
+        "right": 633.484375,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1100,
+        "top": 157.265625,
+        "bottom": 1430.90625,
+        "width": 1100,
+        "height": 1273.640625
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 400.5,
+          "right": 486.625,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 488.625,
+          "right": 633.484375,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 24.2,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1100,
+      "cssWidth": 1100,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 1100,
+        "top": 0,
+        "bottom": 72,
+        "width": 1100,
+        "height": 72
+      },
+      "logo": {
+        "left": 24.1875,
+        "right": 234.1875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1007.8125,
+        "right": 1075.8125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1100,
+        "top": 157.265625,
+        "bottom": 1430.90625,
+        "width": 1100,
+        "height": 1273.640625
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 24.2,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1100,
+      "cssWidth": 1100,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 1100,
+        "top": 0,
+        "bottom": 72,
+        "width": 1100,
+        "height": 72
+      },
+      "logo": {
+        "left": 24.1875,
+        "right": 234.1875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1007.8125,
+        "right": 1075.8125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 1100,
+        "top": 157.265625,
+        "bottom": 1430.90625,
+        "width": 1100,
+        "height": 1273.640625
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 24.2,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 900,
+      "cssWidth": 900,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 900,
+        "top": 0,
+        "bottom": 72,
+        "width": 900,
+        "height": 72
+      },
+      "logo": {
+        "left": 19.796875,
+        "right": 229.796875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 812.203125,
+        "right": 880.203125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -116.484375,
+        "right": 116.5,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 900,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 900,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -116.484375,
+          "right": -30.359375,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -28.359375,
+          "right": 116.5,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 19.8,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 900,
+      "cssWidth": 900,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 900,
+        "top": 0,
+        "bottom": 72,
+        "width": 900,
+        "height": 72
+      },
+      "logo": {
+        "left": 19.796875,
+        "right": 229.796875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 812.203125,
+        "right": 880.203125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -116.484375,
+        "right": 116.5,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 900,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 900,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -116.484375,
+          "right": -30.359375,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -28.359375,
+          "right": 116.5,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 19.8,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 900,
+      "cssWidth": 900,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 900,
+        "top": 0,
+        "bottom": 72,
+        "width": 900,
+        "height": 72
+      },
+      "logo": {
+        "left": 19.796875,
+        "right": 229.796875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 812.203125,
+        "right": 880.203125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 900,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 900,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 19.8,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 900,
+      "cssWidth": 900,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 900,
+        "top": 0,
+        "bottom": 72,
+        "width": 900,
+        "height": 72
+      },
+      "logo": {
+        "left": 19.796875,
+        "right": 229.796875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 812.203125,
+        "right": 880.203125,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 900,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 900,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 19.8,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 768,
+      "cssWidth": 768,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 768,
+        "top": 0,
+        "bottom": 72,
+        "width": 768,
+        "height": 72
+      },
+      "logo": {
+        "left": 16.890625,
+        "right": 226.890625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 683.109375,
+        "right": 751.109375,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -116.484375,
+        "right": 116.5,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 768,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 768,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -116.484375,
+          "right": -30.359375,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -28.359375,
+          "right": 116.5,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16.896,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 768,
+      "cssWidth": 768,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 768,
+        "top": 0,
+        "bottom": 72,
+        "width": 768,
+        "height": 72
+      },
+      "logo": {
+        "left": 16.890625,
+        "right": 226.890625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 683.109375,
+        "right": 751.109375,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -116.484375,
+        "right": 116.5,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 768,
+        "top": 157.265625,
+        "bottom": 1475.0625,
+        "width": 768,
+        "height": 1317.796875
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -116.484375,
+          "right": -30.359375,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -28.359375,
+          "right": 116.5,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16.896,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 768,
+      "cssWidth": 768,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 768,
+        "top": 0,
+        "bottom": 72,
+        "width": 768,
+        "height": 72
+      },
+      "logo": {
+        "left": 16.890625,
+        "right": 226.890625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 683.109375,
+        "right": 751.109375,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 768,
+        "top": 157.265625,
+        "bottom": 1452.984375,
+        "width": 768,
+        "height": 1295.71875
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16.896,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 768,
+      "cssWidth": 768,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 768,
+        "top": 0,
+        "bottom": 72,
+        "width": 768,
+        "height": 72
+      },
+      "logo": {
+        "left": 16.890625,
+        "right": 226.890625,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 683.109375,
+        "right": 751.109375,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": -365.09375,
+        "right": 365.09375,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 768,
+        "top": 157.265625,
+        "bottom": 1475.0625,
+        "width": 768,
+        "height": 1317.796875
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": -365.09375,
+          "right": -278.96875,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": -276.96875,
+          "right": -132.109375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": -130.109375,
+          "right": 66.78125,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 68.78125,
+          "right": 242.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 244.125,
+          "right": 365.09375,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16.896,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 390,
+      "cssWidth": 390,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 72,
+        "width": 390,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 206,
+        "top": 15.453125,
+        "bottom": 56.53125,
+        "width": 190,
+        "height": 41.078125
+      },
+      "account": {
+        "left": 306,
+        "right": 374,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 390,
+        "top": 219.8125,
+        "bottom": 2009.5625,
+        "width": 390,
+        "height": 1789.75
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 390,
+      "cssWidth": 390,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 72,
+        "width": 390,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 206,
+        "top": 15.453125,
+        "bottom": 56.53125,
+        "width": 190,
+        "height": 41.078125
+      },
+      "account": {
+        "left": 306,
+        "right": 374,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 390,
+        "top": 219.8125,
+        "bottom": 2053.71875,
+        "width": 390,
+        "height": 1833.90625
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 390,
+      "cssWidth": 390,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 72,
+        "width": 390,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 206,
+        "top": 15.453125,
+        "bottom": 56.53125,
+        "width": 190,
+        "height": 41.078125
+      },
+      "account": {
+        "left": 306,
+        "right": 374,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 390,
+        "top": 219.8125,
+        "bottom": 2009.5625,
+        "width": 390,
+        "height": 1789.75
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 390,
+      "cssWidth": 390,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 72,
+        "width": 390,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 206,
+        "top": 15.453125,
+        "bottom": 56.53125,
+        "width": 190,
+        "height": 41.078125
+      },
+      "account": {
+        "left": 306,
+        "right": 374,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 390,
+        "top": 219.8125,
+        "bottom": 2053.71875,
+        "width": 390,
+        "height": 1833.90625
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 320,
+      "cssWidth": 320,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 72,
+        "width": 320,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 168,
+        "top": 19.5625,
+        "bottom": 52.421875,
+        "width": 152,
+        "height": 32.859375
+      },
+      "account": {
+        "left": 236,
+        "right": 304,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 320,
+        "top": 240.921875,
+        "bottom": 2439.78125,
+        "width": 320,
+        "height": 2198.859375
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 320,
+      "cssWidth": 320,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 72,
+        "width": 320,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 168,
+        "top": 19.5625,
+        "bottom": 52.421875,
+        "width": 152,
+        "height": 32.859375
+      },
+      "account": {
+        "left": 236,
+        "right": 304,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 320,
+        "top": 240.921875,
+        "bottom": 2506.015625,
+        "width": 320,
+        "height": 2265.09375
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 320,
+      "cssWidth": 320,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 72,
+        "width": 320,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 168,
+        "top": 19.5625,
+        "bottom": 52.421875,
+        "width": 152,
+        "height": 32.859375
+      },
+      "account": {
+        "left": 236,
+        "right": 304,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 320,
+        "top": 240.921875,
+        "bottom": 2439.78125,
+        "width": 320,
+        "height": 2198.859375
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 320,
+      "cssWidth": 320,
+      "zoomEquivalent": 100,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 72,
+        "width": 320,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 168,
+        "top": 19.5625,
+        "bottom": 52.421875,
+        "width": 152,
+        "height": 32.859375
+      },
+      "account": {
+        "left": 236,
+        "right": 304,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 320,
+        "top": 240.921875,
+        "bottom": 2506.015625,
+        "width": 320,
+        "height": 2265.09375
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 720,
+      "zoomEquivalent": 200,
+      "count": 2,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "bottom": 72,
+        "width": 720,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 226,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 636,
+        "right": 704,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 720,
+        "top": 157.265625,
+        "bottom": 1481.625,
+        "width": 720,
+        "height": 1324.359375
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 720,
+      "zoomEquivalent": 200,
+      "count": 2,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "bottom": 72,
+        "width": 720,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 226,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 636,
+        "right": 704,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 720,
+        "top": 157.265625,
+        "bottom": 1503.703125,
+        "width": 720,
+        "height": 1346.4375
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 720,
+      "zoomEquivalent": 200,
+      "count": 5,
+      "longName": false,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "bottom": 72,
+        "width": 720,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 226,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 636,
+        "right": 704,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 720,
+        "top": 157.265625,
+        "bottom": 1481.625,
+        "width": 720,
+        "height": 1324.359375
+      },
+      "nameVisible": false,
+      "name": "Persona sintética",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 720,
+      "zoomEquivalent": 200,
+      "count": 5,
+      "longName": true,
+      "represented": false,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 720,
+        "top": 0,
+        "bottom": 72,
+        "width": 720,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 226,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 636,
+        "right": 704,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 730.1875,
+        "top": -36,
+        "bottom": 36,
+        "width": 730.1875,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 720,
+        "top": 157.265625,
+        "bottom": 1503.703125,
+        "width": 720,
+        "height": 1346.4375
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        },
+        {
+          "text": "Avance por dependencia",
+          "left": 234.984375,
+          "right": 431.875,
+          "top": -36,
+          "bottom": 36,
+          "width": 196.890625,
+          "height": 72,
+          "scroll": 197,
+          "client": 197
+        },
+        {
+          "text": "Resultados generales",
+          "left": 433.875,
+          "right": 607.21875,
+          "top": -36,
+          "bottom": 36,
+          "width": 173.34375,
+          "height": 72,
+          "scroll": 173,
+          "client": 173
+        },
+        {
+          "text": "Configuración",
+          "left": 609.21875,
+          "right": 730.1875,
+          "top": -36,
+          "bottom": 36,
+          "width": 120.96875,
+          "height": 72,
+          "scroll": 121,
+          "client": 121
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 1440,
+      "cssWidth": 1440,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": true,
+      "layout": "full",
+      "bar": {
+        "left": 20,
+        "right": 1420,
+        "top": 0,
+        "bottom": 72,
+        "width": 1400,
+        "height": 72
+      },
+      "logo": {
+        "left": 51.671875,
+        "right": 261.671875,
+        "top": 13.296875,
+        "bottom": 58.703125,
+        "width": 210,
+        "height": 45.40625
+      },
+      "account": {
+        "left": 1112.328125,
+        "right": 1388.328125,
+        "top": 14,
+        "bottom": 58,
+        "width": 276,
+        "height": 44
+      },
+      "links": {
+        "left": 570.5,
+        "right": 803.484375,
+        "top": 0,
+        "bottom": 72,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 20,
+        "right": 1420,
+        "top": 254.265625,
+        "bottom": 1485.875,
+        "width": 1400,
+        "height": 1231.609375
+      },
+      "nameVisible": true,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 570.5,
+          "right": 656.625,
+          "top": 0,
+          "bottom": 72,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 658.625,
+          "right": 803.484375,
+          "top": 0,
+          "bottom": 72,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 31.68,
+      "naturalRatio": 4.62396694214876
+    },
+    {
+      "width": 390,
+      "cssWidth": 390,
+      "zoomEquivalent": 100,
+      "count": 2,
+      "longName": true,
+      "represented": true,
+      "layout": "menu",
+      "bar": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 72,
+        "width": 390,
+        "height": 72
+      },
+      "logo": {
+        "left": 16,
+        "right": 206,
+        "top": 15.453125,
+        "bottom": 56.53125,
+        "width": 190,
+        "height": 41.078125
+      },
+      "account": {
+        "left": 306,
+        "right": 374,
+        "top": 14,
+        "bottom": 58,
+        "width": 68,
+        "height": 44
+      },
+      "links": {
+        "left": 0,
+        "right": 232.984375,
+        "top": -36,
+        "bottom": 36,
+        "width": 232.984375,
+        "height": 72
+      },
+      "main": {
+        "left": 0,
+        "right": 390,
+        "top": 414.59375,
+        "bottom": 2188,
+        "width": 390,
+        "height": 1773.40625
+      },
+      "nameVisible": false,
+      "name": "María Alejandra de los Ángeles Hernández Villaseñor de la Universidad Autónoma de Ciudad Juárez",
+      "buttons": [
+        {
+          "text": "Encuesta",
+          "left": 0,
+          "right": 86.125,
+          "top": -36,
+          "bottom": 36,
+          "width": 86.125,
+          "height": 72,
+          "scroll": 86,
+          "client": 86
+        },
+        {
+          "text": "Mi informe y ruta",
+          "left": 88.125,
+          "right": 232.984375,
+          "top": -36,
+          "bottom": 36,
+          "width": 144.859375,
+          "height": 72,
+          "scroll": 145,
+          "client": 145
+        }
+      ],
+      "background": "rgb(33, 52, 85)",
+      "navBackground": "rgb(33, 52, 85)",
+      "font": "\"Noto Sans\", \"Segoe UI\", sans-serif",
+      "overflow": false,
+      "gutter": 16,
+      "naturalRatio": 4.62396694214876
+    }
+  ],
+  "behaviourChecks": [
+    "Cambio 900 → 1440 → 1280 → 390: menú/foco correctos y mismo formulario",
+    "Progreso bajo la altura real de la cabecera: 1440px",
+    "Progreso bajo la altura real de la cabecera: 390px",
+    "Orden autorizado alternativo del servidor conservado sin reordenarlo"
+  ],
+  "errors": []
+}

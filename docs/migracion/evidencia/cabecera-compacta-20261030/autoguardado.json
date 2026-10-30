@@ -1,0 +1,277 @@
+{
+  "baseline": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 1440,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 1440,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 1440,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 1440,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 1440,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 1440,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 1440,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 1440,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "Microsoft 365: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Ciberseguridad: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Gobernanza de datos: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Sistema Integral de Información: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Inteligencia artificial: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Inicial masivo: sólo vacíos propios, sin leyenda al deshabilitar; conserva NA/parcial, recarga y edición; un PUT y una confirmación manual"
+    },
+    {
+      "width": 390,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 390,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 390,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 390,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 390,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 390,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 390,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 390,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 390,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 390,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "Microsoft 365: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Ciberseguridad: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Gobernanza de datos: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Sistema Integral de Información: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Inteligencia artificial: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Inicial masivo: sólo vacíos propios, sin leyenda al deshabilitar; conserva NA/parcial, recarga y edición; un PUT y una confirmación manual"
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 23.700000286102295,
+          "checked": true,
+          "scriptMs": 4.299999999999998,
+          "layoutMs": 0.6639999999999979,
+          "commits": 1
+        },
+        {
+          "ms": 20.40000009536743,
+          "checked": true,
+          "scriptMs": 4.106999999999999,
+          "layoutMs": 0.6379999999999997,
+          "commits": 1
+        },
+        {
+          "ms": 18.699999809265137,
+          "checked": true,
+          "scriptMs": 3.356999999999999,
+          "layoutMs": 0.48400000000000526,
+          "commits": 1
+        },
+        {
+          "ms": 23.800000190734863,
+          "checked": true,
+          "scriptMs": 3.247,
+          "layoutMs": 0.4879999999999954,
+          "commits": 1
+        },
+        {
+          "ms": 24.5,
+          "checked": true,
+          "scriptMs": 2.5560000000000027,
+          "layoutMs": 0.2530000000000032,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1501.5999999046326,
+        1505
+      ],
+      "requestMs": [
+        2016.3000001907349,
+        2010
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 14.400000095367432,
+          "checked": true,
+          "scriptMs": 4.278000000000004,
+          "layoutMs": 0.5219999999999947,
+          "commits": 1
+        },
+        {
+          "ms": 16.09999990463257,
+          "checked": true,
+          "scriptMs": 2.692,
+          "layoutMs": 0.33600000000000296,
+          "commits": 1
+        },
+        {
+          "ms": 17.40000009536743,
+          "checked": true,
+          "scriptMs": 2.5099999999999985,
+          "layoutMs": 0.3089999999999968,
+          "commits": 1
+        },
+        {
+          "ms": 13.099999904632568,
+          "checked": true,
+          "scriptMs": 3.053,
+          "layoutMs": 0.5240000000000036,
+          "commits": 1
+        },
+        {
+          "ms": 23.90000009536743,
+          "checked": true,
+          "scriptMs": 2.6110000000000024,
+          "layoutMs": 0.26199999999999835,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1506.5,
+        1527.2000002861023
+      ],
+      "requestMs": [
+        2007.5,
+        2013
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

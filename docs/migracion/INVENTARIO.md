@@ -1,3 +1,7 @@
+# Actualización 2026-10-30 — Cabecera compacta de Competencias
+
+Barra única adaptable, cuenta compartida y navegación publicada intactas. Cambios limitados al componente/estilos de Competencias y pruebas visuales, sin cambios de sesión, acceso público o persistencia. [Archivos y evidencia](CABECERA_COMPACTA_COMPETENCIAS_20261030.md).
+
 # Actualización 2026-10-30 — Sesión compartida y reportes
 
 Inicio original protegido, cookie sin renovación deslizante, límite exacto de dos horas en servidor y salida coordinada a `/` en ambos sitios. Sin esquema ni configuración nueva. Textos de reportes simplificados; cálculo y alcance conservados. [Inventario de archivos, compatibilidad, comandos, evidencia y límites](SESIONES_DOS_HORAS_Y_REPORTES_20261030.md).

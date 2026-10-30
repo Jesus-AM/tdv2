@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { Alert, Button, createTheme, ThemeProvider, useTheme } from '@mui/material';
-import AccountMenu from '@/Components/AccountMenu';
+import DigitalHeader from '@/competencias/DigitalHeader';
 import InstitutionalFooter from '@/Components/InstitutionalFooter';
 import PrivacyNotice from '@/competencias/PrivacyNotice';
 import { Head, router, usePage } from '@/lib/navigation';
@@ -47,7 +47,7 @@ export default function CompetenciasDigitales() {
     const canReport = data.navigation.some(n => n.path === `${base}/mi-informe-ruta`);
     return <ThemeProvider theme={theme}><div className="cd-site"><Head title={`${title} · Competencias digitales UACJ`} />
         <a className="cd-skip" href="#cd-main">Ir al contenido</a>
-        <header className="cd-header" ref={header}><div className="cd-wrap cd-header-inner"><a className="cd-brandmark" href="/" onClick={event => { event.preventDefault(); router.visit("/"); }} aria-label="Volver al portal de Transformación Digital"><img src="/images/logos/transformacion-digital-blanco.svg" alt="Transformación Digital UACJ" /></a><div className="cd-account"><AccountMenu includeNameInLabel onExit={exit} onPrivacy={() => setNoticeOpen(true)} /></div><nav className="cd-nav" aria-label="Módulos de Competencias digitales">{data.navigation.map(n => <button key={n.path} aria-current={(url.split('?')[0] === n.path || (n.path === base + '/configuracion' && data.page === 4)) ? 'page' : undefined} onClick={() => router.visit(n.path)}>{n.name}</button>)}</nav></div>
+        <header className="cd-header" ref={header}><DigitalHeader navigation={data.navigation} activePath={url.split('?')[0]} configurationActive={data.page === 4} onExit={exit} onPrivacy={() => setNoticeOpen(true)} />
         {data.readOnly && <div className="cd-representation" role="status"><div className="cd-wrap"><strong>Consulta como {data.user}</strong><span>Cuenta administradora: {data.actor} · Sin capacidad de escritura</span><Button variant="outlined" disabled={leaving} onClick={exit}>Volver a mi usuario</Button>{exitError && <Alert severity="error">{exitError}</Alert>}</div></div>}</header>
         <div className="cd-titleband"><div className="cd-wrap"><div><h1>Diagnóstico de competencias digitales</h1><p>Una iniciativa de la Transformación Digital UACJ</p></div><span className="cd-module-context">{names[data.page] || 'Competencias digitales UACJ'}</span></div></div>
         <main className="cd-wrap" id="cd-main" tabIndex={-1} key={url + data.generation}>
