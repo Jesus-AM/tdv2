@@ -1,0 +1,308 @@
+{
+  "reproduce": false,
+  "realAspNet": true,
+  "realPostgreSql": true,
+  "publishedAssets": true,
+  "microsoftAndNexo": "synthetic",
+  "checks": [
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 900,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 900,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 390,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "state": "ticket antiguo",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "state": "cookie vencida desde portada abierta",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 390,
+      "state": "clic voluntario después de vencer",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/connect",
+      "status": 302
+    },
+    {
+      "case": "Generation InvalidOperationException simulada con NpgsqlException/TimeoutException: 503, sesión vigente y acceso público a Procedimientos independiente",
+      "passed": true
+    },
+    {
+      "case": "permiso independiente td",
+      "site": "procedimientos",
+      "passed": true
+    },
+    {
+      "case": "permiso independiente td",
+      "site": "competencias",
+      "passed": true
+    },
+    {
+      "case": "permiso independiente cd",
+      "site": "procedimientos",
+      "passed": true
+    },
+    {
+      "case": "permiso independiente cd",
+      "site": "competencias",
+      "passed": true
+    },
+    {
+      "case": "Mi espacio también admite nuevo acceso voluntario tras ticket antiguo",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

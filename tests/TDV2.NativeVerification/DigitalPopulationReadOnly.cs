@@ -20,6 +20,7 @@ internal static class DigitalPopulationReadOnly
     }.ConnectionString;
 
     internal static string SafeError(Exception error) => error switch {
+        InvalidOperationException { InnerException: { } inner } => "wrapper=InvalidOperationException; " + SafeError(inner),
         PostgresException p => "SQLSTATE=" + p.SqlState + "; detalle=" + (p.SqlState switch {
             "42501" => "permiso de lectura insuficiente",
             "42P01" => "relación requerida no publicada o esquema pendiente",
@@ -33,10 +34,45 @@ internal static class DigitalPopulationReadOnly
             _ => "error del proveedor; mensaje y detalle originales omitidos por privacidad" }),
         DomainProblem p => "HTTP=" + p.Status + "; detalle=validación del contrato no satisfecha",
         UnauthorizedAccessException => "CONFIG_ACCESS_DENIED; detalle=el proceso no puede leer la configuración segura",
-        NpgsqlException => "CONNECTION_FAILURE; detalle=fallo de conexión o transporte",
+        NpgsqlException p => "CONNECTION_FAILURE; detalle=fallo de conexión o transporte"
+            + (p.InnerException is TimeoutException or System.Net.Sockets.SocketException ? "; " + SafeError(p.InnerException)
+                : p.InnerException is { } cause ? "; innerType=" + cause.GetType().Name : ""),
+        System.Net.Sockets.SocketException p => "NETWORK=" + p.SocketErrorCode,
+        TimeoutException => "TIMEOUT; detalle=tiempo límite de la consulta o transporte",
         IOException => "CONFIG_IO; detalle=no fue posible leer el archivo de configuración",
         _ => "tipo=" + error.GetType().Name + "; detalle=error sin datos sensibles"
     };
+
+    private static IConfiguration LocalConfiguration()
+    {
+        var root = Path.GetFullPath("tdv2");
+        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        var builder = new ConfigurationBuilder().SetBasePath(root).AddJsonFile("appsettings.json", optional: true);
+        if (environment is "Development" or "Production" or "Staging") builder.AddJsonFile("appsettings." + environment + ".json", optional: true);
+        return builder.AddUserSecrets(typeof(DigitalDbContext).Assembly, optional: true).AddEnvironmentVariables().Build();
+    }
+
+    // Comando dirigido: misma consulta EF que Generation, conexión forzada a lectura.
+    // Sale antes de crear servidor, fixtures, auditoría, sincronizadores o migradores.
+    public static async Task<int> Generation(IConfiguration? supplied = null, TextWriter? output = null)
+    {
+        output ??= Console.Out; var phase = "configuration";
+        try
+        {
+            var config = supplied ?? LocalConfiguration();
+            var raw = config.GetConnectionString("CompetenciasDigitales");
+            if (string.IsNullOrWhiteSpace(raw))
+            { output.WriteLine(JsonSerializer.Serialize(new { phase, status="ERROR", code="CONFIG_MISSING", key="ConnectionStrings:CompetenciasDigitales" })); return 2; }
+            phase = "generation.read";
+            await using var db = new DigitalDbContext(new DbContextOptionsBuilder<DigitalDbContext>().UseNpgsql(ReadOnlyConnection(raw)).Options);
+            var generation = await db.Control.AsNoTracking().Select(c => c.Generation).SingleAsync();
+            var valid = generation != Guid.Empty;
+            output.WriteLine(JsonSerializer.Serialize(new { phase, status=valid ? "OK" : "ERROR", readOnly=true, controlRows=1, validGeneration=valid }));
+            return valid ? 0 : 1;
+        }
+        catch (Exception error)
+        { output.WriteLine(JsonSerializer.Serialize(new { phase, status="ERROR", readOnly=true, error=SafeError(error) })); return 1; }
+    }
 
     public static async Task<int> Run(IConfiguration? supplied = null, TextWriter? output = null, bool privateEmployeeConflicts = false)
     {
@@ -50,14 +86,7 @@ internal static class DigitalPopulationReadOnly
         }
         IConfiguration? config = supplied;
         if (!await Step("configuration", () => {
-            if (config is null)
-            {
-                var root = Path.GetFullPath("tdv2");
-                var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-                var builder = new ConfigurationBuilder().SetBasePath(root).AddJsonFile("appsettings.json", optional: true);
-                if (environment is "Development" or "Production" or "Staging") builder.AddJsonFile("appsettings." + environment + ".json", optional: true);
-                config = builder.AddUserSecrets(typeof(DigitalDbContext).Assembly, optional: true).AddEnvironmentVariables().Build();
-            }
+            config ??= LocalConfiguration();
             return Task.CompletedTask;
         })) return 2;
         var values = new Dictionary<string, string?>();

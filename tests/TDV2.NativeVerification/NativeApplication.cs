@@ -132,6 +132,7 @@ internal sealed class FakeMicrosoft : HttpMessageHandler
 
 internal sealed class NativeApplication(NativeDatabase database) : WebApplicationFactory<global::Program>
 {
+    internal DigitalControlFailure DigitalFailure { get; } = new();
     internal FakeMicrosoft Microsoft { get; } = new();
     internal SyntheticSources Sources { get; } = new();
     internal ReadCounter Reads { get; } = new();
@@ -183,6 +184,8 @@ internal sealed class NativeApplication(NativeDatabase database) : WebApplicatio
                 services.AddSingleton(_ => { var dispatcher = new ManualSyncDispatcher(); dispatcher.Started(); return dispatcher; });
             }
             services.AddSingleton(Reads);
+            services.AddSingleton(DigitalFailure);
+            services.AddDbContext<Tdv2.Competencias.DigitalDbContext>(options => options.AddInterceptors(DigitalFailure));
             services.AddSingleton<TimeProvider>(Clock);
             services.AddDbContext<Tdv2DbContext>(options => options.AddInterceptors(Reads));
             // Production auth, Nexo queries, cookie sessions and stores stay registered. Only Microsoft's HTTPS peer is simulated.
@@ -242,6 +245,17 @@ internal sealed class BrowserControls(NativeDatabase database, string token, Syn
             {
                 case "/photo-state":
                     await http.Response.WriteAsJsonAsync(new { requests = microsoft.PhotoRequests, identities = microsoft.MeRequests }); return;
+                case "/session-advance": clock.Offset += TimeSpan.FromHours(2); break;
+                case "/session-legacy":
+                    var auth = await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.AuthenticateAsync(http, "Cookies");
+                    if (!auth.Succeeded) { http.Response.StatusCode = 401; return; }
+                    var hash = auth.Principal!.FindFirst(AccessState.Claim)!.Value;
+                    var crypto = http.RequestServices.GetRequiredService<ProtectedValues>();
+                    var raw = (string)(await database.Scalar("SELECT ticket FROM tdv2_sessions WHERE id_hash=$1", hash))!;
+                    var ticket = Microsoft.AspNetCore.Authentication.TicketSerializer.Default.Deserialize(Convert.FromBase64String(crypto.Unprotect("session", raw)))!;
+                    ticket.Properties.Items.Remove(SessionLifetime.StartKey);
+                    await database.Sql("UPDATE tdv2_sessions SET ticket=$1 WHERE id_hash=$2", crypto.Protect("session", Convert.ToBase64String(Microsoft.AspNetCore.Authentication.TicketSerializer.Default.Serialize(ticket))), hash);
+                    break;
                 case "/photo-control":
                     if (int.TryParse(http.Request.Query["minutes"], out var minutes) && minutes is >= 0 and <= 120) clock.Offset = TimeSpan.FromMinutes(minutes);
                     microsoft.PhotoStatus = http.Request.Query["mode"].ToString() switch { "temporary" => HttpStatusCode.ServiceUnavailable, "missing" => HttpStatusCode.NotFound, _ => null };

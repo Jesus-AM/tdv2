@@ -539,7 +539,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         await using var proxy = await SyntheticTlsProxy.Start(shared.Workspace, upstream, app.ControlToken, cert);
         app.Services.GetRequiredService<IOptions<MicrosoftSettings>>().Value.PublicOrigin = proxy.Origin;
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("TDV2_TEST_NODE") ?? "node") { WorkingDirectory = Path.Combine(shared.Workspace, "ClientApp"), UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
-        start.ArgumentList.Add(Environment.GetEnvironmentVariable("TDV2_TEST_SESSION_UI")=="1" ? "tests/browser/session-expiry-native.mjs" : populationOnly ? "tests/browser/digital-population-ui.mjs" : sitesOnly ? "tests/browser/sites-native.mjs" : "tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
+        start.ArgumentList.Add(Environment.GetEnvironmentVariable("TDV2_TEST_PUBLIC_ENTRY_UI")=="1" ? "tests/browser/public-entry-native.mjs" : Environment.GetEnvironmentVariable("TDV2_TEST_SESSION_UI")=="1" ? "tests/browser/session-expiry-native.mjs" : populationOnly ? "tests/browser/digital-population-ui.mjs" : sitesOnly ? "tests/browser/sites-native.mjs" : "tests/browser/competencias-native.mjs"); start.Environment["TDV2_BROWSER_ORIGIN"] = proxy.Origin; start.Environment["TDV2_BROWSER_KEY"] = app.ControlToken; start.Environment["TDV2_BROWSER_ARTIFACTS"] = shared.Artifacts;
         start.Environment.Remove("TDV2_TEST_CONNECTION"); start.Environment.Remove("PGPASSWORD");
         using var process = Process.Start(start)!;
         async Task Forward(StreamReader reader) { while (await reader.ReadLineAsync() is { } line) Console.WriteLine(line); }
@@ -573,6 +573,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
                 }
                 switch (action.Value)
                 {
+                    case "/generation-failure": http.RequestServices.GetRequiredService<DigitalControlFailure>().Enabled = http.Request.Query["enabled"] == "true"; break;
                     case "/population-unavailable": await suite.Nexo("UPDATE fixture_users SET origen_ur='multiple',\"ID_UR\"=NULL WHERE usuario_id=21"); break;
                     case "/population-available": await suite.Nexo("UPDATE fixture_users SET origen_ur='adscripcion',\"ID_UR\"='A3' WHERE usuario_id=21"); break;
                     case "/population-n3": await suite.PopulationResponsibility(); break;

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Tdv2.Security;
 
 namespace Tdv2.NativeVerification;
@@ -88,6 +89,21 @@ internal sealed partial class DigitalTests
             app.Clock.FixedUtc=start.AddHours(1);ticket.Properties.ExpiresUtc=app.Clock.GetUtcNow().AddHours(2);ticket.Properties.IssuedUtc=app.Clock.GetUtcNow();
             await store.RenewAsync(key,ticket);Check(Equals(expiry,await shared.Scalar("SELECT expires_at FROM tdv2_sessions")));
             await store.RemoveAsync(key);await store.RenewAsync(key,ticket);Check(Convert.ToInt64(await shared.Scalar("SELECT count(*) FROM tdv2_sessions"))==0);
+        });
+        Test("error de generación es 503, conserva sesión y no impide Procedimientos; diagnóstico sin secretos",async(app,client)=>{
+            await Login(app,client);var initial=await Json(await client.GetAsync("/session/status"));
+            app.DigitalFailure.Enabled=true;
+            var failed=await Json(await client.GetAsync(Base+"/api/generacion"),503);
+            Check(!failed.ToJsonString().Contains("SYNTHETIC") && failed["sessionExpired"] is null);
+            var status=await Json(await client.GetAsync("/session/status"));Check(status["id"]!.ToString()==initial["id"]!.ToString());
+            await Status(client.GetAsync("/inicio"),200);app.DigitalFailure.Enabled=false;
+            await Status(client.GetAsync(Base+"/api/generacion"),200);
+            var writer=new StringWriter();var config=new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection(Configuration).Build();
+            Check(await DigitalPopulationReadOnly.Generation(config,writer)==0 && writer.ToString().Contains("\"readOnly\":true"));
+            var error=DigitalPopulationReadOnly.SafeError(new InvalidOperationException("SYNTHETIC_PRIVATE",new Npgsql.NpgsqlException("SYNTHETIC_CONNECTION",new TimeoutException("SYNTHETIC_SECRET"))));
+            Check(error.Contains("wrapper=InvalidOperationException") && error.Contains("CONNECTION_FAILURE") && error.Contains("TIMEOUT") && !error.Contains("SYNTHETIC"));
+            var transport=DigitalPopulationReadOnly.SafeError(new Npgsql.NpgsqlException("SYNTHETIC_SECRET",new IOException("SYNTHETIC_PRIVATE")));
+            Check(transport.Contains("CONNECTION_FAILURE") && transport.Contains("IOException") && !transport.Contains("CONFIG_IO") && !transport.Contains("SYNTHETIC"));
         });
     }
 }

@@ -435,7 +435,7 @@
     </nav>
     @if (User.Identity?.IsAuthenticated == true) {
       <div class="session-actions">
-      <a class="btn btn-dark" href="/accesos">Ir a mi espacio <span class="ar">→</span></a>
+      <a class="btn btn-dark" href="/connect?returnUrl=/accesos">Ir a mi espacio <span class="ar">→</span></a>
       <form method="POST" action="/logout">
         @Html.AntiForgeryToken()
         <button class="btn" type="submit">Cerrar sesión</button>
@@ -612,7 +612,7 @@
             <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Uso de analítica de datos e inteligencia artificial</li>
           </ul>
           <div class="diagnosis-actions">
-            <a class="btn btn-primary" href="/competencias-digitales">Responder encuesta de competencias digitales</a>
+            <a class="btn btn-primary" href="/connect?returnUrl=/competencias-digitales">Responder encuesta de competencias digitales</a>
             <div class="diagnosis-game">
               <div class="diagnosis-game-copy"><h3>¿Qué tanto sabes de Microsoft 365?</h3></div>
               <button class="btn btn-outline quiz-launch" type="button" id="open-microsoft-quiz" aria-haspopup="dialog" aria-controls="microsoft-quiz-dialog">Jugar Ahora</button>
@@ -638,7 +638,7 @@
           <li>Riesgos y necesidades de seguridad</li>
           <li>Propuestas de mejora o automatización</li>
         </ul>
-        <a class="btn btn-dark registration-cta" href="/inicio"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
+        <a class="btn btn-dark registration-cta" href="/connect?returnUrl=/inicio"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
       </section>
 
       <!-- Beneficios -->

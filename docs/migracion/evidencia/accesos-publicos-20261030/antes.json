@@ -1,0 +1,100 @@
+{
+  "reproduce": true,
+  "realAspNet": true,
+  "realPostgreSql": true,
+  "publishedAssets": true,
+  "microsoftAndNexo": "synthetic",
+  "checks": [
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/inicio",
+      "status": 302
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/inicio",
+      "status": 200
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "ticket antiguo",
+      "blocked": true,
+      "firstPath": "/inicio",
+      "status": 302,
+      "noOAuth": true
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "cookie vencida desde portada abierta",
+      "blocked": true,
+      "firstPath": "/inicio",
+      "status": 302,
+      "noOAuth": true
+    },
+    {
+      "site": "procedimientos",
+      "width": 1440,
+      "state": "clic voluntario después de vencer",
+      "blocked": true,
+      "firstPath": "/inicio",
+      "status": 302,
+      "noOAuth": true
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "sin sesión",
+      "entered": true,
+      "newLogin": true,
+      "firstPath": "/competencias-digitales",
+      "status": 302
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "sesión válida",
+      "entered": true,
+      "newLogin": false,
+      "firstPath": "/competencias-digitales",
+      "status": 200
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "ticket antiguo",
+      "blocked": true,
+      "firstPath": "/competencias-digitales",
+      "status": 302,
+      "noOAuth": true
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "cookie vencida desde portada abierta",
+      "blocked": true,
+      "firstPath": "/competencias-digitales",
+      "status": 302,
+      "noOAuth": true
+    },
+    {
+      "site": "competencias",
+      "width": 1440,
+      "state": "clic voluntario después de vencer",
+      "blocked": true,
+      "firstPath": "/competencias-digitales",
+      "status": 302,
+      "noOAuth": true
+    }
+  ],
+  "errors": []
+}

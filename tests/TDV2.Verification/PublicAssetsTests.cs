@@ -27,6 +27,13 @@ internal static class PublicAssetsTests
             using var response = await client.GetAsync(path);
             response.EnsureSuccessStatusCode();
             var bytes = await response.Content.ReadAsByteArrayAsync();
+            if (path == "/")
+            {
+                var html = System.Text.Encoding.UTF8.GetString(bytes);
+                foreach (var destinationPath in new[] { "/inicio", "/competencias-digitales" })
+                    if (!html.Contains("href=\"/connect?returnUrl=" + destinationPath + "\"", StringComparison.Ordinal))
+                        throw new Exception("Los accesos públicos deben iniciar explícitamente la entrada y conservar su destino.");
+            }
             if (bytes.Length == 0 || response.Headers.GetValues("X-Frame-Options").Single() != "DENY"
                 || response.Headers.GetValues("X-Content-Type-Options").Single() != "nosniff")
                 throw new Exception("Recurso público o cabeceras incorrectos: " + path);
@@ -48,7 +55,7 @@ internal static class PublicAssetsTests
         using var authenticatedResponse = await authenticated.GetAsync("/");
         authenticatedResponse.EnsureSuccessStatusCode();
         var authenticatedHtml = await authenticatedResponse.Content.ReadAsStringAsync();
-        if (!authenticatedHtml.Contains("Ir a mi espacio") || !authenticatedHtml.Contains("action=\"/logout\""))
+        if (!authenticatedHtml.Contains("Ir a mi espacio") || !authenticatedHtml.Contains("href=\"/connect?returnUrl=/accesos\"") || !authenticatedHtml.Contains("action=\"/logout\""))
             throw new Exception("La navegación autenticada no conserva sus acciones.");
         await File.WriteAllTextAsync(Path.Combine(Path.GetDirectoryName(destination)!, "public-authenticated.html"), authenticatedHtml);
         await File.WriteAllTextAsync(destination, JsonSerializer.Serialize(new { passed = true, postgres = false, anonymous = true, syntheticAuthenticatedPage = true, results }, new JsonSerializerOptions { WriteIndented = true }));

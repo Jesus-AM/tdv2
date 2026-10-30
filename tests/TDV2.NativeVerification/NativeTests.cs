@@ -71,6 +71,7 @@ internal static partial class NativeTests
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--digital-generation-readonly")) return await DigitalPopulationReadOnly.Generation();
         if (args.Contains("--digital-population-readonly")) return await DigitalPopulationReadOnly.Run(privateEmployeeConflicts: args.Contains("--private-employee-conflicts"));
         if (args.Contains("--database-check")) return await DatabaseInspection.Run(args);
         var database = new NativeDatabase();
