@@ -1,5 +1,7 @@
 # TDV2 · ASP.NET Core 10 + React
 
+**Instrucciones de la encuesta — 2026-11-05:** textos completos de los seis apartados, con listas semánticas, negritas y notas separadas. Sustituye las ayudas anteriores; conserva captura, metodología, instrumento e históricos. Tipos/Vite, 105 pruebas frontend y 36 comprobaciones de navegador correctos con HTTP sintético. [Archivos, evidencia y límites](docs/competencias-digitales/INSTRUCCIONES_SEIS_APARTADOS_20261105.md).
+
 **Cabecera compacta de Competencias — 2026-10-30:** logotipo, módulos y cuenta en una sola barra de 72 px. Primero se oculta el nombre al faltar espacio y después se utiliza un menú accesible, conservando el orden autorizado, representación y nombre completo en la cuenta. Sin cambios de captura, sesión o accesos públicos. [Archivos, verificaciones y capturas](docs/migracion/CABECERA_COMPACTA_COMPETENCIAS_20261030.md).
 
 **Accesos públicos tras vencer — 2026-10-30:** los botones de Procedimientos y Competencias, y Mi espacio, entran explícitamente por `/connect` conservando el destino. Corrige el retorno permanente a la portada por la marca de sesión terminada; mantiene los 120 minutos y el vencimiento sin OAuth automático. Diagnóstico dirigido de sólo lectura para la excepción independiente de generación. [Causa, flujo, paquetes, pruebas y límites](docs/migracion/ACCESOS_PUBLICOS_TRAS_VENCIMIENTO_20261030.md).

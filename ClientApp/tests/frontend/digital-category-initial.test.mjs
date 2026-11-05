@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 const source = readFileSync(new URL('../../resources/js/competencias/surveyInstructions.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
-const { pendingTools, markInitial, instructions, descriptions } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const { pendingTools, markInitial, sectionInstructions, optionLabels } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 const tools = ['empty', 'initialized', 'partial', 'na', 'initial', 'advanced'].map(id => ({ id }));
 const answers = { initialized: { state: 'pending' }, partial: { state: 'level', checks: '100000000000' }, na: { state: 'na' }, initial: { state: 'level', checks: '000000000000' }, advanced: { state: 'level', checks: '111011101110' }, otherCategory: { state: 'level', level: 3 }, optional: { state: 'unused' } };
 test('Inicial masivo sólo completa dos vacíos; conserva NA, parcial, cero, otras categorías y optativas', () => {
@@ -24,10 +24,16 @@ test('M365/IA usan cero explícito; se puede editar después sin alterar otras r
         assert.equal(markInitial([{ id: 'word' }], result, block).word.level, 2);
     }
 });
-test('Instrucciones de cinco bloques y umbral local por rúbrica', () => {
-    assert.equal(Object.keys(descriptions).length, 5);
-    assert.match(instructions('ciber'), /3 de sus 4 actividades y el nivel anterior cumplido/);
-    assert.equal(instructions('sii'), instructions('datos'));
-    assert.match(instructions('ia'), /Si aún no lo haces/);
-    assert.match(instructions('m365'), /Si aún no lo usas/);
+test('Instrucciones de seis apartados: opciones explicativas, sin respuesta seleccionable y niveles consecutivos por rúbrica', () => {
+    assert.deepEqual(Object.keys(sectionInstructions), ['perfil', 'm365', 'ciber', 'datos', 'sii', 'ia']);
+    assert.deepEqual(optionLabels, ['Básico, Intermedio o Avanzado.', 'Inicial.', 'No aplica.', 'Sin respuesta.']);
+    assert.equal(sectionInstructions.perfil.options, undefined);
+    for (const id of ['ciber', 'datos', 'sii']) {
+        assert.equal(sectionInstructions[id].consecutiveLevels, true);
+        assert.match(sectionInstructions[id].options[0], /al menos 3 de sus 4 actividades/);
+    }
+    for (const id of ['m365', 'ia']) {
+        assert.equal(sectionInstructions[id].consecutiveLevels, undefined);
+        assert.match(sectionInstructions[id].options[0], /incluidas las de los niveles anteriores/);
+    }
 });

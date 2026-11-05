@@ -81,6 +81,7 @@
 /* Ayuda de categoría y participación: flujo natural, sin alterar tablas de TDV2. */
 .cd-site .cd-nav{background:var(--cd-blue)}
 .cd-site .cd-instructions{max-width:95ch}
+.cd-site .cd-survey-intro{display:flex;flex-direction:column;gap:10px;max-width:95ch}.cd-site .cd-survey-intro p,.cd-site .cd-survey-intro ul{max-width:95ch;color:var(--uacj-muted);font-size:.92rem}.cd-site .cd-survey-intro ul{list-style:disc;margin:0;padding-left:24px}.cd-site .cd-survey-intro li{padding-left:2px}.cd-site .cd-survey-intro li+li{margin-top:8px}
 .cd-site .cd-participation-table{width:100%;overflow-x:auto}
 .cd-site .cd-participation-table table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed}
 .cd-site .cd-participation-table th,.cd-site .cd-participation-table td{padding:12px 10px;border-bottom:1px solid var(--cd-line);text-align:left;vertical-align:top;overflow-wrap:anywhere}

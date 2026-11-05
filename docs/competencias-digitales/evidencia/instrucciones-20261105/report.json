@@ -1,0 +1,285 @@
+{
+  "baseline": false,
+  "syntheticTransport": true,
+  "realPostgreSql": false,
+  "checks": [
+    {
+      "width": 1440,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 1440,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 1440,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 1440,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 1440,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 1440,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 1440,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 1440,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 1440,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 1440,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 1440,
+      "case": "Perfil: títulos, párrafos y obligatoriedad literal; grupos y campos conservados"
+    },
+    {
+      "width": 1440,
+      "case": "Microsoft 365: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Ciberseguridad: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Gobernanza de datos: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Sistema Integral de Información: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Inteligencia artificial: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 1440,
+      "case": "Inicial masivo: sólo vacíos propios, sin leyenda al deshabilitar; conserva NA/parcial, recarga y edición; un PUT y una confirmación manual"
+    },
+    {
+      "width": 390,
+      "case": "selecciones durante red lenta, última respuesta, sin bloqueo/remontaje/desplazamiento ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "recarga conserva último cero válido"
+    },
+    {
+      "width": 390,
+      "case": "guardar manual durante autoguardado drena última respuesta, un evento"
+    },
+    {
+      "width": 390,
+      "case": "fallo detiene selecciones, transición, online/foco; manual actual sin cola y reactiva sólo futuros cambios"
+    },
+    {
+      "width": 390,
+      "case": "cambios revertidos al valor guardado: cero PUT redundantes"
+    },
+    {
+      "width": 390,
+      "case": "commit sin confirmación: cero replay; manual consulta y escribe una vez los datos actuales"
+    },
+    {
+      "width": 390,
+      "case": "recarga tras confirmación perdida recupera commit real, no lo que sólo estaba en pantalla"
+    },
+    {
+      "width": 390,
+      "case": "manual fallido tampoco reintenta; recarga no recupera cambios sin commit"
+    },
+    {
+      "width": 390,
+      "case": "conflicto sin éxito ni evento; validación secuencial conservada"
+    },
+    {
+      "width": 390,
+      "case": "otra sesión escribe entre commit y lectura: no usa su versión para sobrescribirla, conserva borrador local"
+    },
+    {
+      "width": 390,
+      "case": "rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual"
+    },
+    {
+      "width": 390,
+      "case": "Perfil: títulos, párrafos y obligatoriedad literal; grupos y campos conservados"
+    },
+    {
+      "width": 390,
+      "case": "Microsoft 365: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Ciberseguridad: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Gobernanza de datos: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Sistema Integral de Información: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Inteligencia artificial: instrucciones sólo al inicio, etiquetas exactas y sin leyendas de categoría"
+    },
+    {
+      "width": 390,
+      "case": "Inicial masivo: sólo vacíos propios, sin leyenda al deshabilitar; conserva NA/parcial, recarga y edición; un PUT y una confirmación manual"
+    }
+  ],
+  "measurements": [
+    {
+      "width": 1440,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 24.299999713897705,
+          "checked": true,
+          "scriptMs": 3.689000000000005,
+          "layoutMs": 0.49699999999999744,
+          "commits": 1
+        },
+        {
+          "ms": 25.40000009536743,
+          "checked": true,
+          "scriptMs": 2.680000000000002,
+          "layoutMs": 0.3670000000000062,
+          "commits": 1
+        },
+        {
+          "ms": 24.09999990463257,
+          "checked": true,
+          "scriptMs": 2.3180000000000005,
+          "layoutMs": 0.3229999999999969,
+          "commits": 1
+        },
+        {
+          "ms": 26.300000190734863,
+          "checked": true,
+          "scriptMs": 2.0939999999999985,
+          "layoutMs": 0.3490000000000021,
+          "commits": 1
+        },
+        {
+          "ms": 25.90000009536743,
+          "checked": true,
+          "scriptMs": 1.9290000000000003,
+          "layoutMs": 0.16100000000000142,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1502.0999999046326,
+        1500
+      ],
+      "requestMs": [
+        2017.5999999046326,
+        2008
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    },
+    {
+      "width": 390,
+      "controlledDelayMs": 2000,
+      "metrics": [
+        {
+          "ms": 24.699999809265137,
+          "checked": true,
+          "scriptMs": 3.6300000000000012,
+          "layoutMs": 0.4760000000000042,
+          "commits": 1
+        },
+        {
+          "ms": 26.90000009536743,
+          "checked": true,
+          "scriptMs": 2.2790000000000035,
+          "layoutMs": 0.34,
+          "commits": 1
+        },
+        {
+          "ms": 27.5,
+          "checked": true,
+          "scriptMs": 2.026,
+          "layoutMs": 0.338999999999999,
+          "commits": 1
+        },
+        {
+          "ms": 26.90000009536743,
+          "checked": true,
+          "scriptMs": 1.9809999999999968,
+          "layoutMs": 0.44199999999999795,
+          "commits": 1
+        },
+        {
+          "ms": 27.699999809265137,
+          "checked": true,
+          "scriptMs": 1.7469999999999986,
+          "layoutMs": 0.16900000000000248,
+          "commits": 1
+        }
+      ],
+      "whilePending": {
+        "enabled": true,
+        "saveEnabled": true
+      },
+      "disabledMs": 0,
+      "maxShift": 0,
+      "remounts": 0,
+      "sameInput": true,
+      "focus": "m-word",
+      "scrollChange": 0,
+      "beforeSendMs": [
+        1503.5,
+        1499.5
+      ],
+      "requestMs": [
+        2008.6999998092651,
+        2017.0999999046326
+      ],
+      "requests": 2,
+      "requestBytes": [
+        252,
+        252
+      ],
+      "maxActive": 1
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

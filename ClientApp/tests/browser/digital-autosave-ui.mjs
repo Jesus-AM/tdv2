@@ -4,6 +4,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium, expect } from '@playwright/test';
 import { systemFixture } from './system-ui-fixture.mjs';
+import { verifySurveyInstructions } from './survey-instructions-checks.mjs';
 
 const baseline=process.argv.includes('--baseline');
 const output=path.resolve(process.env.TDV2_VISUAL_ARTIFACTS||'../.artifacts/digital-autosave-20261029',baseline?'before':'after');await mkdir(output,{recursive:true});
@@ -136,11 +137,15 @@ try{
   await checks.nth(0).check();await expect.poll(()=>autos().length).toBe(1);await checks.nth(1).check();await checks.nth(2).check();await checks.nth(0).uncheck();await settled();
   assert.equal(view.answers[id].checks,'011000000000');await expect(checks.nth(0)).not.toBeChecked();await expect(checks.nth(1)).toBeChecked();await expect(checks.nth(2)).toBeChecked();assert.equal(manuals().length,0);assert.equal(maxActive,1);
   report.checks.push({width,case:'rúbrica: varios indicadores y desmarcado durante guardado lento, sin pérdida ni evento manual'});
+  reset();view.navigation.current='perfil';view.navigation.resume='perfil';
+  await page.goto(fixture.origin+base+'/encuesta');await verifySurveyInstructions(page,'perfil');
+  await expect(page.locator('.cd-profile-group>h3')).toHaveText(['Datos institucionales','Perfil laboral','Uso de herramientas e información']);
+  await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:path.join(output,`instrucciones-perfil-${width}.png`)});
+  report.checks.push({width,case:'Perfil: títulos, párrafos y obligatoriedad literal; grupos y campos conservados'});
   for(const block of instrument.modules){
    reset();view.navigation.current=block.id;view.navigation.resume=block.id;view.navigation.steps.forEach(s=>s.accessible=true);
    await page.goto(fixture.origin+base+'/encuesta');await expect(page.locator('.cd-block-intro h2')).toHaveText(block.n);
-   await expect(page.locator('.cd-block-intro')).toHaveCount(1);await expect(page.locator('.cd-instructions')).toHaveCount(2);
-   await expect(page.locator('.cd-block-intro .cd-instructions')).toHaveCount(2);await expect(page.locator('.cd-category-help')).toHaveCount(0);
+   await verifySurveyInstructions(page,block.id);await expect(page.locator('.cd-category-help')).toHaveCount(0);
    await expect(page.locator('.cd-block')).not.toContainText(/No hay preguntas sin responder|Se marcarán|Se marcará|No modifica otras categorías/);
    const rubric=['ciber','datos','sii'].includes(block.id),questions=page.locator('.cd-question');
    for(const question of await questions.all()){

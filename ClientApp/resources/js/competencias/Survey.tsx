@@ -7,7 +7,8 @@ import { errorText } from '@/lib/http';
 import { base, levels, percent, unitName } from './types';
 import type { Answer, Survey, Tool } from './types';
 import PrivacyNotice from './PrivacyNotice';
-import { descriptions, instructions, markInitial, pendingTools } from './surveyInstructions';
+import { markInitial, pendingTools } from './surveyInstructions';
+import SurveyIntroduction from './SurveyIntroduction';
 
 // El servidor puede serializar propiedades opcionales como null. Se comparan
 // valores de captura, no JSON ni el orden de sus claves.
@@ -293,13 +294,13 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
                 {!readOnly && <Button disabled={busy || !survey.accepted} variant="contained" onClick={() => void updateEdition()}>Confirmar actualización del borrador</Button>}
             </Alert>}
             <div id="cd-step-content" tabIndex={-1} className={step === 'perfil' ? 'cd-card cd-profile-panel' : undefined}>
-            {step === 'perfil' ? <section className="cd-profile-body"><span className="cd-eyebrow">Paso 1 de 6</span><h2>Comencemos por conocerte</h2><p className="cd-profile-intro">Con estos datos ubicamos tus resultados en tu dependencia y comparamos tu nivel con lo que requieren las funciones de tu puesto. Así tu ruta de capacitación será realmente tuya. Los campos con * son obligatorios.</p>
+            {step === 'perfil' ? <section className="cd-profile-body"><SurveyIntroduction section="perfil" />
                 <ProfileFields survey={survey} profile={profile} disabled={disabled} onChange={(id, value) => { setProfile(p => { const next = { ...p }; if (value) next[id] = value; else delete next[id]; current.current.profile = next; return next; }); change(); }} />
-            </section> : block && <section className="cd-block"><div className="cd-block-intro"><h2>{block.n}</h2><p>{descriptions[block.id] || block.d}</p><p className="cd-instructions">{instructions(block.id)}</p>
-                <p className="cd-instructions"><strong>Inicial</strong> es un nivel cero válido; <strong>No aplica</strong> no se puntúa; <strong>Sin respuesta</strong> queda pendiente. «Marcar pendientes como Inicial» completa sólo los vacíos de esa categoría, sin cambiar respuestas capturadas. Úsalo sólo si esas actividades corresponden a tus funciones.</p></div>
+            </section> : block && <section className="cd-block"><SurveyIntroduction section={block.id} />
                 {categories.map(category => {
                     const tools = applicable.filter(t => !t.opt && t.cat === category), count = pendingTools(tools, answers).length;
-                    return <section key={category} className="cd-question-category" aria-label={category}><div className="cd-category-row"><h3>{category}</h3><Button variant="text" disabled={disabled || count === 0} onClick={() => { const next = markInitial(tools, current.current.answers, block.id); current.current.answers = next; setAnswers(next); change(); }}>Marcar pendientes como Inicial</Button></div>
+                    const title = category === 'Inteligencia artificial y bienestar' ? 'Inteligencia artificial' : category;
+                    return <section key={category} className="cd-question-category" aria-label={title}><div className="cd-category-row"><h3>{title}</h3><Button variant="text" disabled={disabled || count === 0} onClick={() => { const next = markInitial(tools, current.current.answers, block.id); current.current.answers = next; setAnswers(next); change(); }}>Marcar pendientes como Inicial</Button></div>
                         <div className="cd-questions">{tools.map(t => <Question key={t.id} tool={t} block={block.id} answer={answers[t.id]} readOnly={disabled} onChange={a => answer(t.id, a)} />)}</div></section>;
                 })}
                 {applicable.some(t => t.opt) && <section className="cd-card cd-optional"><h3>Herramientas complementarias</h3><p className="cd-muted">Selecciona únicamente las que utilizas. Las demás se registran como «No utiliza la herramienta».</p><div className="cd-choices">{applicable.filter(t => t.opt).map(t => <label className="cd-pill" key={t.id}><input type="checkbox" disabled={disabled} checked={!!answers[t.id] && answers[t.id].state !== 'unused'} onChange={e => answer(t.id, { state: e.target.checked ? 'pending' : 'unused' })} />{t.n}</label>)}</div></section>}
