@@ -152,6 +152,29 @@ try{
     await expect(question.getByRole(rubric?'button':'radio',{name:'Inicial',exact:true})).toHaveCount(1);
     await expect(question.getByRole(rubric?'button':'radio',{name:'No aplica',exact:true})).toHaveCount(1);
    }
+   const question=questions.first(), toolId=await question.getAttribute('id');
+   const toggle=question.getByRole('button',{name:'No aplica a mis funciones, pero sé hacerlo',exact:true});
+   const na=question.getByRole(rubric?'button':'radio',{name:'No aplica',exact:true});
+   const styleOf=element=>{const s=getComputedStyle(element.closest('label') || element);return [s.fontFamily,s.fontSize,s.fontWeight,s.borderRadius,s.borderColor,s.backgroundColor,s.color];};
+   assert.deepEqual(await toggle.evaluate(styleOf),await na.evaluate(styleOf));
+   await na.click();const selectedStyle=await na.evaluate(styleOf);
+   await toggle.focus();await toggle.press('Space');await expect(toggle).toHaveAttribute('aria-pressed','true');
+   assert.deepEqual(await toggle.evaluate(styleOf),selectedStyle);
+   await expect(question).toContainText('Nivel pendiente');await settled();await page.reload();
+   await expect(toggle).toHaveAttribute('aria-pressed','true');await expect(question).toContainText('Nivel pendiente');
+   for(let level=1;level<=3;level++){
+    if(rubric){
+     for(let j=0;j<3;j++)await question.getByRole('checkbox').nth((level-1)*4+j).check();
+    }else await question.getByRole('radio',{name:['Básico','Intermedio','Avanzado'][level-1],exact:true}).check();
+    await settled();assert.equal(view.answers[toolId].level,level);assert.equal(view.answers[toolId].state,'outside');
+   }
+   await toggle.click();await settled();assert.equal(view.answers[toolId].state,'level');
+   await toggle.click();await settled();assert.equal(view.answers[toolId].level,3);assert.equal(manuals().length,0);
+   const fits=await toggle.evaluate(e=>e.scrollWidth<=e.clientWidth+1 && e.scrollHeight<=e.clientHeight+1);
+   assert(fits,'La etiqueta completa cabe en el botón');await toggle.scrollIntoViewIfNeeded();
+   await page.screenshot({path:path.join(output,`fuera-funciones-${block.id}-${width}.png`)});
+   report.checks.push({width,case:`${block.n}: selección pendiente recuperada, tres niveles y cambio de condición sin perder captura`});
+   await page.locator('.cd-block-intro').scrollIntoViewIfNeeded();
    assert(!(await page.locator('.cd-question-actions').allTextContents()).some(t=>/Aún no|No corresponde/.test(t)));
    await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:path.join(output,`instrucciones-${block.id}-${width}.png`)});
    const category=page.locator('.cd-question-category').first();

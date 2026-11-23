@@ -1,5 +1,49 @@
 # Estado de migración TDV2
 
+## 2026-11-23 · Última pregunta de un apartado
+
+En Edge se reprodujo una discrepancia entre la tarjeta y el resumen del apartado. Al corregir la última respuesta pendiente de Excel o de Contraseñas y autenticación, el resumen y la disponibilidad del paso siguiente todavía dependían de la última respuesta HTTP. Ahora ambos leen el borrador visible durante la edición. La apertura del apartado siguiente y el envío definitivo siguen requiriendo confirmación de ASP.NET.
+
+Se recorrieron cuatro encuestas sintéticas con el frontend compilado y PostgreSQL desechable. Para cada pregunta se probaron por separado Inicial y No aplica, la recarga, el cambio desde Avanzado y el envío. Con todas las demás preguntas excluidas, los dos puntajes definitivos fueron cero para Inicial y quedaron sin puntuación para No aplica. Resultados generales conservó sus conteos por separado y la captura produjo cero eventos de guardado para Nexo. La identidad y el directorio de las pruebas fueron sintéticos.
+
+Pasaron TypeScript, Vite, la solución Release, las 105 pruebas de frontend y los 46 casos de navegador con transporte controlado, incluidos los de pérdida de conexión. También pasaron 104 comprobaciones de edición y 25 de presentación. El grupo de secuencia, evaluación y auditoría en PostgreSQL terminó con 12 de 12 aprobadas. En una ejecución anterior, uno de esos casos devolvió HTTP 401. Pasó al repetirlo individualmente y al repetir el grupo completo. La causa de ese 401 aislado queda sin confirmar.
+
+Cada escenario se puede reproducir desde PowerShell con el frontend y la solución Release compilados y Node en PATH.
+
+```powershell
+$env:TDV2_TEST_EPHEMERAL_TLS = 'true'
+foreach ($caso in 'm365-inicial', 'm365-na', 'ciber-inicial', 'ciber-na') {
+    $env:TDV2_TEST_LAST_ANSWER = $caso
+    .\scripts\Test-NativePostgres.ps1 -DigitalOnly -BrowserOnly -DirectStart -NoBuild
+}
+Remove-Item Env:TDV2_TEST_LAST_ANSWER, Env:TDV2_TEST_EPHEMERAL_TLS
+```
+
+## 2026-11-23 · Conocimientos digitales generales y puntaje del puesto
+
+La captura conserva la condición fuera de funciones, el nivel y las actividades. El botón comparte la presentación de los controles vecinos y admite teclado. En cada bloque, una sola viñeta explica a qué puntaje contribuye. Los nuevos envíos congelan dos índices con la misma ponderación por herramienta y por bloque. El nivel fuera de funciones se incorpora una vez al general. El puntaje, las brechas y los cursos del puesto siguen considerando las habilidades aplicables.
+
+Avance por dependencia, Resultados generales y su CSV distinguen ambos índices y la distribución de **respuestas** fuera de funciones. Los informes anteriores que carecen del cálculo general se identifican al mostrar el promedio. Mi informe y ruta muestra ambos puntajes en el resumen existente. La versión 1 de este indicador se guarda en el JSON del informe. Se conserva la edición del instrumento y el esquema de PostgreSQL. Para la publicación se requieren los recursos React y el backend de esta entrega. [Fórmulas, compatibilidad y archivos](docs/competencias-digitales/GUIA.md#conocimientos-fuera-de-las-funciones-del-puesto).
+
+**Verificado en aislamiento.** TypeScript, Vite y la compilación Release de la solución pasaron. Se aprobaron las 105 pruebas de frontend, 104 comprobaciones de edición y evaluación y 25 de presentación, aviso y menú. Excel Avanzado fuera de funciones y Word Inicial dieron 50 % general y 0 % del puesto, con la brecha de Word intacta. Se verificó también el caso con Excel como única habilidad puntuable y el de un histórico sin el nuevo indicador.
+
+Las pruebas con ASP.NET y PostgreSQL desechable verificaron estado parcial, recarga, guardado idempotente, envío y reportes dentro de la UR autorizada. La encuesta sintética cerrada entre dos personas autorizadas continuó dando 50 % de avance. Los recorridos de Edge utilizaron el frontend compilado a 1440 y 390 px con identidad sintética. El transporte de la captura de navegador fue simulado y las proyecciones de los reportes provinieron de la prueba PostgreSQL. Se aprobaron nueve casos de PostgreSQL y se repitió el de la nueva opción con dos sesiones distintas. En Edge pasaron 46 comprobaciones de encuesta y seis combinaciones de informe y ancho. En el paquete final también se comprobó Excel a 320, 390 y 1440 px con el botón enfocado, la etiqueta íntegra y Avanzado seleccionado. La publicación corresponde al operador.
+
+## 2026-11-23 · Conocimientos fuera de las funciones del puesto
+
+**Implementado.** Los cinco bloques admiten una selección parcial, un nivel adicional válido y su consulta independiente en Avance por dependencia, Resultados generales y el CSV. Mi informe y ruta identifica el nivel declarado en su detalle habitual. El contrato JSON amplía el conjunto de estados y conserva la lectura de borradores e instantáneas de ediciones anteriores. [Reglas de captura y conteo](docs/competencias-digitales/GUIA.md#conocimientos-fuera-de-las-funciones-del-puesto).
+
+**Archivos de aplicación.** En `tdv2/Competencias` cambiaron `DigitalInstrument.cs`, `DigitalSurveyService.cs` y `DigitalAggregates.cs`. En `ClientApp/resources/js/competencias` cambiaron `Survey.tsx`, `surveyInstructions.ts`, `types.ts`, `Aggregates.tsx` y `PersonalReport.tsx`. La documentación está en el README, esta bitácora y la guía de Competencias digitales.
+
+**Probado.**
+
+- TypeScript, Vite y compilación Release de la solución correctos. Las 105 pruebas de frontend pasaron, incluida la protección de la captura parcial frente a «Marcar pendientes como Inicial» en `digital-category-initial.test.mjs`.
+- Las 83 comprobaciones de edición y las 24 de presentación pasaron. `DigitalEditionTests.cs` comprueba los tres niveles en los cinco bloques, el avance parcial, el rechazo de niveles incompatibles, la lectura del No aplica histórico y el promedio con conocimientos aplicables y adicionales.
+- En PostgreSQL desechable con ASP.NET se aprobaron 12 casos de captura secuencial, guardado manual y nueva respuesta. Una segunda corrida de dos casos verificó la agregación jerárquica y repitió la nueva respuesta con el código definitivo. En `DigitalTests.cs`, una persona finalizó dentro de una población de dos. Sus dos respuestas adicionales quedaron en Intermedio y Avanzado. El avance fue 50 %, la madurez del puesto fue 0 % y se rechazó la consulta de otra rama. El CSV conservó los conteos separados.
+- En Edge, `digital-autosave-ui.mjs` y `survey-instructions-checks.mjs` pasaron 46 comprobaciones a 1440 y 390 px con transporte de captura sintético. `digital-outside-reports.mjs` verificó las seis combinaciones de módulo y ancho de Avance, Resultados e informe personal con proyecciones de la prueba PostgreSQL. Se comprobó la etiqueta completa y la ausencia de desplazamiento horizontal de la página.
+
+**Límites operativos.** Las identidades y las publicaciones de Nexo fueron sintéticas. La entrega usa los permisos, esquema y versión del instrumento existentes. La verificación institucional y la publicación quedan fuera de esta ejecución.
+
 **2026-11-05 — Instrucciones completas de seis apartados:** implementados los textos proporcionados para Perfil y los cinco bloques, una sola vez al inicio, con párrafos, listas reales, negritas exactas y notas fuera de las listas. Se retiran las introducciones anteriores y se conserva el cambio local de nombre de IA. No cambia el instrumento versionado, captura, evaluación, históricos, autorización o sesión. **Probado:** tipos/Vite, 105/105 frontend y 36/36 comprobaciones de Edge con recursos compilados e identidad/HTTP sintéticos, a 1440/390 px, sin errores JavaScript. Incluye captura, autoguardado y bloqueo de avance incompleto. Sin bases institucionales, migraciones, reinicios, push o despliegue; no hay configuración nueva pendiente. [Archivos, comandos, capturas y límites](docs/competencias-digitales/INSTRUCCIONES_SEIS_APARTADOS_20261105.md).
 
 **2026-11-04 — Textos de Inteligencia artificial:** retirado únicamente el párrafo introductorio sobre el manual/22 herramientas; «Elige tu nivel…» sigue directamente al título, sin elemento vacío. La categoría «Inteligencia artificial y bienestar» se presenta como «Inteligencia artificial», también en su nombre accesible, conservando la clave de agrupación y el contenido de bienestar. Pasos, informe y reportes ya utilizaban el nombre solicitado. Archivos: `ClientApp/resources/js/competencias/Survey.tsx`, `surveyInstructions.ts` y esta documentación/GUIA. Sin cambios de contratos versionados, identificadores, respuestas, evaluación ni históricos.

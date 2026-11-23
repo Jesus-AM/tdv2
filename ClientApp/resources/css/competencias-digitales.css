@@ -98,3 +98,30 @@
 }
 .cd-site .cd-config-nav{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}.cd-site .cd-survey-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px}.cd-site .cd-survey-people article{border:1px solid var(--cd-line);border-radius:8px;padding:16px;overflow-wrap:anywhere}.cd-site .cd-survey-people h3{margin-top:0}
 @media(min-width:761px){.cd-site .cd-filters>.cd-level-filter{flex:0 0 150px;width:150px;min-width:150px}}
+.cd-site .cd-outside-toggle {
+    max-width: 100%;
+    font-family: inherit;
+    line-height: inherit;
+    color: inherit;
+    text-align: start;
+    white-space: normal;
+}
+.cd-site .cd-outside-toggle::before {
+    content: '';
+    box-sizing: border-box;
+    flex: 0 0 16px;
+    height: 16px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+.cd-site .cd-outside-toggle[aria-pressed=true] {
+    background: var(--uacj-soft);
+    border-color: var(--cd-action);
+}
+.cd-site .cd-outside-toggle[aria-pressed=true]::before {
+    border-color: var(--cd-action);
+    background: radial-gradient(circle, var(--cd-action) 0 4px, transparent 4.5px);
+}
+@media (forced-colors: active) {
+    .cd-site .cd-outside-toggle[aria-pressed=true]::before { border: 4px double ButtonText; }
+}

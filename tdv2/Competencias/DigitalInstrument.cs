@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Tdv2.Domain;
 
 namespace Tdv2.Competencias;
@@ -7,12 +8,20 @@ namespace Tdv2.Competencias;
 public sealed record DigitalAnswer(string State, int? Level = null, string? Checks = null);
 public sealed record DigitalTool(string Id, string N, string S, string Cat, string[][] Lv, string[] C, string? Lic, bool Doc, bool Opt);
 public sealed record DigitalBlock(string Id, string N, string D, DigitalTool[] Tools, string[] Trans);
-public sealed record DigitalToolResult(string Id, string Name, string Block, int? Value, int Expected, int Gap);
-public sealed record DigitalBlockResult(string Id, string Name, double? Score, int? Level);
+public sealed record DigitalToolResult(string Id, string Name, string Block, int? Value, int Expected, int Gap,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool OutsideRole = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? OutsideLevel = null)
+{
+    [JsonIgnore] public double? KnowledgeScore => DigitalInstrument.LevelPercent(OutsideRole ? OutsideLevel : Value);
+}
+public sealed record DigitalBlockResult(string Id, string Name, double? Score, int? Level,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] double? KnowledgeScore = null);
+public sealed record DigitalKnowledge(int Version, double? Score);
 public sealed record DigitalCourse(string Tool, string Name, string Block, int Phase, int From, int To, string Why, string[] Courses, string[] Missing, string? License);
 public sealed record DigitalRecommendation(string Kind, string Title, string Text);
 public sealed record DigitalReport(double? Global, int? Level, DigitalBlockResult[] Blocks, DigitalToolResult[] Tools,
-    DigitalCourse[] Route, string[] Transversal, DigitalRecommendation[] Recommendations);
+    DigitalCourse[] Route, string[] Transversal, DigitalRecommendation[] Recommendations,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] DigitalKnowledge? Knowledge = null);
 public sealed record DigitalEvaluation(int Answered, int Total, double Progress, string[] Pending, DigitalReport Report);
 public sealed record DigitalStep(string Id, string Name, bool Complete, bool Accessible, string[] Pending);
 public sealed record DigitalNavigation(DigitalStep[] Steps, string Resume, string Current);
@@ -42,6 +51,21 @@ public sealed class DigitalInstrument
         return level;
     }
     public static int? ScoreLevel(double? score) => score is null ? null : score < 25 ? 0 : score < 50 ? 1 : score < 75 ? 2 : 3;
+    public static double? LevelPercent(int? level) => level is >= 0 and <= 3 ? level.Value / 3d * 100 : null;
+    public static int? OutsideLevel(DigitalAnswer answer, string block)
+    {
+        if (block is "ciber" or "datos" or "sii")
+        {
+            var achieved = answer.Checks is null ? 0 : ChecklistLevel(answer.Checks);
+            int? level = achieved == 0 ? null : achieved;
+            if (answer.Level is not null && answer.Level != level)
+                throw new DomainProblem(422, "El nivel declarado debe coincidir con las actividades de la rúbrica.");
+            return level;
+        }
+        if (answer.Checks is not null || answer.Level is < 1 or > 3)
+            throw new DomainProblem(422, "Selecciona Básico, Intermedio o Avanzado.");
+        return answer.Level;
+    }
     public static double? Mean(IEnumerable<double?> values)
     {
         var data = values.Where(v => v is not null).Select(v => v!.Value).ToArray();
@@ -128,11 +152,12 @@ public sealed class DigitalInstrument
         var answered = total - pending.Count;
         foreach (var block in Blocks)
         {
-            var blockValues = new List<double?>();
+            var blockTools = new List<DigitalToolResult>();
             foreach (var tool in block.Tools)
             {
                 if (tool.Doc && !Academic(profile)) continue;
-                var answer = answers.GetValueOrDefault(tool.Id); int? value = null;
+                var answer = answers.GetValueOrDefault(tool.Id); int? value = null, outsideLevel = null;
+                var outside = answer?.State == "outside";
                 // Las complementarias no seleccionadas son «No utiliza», no un cero ni un pendiente.
                 if (answer is null && tool.Opt) value = -2;
                 else if (answer is not null)
@@ -140,6 +165,7 @@ public sealed class DigitalInstrument
                     if (answer.State == "pending" && answer.Level is null && answer.Checks is null) value = null;
                     else if (answer.State == "unused" && tool.Opt && answer.Level is null && answer.Checks is null) value = -2;
                     else if (answer.State == "na" && answer.Level is null && answer.Checks is null) value = -1;
+                    else if (outside) outsideLevel = OutsideLevel(answer, block.Id);
                     else if (answer.State == "level")
                     {
                         if (block.Id is "ciber" or "datos" or "sii")
@@ -152,19 +178,20 @@ public sealed class DigitalInstrument
                     }
                     else throw new DomainProblem(422, "El estado de la respuesta no es válido.");
                 }
-                if (value != -2) { total++; if (value is not null) answered++; else pending.Add(tool.Id); }
-                if (value >= 0) blockValues.Add(value.Value / 3d * 100);
-                var expected = requirements.GetValueOrDefault(tool.Id);
-                tools.Add(new(tool.Id, tool.N, block.Id, value, expected, value >= 0 ? Math.Max(0, expected - value.Value) : value == -2 ? expected : 0));
+                if (value != -2) { total++; if (value is not null || outsideLevel is not null) answered++; else pending.Add(tool.Id); }
+                var expected = outside ? 0 : requirements.GetValueOrDefault(tool.Id);
+                blockTools.Add(new(tool.Id, tool.N, block.Id, value, expected, value >= 0 ? Math.Max(0, expected - value.Value) : value == -2 ? expected : 0, outside, outsideLevel));
             }
-            var score = Mean(blockValues); blocks.Add(new(block.Id, block.N, score, ScoreLevel(score)));
+            tools.AddRange(blockTools);
+            var score = Mean(blockTools.Select(t => LevelPercent(t.Value)));
+            blocks.Add(new(block.Id, block.N, score, ScoreLevel(score), Mean(blockTools.Select(t => t.KnowledgeScore))));
         }
         return new(answered, total, total == 0 ? 0 : answered * 100d / total, pending.ToArray(), BuildReport(profile, answers, tools, blocks, known));
     }
     // Sólo la proyección preliminar distingue ausencia de selección de «No utiliza» explícito.
     // No modifica validación, avance, evaluación definitiva ni informes históricos.
     public static bool HasResponses(DigitalReport report, IReadOnlyDictionary<string, DigitalAnswer> answers) =>
-        report.Tools.Any(t => t.Value is not null && answers.TryGetValue(t.Id, out var a) && a.State != "pending");
+        report.Tools.Any(t => (t.Value is not null || t.OutsideLevel is not null) && answers.TryGetValue(t.Id, out var a) && a.State != "pending");
     public DigitalReport PreliminaryReport(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, DigitalReport evaluated)
     {
         var tools = evaluated.Tools.Select(t => !answers.ContainsKey(t.Id) ? t with { Value = null, Gap = 0 } : t).ToList();
@@ -179,7 +206,8 @@ public sealed class DigitalInstrument
         var transversal = Resource["funcs"]!.AsArray().Where(f => f!["p"]!.ToString() == position && f["t"] is not null
             && f["req"]!.AsArray().Any(pair => tools.Any(t => t.Id == pair![0]!.ToString() && (t.Value >= 0 || t.Value == -2) && t.Value < pair[1]!.GetValue<int>())))
             .SelectMany(f => f!["t"]!.ToString().Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)).Distinct().ToArray();
-        return new(global, ScoreLevel(global), blocks.ToArray(), tools.ToArray(), route, transversal, PersonalRecommendations(profile, tools, blocks, transversal));
+        var knowledge = new DigitalKnowledge(1, Mean(blocks.Select(b => b.KnowledgeScore)));
+        return new(global, ScoreLevel(global), blocks.ToArray(), tools.ToArray(), route, transversal, PersonalRecommendations(profile, tools, blocks, transversal), knowledge);
     }
     private DigitalCourse[] Route(JsonObject profile, IReadOnlyDictionary<string, DigitalAnswer> answers, List<DigitalToolResult> results, Dictionary<string, DigitalTool> known)
     {
@@ -221,7 +249,8 @@ public sealed class DigitalInstrument
         var used = tools.Where(t => t.Block == "ia" && t.Value >= 1 && ia.Tools.Single(i => i.Id == t.Id).Cat != "Fundamentos del uso de IA").ToArray();
         var low = tools.Where(t => t.Block == "ia" && t.Value == 0 && ia.Tools.Single(i => i.Id == t.Id).Cat == "Fundamentos del uso de IA").ToArray();
         if (used.Length > 0 && low.Length > 0) recs.Add(new("warning", "Usas IA, pero sin los fundamentos completos", string.Join(", ", low.Select(t => t.Name)) + ". La IA es un copiloto, no un piloto automático. Verifica siempre y no subas datos de estudiantes a herramientas públicas."));
-        if (used.Length == 0) recs.Add(new("info", "Empieza pequeño con la IA", "Elige una herramienta y una tarea concreta. " + (Academic(profile) ? "ChatGPT o Teachy para planear una clase" : "Copilot Chat con tu cuenta institucional para resumir y redactar documentos") + ", aplicando ROTF (Rol, Objetivo, Contexto, Formato)."));
+        if (used.Length == 0 && tools.Any(t => t.Block == "ia" && t.Value == 0))
+            recs.Add(new("info", "Empieza pequeño con la IA", "Elige un tema de IA que marcaste como Inicial y practica con una tarea de tu puesto aplicando ROTF (Rol, Objetivo, Contexto, Formato)."));
         if (used.Any(t => new[] { "i-chatgpt", "i-claude", "i-gemini", "i-deepseek" }.Contains(t.Id)) && tools.Any(t => t.Id == "m-microsoft-365-copilot-chat" && t.Value == 0))
             recs.Add(new("info", "Para información institucional, consulta las herramientas autorizadas", "El prototipo recomienda Copilot Chat con la cuenta institucional. Confirma las condiciones y licencias vigentes antes de compartir información."));
         var weakest = blocks.Where(b => b.Score is not null).OrderBy(b => b.Score).FirstOrDefault();

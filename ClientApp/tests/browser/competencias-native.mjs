@@ -4,6 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { verifyFooterFlow } from './page-flow.mjs';
 import { verifySignatures } from './identity-checks.mjs';
+import { verifyLastAnswer } from './survey-last-answer.mjs';
 const origin = process.env.TDV2_BROWSER_ORIGIN, key = process.env.TDV2_BROWSER_KEY, artifacts = process.env.TDV2_BROWSER_ARTIFACTS;
 if (!origin?.startsWith('https://127.0.0.1:') || !key || !artifacts) throw new Error('Sólo host sintético aislado.');
 const base = '/competencias-digitales';
@@ -57,7 +58,7 @@ const screenshot = async name => {
     await page.evaluate(async () => { await document.fonts.ready; await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); });
     await captureDocument(page, name);
 };
-try {
+async function verifyFullSurvey() {
     await check('portal conserva diseño y el botón inicia OAuth hacia Competencias', async () => {
         await page.goto(origin + '/'); await expect(page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true })).toHaveAttribute('href', base);
         await page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true }).click(); await page.waitForURL(origin + base);
@@ -417,5 +418,18 @@ try {
             await expect(page.getByRole('link',{name:'Responder encuesta de competencias digitales',exact:true})).toBeVisible();
         }
     });
+}
+try {
+    const scenario = process.env.TDV2_TEST_LAST_ANSWER;
+    if (scenario) {
+        const auditCount = async () => {
+            const response = await context.request.post(origin + '/__digitalfixture/audit-count', { headers: { 'X-Fixture-Key': key } });
+            assert.equal(response.status(), 200);
+            return (await response.json()).saves;
+        };
+        await verifyLastAnswer({ page, origin, base, getSurvey, api, auditCount, scenario });
+        assert.deepEqual(report.errors, []);
+        report.checks.push({ name: scenario, passed: true });
+    } else await verifyFullSurvey();
 } catch (e) { report.failure = { message: e.message, stack: e.stack }; console.error(e); await page.screenshot({ path: path.join(artifacts, 'competencias-failure.png'), fullPage: true }).catch(() => {}); process.exitCode = 1; }
 finally { await writeFile(path.join(artifacts, 'competencias-browser.json'), JSON.stringify(report, null, 2)); await browser.close(); }

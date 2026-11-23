@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Tdv2.Competencias;
 using Tdv2.Domain;
@@ -44,6 +44,59 @@ internal static class DigitalEditionTests
         foreach(var b in current.Blocks)foreach(var t in b.Tools)answers[t.Id]=b.Id is "ciber" or "datos" or "sii"?new("level",Checks:"000000000000"):new("level",0);
         var complete=current.Evaluate(profile,answers);
         Check(complete.Pending.Length==0&&complete.Progress==100&&complete.Report.Global==0,"Instrumento académico completo con cero válido");
+        foreach (var block in current.Blocks)
+        {
+            var tool = block.Tools.First(t => !t.Opt && !t.Doc);
+            var checklist = block.Id is "ciber" or "datos" or "sii";
+            var trial = answers.ToDictionary();
+            trial[tool.Id] = checklist ? new("outside", Checks: "110011111111") : new("outside");
+            var partial = current.Evaluate(profile, trial);
+            Check(partial.Pending.SequenceEqual([tool.Id]) && partial.Total == complete.Total && partial.Answered + 1 == complete.Answered,
+                block.N + ": condición parcial cuenta un solo pendiente");
+            for (var level = 1; level <= 3; level++)
+            {
+                var checksAtLevel = string.Concat(Enumerable.Range(1, 3).Select(i => i <= level ? "1110" : "0000"));
+                trial[tool.Id] = checklist ? new("outside", Checks: checksAtLevel) : new("outside", level);
+                var evaluated = current.Evaluate(profile, trial);
+                var result = evaluated.Report.Tools.Single(t => t.Id == tool.Id);
+                trial[tool.Id] = checklist ? new("level", Checks: checksAtLevel) : new("level", level);
+                Check(evaluated.Report.Knowledge?.Score == current.Evaluate(profile, trial).Report.Global,
+                    block.N + ": mismo peso del nivel ordinario " + level);
+                Check(evaluated.Progress == 100 && evaluated.Report.Global == 0 && result is { OutsideRole: true, Value: null, Gap: 0 }
+                    && result.OutsideLevel == level && !evaluated.Report.Route.Any(c => c.Tool == tool.Id), block.N + ": nivel adicional " + level);
+            }
+            trial[tool.Id] = checklist ? new("outside", 3, "100011111111") : new("outside", 0);
+            Reject(() => current.Evaluate(profile, trial), block.N + ": nivel incompatible rechazado");
+        }
+        var extraOnly = new Dictionary<string, DigitalAnswer> { ["m-word"] = new("outside", 1) };
+        var extraReport = current.Evaluate(profile, extraOnly).Report;
+        Check(extraReport.Global is null && DigitalInstrument.HasResponses(extraReport, extraOnly),
+            "Sólo conocimiento adicional da un informe preliminar sin puntaje del puesto");
+        extraOnly["m-outlook"] = new("level", 3);
+        Check(current.Evaluate(profile, extraOnly).Report.Global == 100, "Básico fuera de funciones no diluye una competencia aplicable Avanzada");
+        var excel = new Dictionary<string, DigitalAnswer> { ["m-excel"] = new("outside", 3), ["m-outlook"] = new("na") };
+        var excelReport = current.Evaluate(profile, excel).Report;
+        Check(excelReport.Knowledge is { Version: 1, Score: 100 } && excelReport.Global is null
+            && excelReport.Tools.Single(t => t.Id == "m-excel").Gap == 0 && !excelReport.Route.Any(c => c.Tool == "m-excel"),
+            "Excel Avanzado fuera de funciones: 100 general, sin puntaje, brecha ni curso del puesto");
+        excel["m-word"] = new("level", 0);
+        excelReport = current.Evaluate(profile, excel).Report;
+        Check(excelReport.Knowledge?.Score == 50 && excelReport.Global == 0 && excelReport.Tools.Single(t => t.Id == "m-word").Gap > 0,
+            "Excel y Word: dos respuestas en el general, una en el puesto, la brecha de Word permanece");
+        excel["m-excel"] = new("level", 3);
+        Check(current.Evaluate(profile, excel).Report.Global == excelReport.Knowledge?.Score,
+            "Excel tiene el mismo peso general que el nivel ordinario");
+        excel["m-excel"] = new("outside");
+        var partialExcel = current.Evaluate(profile, excel);
+        Check(partialExcel.Report.Knowledge?.Score == 0 && partialExcel.Pending.Contains("m-excel"), "Parcial no puntúa y un cero real se conserva");
+        excel.Remove("m-word");
+        Check(current.Evaluate(profile, excel).Report.Knowledge?.Score is null, "No aplica y parcial dejan ambos índices sin puntaje");
+        var frozen = excelReport with { Knowledge = null };
+        var mixedMean = DigitalKnowledgeMean.From([(frozen, null), (excelReport, excelReport.Knowledge?.Score)]);
+        Check(mixedMean == new DigitalKnowledgeMean(50, 1, 1), "Media mixta informa los históricos sin el indicador");
+        var legacyTool = JsonSerializer.Deserialize<DigitalToolResult>("""{"id":"m-word","name":"Word","block":"m365","value":-1,"expected":2,"gap":0}""", DigitalInstrument.Json)!;
+        Check(legacyTool is { Value: -1, OutsideRole: false, OutsideLevel: null } && OutsideCounts.Count([legacyTool]) == new OutsideCounts(0, 0, 0),
+            "Un No aplica histórico no declara un nivel adicional");
         Check(DigitalInstrument.ChecklistLevel("110011111111") == 0 && DigitalInstrument.ChecklistLevel("111011001111") == 1 && DigitalInstrument.ChecklistLevel("111011101110") == 3, "Tres de cuatro por nivel, sin saltar el anterior");
         var rubric = current.Blocks.Single(b => b.Id == "ciber").Tools.Take(2).ToArray();
         answers[rubric[0].Id] = new("level", Checks:"100000000000"); answers[rubric[1].Id] = new("level", Checks:"110000000000");

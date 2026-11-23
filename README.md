@@ -1,5 +1,7 @@
 # TDV2 · ASP.NET Core 10 + React
 
+Competencias digitales permite registrar conocimientos fuera de las funciones del puesto. Avance por dependencia y Resultados generales distinguen el puntaje del puesto de los conocimientos digitales generales, que incluyen el nivel declarado fuera de funciones. [Contrato, compatibilidad y verificación](docs/competencias-digitales/GUIA.md#conocimientos-fuera-de-las-funciones-del-puesto).
+
 **Instrucciones de la encuesta — 2026-11-05:** textos completos de los seis apartados, con listas semánticas, negritas y notas separadas. Sustituye las ayudas anteriores; conserva captura, metodología, instrumento e históricos. Tipos/Vite, 105 pruebas frontend y 36 comprobaciones de navegador correctos con HTTP sintético. [Archivos, evidencia y límites](docs/competencias-digitales/INSTRUCCIONES_SEIS_APARTADOS_20261105.md).
 
 **Cabecera compacta de Competencias — 2026-10-30:** logotipo, módulos y cuenta en una sola barra de 72 px. Primero se oculta el nombre al faltar espacio y después se utiliza un menú accesible, conservando el orden autorizado, representación y nombre completo en la cuenta. Sin cambios de captura, sesión o accesos públicos. [Archivos, verificaciones y capturas](docs/migracion/CABECERA_COMPACTA_COMPETENCIAS_20261030.md).

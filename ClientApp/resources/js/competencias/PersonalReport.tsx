@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Button, MenuItem, Tab, Tabs, TextField, useMediaQuery } from '@mui/material';
 import { router } from '@/lib/navigation';
 import axios from 'axios';
@@ -47,8 +47,8 @@ function ReportContent({ survey, canSurvey }: { survey: Survey; canSurvey: boole
     </section>;
     const required = r.tools.filter(t => t.expected > 0), covered = required.filter(t => t.value !== null && t.value >= t.expected).length;
     const block = r.blocks.find(b => b.id === blockId) ?? r.blocks[0], tools = r.tools.filter(t => t.block === block?.id);
-    const toolLevel = (t: Report['tools'][number]) => t.value === null ? unselected(t) ? 'Sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.value === -2 ? 'No utiliza' : <Level value={t.value} />;
-    const toolState = (t: Report['tools'][number]) => t.value === null ? unselected(t) ? 'Complementaria sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.gap > 0 ? <span className="cd-gap"><span aria-hidden="true">⚠</span> Brecha</span> : t.value === -2 ? 'No utiliza' : t.expected > 0 && t.value >= t.expected ? <span className="cd-met">✓ Cumple</span> : 'Sin requisito';
+    const toolLevel = (t: Report['tools'][number]) => t.outsideLevel ? <Level value={t.outsideLevel} /> : t.value === null ? unselected(t) ? 'Sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.value === -2 ? 'No utiliza' : <Level value={t.value} />;
+    const toolState = (t: Report['tools'][number]) => t.outsideRole ? 'Fuera de las funciones del puesto' : t.value === null ? unselected(t) ? 'Complementaria sin seleccionar' : 'Pendiente' : t.value === -1 ? 'No aplica' : t.gap > 0 ? <span className="cd-gap"><span aria-hidden="true">⚠</span> Brecha</span> : t.value === -2 ? 'No utiliza' : t.expected > 0 && t.value >= t.expected ? <span className="cd-met">✓ Cumple</span> : 'Sin requisito';
     return <div className="cd-report">
         {survey.editionUpdate && <Alert severity="warning">Este informe preliminar corresponde a la edición anterior. Revisa y confirma la actualización del borrador en Encuesta; las respuestas vigentes se conservarán. {goSurvey('Revisar actualización')}</Alert>}
         <section className="cd-report-summary" aria-labelledby="cd-report-title">
@@ -56,14 +56,16 @@ function ReportContent({ survey, canSurvey }: { survey: Survey; canSurvey: boole
                 : <Alert severity="success">Informe definitivo · Finalizada el {new Date(survey.completedAt).toLocaleString('es-MX')}. Las respuestas ya no se pueden modificar.</Alert>}
             <div className="cd-card cd-report-hero"><div><h2 id="cd-report-title">Mi informe y ruta</h2><h3>{institution.name}</h3>
                 <p>{survey.profile.puesto || 'Perfil pendiente'} · {label(institution.level2)}</p><p>{label(institution.level3)}</p><p className="cd-muted">Instrumento: {survey.instrument.version}</p></div>
-                <div className="cd-global"><span className="cd-eyebrow">Índice global</span>{r.global === null ? <p>Sin puntuación aplicable</p> : <strong>{percent(r.global)}</strong>}<Level value={r.level} />
-                    <p>{covered} de {required.length} requisitos del puesto cubiertos</p><small>No aplica, pendientes y no utilizadas no acreditan competencia.</small></div></div>
+                <div className="cd-global"><span className="cd-eyebrow">{r.knowledge ? 'Puntaje del puesto' : 'Índice global'}</span>{r.global === null ? <p>Sin puntuación aplicable</p> : <strong>{percent(r.global)}</strong>}<Level value={r.level} />
+                    {r.knowledge && <p>Conocimientos digitales generales: <b>{r.knowledge.score === null ? 'Sin puntuación' : percent(r.knowledge.score)}</b></p>}
+                    <p>{covered} de {required.length} requisitos del puesto cubiertos</p><small>«No aplica» indica que no se declaró un nivel.</small></div></div>
             <div className="cd-report-blocks">{r.blocks.map(b => {
                 const items = r.tools.filter(t => t.block === b.id), values = levels.map((_, i) => items.filter(t => t.value === i).length), total = values.reduce((a, v) => a + v, 0), gaps = items.filter(t => t.gap > 0).length;
-                return <section className="cd-card" key={b.id}><h3>{b.name}</h3><strong className="cd-block-score">{b.score === null ? 'Sin puntuación' : percent(b.score)}</strong>
+                return <section className="cd-card" key={b.id}><h3>{b.name}</h3>{r.knowledge && <small>Puntaje del puesto</small>}<strong className="cd-block-score">{b.score === null ? 'Sin puntuación' : percent(b.score)}</strong>
+                    {r.knowledge && <p>Conocimientos digitales generales: {b.knowledgeScore == null ? 'Sin puntuación' : percent(b.knowledgeScore)}</p>}
                     <div className="cd-report-tags"><Level value={b.level} />{gaps ? <Gap count={gaps} /> : total > 0 && <span className="cd-met">✓ Sin brechas evaluadas</span>}</div>
                     <div className="cd-distribution" aria-label={`Distribución de ${b.name}: ${values.map((n, i) => `${levels[i]} ${n}`).join(', ')}`} role="img">{values.map((n, i) => n > 0 && <span key={i} className={`cd-level-${i}`} style={{ width: `${n / total * 100}%` }} aria-hidden="true">{n}</span>)}</div>
-                    <p className="cd-muted">{total} evaluadas · {items.filter(t => t.value === -1).length} No aplica · {items.filter(t => t.value === -2).length} No utiliza · {items.filter(t => t.value === null && !unselected(t)).length} pendientes</p>
+                    <p className="cd-muted">{total} evaluadas · {items.filter(t => t.value === -1).length} No aplica · {items.filter(t => t.value === -2).length} No utiliza · {items.filter(t => t.value === null && !t.outsideLevel && !unselected(t)).length} pendientes{items.some(t => t.outsideLevel) && ` · ${items.filter(t => t.outsideLevel).length} fuera de las funciones del puesto`}</p>
                     {items.some(unselected) && <p className="cd-muted">{items.filter(unselected).length} complementarias sin seleccionar</p>}
                 </section>;
             })}</div>
@@ -93,8 +95,8 @@ function ReportContent({ survey, canSurvey }: { survey: Survey; canSurvey: boole
             <div className="cd-report-tools" role={mobile ? 'region' : 'tabpanel'} id={`cd-detail-panel-${block?.id}`} aria-labelledby={mobile ? 'cd-detail-block' : `cd-detail-tab-${block?.id}`} tabIndex={0}>
                 <h3 id="cd-detail-block">{block?.name}</h3>
                 {mobile ? <div className="cd-tool-cards">{tools.map(t => <article className="cd-tool-card" key={t.id}><span className="cd-eyebrow">Herramienta o tema</span><h4>{t.name}</h4><dl>
-                    <div><dt>Tu nivel</dt><dd>{toolLevel(t)}</dd></div><div><dt>Esperado</dt><dd>{t.expected ? levels[t.expected] : 'Sin requisito'}</dd></div><div><dt>Estado</dt><dd>{toolState(t)}</dd></div>
-                </dl></article>)}</div> : <table><colgroup><col className="cd-tool-name-col" /><col /><col /><col /></colgroup><thead><tr><th scope="col">Herramienta o tema</th><th scope="col">Tu nivel</th><th scope="col">Esperado</th><th scope="col">Estado</th></tr></thead><tbody>{tools.map(t => <tr key={t.id}><th scope="row">{t.name}</th><td>{toolLevel(t)}</td><td>{t.expected ? levels[t.expected] : 'Sin requisito'}</td><td>{toolState(t)}</td></tr>)}</tbody></table>}
+                    <div><dt>Tu nivel</dt><dd>{toolLevel(t)}</dd></div><div><dt>Esperado</dt><dd>{t.outsideRole ? 'No aplica' : t.expected ? levels[t.expected] : 'Sin requisito'}</dd></div><div><dt>Estado</dt><dd>{toolState(t)}</dd></div>
+                </dl></article>)}</div> : <table><colgroup><col className="cd-tool-name-col" /><col /><col /><col /></colgroup><thead><tr><th scope="col">Herramienta o tema</th><th scope="col">Tu nivel</th><th scope="col">Esperado</th><th scope="col">Estado</th></tr></thead><tbody>{tools.map(t => <tr key={t.id}><th scope="row">{t.name}</th><td>{toolLevel(t)}</td><td>{t.outsideRole ? 'No aplica' : t.expected ? levels[t.expected] : 'Sin requisito'}</td><td>{toolState(t)}</td></tr>)}</tbody></table>}
                 {!tools.length && <p>Este bloque no tiene herramientas aplicables a tu perfil.</p>}
             </div>
         </section>

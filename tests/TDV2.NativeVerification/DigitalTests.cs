@@ -457,6 +457,62 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             }
             Check(view.Navigation.Steps.All(s => s.Complete && s.Accessible));
         });
+        Test("Fuera de funciones: borrador, envío, informes y alcance por UR", async (app, client) =>
+        {
+            await Role("responsable_ur");
+            await Login(app, client);
+            var view = await CompleteAndSave(client, 0);
+            var surveyUrl = Base + "/api/encuesta";
+            var rubric = new DigitalInstrument(view.Instrument.ToJsonString()).Blocks.Single(b => b.Id == "ciber").Tools.First().Id;
+            view.Answers["m-excel"] = new("outside");
+            await Status(client.PutAsJsonAsync(surveyUrl, new DigitalSave(view.Version, view.Profile, view.Answers, view.Generation)), 200);
+            using var second = app.Client();
+            await Login(app, second);
+            view = await Survey(second);
+            Check(view.Answers["m-excel"] == new DigitalAnswer("outside") && view.Navigation.Resume == "m365");
+            view.Answers["m-excel"] = new("outside", 3);
+            await Status(client.PutAsJsonAsync(surveyUrl, new DigitalSave(view.Version, view.Profile, view.Answers, view.Generation)), 200);
+            view = await Survey(second);
+            view.Answers[rubric] = new("outside", Checks: "110011111111");
+            await Status(client.PutAsJsonAsync(surveyUrl, new DigitalSave(view.Version, view.Profile, view.Answers, view.Generation)), 200);
+            view = await Survey(client);
+            Check(view.Answers[rubric] == new DigitalAnswer("outside", Checks: "110011111111") && view.Navigation.Resume == "ciber");
+            await Status(client.PostAsJsonAsync(surveyUrl + "/finalizar", new { view.Generation, view.Version }), 422);
+            view.Answers[rubric] = new("outside", Checks: "111011100000");
+            view.Answers["m-outlook"] = new("na");
+            var request = new DigitalSave(view.Version, view.Profile, view.Answers, view.Generation);
+            await Status(client.PutAsJsonAsync(surveyUrl, request), 200);
+            await Status(client.PutAsJsonAsync(surveyUrl, request), 200);
+            view = await Survey(client);
+            Check(view.Version == request.Version + 1 && view.Answers[rubric] == new DigitalAnswer("outside", 2, "111011100000"));
+            Check(view.Evaluation.Pending.Length == 0 && await QueuedSaves() == 0);
+            await Status(client.PostAsJsonAsync(surveyUrl + "/finalizar", new { view.Generation, view.Version }), 200);
+            view = await Survey(client);
+            Check(view.CompletedAt is not null && view.Evaluation.Report.Global == 0 && view.Evaluation.Report.Knowledge?.Score > 0);
+            Check(view.Evaluation.Report.Tools.Single(t => t.Id == rubric) is { Value: null, Gap: 0, OutsideLevel: 2 });
+            var projections = new JsonObject { ["informe"] = JsonSerializer.SerializeToNode(view, DigitalInstrument.Json) };
+            foreach (var endpoint in new[] { "avance", "resultados" })
+            {
+                var data = await Json(await client.GetAsync(Base + "/api/" + endpoint + "?unit=A"));
+                projections[endpoint] = data;
+                var summary = data["summary"]!;
+                Check(summary["completed"]!.GetValue<int>() == 1 && summary["maturity"]!.GetValue<double>() == 0);
+                Check(summary["knowledge"]!.Deserialize<DigitalKnowledgeMean>(DigitalInstrument.Json) == new DigitalKnowledgeMean(view.Evaluation.Report.Knowledge!.Score, 1, 0));
+                Check(summary["outside"]!.Deserialize<OutsideCounts>(DigitalInstrument.Json) == new OutsideCounts(0, 1, 1));
+                if (endpoint == "avance") Check(summary["target"]!.GetValue<int>() == 2 && summary["participation"]!.GetValue<double>() == 50);
+                else
+                {
+                    var rows = data["tools"]!.Deserialize<DigitalDistribution[]>(DigitalInstrument.Json)!;
+                    Check(rows.Single(t => t.Id == "m-excel") is { Count: 0, NotApplicable: 0, Outside.Advanced: 1, Score: null, Knowledge.Score: 100, Knowledge.Evaluated: 1 });
+                    Check(rows.Single(t => t.Id == "m-outlook") is { Count: 0, NotApplicable: 1, Outside.Advanced: 0 });
+                }
+                await Status(client.GetAsync(Base + "/api/" + endpoint + "?unit=B"), 403);
+            }
+            var csv = await client.GetStringAsync(Base + "/api/resultados/descarga?unit=A");
+            var excelCells = csv.Split('\n').Single(l => l.StartsWith("\"Herramienta o tema\",\"m-excel\"")).TrimEnd().Split(',').Select(c => c.Trim('"')).ToArray();
+            Check(excelCells[7] == "" && excelCells[15..21].SequenceEqual(["0", "0", "1", "100", "1", "0"]) && excelCells[22] == "0");
+            await File.WriteAllTextAsync(Path.Combine(shared.Artifacts, "fuera-funciones.json"), projections.ToJsonString());
+        });
         Test("Secuencia: retroceso conserva respuestas posteriores y vuelve a bloquear tras editar perfil", async (app, client) =>
         {
             await Login(app, client); var view = await CompleteAndSave(client); var answers = JsonSerializer.Serialize(view.Answers);

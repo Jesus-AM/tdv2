@@ -7,8 +7,34 @@ import { errorText } from '@/lib/http';
 import { base, levels, percent, unitName } from './types';
 import type { Answer, Survey, Tool } from './types';
 import PrivacyNotice from './PrivacyNotice';
-import { markInitial, pendingTools } from './surveyInstructions';
+import { markInitial, pendingTools, rubricBlock } from './surveyInstructions';
 import SurveyIntroduction from './SurveyIntroduction';
+
+function rubricLevel(checks: string) {
+    let level = 0;
+    for (let start = 0; start < 12; start += 4) {
+        if (checks.slice(start, start + 4).split('1').length - 1 < 3) break;
+        level++;
+    }
+    return level;
+}
+
+function rubricAnswer(checks: string, outside: boolean): Answer {
+    if (outside) return { state: 'outside', checks, level: rubricLevel(checks) || null };
+    return checks.includes('1') ? { state: 'level', checks } : { state: 'pending' };
+}
+
+// Una sola interpretación para la tarjeta y los pendientes del borrador local.
+// Guardar, avanzar y enviar siguen sujetos a la evaluación del servidor.
+function answerStatus(answer: Answer | undefined, checklist: boolean) {
+    if (answer?.state === 'na') return { complete: true, label: 'No aplica' };
+    if (answer?.state !== 'level' && answer?.state !== 'outside') return { complete: false, label: 'Pendiente' };
+    const outside = answer.state === 'outside';
+    const level = checklist ? (answer.checks && /^[01]{12}$/.test(answer.checks) ? rubricLevel(answer.checks) : null) : answer.level;
+    if (level == null || !Number.isInteger(level) || level < (outside ? 1 : 0) || level > 3)
+        return { complete: false, label: outside ? 'Nivel pendiente' : 'Pendiente' };
+    return { complete: true, label: checklist && !outside && answer.checks?.includes('1') ? 'Rúbrica respondida' : levels[level] };
+}
 
 // El servidor puede serializar propiedades opcionales como null. Se comparan
 // valores de captura, no JSON ni el orden de sus claves.
@@ -46,18 +72,30 @@ function ProfileFields({ survey, profile, disabled, onChange }: { survey: Survey
     </div>;
 }
 function Question({ tool, block, answer, onChange, readOnly }: { tool: Tool; block: string; answer: Answer | undefined; onChange: (a: Answer) => void; readOnly: boolean }) {
-    const checklist = ['ciber', 'datos', 'sii'].includes(block);
+    const checklist = rubricBlock(block);
     const checks = answer?.checks || '000000000000';
-    const status = answer?.state === 'na' ? 'No aplica' : answer?.state === 'level' ? checklist ? 'Rúbrica respondida' : levels[answer.level!] : 'Pendiente';
-    const choose = (value: string) => onChange(value === 'na' ? { state: 'na' } : { state: 'level', level: Number(value) });
-    return <article className={`cd-question ${answer?.state === 'level' || answer?.state === 'na' ? 'cd-answered' : ''}`} id={tool.id} tabIndex={-1} aria-labelledby={`${tool.id}-title`}>
-        <div className="cd-section-title"><h3 id={`${tool.id}-title`}>{tool.n}</h3><Chip size="small" label={status} /></div>
+    const outside = answer?.state === 'outside';
+    const status = answerStatus(answer, checklist);
+    const initial = answer?.state === 'level' && (checklist ? answer.checks === '000000000000' : answer.level === 0);
+    const chooseInitial = () => onChange(checklist ? { state: 'level', checks: '000000000000' } : { state: 'level', level: 0 });
+    const chooseNa = () => onChange({ state: 'na' });
+    function toggleOutside() {
+        if (checklist) onChange(rubricAnswer(checks, !outside));
+        else if (!outside) onChange({ state: 'outside', level: answer?.level || null });
+        else onChange(answer.level ? { state: 'level', level: answer.level } : { state: 'pending' });
+    }
+    const outsideLabel = 'No aplica a mis funciones, pero sé hacerlo';
+    const outsideButton = checklist
+        ? <Button type="button" aria-pressed={outside} variant={outside ? 'contained' : 'outlined'} disabled={readOnly} onClick={toggleOutside}>{outsideLabel}</Button>
+        : <button type="button" className="cd-pill cd-outside-toggle" aria-pressed={outside} disabled={readOnly} onClick={toggleOutside}>{outsideLabel}</button>;
+    return <article className={`cd-question ${status.complete ? 'cd-answered' : ''}`} id={tool.id} tabIndex={-1} aria-labelledby={`${tool.id}-title`}>
+        <div className="cd-section-title"><h3 id={`${tool.id}-title`}>{tool.n}</h3><Chip size="small" label={status.label} /></div>
         {checklist ? <>
-            <div className="cd-question-actions"><Button variant={answer?.state === 'level' && checks === '000000000000' ? 'contained' : 'outlined'} disabled={readOnly} onClick={() => onChange({ state: 'level', checks: '000000000000' })}>Inicial</Button><Button variant={answer?.state === 'na' ? 'contained' : 'outlined'} disabled={readOnly} onClick={() => onChange({ state: 'na' })}>No aplica</Button>{answer?.state === 'na' && <Button disabled={readOnly} onClick={() => onChange({ state: 'pending' })}>Responder la rúbrica</Button>}</div>
-            <div className="cd-rubrics">{tool.lv.map((items, k) => <fieldset key={k} className={checks.slice(k * 4, k * 4 + 4).split('1').length - 1 >= 3 ? 'cd-rubric-met' : undefined} disabled={readOnly || answer?.state === 'na'}><legend>{levels[k + 1]} <span className="cd-rubric-count">{checks.slice(k * 4, k * 4 + 4).split('1').length - 1}/4</span></legend>{items.map((text, j) => <label className="cd-check" key={j}><input type="checkbox" checked={checks[k * 4 + j] === '1'} onChange={e => { const next = checks.split(''); next[k * 4 + j] = e.target.checked ? '1' : '0'; onChange(next.includes('1') ? { state: 'level', checks: next.join('') } : { state: 'pending' }); }} /><span>{text}</span></label>)}</fieldset>)}</div>
+            <div className="cd-question-actions"><Button aria-pressed={initial} variant={initial ? 'contained' : 'outlined'} disabled={readOnly} onClick={chooseInitial}>Inicial</Button><Button aria-pressed={answer?.state === 'na'} variant={answer?.state === 'na' ? 'contained' : 'outlined'} disabled={readOnly} onClick={chooseNa}>No aplica</Button>{outsideButton}{answer?.state === 'na' && <Button disabled={readOnly} onClick={() => onChange({ state: 'pending' })}>Responder la rúbrica</Button>}</div>
+            <div className="cd-rubrics">{tool.lv.map((items, k) => <fieldset key={k} className={checks.slice(k * 4, k * 4 + 4).split('1').length - 1 >= 3 ? 'cd-rubric-met' : undefined} disabled={readOnly || answer?.state === 'na'}><legend>{levels[k + 1]} <span className="cd-rubric-count">{checks.slice(k * 4, k * 4 + 4).split('1').length - 1}/4</span></legend>{items.map((text, j) => <label className="cd-check" key={j}><input type="checkbox" checked={checks[k * 4 + j] === '1'} onChange={e => { const next = checks.split(''); next[k * 4 + j] = e.target.checked ? '1' : '0'; onChange(rubricAnswer(next.join(''), outside)); }} /><span>{text}</span></label>)}</fieldset>)}</div>
         </> : <fieldset className="cd-radio-question" disabled={readOnly}><legend className="cd-sr-only">Nivel de competencia en {tool.n}</legend>
-            <div className="cd-question-actions">{['0', 'na'].map(v => <label className="cd-pill" key={v}><input type="radio" name={tool.id} value={v} checked={v === 'na' ? answer?.state === 'na' : answer?.state === 'level' && answer.level === 0} onChange={() => choose(v)} />{v === 'na' ? 'No aplica' : 'Inicial'}</label>)}</div>
-            <div className="cd-rubrics">{tool.lv.map((items, k) => <label className="cd-option" key={k}><span><input type="radio" name={tool.id} value={k + 1} aria-label={levels[k + 1]} checked={answer?.state === 'level' && answer.level === k + 1} onChange={() => choose(String(k + 1))} /><b>{levels[k + 1]}</b></span><ul>{items.map((t, j) => <li key={j}>{t}</li>)}</ul></label>)}</div>
+            <div className="cd-question-actions">{['0', 'na'].map(v => <label className="cd-pill" key={v}><input type="radio" name={tool.id} value={v} checked={v === 'na' ? answer?.state === 'na' : initial} onChange={v === 'na' ? chooseNa : chooseInitial} />{v === 'na' ? 'No aplica' : 'Inicial'}</label>)}{outsideButton}</div>
+            <div className="cd-rubrics">{tool.lv.map((items, k) => <label className="cd-option" key={k}><span><input type="radio" name={tool.id} value={k + 1} aria-label={levels[k + 1]} checked={(answer?.state === 'level' || outside) && answer.level === k + 1} onChange={() => onChange({ state: outside ? 'outside' : 'level', level: k + 1 })} /><b>{levels[k + 1]}</b></span><ul>{items.map((t, j) => <li key={j}>{t}</li>)}</ul></label>)}</div>
         </fieldset>}
         {tool.lic && <small className="cd-muted">{tool.lic}</small>}
     </article>;
@@ -279,12 +317,23 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
     const steps = survey.navigation.steps, stepIndex = steps.findIndex(s => s.id === step), block = survey.instrument.modules.find(b => b.id === step);
     const applicable = block?.tools.filter(t => !t.doc || (survey.instrument.academicPositions ?? ['Personal docente']).includes(String(profile.puesto))) || [];
     const visible = applicable.filter(t => !t.opt || answers[t.id] && answers[t.id].state !== 'unused');
+    const draftStep = block && dirty;
+    const stepPending = draftStep
+        ? visible.filter(t => !answerStatus(answers[t.id], rubricBlock(block.id)).complete).length
+        : steps[stepIndex].pending.length;
+    const stepsShown = steps.map((s, i) => {
+        if (!draftStep || i < stepIndex) return s;
+        if (i === stepIndex) return { ...s, complete: stepPending === 0 };
+        // El clic guarda primero. Sólo el resultado confirmado de navigate abre el destino.
+        const nextAfterSave = i === stepIndex + 1 && steps[stepIndex].accessible && !saveStopped;
+        return { ...s, accessible: stepPending === 0 && (s.accessible || nextAfterSave) };
+    });
     const categories = [...new Set(applicable.filter(t => !t.opt).map(t => t.cat))];
     const name = (id: string) => survey.instrument.modules.flatMap(m => m.tools).find(t => t.id === id)?.n || survey.instrument.profile.find(f => `perfil:${f.id}` === id)?.label || 'Información institucional pendiente';
     const answer = (id: string, a: Answer) => { setAnswers(prev => { const next = { ...prev, [id]: a }; current.current.answers = next; return next; }); change(); };
     return <>
         {survey.completedAt ? <section className="cd-card"><h2>Tu encuesta ya fue completada</h2><p>Finalizada el {new Date(survey.completedAt).toLocaleString('es-MX')}. La respuesta es definitiva.</p>{canReport && <Button variant="contained" onClick={() => router.visit(`${base}/mi-informe-ruta`)}>Ver mi informe</Button>}</section> : <>
-            <nav className="cd-steps" aria-label="Bloques de la encuesta">{steps.map((s, i) => <button key={s.id} className={s.complete ? 'cd-done' : ''} aria-current={step === s.id ? 'step' : undefined} aria-label={s.name} disabled={busy || !s.accessible} title={!s.accessible ? 'Completa y guarda los pasos anteriores' : s.complete ? 'Sección completa' : 'Sección pendiente'} onClick={() => void navigate(s.id)}><span className="cd-dot" aria-hidden="true" />{i + 1}. {s.name}{s.complete && <span className="cd-sr-only"> · Completa</span>}</button>)}</nav>
+            <nav className="cd-steps" aria-label="Bloques de la encuesta">{stepsShown.map((s, i) => <button key={s.id} className={s.complete ? 'cd-done' : ''} aria-current={step === s.id ? 'step' : undefined} aria-label={s.name} disabled={busy || !s.accessible} title={!s.accessible ? 'Completa y guarda los pasos anteriores' : s.complete ? 'Sección completa' : 'Sección pendiente'} onClick={() => void navigate(s.id)}><span className="cd-dot" aria-hidden="true" />{i + 1}. {s.name}{s.complete && <span className="cd-sr-only"> · Completa</span>}</button>)}</nav>
             <div className="cd-progress" ref={progress}><span>Paso {stepIndex + 1} de 6 · {steps[stepIndex].name}</span><LinearProgress variant="determinate" value={survey.evaluation.progress} aria-label="Progreso de llenado guardado" /><strong>{percent(survey.evaluation.progress)}</strong><small>{survey.evaluation.answered}/{survey.evaluation.total} respuestas guardadas</small></div>
             <div className="cd-feedback" aria-live="polite">{error && <Alert severity="error">{error}</Alert>}{message && <p className="cd-saved" role="status">{message}</p>}</div>
             <p className="cd-save-status" role="status">{savingNow || busy ? 'Guardando…' : saveStopped ? 'Sin confirmar. Usa Guardar avance.' : error ? 'Guardado sin confirmar' : dirty ? 'Cambios pendientes de guardar' : 'Avance guardado'}</p>
@@ -307,7 +356,7 @@ export default function SurveyView({ initial, readOnly, canReport }: { initial: 
                 {visible.some(t => t.opt) && <section><h3 className="cd-category">Complementarias que usas</h3><div className="cd-questions">{visible.filter(t => t.opt).map(t => <Question key={t.id} tool={t} block={block.id} answer={answers[t.id]} readOnly={disabled} onChange={a => answer(t.id, a)} />)}</div></section>}
             </section>}
             {pending.length > 0 && <Alert severity="warning"><p>Pendientes de esta sección:</p><div className="cd-pending">{pending.map(id => <Button key={id} onClick={() => focusPending([id, ...pending.filter(p => p !== id)])}>{name(id)}</Button>)}</div></Alert>}
-            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{savingNow || busy ? 'Guardando…' : saveStopped || error ? 'Guardado sin confirmar' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{steps[stepIndex].pending.length ? `${steps[stepIndex].pending.length} pendientes en el último guardado` : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={e => { if (e.detail < 2) void saveManually(); }}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={() => void prepareFinish()}>Finalizar encuesta</Button>}</>}</div></div>
+            <div className="cd-savebar"><div>{stepIndex > 0 && <Button variant="outlined" disabled={busy} onClick={() => void navigate(steps[stepIndex - 1].id)}>← Anterior</Button>}</div><div className="cd-save-actions"><span role="status">{savingNow || busy ? 'Guardando…' : saveStopped || error ? 'Guardado sin confirmar' : dirty ? 'Cambios sin guardar' : 'Avance guardado'}<small>{stepPending ? (draftStep ? 'Sección pendiente' : `${stepPending} pendientes en el último guardado`) : 'Sección completa'}</small></span>{!readOnly && <><Button variant="outlined" disabled={disabled} onClick={e => { if (e.detail < 2) void saveManually(); }}>Guardar avance</Button>{stepIndex < 5 ? <Button variant="contained" disabled={disabled} onClick={() => void navigate(steps[stepIndex + 1].id, true)}>Guardar y continuar</Button> : <Button variant="contained" disabled={disabled} onClick={() => void prepareFinish()}>Finalizar encuesta</Button>}</>}</div></div>
             </div>
         </>}
         <PrivacyNotice key={noticeOpen ? 'accept-open' : 'accept-closed'} notice={survey.instrument.notice} open={noticeOpen} onClose={() => setNoticeOpen(false)} onAccept={!survey.accepted && !survey.completedAt && !readOnly ? () => void accept() : undefined} busy={busy} />

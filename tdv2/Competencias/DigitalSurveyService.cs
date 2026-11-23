@@ -65,10 +65,19 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         var selected = survey is null ? instrument : new DigitalInstrument(survey.InstrumentJson);
         var profile = survey is null ? new JsonObject() : Object(survey.ProfileJson);
         var answers = survey is null ? new() : Answers(survey.AnswersJson);
-        var evaluation = selected.Evaluate(profile, answers);
+        DigitalEvaluation evaluation;
+        if (survey?.ReportJson is { } final)
+        {
+            var frozen = JsonSerializer.Deserialize<DigitalReport>(final, DigitalInstrument.Json)!;
+            var total = selected.Resource["profile"]!.AsArray().Count + frozen.Tools.Count(t => t.Value != -2);
+            evaluation = new(total, total, 100, [], frozen);
+        }
+        else
+        {
+            evaluation = selected.Evaluate(profile, answers);
+            evaluation = evaluation with { Report = selected.PreliminaryReport(profile, answers, evaluation.Report) };
+        }
         var hasResponses = DigitalInstrument.HasResponses(evaluation.Report, answers);
-        if (survey?.ReportJson is { } final) evaluation = evaluation with { Report = JsonSerializer.Deserialize<DigitalReport>(final, DigitalInstrument.Json)! };
-        else evaluation = evaluation with { Report = selected.PreliminaryReport(profile, answers, evaluation.Report) };
         // En captura se muestra el contexto vigente; al finalizar se conserva la instantánea.
         var institution = survey?.CompletedAt is not null ? Object(survey.InstitutionJson) : JsonSerializer.SerializeToNode(currentInstitution, DigitalInstrument.Json)!.AsObject();
         var resource = selected.Resource.DeepClone().AsObject(); resource["notice"] = instrument.Resource["notice"]!.DeepClone();
@@ -139,6 +148,14 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         {
             CurrentRevision(survey, input.Version);
             RequireCurrent(survey);
+            // Normalizar antes de comparar un reintento. El servidor deriva el nivel de
+            // las actividades incluso si el cliente envía únicamente los indicadores.
+            if (input.Answers is not null)
+                foreach (var (id, answer) in input.Answers.Where(p => p.Value is { State: "outside", Checks: not null, Level: null }).ToArray())
+                {
+                    var level = DigitalInstrument.ChecklistLevel(answer.Checks!);
+                    if (level > 0) input.Answers[id] = answer with { Level = level };
+                }
             // Respuesta de red perdida después del commit: el reintento exacto no crea otra
             // revisión ni sobrescribe cambios. Un documento distinto sigue siendo conflicto.
             if (survey is { CompletedAt: null } && survey.Version >= input.Version && input.Profile is not null && input.Answers is not null

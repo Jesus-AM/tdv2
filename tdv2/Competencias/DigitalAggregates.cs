@@ -9,9 +9,33 @@ using Tdv2.Infrastructure;
 namespace Tdv2.Competencias;
 
 public sealed record DigitalRegisteredCounts(int Stored, int Completed, int InProgress, int WithoutCapture);
-public sealed record DigitalSummary(int? Completed, int? InProgress, int? ParticipatingUnits, int? Target, int ConfiguredTargets, int TotalUnits, double? Participation, double? Maturity, int? NotStarted = null, bool PopulationAvailable = true, string? PopulationProblem = null, DigitalRegisteredCounts? Registered = null);
+public sealed record OutsideCounts(int Basic, int Intermediate, int Advanced)
+{
+    public static OutsideCounts Count(IEnumerable<DigitalToolResult> tools)
+    {
+        var counts = new int[3];
+        foreach (var tool in tools)
+            if (tool is { OutsideRole: true, OutsideLevel: >= 1 and <= 3 }) counts[tool.OutsideLevel.Value - 1]++;
+        return new(counts[0], counts[1], counts[2]);
+    }
+}
+public sealed record DigitalKnowledgeMean(double? Score, int Evaluated, int Historical)
+{
+    public static DigitalKnowledgeMean From(IEnumerable<(DigitalReport Report, double? Score)> entries)
+    {
+        double sum = 0;
+        int evaluated = 0, historical = 0;
+        foreach (var (report, score) in entries)
+        {
+            if (report.Knowledge is null) historical++;
+            else if (score is { } value) { sum += value; evaluated++; }
+        }
+        return new(evaluated > 0 ? sum / evaluated : null, evaluated, historical);
+    }
+}
+public sealed record DigitalSummary(int? Completed, int? InProgress, int? ParticipatingUnits, int? Target, int ConfiguredTargets, int TotalUnits, double? Participation, double? Maturity, int? NotStarted = null, bool PopulationAvailable = true, string? PopulationProblem = null, DigitalRegisteredCounts? Registered = null, OutsideCounts? Outside = null, DigitalKnowledgeMean? Knowledge = null);
 public sealed record DigitalUnitSummary(string Id, string Code, string Name, int Level, string? Parent, string? ParentName, int DirectCompleted, int DirectInProgress, DigitalSummary Summary);
-public sealed record DigitalDistribution(string Id, string Name, int Count, int NotApplicable, int NotUsed, int[] Levels, double? Score);
+public sealed record DigitalDistribution(string Id, string Name, int Count, int NotApplicable, int NotUsed, int[] Levels, double? Score, OutsideCounts? Outside = null, int WithoutScore = 0, DigitalKnowledgeMean? Knowledge = null);
 public sealed record DigitalAggregatesResult(string? SelectedUnit, int? SelectedLevel, bool Institutional, DigitalUnitOption[] Roots, DigitalUnitOption[] Options, int[] Levels,
     DigitalSummary Summary, DigitalUnitSummary[] Units, DigitalDistribution[] Blocks, DigitalDistribution[] Tools, DigitalDistribution[] Positions,
     int[] CompetenceLevels, DigitalRecommendation[] Recommendations, string? SelectedPosition, string[] PositionOptions);
@@ -22,7 +46,7 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
     // El aviso crea una fila vacía: ni esa fila ni el perfil institucional constituyen inicio.
     public static bool Started(string profile, string answers)
         => JsonNode.Parse(profile)!.AsObject().Any(p => p.Value is JsonArray a ? a.Count > 0 : !string.IsNullOrWhiteSpace(p.Value?.ToString()))
-            || JsonSerializer.Deserialize<Dictionary<string, DigitalAnswer>>(answers, DigitalInstrument.Json)!.Values.Any(a => a.State is "level" or "na" or "unused");
+            || JsonSerializer.Deserialize<Dictionary<string, DigitalAnswer>>(answers, DigitalInstrument.Json)!.Values.Any(a => a.State is "level" or "na" or "unused" or "outside");
     public async Task<DigitalAggregatesResult> Read(DigitalScope scope, string? unit, int? level, CancellationToken ct, string? position = null, bool finalizedOnly = false)
     {
         await using var read = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
@@ -110,12 +134,15 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
             var registeredSet = registered.Where(s=>set.Contains(s.UnitId)).DistinctBy(s=>s.Employee).ToArray();
             var registeredDone = registeredSet.Count(s=>s.CompletedAt is not null);
             var registeredStartedCount = registeredSet.Count(s=>registeredStarted.Contains(s.Employee));
+            var finals = people.Where(p => p.CompletedAt is not null).Select(p => reports[p.Employee]).ToArray();
             return new(final, unresolved.Any(p=>p.InProgress) ? null : started.Length - done,
                 unresolved.Length>0 ? null : started.Select(p => finalizedOnly ? p.UnitId : currentUnits[correspondence.Owners[p.Employee]]).Distinct().Count(), target, 0, set.Length,
                 target > 0 && final is not null ? final * 100d / target : null,
-                unresolved.Any(p=>p.Finalized) ? null : DigitalInstrument.Mean(people.Where(p => p.CompletedAt is not null).Select(p => reports[p.Employee].Global)),
+                final is null ? null : DigitalInstrument.Mean(finals.Select(r => r.Global)),
                 unresolved.Any(p=>p.NotStarted) ? null : target - started.Length, true, unresolved.Length>0 ? "correspondence" : null,
-                unresolved.Length>0 ? new(registeredSet.Length,registeredDone,registeredStartedCount-registeredDone,registeredSet.Length-registeredStartedCount) : null);
+                unresolved.Length>0 ? new(registeredSet.Length,registeredDone,registeredStartedCount-registeredDone,registeredSet.Length-registeredStartedCount) : null,
+                final is null ? null : OutsideCounts.Count(finals.SelectMany(r => r.Tools)),
+                final is null ? null : DigitalKnowledgeMean.From(finals.Select(r => (r, r.Knowledge?.Score))));
         }
         // Ocultar opciones no elimina los nodos de los resúmenes ni su personal adscrito.
         var rowUnits = allowed.Where(u => ids.Contains(u.Id) && (level is null || u.Level == level)).OrderBy(u => u.Code).ToArray();
@@ -131,20 +158,27 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
         {
             var values = scores.ToArray(); var levels = new int[4];
             foreach (var score in values) if (DigitalInstrument.ScoreLevel(score) is { } l) levels[l]++;
-            return new(id, name, values.Count(v => v is not null), values.Count(v => v is null), 0, levels, DigitalInstrument.Mean(values));
+            return new(id, name, values.Count(v => v is not null), 0, 0, levels, DigitalInstrument.Mean(values), WithoutScore: values.Count(v => v is null));
         }
-        var blocks = instrument.Blocks.Select(b => Distribution(b.Id, b.N, completed.Select(r => r.Blocks.SingleOrDefault(x => x.Id == b.Id)?.Score))).ToArray();
+        var blocks = instrument.Blocks.Select(b => Distribution(b.Id, b.N, completed.Select(r => r.Blocks.SingleOrDefault(x => x.Id == b.Id)?.Score)) with
+            { Outside = OutsideCounts.Count(completed.SelectMany(r => r.Tools).Where(t => t.Block == b.Id)),
+              Knowledge = DigitalKnowledgeMean.From(completed.Select(r => (r, r.Blocks.SingleOrDefault(x => x.Id == b.Id)?.KnowledgeScore))) }).ToArray();
         var toolNames = instrument.Blocks.SelectMany(b => b.Tools).Select(t => new { t.Id, Name = t.N })
             .Concat(completed.SelectMany(r => r.Tools).Select(t => new { t.Id, t.Name })).DistinctBy(t => t.Id);
+        var toolEntries = completed.SelectMany(r => r.Tools.Select(t => (Report: r, Tool: t))).ToLookup(e => e.Tool.Id);
         var tools = toolNames.Select(t =>
         {
-            var values = completed.SelectMany(r => r.Tools.Where(v => v.Id == t.Id)).ToArray(); var levels = new int[4];
+            var entries = toolEntries[t.Id];
+            var values = entries.Select(e => e.Tool).ToArray(); var levels = new int[4];
             foreach (var v in values) if (v.Value >= 0) levels[v.Value.Value]++;
             return new DigitalDistribution(t.Id, t.Name, levels.Sum(), values.Count(v => v.Value == -1), values.Count(v => v.Value == -2), levels,
-                DigitalInstrument.Mean(values.Where(v => v.Value >= 0).Select(v => (double?)(v.Value!.Value / 3d * 100))));
+                DigitalInstrument.Mean(values.Select(v => DigitalInstrument.LevelPercent(v.Value))), OutsideCounts.Count(values),
+                Knowledge: DigitalKnowledgeMean.From(entries.Select(e => (e.Report, e.Tool.KnowledgeScore))));
         }).ToArray();
         var positions = surveys.Where(s => s.CompletedAt is not null).GroupBy(s => JsonNode.Parse(s.ProfileJson)!["puesto"]!.ToString())
-            .Select(g => Distribution(g.Key, g.Key, g.Select(s => reports[s.Employee].Global))).ToArray();
+            .Select(g => Distribution(g.Key, g.Key, g.Select(s => reports[s.Employee].Global)) with
+                { Outside = OutsideCounts.Count(g.SelectMany(s => reports[s.Employee].Tools)),
+                  Knowledge = DigitalKnowledgeMean.From(g.Select(s => reports[s.Employee]).Select(r => (r, r.Knowledge?.Score))) }).ToArray();
         var global = Distribution("global", "Global", completed.Select(r => r.Global));
         var recommendations = new List<DigitalRecommendation>();
         if (completed.Length > 0)
@@ -179,14 +213,30 @@ public sealed class DigitalAggregates(DigitalDbContext db, DigitalInstrument ins
             if (text.StartsWith('=') || text.StartsWith('+') || text.StartsWith('-') || text.StartsWith('@')) text = "'" + text;
             return "\"" + text.Replace("\"", "\"\"") + "\"";
         }
-        var text = new StringBuilder("Tipo,Clave,Nombre,Finalizadas,En curso,Meta,Participación,Índice,Inicial,Básico,Intermedio,Avanzado,No aplica,No utiliza\r\n");
-        void Row(params object?[] cells) => text.AppendLine(string.Join(',', cells.Select(Cell)));
-        Row("Conjunto", data.SelectedUnit, "Participantes únicos" + (data.SelectedPosition is null ? "" : " · " + data.SelectedPosition), data.Summary.Completed, data.Summary.InProgress, data.Summary.Target, data.Summary.Participation, data.Summary.Maturity,
+        var text = new StringBuilder("Tipo,Clave,Nombre,Finalizadas,En curso,Meta,Porcentaje de avance,Puntaje del puesto,Inicial,Básico,Intermedio,Avanzado,No aplica,No utiliza,Sin índice aplicable,Respuestas fuera de funciones Básico,Respuestas fuera de funciones Intermedio,Respuestas fuera de funciones Avanzado,Conocimientos digitales generales,Personas con puntaje general,Informes históricos sin cálculo general,Personas evaluadas en el puesto,Respuestas evaluadas en el puesto\r\n");
+        void Row(OutsideCounts? outside, DigitalKnowledgeMean? knowledge, (int? People, int? Answers) evaluated, params object?[] cells)
+        {
+            Array.Resize(ref cells, 23);
+            cells[15] = outside?.Basic;
+            cells[16] = outside?.Intermediate;
+            cells[17] = outside?.Advanced;
+            cells[18] = knowledge?.Score;
+            cells[19] = knowledge?.Evaluated;
+            cells[20] = knowledge?.Historical;
+            cells[21] = evaluated.People;
+            cells[22] = evaluated.Answers;
+            text.AppendLine(string.Join(',', cells.Select(Cell)));
+        }
+        Row(data.Summary.Outside, data.Summary.Knowledge, default, "Conjunto", data.SelectedUnit, "Participantes únicos" + (data.SelectedPosition is null ? "" : " · " + data.SelectedPosition), data.Summary.Completed, data.Summary.InProgress, data.Summary.Target, data.Summary.Participation, data.Summary.Maturity,
             data.CompetenceLevels[0], data.CompetenceLevels[1], data.CompetenceLevels[2], data.CompetenceLevels[3]);
-        foreach (var u in data.Units) Row("UR y dependientes", u.Code, u.Name, u.Summary.Completed, u.Summary.InProgress, u.Summary.Target, u.Summary.Participation, u.Summary.Maturity);
+        foreach (var u in data.Units) Row(u.Summary.Outside, u.Summary.Knowledge, default, "UR y dependientes", u.Code, u.Name, u.Summary.Completed, u.Summary.InProgress, u.Summary.Target, u.Summary.Participation, u.Summary.Maturity);
         foreach (var (kind, rows) in new[] { ("Bloque", data.Blocks), ("Herramienta o tema", data.Tools), ("Tipo de puesto", data.Positions) })
-            foreach (var r in rows) Row(kind, r.Id, r.Name, r.Count, null, null, null, r.Score, r.Levels[0], r.Levels[1], r.Levels[2], r.Levels[3], r.NotApplicable, r.NotUsed);
-        foreach (var r in data.Recommendations) Row("Recomendación", "", r.Title + ": " + r.Text);
+            foreach (var r in rows)
+            {
+                var tool = kind == "Herramienta o tema";
+                Row(r.Outside, r.Knowledge, tool ? (null, r.Count) : (r.Count, null), kind, r.Id, r.Name, null, null, null, null, r.Score, r.Levels[0], r.Levels[1], r.Levels[2], r.Levels[3], tool ? r.NotApplicable : null, tool ? r.NotUsed : null, tool ? null : r.WithoutScore);
+            }
+        foreach (var r in data.Recommendations) Row(null, null, default, "Recomendación", "", r.Title + ": " + r.Text);
         return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text.ToString())).ToArray();
     }
 }

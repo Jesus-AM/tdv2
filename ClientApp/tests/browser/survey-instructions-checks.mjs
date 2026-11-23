@@ -12,6 +12,7 @@ const expected={
   'Elige el nivel más alto cuyas actividades puedas realizar, incluidas las de los niveles anteriores.',
   'Selecciónalo si la herramienta corresponde a tus funciones y todavía no la utilizas.',
   'Selecciónalo si la herramienta no corresponde a tus funciones. Esta opción queda fuera del puntaje.',
+  'Elige esta opción si sabes utilizar la herramienta, aunque tu puesto no la requiera. Selecciona tu nivel: Básico, Intermedio o Avanzado. Este nivel cuenta para tus conocimientos digitales generales y queda fuera del puntaje de tu puesto.',
   'Si dejas una herramienta sin seleccionar, quedará pendiente.',
  ]},
  ciber:{title:'Ciberseguridad',paragraphs:[
@@ -20,6 +21,7 @@ const expected={
   'Alcanzas un nivel cuando realizas al menos 3 de sus 4 actividades.',
   'Selecciónalo si las prácticas del tema corresponden a tus funciones y todavía no realizas ninguna.',
   'Selecciónalo si las prácticas del tema no corresponden a tus funciones. Esta opción queda fuera del puntaje.',
+  'Si sabes realizar prácticas de este tema que tu puesto no requiere, marca las actividades que sabes hacer para determinar tu nivel. Este nivel cuenta para tus conocimientos digitales generales y queda fuera del puntaje de tu puesto.',
   'Si dejas un tema sin responder, quedará pendiente.',
  ],note:true},
  datos:{title:'Gobernanza de datos',paragraphs:[
@@ -28,6 +30,7 @@ const expected={
   'Alcanzas un nivel cuando realizas al menos 3 de sus 4 actividades.',
   'Selecciónalo si las actividades del tema corresponden a tus funciones y todavía no realizas ninguna.',
   'Selecciónalo si las actividades del tema no corresponden a tus funciones. Esta opción queda fuera del puntaje.',
+  'Si sabes realizar actividades de este tema que tu puesto no requiere, marca las que sabes hacer para determinar tu nivel. Este nivel cuenta para tus conocimientos digitales generales y queda fuera del puntaje de tu puesto.',
   'Si dejas un tema sin responder, quedará pendiente.',
  ],note:true},
  sii:{title:'Sistema Integral de Información',paragraphs:[
@@ -37,6 +40,7 @@ const expected={
   'Alcanzas un nivel cuando realizas al menos 3 de sus 4 actividades.',
   'Selecciónalo si el módulo corresponde a tus funciones y todavía no realizas ninguna de las actividades indicadas.',
   'Selecciónalo si el módulo no corresponde a tus funciones. Esta opción queda fuera del puntaje.',
+  'Si sabes realizar actividades de este módulo que tu puesto no requiere, marca las que sabes hacer para determinar tu nivel. Este nivel cuenta para tus conocimientos digitales generales y queda fuera del puntaje de tu puesto.',
   'Si dejas un módulo sin responder, quedará pendiente.',
  ],note:true},
  ia:{title:'Inteligencia artificial',paragraphs:[
@@ -46,10 +50,11 @@ const expected={
   'Elige el nivel más alto cuyas actividades puedas realizar, incluidas las de los niveles anteriores. Los niveles describen tus habilidades, independientemente del plan de la herramienta que utilices.',
   'Selecciónalo si las actividades del tema corresponden a tus funciones y todavía no realizas ninguna.',
   'Selecciónalo si las actividades del tema no corresponden a tus funciones. Esta opción queda fuera del puntaje.',
+  'Elige esta opción si sabes realizar las actividades del tema, aunque tu puesto no las requiera. Selecciona tu nivel: Básico, Intermedio o Avanzado. Este nivel cuenta para tus conocimientos digitales generales y queda fuera del puntaje de tu puesto.',
   'Si dejas un tema sin responder, quedará pendiente.',
  ]},
 };
-const leads=['Básico, Intermedio o Avanzado.','Inicial.','No aplica.','Sin respuesta.'];
+const leads=['Básico, Intermedio o Avanzado.','Inicial.','No aplica.','No aplica a mis funciones, pero sé hacerlo.','Sin respuesta.'];
 const note='Nota: Para alcanzar Intermedio, debes cumplir también Básico. Para alcanzar Avanzado, debes cumplir Básico e Intermedio.';
 export async function verifySurveyInstructions(page,id){
  const value=expected[id],intro=page.locator('.cd-survey-intro');

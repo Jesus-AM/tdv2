@@ -70,9 +70,12 @@ internal static class DigitalPresentationTests
         historical["notice"]!["paragraphs"] = new JsonArray("Texto anterior sintético");
         final.InstrumentJson = historical.ToJsonString();
         // Resultado persistido deliberadamente distinto de la evaluación actual: no debe recalcularse.
-        var frozen = evaluation.Report with { Global = 42, Level = 1, Recommendations = [new("info", "Recomendación histórica", "Contenido histórico conservado sin recalcular.")] };
+        var frozen = evaluation.Report with { Global = 42, Level = 1, Knowledge = null,
+            Blocks = evaluation.Report.Blocks.Select(b => b with { KnowledgeScore = null }).ToArray(),
+            Recommendations = [new("info", "Recomendación histórica", "Contenido histórico conservado sin recalcular.")] };
         final.ReportJson = JsonSerializer.Serialize(frozen, DigitalInstrument.Json);
         views["final"] = View(final);
+        Check(!final.ReportJson.Contains("knowledge", StringComparison.OrdinalIgnoreCase) && views["final"].Evaluation.Report.Knowledge is null, "La lectura de un envío anterior no calcula un puntaje general retroactivo");
         Check(JsonSerializer.Serialize(views["final"].Evaluation.Report, DigitalInstrument.Json) == final.ReportJson, "Informe definitivo usa exactamente JSON persistido");
         Check(views["final"].Institution["name"]!.ToString().Contains("histórico"), "Contexto institucional definitivo permanece histórico");
         Check(views["final"].Instrument["notice"]!["version"]!.ToString() == current.NoticeVersion && historical["notice"]!["version"]!.ToString().EndsWith(".1"), "Consulta muestra aviso vigente sin mutar instantánea anterior");
