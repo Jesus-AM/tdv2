@@ -60,8 +60,8 @@ const screenshot = async name => {
 };
 async function verifyFullSurvey() {
     await check('portal conserva diseño y el botón inicia OAuth hacia Competencias', async () => {
-        await page.goto(origin + '/'); await expect(page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true })).toHaveAttribute('href', base);
-        await page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true }).click(); await page.waitForURL(origin + base);
+        await page.goto(origin + '/'); await expect(page.getByRole('link', { name: 'Evaluar mis competencias', exact: true })).toHaveAttribute('href', '/connect?returnUrl=' + base);
+        await page.getByRole('link', { name: 'Evaluar mis competencias', exact: true }).click(); await page.waitForURL(origin + base);
         await expect(page.getByRole('heading', { name: 'Conoce tus competencias digitales' })).toBeVisible();
         await expect(page.getByRole('navigation', { name: 'Módulos de Competencias digitales' }).getByRole('button')).toHaveCount(5);
     });
@@ -391,7 +391,7 @@ async function verifyFullSurvey() {
         await control('participant'); await page.goto(origin + base); await expect(page.getByRole('navigation', { name: 'Módulos de Competencias digitales' }).getByRole('button')).toHaveCount(2);
     });
     await check('regresión /inicio de Procedimientos conserva vista y portada no registra errores JS', async () => {
-        await page.goto(origin + '/inicio'); await expect(page.getByText('Procedimientos Institucionales', { exact: false }).first()).toBeVisible(); await page.goto(origin + '/'); await expect(page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true })).toBeVisible(); assert.deepEqual(report.errors, []);
+        await page.goto(origin + '/inicio'); await expect(page.getByText('Procedimientos Institucionales', { exact: false }).first()).toBeVisible(); await page.goto(origin + '/'); await expect(page.getByRole('link', { name: 'Evaluar mis competencias', exact: true })).toBeVisible(); assert.deepEqual(report.errors, []);
     });
     await check('participante exclusivo conserva nombre y foto sin permisos de Procedimientos', async () => {
         await control('exclusive'); await page.goto(origin+base);
@@ -415,7 +415,7 @@ async function verifyFullSurvey() {
             await page.goto(origin+'/connect'); await page.waitForURL(origin+base);
             await expect(page.getByRole('heading',{name:'Elige un sitio',exact:true})).toHaveCount(0);
             await page.locator('.cd-brandmark').click();
-            await expect(page.getByRole('link',{name:'Responder encuesta de competencias digitales',exact:true})).toBeVisible();
+            await expect(page.getByRole('link',{name:'Evaluar mis competencias',exact:true})).toBeVisible();
         }
     });
 }

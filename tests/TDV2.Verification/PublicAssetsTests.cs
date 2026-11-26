@@ -18,7 +18,7 @@ internal static class PublicAssetsTests
             "/css/institutional.css", "/css/design-tokens.css", "/fonts/noto-sans/noto-sans.css", "/quiz/microsoft-365/quiz-brand.css", "/images/portal/img_9885.jpg", "/images/portal/img_9885-1920.jpg", "/images/portal/img_9885-960.jpg",
             "/fonts/noto-sans/public.css", "/fonts/noto-sans/NotoSans-Regular.ttf", "/fonts/noto-sans/NotoSans-Medium.ttf",
             "/fonts/noto-sans/NotoSans-SemiBold.ttf", "/fonts/noto-sans/NotoSans-Bold.ttf", "/fonts/noto-sans/OFL.txt",
-            "/documentos/PITD_2026_2030_Marco_General_UACJ.pdf", "/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf", "/documentos/Glosario_Transformacion_Digital_UACJ.pdf",
+            "/documentos/PITD_2026_2030_Marco_General_UACJ.pdf", "/documentos/PIT_UACJ.pdf", "/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf", "/documentos/Glosario_Transformacion_Digital_UACJ.pdf",
             "/images/competencias-digitales/firma-1.png", "/images/competencias-digitales/firma-3.png", "/images/competencias-digitales/firma-5.png",
             "/images/competencias-digitales/firma-7.png", "/images/competencias-digitales/firma-9.png"];
         var results = new List<object>();

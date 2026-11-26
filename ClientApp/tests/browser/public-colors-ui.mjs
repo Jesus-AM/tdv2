@@ -229,7 +229,7 @@ try {
                     report.states.push({ width, selector, state, minimum: Math.min(...contrast.map(c => c.ratio)) });
                 }
             }
-            report.states.push({ width, disabledControls: await page.locator(':disabled').count(), note: 'La portada no contiene controles deshabilitados ni un selector de estado propio' });
+            report.states.push({ width, disabledControls: await page.locator(':disabled').count() });
         }
     }
     if (surfaceFinish && phase === 'after') {
@@ -300,7 +300,7 @@ async function verifyFinish(page, report, width, output) {
     const anchor = async id => {
         const metrics = await page.evaluate(id => {
             const target = document.getElementById(id);
-            const heading = target.querySelector('h1,h2,h4') || target;
+            const heading = target.querySelector('h1,h2,h3,h4') || target;
             return { id, header: document.querySelector('.topbar').getBoundingClientRect().bottom,
                 titleTop: heading.getBoundingClientRect().top, titleBottom: heading.getBoundingClientRect().bottom,
                 offset: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--alto-cabecera')),
@@ -322,8 +322,8 @@ async function verifyFinish(page, report, width, output) {
         await page.goto(`${origin}/#${id}`, { waitUntil: 'networkidle' }); await anchor(id);
     }
     await page.locator('.brand').click(); await anchor('inicio');
-    await page.locator('.topbar > .wrap > .btn').click(); await anchor('participa');
-    await page.goBack(); await anchor('inicio'); await page.goForward(); await anchor('participa');
+    await page.locator('.topbar > .wrap > .btn').click(); await anchor('diagnostico');
+    await page.goBack(); await anchor('inicio'); await page.goForward(); await anchor('diagnostico');
     await page.goto(`${origin}/#ejes`, { waitUntil: 'networkidle' }); await anchor('ejes');
     await page.screenshot({ path: path.join(output, `after-anchor-ejes-${width}.png`) });
     if (width === 1366) {

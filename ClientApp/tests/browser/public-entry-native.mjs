@@ -41,7 +41,7 @@ try{
   await control(context,'/__fixture/photo-control?minutes=0');
   await control(context,'/__digitalfixture/sites-both');
   const destination=site==='procedimientos'?'/inicio':'/competencias-digitales';
-  const label=site==='procedimientos'?'Registrar un procedimiento institucional':'Responder encuesta de competencias digitales';
+  const label=site==='procedimientos'?'Diagnosticar procedimientos':'Evaluar mis competencias';
   const page=await context.newPage();page.setDefaultTimeout(20000);page.setDefaultNavigationTimeout(90000);await page.clock.install();
   page.on('pageerror',e=>report.errors.push(e.message));
   const timing=async()=>{const response=await context.request.get(origin+'/session/status');assert.equal(response.status(),200);return response.json();};
@@ -89,19 +89,19 @@ try{
   await context.route('**/*',route=>microsoftPeer(route,()=>oauth++));
   await control(context,'/__fixture/photo-control?minutes=0');await control(context,'/__digitalfixture/sites-both');
   const page=await context.newPage();page.setDefaultNavigationTimeout(90000);page.setDefaultTimeout(90000);page.on('pageerror',e=>report.errors.push(e.message));
-  await page.goto(origin+'/');await page.getByRole('link',{name:'Responder encuesta de competencias digitales'}).click();await expect(page).toHaveURL(origin+'/competencias-digitales');
+  await page.goto(origin+'/');await page.getByRole('link',{name:'Evaluar mis competencias'}).click();await expect(page).toHaveURL(origin+'/competencias-digitales');
   await expect(page.locator('.cd-site')).toBeVisible();const before=oauth;
   await control(context,'/__digitalfixture/generation-failure?enabled=true');
   const failed=page.waitForResponse(r=>r.url()===origin+'/competencias-digitales/api/generacion');
   await page.evaluate(()=>window.dispatchEvent(new Event('focus')));const failure=await failed;assert.equal(failure.status(),503);
   await expect(page).toHaveURL(origin+'/competencias-digitales');assert.equal((await context.request.get(origin+'/session/status')).status(),200);
-  await page.goto(origin+'/');await page.getByRole('link',{name:'Registrar un procedimiento institucional'}).click();await expect(page).toHaveURL(origin+'/inicio');await expect(page.getByRole('heading',{name:'Procedimientos Institucionales',exact:true})).toBeVisible();assert.equal(oauth,before);
+  await page.goto(origin+'/');await page.getByRole('link',{name:'Diagnosticar procedimientos'}).click();await expect(page).toHaveURL(origin+'/inicio');await expect(page.getByRole('heading',{name:'Procedimientos Institucionales',exact:true})).toBeVisible();assert.equal(oauth,before);
   report.checks.push({case:'Generation InvalidOperationException simulada con NpgsqlException/TimeoutException: 503, sesión vigente y acceso público a Procedimientos independiente',passed:true});
   await control(context,'/__digitalfixture/generation-failure?enabled=false');
   for(const scenario of ['td','cd']){
    await control(context,'/__digitalfixture/sites-'+scenario);
    for(const site of ['procedimientos','competencias']){
-    const destination=site==='procedimientos'?'/inicio':'/competencias-digitales',label=site==='procedimientos'?'Registrar un procedimiento institucional':'Responder encuesta de competencias digitales';
+    const destination=site==='procedimientos'?'/inicio':'/competencias-digitales',label=site==='procedimientos'?'Diagnosticar procedimientos':'Evaluar mis competencias';
     await page.goto(origin+'/');await page.getByRole('link',{name:label}).click();await expect(page).toHaveURL(origin+destination);
     if((scenario==='td')===(site==='procedimientos'))await expect(site==='procedimientos'?page.getByRole('heading',{name:'Procedimientos Institucionales',exact:true}):page.locator('.cd-welcome')).toBeVisible();
     else await expect(page.getByRole('alert')).toHaveText(`Tu cuenta no tiene acceso a ${site==='procedimientos'?'Procedimientos institucionales':'Competencias digitales'}.`);

@@ -44,23 +44,6 @@
   a,a:visited,a:hover,a:focus{text-decoration:none}
   h1,h2,h3,h4{font-family:var(--font-interface);line-height:1.12;letter-spacing:-.01em}
 
-  .eyebrow{
-    font-family:var(--font-interface);
-    font-size:.72rem;
-    letter-spacing:.18em;
-    text-transform:uppercase;
-    color:var(--acento);
-    display:inline-flex;
-    align-items:center;
-    gap:.55rem;
-  }
-  .eyebrow::before{
-    content:"";
-    width:22px;height:1px;
-    background:var(--acento);
-    display:inline-block;
-  }
-
   .wrap{max-width:var(--ancho);margin:0 auto;padding:0 24px}
 
   .btn{
@@ -80,9 +63,6 @@
   .btn-dark{background:var(--azul);color:var(--blanco)}
   .btn-dark:hover{background:var(--resaltado);color:var(--azul);border-color:var(--azul)}
   .btn:active{box-shadow:inset 0 0 0 1px currentColor}
-  .registration-cta{max-width:100%;text-align:left}
-  .registration-cta>span:first-child{min-width:0}
-  .registration-cta .ar{flex-shrink:0}
 
   /* ---------- Topbar ---------- */
   .topbar{
@@ -198,7 +178,7 @@
   section[id],.panel[id]{scroll-margin-top:calc(var(--alto-cabecera) + 18px)}
   section.block{margin-bottom:64px}
   section.block:last-child{margin-bottom:0}
-  .block > h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:.7rem 0 .5rem}
+  .block > h2,#diagnostico .mdd-head > h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:0 0 .5rem}
   .block .sub{color:var(--tinta-2);max-width:62ch;margin-bottom:1.6rem;font-size:1.03rem}
   .block p.body{color:var(--tinta);margin-bottom:1rem;max-width:64ch}
 
@@ -277,8 +257,8 @@
     width:42px;height:42px;border-radius:10px;display:grid;place-items:center;
     background:var(--azul);color:var(--blanco);margin-bottom:.85rem;
   }
-  .card h3{font-size:1.06rem;font-weight:600;margin-bottom:.4rem;font-family:var(--font-interface)}
-  .card p{font-size:.92rem;color:var(--tinta-2)}
+  .card h3,#diagnostico .mdd-quiz-text h3{font-size:1.06rem;font-weight:600;margin-bottom:.4rem;font-family:var(--font-interface)}
+  .card p,#diagnostico .mdd-quiz-text p{font-size:.92rem;color:var(--tinta-2)}
 
   /* Ruta — numbered timeline */
   .steps{margin-top:1.4rem;border-left:2px solid var(--azul);padding-left:0}
@@ -295,21 +275,56 @@
   .step h3{font-size:1.05rem;font-weight:600;margin-bottom:.15rem}
   .step p{font-size:.93rem;color:var(--tinta-2);max-width:60ch}
 
-  /* Diagnóstico — dark card */
-  .dark-card{
-    background:linear-gradient(150deg,var(--azul) 0%,var(--azul) 100%);
-    color:var(--blanco);border-radius:20px;padding:38px 34px;overflow:hidden;position:relative;
+  /* Diagnóstico: las columnas responden al espacio que deja el panel lateral. */
+  #diagnostico{
+    container:diagnostico / inline-size;--mdd-inset:clamp(1rem,3.5cqi,1.5rem);
+    border:1px solid var(--gris-2);border-radius:var(--radio);
+    background:var(--blanco);color:var(--azul);
   }
-  .dark-card h2{color:var(--blanco)}
-  .dark-card .sub{color:var(--blanco)}
-  .checks{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem 1.6rem;margin:1.3rem 0 1.7rem}
-  .checks li{list-style:none;display:flex;gap:.6rem;font-size:.94rem;color:var(--blanco);align-items:flex-start}
-  .checks svg{flex:0 0 auto;margin-top:3px;color:var(--acento)}
-
-  /* Participa — register list */
-  .reglist{columns:2;column-gap:2.4rem;margin:1.2rem 0 1.5rem}
-  .reglist li{list-style:none;padding:.5rem 0 .5rem 1.5rem;position:relative;font-size:.94rem;break-inside:avoid;color:var(--tinta);border-bottom:1px solid var(--gris-2)}
-  .reglist li::before{content:"→";position:absolute;left:0;color:var(--acento);font-family:var(--font-interface)}
+  #diagnostico .mdd-head{
+    background:var(--azul);color:var(--blanco);
+    padding:var(--mdd-inset);
+    border-radius:calc(var(--radio) - 1px) calc(var(--radio) - 1px) 0 0;
+  }
+  #diagnostico .mdd-body{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(1rem,3cqi,1.5rem);padding:var(--mdd-inset)}
+  #diagnostico .diagnosis-game{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  #diagnostico .sub{color:inherit;margin-bottom:0}
+  #diagnostico .mdd-dims,#diagnostico .mdd-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+  #diagnostico .mdd-dims,#diagnostico .mdd-facts{list-style:none}
+  #diagnostico .mdd-dims{margin-top:1.5rem}
+  #diagnostico .mdd-dims li,#diagnostico .mdd-card-title{display:flex;align-items:center;gap:.65rem}
+  #diagnostico .mdd-dims li{line-height:1.4}
+  #diagnostico .mdd-num{
+    display:grid;place-items:center;flex:0 0 auto;width:2.25rem;height:2.25rem;border-radius:8px;
+    border:1px solid currentColor;font-weight:700;font-variant-numeric:tabular-nums;
+  }
+  #diagnostico .card{
+    display:grid;grid-template-rows:subgrid;grid-row:span 5;row-gap:.75rem;
+    padding:clamp(1rem,3cqi,1.375rem);
+  }
+  #diagnostico #participa{scroll-margin-top:calc(var(--alto-cabecera) + 18px)}
+  #diagnostico .mdd-card-top{font-size:.73rem;letter-spacing:.09em;font-weight:600}
+  #diagnostico .card h3{margin:0}
+  #diagnostico .mdd-card-dims{font-size:.84rem;font-weight:700}
+  #diagnostico .mdd-card-title svg,#diagnostico .mdd-facts svg{flex-shrink:0}
+  #diagnostico .card .btn{width:100%;justify-content:center;text-align:center;line-height:1.35}
+  #diagnostico .card .btn svg{flex-shrink:0}
+  #diagnostico .btn:disabled{background:var(--resaltado);color:var(--uacj-muted);border-color:var(--gris-2);cursor:not-allowed}
+  #diagnostico .btn:focus-visible{outline:3px solid var(--acento);outline-offset:3px}
+  #diagnostico .mdd-facts{display:grid;grid-template-columns:.8fr 1.3fr 1fr;gap:1rem;font-size:.88rem;line-height:1.45}
+  #diagnostico .mdd-facts li{display:flex;align-items:flex-start;gap:.6rem}
+  #diagnostico .diagnosis-game{border-top:1px solid var(--gris-2);padding-top:1.25rem}
+  #diagnostico .mdd-quiz-text{flex:1 1 18rem}
+  #diagnostico .btn-outline{background:var(--blanco);border-color:var(--azul);color:var(--azul)}
+  #diagnostico .btn-outline:hover{background:var(--resaltado)}
+  #diagnostico .quiz-launch{margin:0}
+  @@container diagnostico (max-width:38rem){
+    #diagnostico .mdd-dims,#diagnostico .mdd-cards,#diagnostico .mdd-facts{grid-template-columns:minmax(0,1fr)}
+    #diagnostico .diagnosis-game{align-items:stretch;flex-direction:column}
+    #diagnostico .mdd-quiz-text{flex:auto}
+    #diagnostico .card .btn{padding-inline:.375rem;column-gap:.375rem}
+    #diagnostico .quiz-launch{justify-content:center}
+  }
 
   /* Beneficios */
   .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem 1.8rem;margin-top:1.3rem}
@@ -346,13 +361,6 @@
   .public-footer{margin-top:20px}
   @@media(max-width:960px){.hero{background-position:center,40% 55%}}
   @@media(max-width:640px){.hero{background-image:var(--hero-overlay),image-set(url('/images/portal/img_9885-960.jpg') 1x,url('/images/portal/img_9885-1920.jpg') 2x);background-position:center,32% center}}
-  .diagnosis-actions{display:grid;gap:22px;margin-top:24px;justify-items:start}
-  .diagnosis-game{border-top:1px solid #ffffff40;padding-top:18px;width:100%;display:flex;gap:12px 20px;align-items:center;flex-wrap:wrap}
-  .diagnosis-game-copy{flex:1 1 280px;min-width:0}
-  .diagnosis-game h3{font-size:1.05rem;line-height:1.4;margin:0}
-  .diagnosis-game .quiz-launch{margin-top:0}
-  .diagnosis-actions .btn{text-align:center;white-space:normal;max-width:100%}
-  @@media(max-width:700px){.diagnosis-game{align-items:flex-start;flex-direction:column}.diagnosis-game-copy{flex:initial}}
 
   /* ---------- Responsive ---------- */
   @@media(max-width:1120px){
@@ -367,8 +375,7 @@
   @@media(max-width:640px){
     .nav{display:none}
     .topbar .brand-logo{height:40px;max-width:210px}
-    .cards,.checks,.benefits,.reglist{grid-template-columns:1fr;columns:1}
-    .reglist{columns:1}
+    .cards,.benefits{grid-template-columns:1fr;columns:1}
     .model-grid{
       grid-template-columns:1fr;
       grid-template-areas:"center" "dir" "oper" "hab" "control" "personas";
@@ -384,8 +391,7 @@
 
   /* Preguntas frecuentes */
   .faq-section{padding:60px 0 8px}
-  .faq-section .eyebrow{margin-bottom:.5rem}
-  .faq-section h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:.4rem 0 1.4rem}
+  .faq-section h2{font-size:clamp(1.6rem,2.6vw,2.05rem);font-weight:700;margin:0 0 1.4rem}
   .faq{max-width:860px}
   .faq details{border:1px solid var(--gris-2);border-radius:12px;background:var(--blanco);margin-bottom:10px;overflow:hidden}
   .faq summary{list-style:none;cursor:pointer;padding:16px 20px;font-family:var(--font-interface);font-weight:600;font-size:1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
@@ -396,9 +402,23 @@
   .faq summary .pm{flex:0 0 auto;width:22px;height:22px;position:relative}
   .faq summary .pm::before,.faq summary .pm::after{content:"";position:absolute;background:var(--azul);border-radius:2px}
   .faq summary .pm::before{top:10px;left:3px;right:3px;height:2px}
-  .faq summary .pm::after{left:10px;top:3px;bottom:3px;width:2px;transition:opacity .2s}
+  .faq summary .pm::after{left:10px;top:3px;bottom:3px;width:2px}
   .faq details[open] summary .pm::after{opacity:0}
   .faq details p{padding:0 20px 18px;color:var(--tinta-2);font-size:.94rem;background:var(--blanco)}
+  @@media (prefers-reduced-motion: no-preference){
+    @@supports selector(details::details-content) and (transition-behavior: allow-discrete){
+      .faq details{--faq-duration:180ms}
+      .faq details[open]{--faq-duration:220ms}
+      /* La fila sigue la altura del párrafo. Al cerrar, su contenido se oculta al terminar. */
+      .faq details::details-content{
+        display:grid;grid-template-rows:minmax(0,0fr);align-items:start;overflow:clip;
+        transition:grid-template-rows var(--faq-duration) ease-in-out,
+                   content-visibility var(--faq-duration) allow-discrete;
+      }
+      .faq details[open]::details-content{grid-template-rows:minmax(0,1fr)}
+      .faq summary .pm::after{transition:opacity var(--faq-duration) ease-in-out}
+    }
+  }
   .model-img{margin:0}
   .model-img img{width:100%;height:auto;display:block;border-radius:14px;border:1px solid rgb(from var(--blanco) r g b / .6);box-shadow:0 12px 32px rgb(from var(--azul) r g b / .18)}
   .dgti-banner{width:100%;max-width:440px;height:auto;display:block;margin-bottom:22px}
@@ -442,7 +462,7 @@
       </form>
       </div>
     } else {
-      <a class="btn btn-dark" href="#participa">Participa <span class="ar">→</span></a>
+      <a class="btn btn-dark" href="#diagnostico">Participa <span class="ar">→</span></a>
     }
   </div>
 </header>
@@ -486,7 +506,6 @@
 
       <!-- 1. Qué es -->
       <section class="block" id="que-es">
-        <span class="eyebrow">El proyecto</span>
         <h2>¿Qué es la Transformación Digital UACJ?</h2>
         <p class="body">La Transformación Digital en la UACJ se conceptualiza como el cambio institucional para mejorar de forma integral la manera en que operamos: simplificar, estandarizar y optimizar procedimientos para que sean más ágiles, confiables y medibles, mediante el uso correcto de las herramientas tecnológicas.</p>
         <p class="body">Por ello, es un esfuerzo de toda la comunidad universitaria, porque los procedimientos están conectados y el resultado depende de cada eslabón; el punto de partida es el registro correcto, completo y oportuno de los datos.</p>
@@ -495,7 +514,6 @@
 
       <!-- Modelo conceptual -->
       <section class="block" id="modelo">
-        <span class="eyebrow">Modelo conceptual</span>
         <h2>Cómo se articula la transformación</h2>
         <p class="sub">Cinco dimensiones giran en torno a un mismo centro. Cada una cumple un papel distinto y ninguna funciona aislada.</p>
         <div class="model">
@@ -540,7 +558,6 @@
       <!-- 2. Ejes -->
       <section class="block" id="ejes">
         <div class="band">
-          <span class="eyebrow">Marco estratégico</span>
           <h2>Seis ejes que guían el trabajo</h2>
           <p class="sub">Cada eje agrupa un conjunto de acciones concretas. Juntos ordenan el esfuerzo institucional y evitan iniciativas aisladas.</p>
           <div class="cards">
@@ -580,7 +597,6 @@
 
       <!-- 3. Ruta -->
       <section class="block" id="ruta">
-        <span class="eyebrow">Metodología</span>
         <h2>Ruta de Transformación Digital</h2>
         <p class="sub">Un camino de ocho etapas, del entendimiento inicial a la mejora continua. Cada etapa produce entregables que alimentan la siguiente.</p>
         <div class="steps">
@@ -595,55 +611,87 @@
         </div>
       </section>
 
-      <!-- 4. Diagnóstico -->
-      <section class="block" id="diagnostico">
-        <div class="dark-card">
-          <span class="eyebrow">Etapa 2</span>
-          <h2>Diagnóstico de madurez digital</h2>
-          <p class="sub">Una fotografía honesta de su área en estas 8 dimensiones:</p>
-          <ul class="checks">
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Claridad y estandarización de los procedimientos</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Nivel de digitalización y automatización</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Calidad, disponibilidad e integración de datos</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Infraestructura, conectividad y seguridad</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Alfabetización digital del personal</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Experiencia de las personas usuarias</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Sustentabilidad y aprovechamiento tecnológico</li>
-            <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Uso de analítica de datos e inteligencia artificial</li>
+      <!-- Diagnóstico y participación -->
+      <section class="block" id="diagnostico" aria-labelledby="mdd-title">
+        <div class="mdd-head">
+          <h2 id="mdd-title">Diagnóstico de madurez digital</h2>
+          <p class="sub">Una fotografía honesta de tu área en 8 dimensiones, alineadas a la Política de Innovación Tecnológica Digital de la UACJ.</p>
+          <ol class="mdd-dims">
+            <li><span class="mdd-num">01</span>Procedimientos claros y estandarizados</li>
+            <li><span class="mdd-num">02</span>Digitalización y automatización</li>
+            <li><span class="mdd-num">03</span>Calidad, disponibilidad e integración de datos</li>
+            <li><span class="mdd-num">04</span>Infraestructura, conectividad y seguridad</li>
+            <li><span class="mdd-num">05</span>Competencias digitales del personal</li>
+            <li><span class="mdd-num">06</span>Experiencia de las personas usuarias</li>
+            <li><span class="mdd-num">07</span>Analítica de datos e inteligencia artificial</li>
+            <li><span class="mdd-num">08</span>Sustentabilidad y aprovechamiento tecnológico</li>
+          </ol>
+        </div>
+
+        <div class="mdd-body">
+          <div class="mdd-cards">
+            <article class="card" id="participa" aria-labelledby="procedimientos-title">
+              <span class="mdd-card-top">PARA TU ÁREA</span>
+              <h3 id="procedimientos-title">Procedimientos</h3>
+              <p>Lo responde la persona titular o el enlace de cada dependencia.</p>
+              <span class="mdd-card-dims">Dimensiones 01 · 02 · 03 · 08</span>
+              <a class="btn btn-dark" href="/connect?returnUrl=/inicio"><span>Diagnosticar procedimientos</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            </article>
+
+            <article class="card">
+              <span class="mdd-card-top">PARA TI</span>
+              <h3>Competencias digitales</h3>
+              <p>La responde cada persona del área. Te ayuda a conocer tu nivel y tu ruta de formación.</p>
+              <span class="mdd-card-dims">Dimensión 05</span>
+              <a class="btn btn-dark" href="/connect?returnUrl=/competencias-digitales"><span>Evaluar mis competencias</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            </article>
+
+            <article class="card">
+              <span class="mdd-card-top">PARA EL ENLACE TÉCNICO</span>
+              <div class="mdd-card-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+                <h3>Infraestructura y seguridad</h3>
+              </div>
+              <p>Equipo de cómputo, red y conectividad, respaldos, accesos y riesgos de ciberseguridad del área.</p>
+              <span class="mdd-card-dims">Dimensiones 04 · 06 · 07 · 08</span>
+              <button class="btn" type="button" disabled>Diagnosticar infraestructura</button>
+            </article>
+
+            <article class="card">
+              <span class="mdd-card-top">PARA LA ADMINISTRACIÓN DEL ÁREA</span>
+              <div class="mdd-card-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-15-1 10-7 15-15 15z"/><path d="M5 19l7-7"/></svg>
+                <h3>Sustentabilidad tecnológica</h3>
+              </div>
+              <p>Vida útil y aprovechamiento de equipos y licencias, consumo energético y manejo de residuos electrónicos.</p>
+              <span class="mdd-card-dims">Dimensión 08</span>
+              <button class="btn" type="button" disabled>Diagnosticar sustentabilidad</button>
+            </article>
+          </div>
+
+          <ul class="mdd-facts">
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Implementación <strong>2026–2027</strong></span></li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Respuestas confidenciales: los resultados se reportan por área, no por persona.</span></li>
+            <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/></svg><span>Tu área recibe un informe por dimensión y rutas de mejora.</span></li>
           </ul>
-          <div class="diagnosis-actions">
-            <a class="btn btn-primary" href="/connect?returnUrl=/competencias-digitales">Responder encuesta de competencias digitales</a>
-            <div class="diagnosis-game">
-              <div class="diagnosis-game-copy"><h3>¿Qué tanto sabes de Microsoft 365?</h3></div>
-              <button class="btn btn-outline quiz-launch" type="button" id="open-microsoft-quiz" aria-haspopup="dialog" aria-controls="microsoft-quiz-dialog">Jugar Ahora</button>
+
+          <div class="diagnosis-game">
+            <div class="mdd-quiz-text">
+              <h3>¿Qué tanto sabes de Microsoft 365?</h3>
+              <p>Antes de la encuesta, pon a prueba tus conocimientos en un quiz de 5 minutos.</p>
             </div>
+            <button type="button" class="btn btn-outline quiz-launch" id="open-microsoft-quiz" aria-haspopup="dialog" aria-controls="microsoft-quiz-dialog">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15 12h.01M17.5 14h.01"/></svg>
+              Jugar ahora
+            </button>
           </div>
         </div>
       </section>
 
-      <!-- 5. Participa -->
-      <section class="block" id="participa">
-        <span class="eyebrow">Registro de procedimientos</span>
-        <h2>Participa desde tu área</h2>
-        <p class="sub">Para avanzar necesitamos conocer cómo funcionan hoy las dependencias. Cada área podrá registrar:</p>
-        <ul class="reglist">
-          <li>Nombre y objetivo del procedimiento</li>
-          <li>Personas responsables y participantes</li>
-          <li>Usuarios y áreas involucradas</li>
-          <li>Actividades y flujo de trabajo</li>
-          <li>Sistemas, plataformas y bases de datos</li>
-          <li>Documentos y normatividad relacionados</li>
-          <li>Problemas, tiempos de atención y duplicidades</li>
-          <li>Datos generados, consultados o compartidos</li>
-          <li>Riesgos y necesidades de seguridad</li>
-          <li>Propuestas de mejora o automatización</li>
-        </ul>
-        <a class="btn btn-dark registration-cta" href="/connect?returnUrl=/inicio"><span>Registrar un procedimiento institucional</span> <span class="ar" aria-hidden="true">→</span></a>
-      </section>
-
       <!-- Beneficios -->
       <section class="block" id="beneficios">
-        <span class="eyebrow">Impacto</span>
         <h2>Beneficios para la comunidad</h2>
         <ul class="benefits">
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 12 4 4 10-10"/></svg>Servicios más ágiles y accesibles</li>
@@ -687,6 +735,7 @@
       <div class="panel doclist" id="docs">
         <h4>Documentos relacionados</h4>
         <ul>
+          <li><a href="/documentos/PIT_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Política de Innovación Tecnológica Digital<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
           <li><a href="/documentos/PITD_2026_2030_Marco_General_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Plan Institucional de Transformación Digital<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
           <li><a href="/documentos/Decalogo_Cultura_de_Datos_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Decálogo<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
           <li><a href="/documentos/Glosario_Transformacion_Digital_UACJ.pdf" target="_blank" rel="noopener"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h8l4 4v16H6Z"/><path d="M14 2v4h4"/></svg>Glosario<span class="sr-only"> (PDF, abre en una pestaña nueva)</span></a></li>
@@ -700,7 +749,6 @@
 <!-- ===== PREGUNTAS FRECUENTES ===== -->
 <section class="faq-section" id="preguntas">
   <div class="wrap">
-    <span class="eyebrow">Preguntas frecuentes</span>
     <h2>Resolvemos tus dudas</h2>
     <div class="faq">
       <details open><summary>¿Qué es la Transformación Digital UACJ?<span class="pm"></span></summary><p>Es un proceso institucional que integra personas, procedimientos, datos y tecnología para mejorar la forma en que la Universidad opera y presta sus servicios. No se trata solo de tecnología, sino de trabajar mejor con información confiable.</p></details>

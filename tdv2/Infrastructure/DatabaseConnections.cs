@@ -10,7 +10,7 @@ public sealed class DatabaseConnections(IConfiguration configuration)
         if (string.IsNullOrWhiteSpace(value)) throw new DomainProblem(503, "La conexión requerida no está configurada.");
         var settings = new NpgsqlConnectionStringBuilder(value) { IncludeErrorDetail = false, LogParameters = false };
         var connection = new NpgsqlConnection(settings.ConnectionString);
-        try { await connection.OpenAsync(cancellation); return connection; }
+        try {   await connection.OpenAsync(cancellation); return connection; }
         catch { await connection.DisposeAsync(); throw; }
     }
 }

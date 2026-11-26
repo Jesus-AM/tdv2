@@ -9,6 +9,7 @@ import { runInNewContext } from 'node:vm';
 import { verifyFooterFlow } from './page-flow.mjs';
 import { verifySignatures } from './identity-checks.mjs';
 import { renderedContrast } from './rendered-contrast.mjs';
+import { verifyFaqMotion } from './faq-motion.mjs';
 
 const phase = process.argv[2] || 'after';
 const output = path.resolve(process.env.TDV2_VISUAL_ARTIFACTS || '../.artifacts/quiz-inter-20261016');
@@ -77,13 +78,15 @@ try {
         const contrast=await renderedContrast(page,'.hero'); assert(contrast.every(c=>c.ratio>=c.required),JSON.stringify(contrast));
         report.checks.push({width,heroContrast:contrast});
         await page.locator('.hero').screenshot({ path: path.join(output, `hero-${phase}-${width}.png`) });
-        await page.locator('#diagnostico').screenshot({ path: path.join(output, `diagnosis-${phase}-${width}.png`) });
+        // La captura aislada del bloque puede superar la ventana. Las pruebas de anclas usan la cabecera visible.
+        await page.locator('#diagnostico').screenshot({ path: path.join(output, `diagnosis-${phase}-${width}.png`), style: '.topbar { visibility: hidden }' });
         if (phase === 'before') {
             await page.goto(origin + '/original-quiz.html');
             await fonts(page, '.hero h1', `quiz-original-${width}`);
             await page.screenshot({ path: path.join(output, `quiz-${phase}-${width}.png`), fullPage: true });
         } else {
             await verifyPublic(page, width);
+            if (width === 1366 || width === 390) report.checks.push({width, faqMotion:await verifyFaqMotion(page, width)});
             if ([1366,390,320].includes(width)) await verifyQuiz(page, width, height);
         }
         await ctx.close();
@@ -135,13 +138,153 @@ async function verifyPublic(page, width) {
     await expect(page.locator('#ruta>.sub')).toContainText('Un camino de ocho etapas');
     const steps = page.locator('#ruta .step'); await expect(steps).toHaveCount(8);
     for (const [index,text] of [[0,'Comunicar la visión, los objetivos, el alcance y los beneficios del PITD'],[2,'Fortalecer cultura organizacional, cultura de datos y capacidades digitales'],[6,'Desarrollar, probar y poner en operación']]) await expect(steps.nth(index).locator('p')).toHaveText(text);
-    await expect(page.locator('#diagnostico .sub')).toHaveText('Una fotografía honesta de su área en estas 8 dimensiones:');
-    await expect(page.locator('#diagnostico .checks li')).toHaveCount(8);
+    const block = page.locator('#diagnostico'), cards = block.getByRole('article');
+    const blue = 'rgb(33, 52, 85)', white = 'rgb(255, 255, 255)';
+    const head = block.locator('.mdd-head');
+    const transparent = 'rgba(0, 0, 0, 0)';
+    await expect(block).toHaveCSS('background-color', white);
+    const gradient = await page.locator('#ejes .band').evaluate(el => getComputedStyle(el).backgroundImage);
+    assert(gradient.startsWith('linear-gradient('));
+    await expect(head).toHaveCSS('background-color', blue);
+    await expect(head).toHaveCSS('background-image', 'none');
+    const typography = el => {
+        const {fontFamily, fontSize, fontWeight, lineHeight, letterSpacing, color} = getComputedStyle(el);
+        return {fontFamily, fontSize, fontWeight, lineHeight, letterSpacing, color};
+    };
+    for (const [source, targets] of [
+        ['#ruta > h2', head.locator('h2')],
+        ['#ruta > .sub', head.locator('.sub')],
+        ['#ejes .card h3', block.locator('.card h3,.mdd-quiz-text h3')],
+        ['#ejes .card p', block.locator('.card p,.mdd-quiz-text p')],
+    ]) {
+        const reference = await page.locator(source).first().evaluate(typography);
+        if (source.startsWith('#ruta')) reference.color = white;
+        for (const target of await targets.all()) assert.deepEqual(await target.evaluate(typography), reference);
+    }
+    for (const surface of await block.locator('.mdd-body,.mdd-cards,.mdd-facts,.diagnosis-game').all())
+        await expect(surface).toHaveCSS('background-color', transparent);
+    for (const label of await head.locator('h2,.sub,.mdd-dims li,.mdd-num').all())
+        await expect(label).toHaveCSS('color', white);
+    await expect(head.locator(':scope > h2:first-child')).toHaveText('Diagnóstico de madurez digital');
+    await expect(head).not.toContainText(/etapa 2 de 4/i);
+    await expect(head.locator('.mdd-progress')).toHaveCount(0);
+    await expect(block.locator('.sub')).toHaveText('Una fotografía honesta de tu área en 8 dimensiones, alineadas a la Política de Innovación Tecnológica Digital de la UACJ.');
+    await expect(head.locator('ol .mdd-num')).toHaveText(['01','02','03','04','05','06','07','08']);
+    await expect(cards.locator('h3')).toHaveText(['Procedimientos','Competencias digitales','Infraestructura y seguridad','Sustentabilidad tecnológica']);
+    await expect(cards.locator('.mdd-card-top:first-child')).toHaveText(['PARA TU ÁREA','PARA TI','PARA EL ENLACE TÉCNICO','PARA LA ADMINISTRACIÓN DEL ÁREA']);
+    await expect(cards.locator('p + .mdd-card-dims')).toHaveText(['Dimensiones 01 · 02 · 03 · 08','Dimensión 05','Dimensiones 04 · 06 · 07 · 08','Dimensión 08']);
+    await expect(cards.locator('.mdd-card-dims + .btn:last-child')).toHaveCount(4);
+    await expect(cards.nth(0).getByRole('link', {name:'Diagnosticar procedimientos'})).toHaveAttribute('href','/connect?returnUrl=/inicio');
+    await expect(cards.nth(1).getByRole('link', {name:'Evaluar mis competencias'})).toHaveAttribute('href','/connect?returnUrl=/competencias-digitales');
+    for (const card of [cards.nth(2), cards.nth(3)]) await expect(card.getByRole('button')).toBeDisabled();
+    await expect(block).not.toContainText(/≈|calentamiento/i);
+    const boxes = await cards.evaluateAll(elements => elements.map(e => e.getBoundingClientRect().toJSON()));
+    const gap = 16;
+    const [first, second] = await cards.getByRole('link').evaluateAll(links => links.map(link => link.getBoundingClientRect().toJSON()));
+    assert.equal(first.height, second.height, 'Altura de los dos botones de acceso');
+    if (width <= 640) assert(boxes.every((box,i) => !i || (box.top - boxes[i-1].bottom === gap && box.left === boxes[0].left)));
+    else {
+        assert.equal(boxes[0].top, boxes[1].top);
+        assert.equal(boxes[1].left - boxes[0].right, gap);
+        assert.equal(boxes[3].left - boxes[2].right, gap);
+        assert.equal(boxes[2].top - boxes[0].bottom, gap);
+        assert.equal(boxes[3].top - boxes[1].bottom, gap);
+        assert.equal(first.y, second.y);
+        const labels = await cards.locator('.mdd-card-dims').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().top));
+        assert.equal(labels[0], labels[1]);
+        assert.equal(labels[2], labels[3]);
+    }
+    await expect(block.locator('.mdd-body')).toHaveCSS('padding-left',width <= 390 ? '16px' : '24px');
+    if (width > 1120) {
+        const box = await block.boundingBox(), sidebar = await page.locator('aside.side').boundingBox();
+        assert(box.x + box.width <= sidebar.x);
+    }
+    assert(await block.locator('.btn,p').evaluateAll(elements => elements.every(e => e.scrollWidth <= e.clientWidth + 1 && e.scrollHeight <= e.clientHeight + 1)));
+    // Noto Sans puede dibujarse fuera de la caja de línea de los subtítulos de Ejes.
+    assert(await block.locator('h3').evaluateAll(headings => headings.every(heading => {
+        const group = heading.closest('.card,.diagnosis-game');
+        const range = document.createRange();
+        range.selectNodeContents(heading);
+        const text = range.getBoundingClientRect();
+        const bounds = group.getBoundingClientRect();
+        return getComputedStyle(heading).overflow === 'visible' &&
+            text.left >= bounds.left - 1 && text.right <= bounds.right + 1 &&
+            text.top >= bounds.top - 1 && text.bottom <= group.querySelector('p').getBoundingClientRect().top + 1;
+    })));
     await expect(page.locator('.diagnosis-game h3')).toHaveText('¿Qué tanto sabes de Microsoft 365?');
-    await expect(page.locator('.diagnosis-game p')).toHaveCount(0);
-    const links = page.locator('#docs a'); await expect(links).toHaveCount(3);
-    const files = ['PITD_2026_2030_Marco_General_UACJ.pdf','Decalogo_Cultura_de_Datos_UACJ.pdf','Glosario_Transformacion_Digital_UACJ.pdf'];
-    for (let i=0;i<3;i++) {
+    await expect(page.locator('.diagnosis-game p')).toHaveText('Antes de la encuesta, pon a prueba tus conocimientos en un quiz de 5 minutos.');
+    const panel = await page.locator('.panel.qa').evaluate(e => {
+        const style = getComputedStyle(e);
+        return {border: style.border, radius: style.borderRadius};
+    });
+    await expect(block).toHaveCSS('border', panel.border);
+    await expect(block).toHaveCSS('border-radius', panel.radius);
+    await expect(head).toHaveCSS('border-bottom-left-radius', '0px');
+    await expect(head).toHaveCSS('border-bottom-right-radius', '0px');
+    const bounds = await block.evaluate(section => {
+        const rect = selector => section.querySelector(selector).getBoundingClientRect();
+        const frame = section.getBoundingClientRect(), header = rect('.mdd-head');
+        return {
+            headerInsets: [header.top - frame.top, header.left - frame.left, frame.right - header.right],
+            titleInset: rect('h2').top - rect('.mdd-head').top,
+            headerPadding: parseFloat(getComputedStyle(section.querySelector('.mdd-head')).paddingTop),
+            headerBottom: rect('.mdd-head').bottom, bodyTop: rect('.mdd-body').top,
+            titleLeft: rect('h2').left, cardsLeft: rect('.mdd-cards').left, gameTextLeft: rect('.diagnosis-game h3').left,
+        };
+    });
+    assert.deepEqual(bounds.headerInsets, [1,1,1]);
+    assert(Math.abs(bounds.titleInset - bounds.headerPadding) < 1);
+    assert.equal(bounds.headerBottom, bounds.bodyTop);
+    assert.equal(bounds.titleLeft, bounds.cardsLeft);
+    assert.equal(bounds.titleLeft, bounds.gameTextLeft);
+    for (const card of await cards.all()) {
+        await expect(card).toHaveCSS('background-color', white);
+        await expect(card).toHaveCSS('border', panel.border);
+        await expect(card).toHaveCSS('border-radius', panel.radius);
+        await expect(card).toHaveCSS('box-shadow', 'none');
+        await expect(card.locator('h3')).toHaveCSS('color', blue);
+        await expect(card.locator('p')).toHaveCSS('color', blue);
+    }
+    for (const icon of await block.locator('.mdd-card-title svg,.mdd-facts svg,.quiz-launch svg').all())
+        await expect(icon).toHaveCSS('stroke', blue);
+    for (const label of await block.locator('.mdd-facts span,.mdd-quiz-text h3,.mdd-quiz-text p').all())
+        await expect(label).toHaveCSS('color', blue);
+    const linksInCards = cards.getByRole('link');
+    const play = block.getByRole('button', {name:'Jugar ahora',exact:true});
+    for (const link of await linksInCards.all()) {
+        await expect(link).toHaveCSS('background-color', blue);
+        await expect(link).toHaveCSS('color', white);
+    }
+    await expect(play).toHaveCSS('background-color', white);
+    await expect(play).toHaveCSS('border-top-color', blue);
+    await expect(play).toHaveCSS('color', blue);
+    const contrast = await renderedContrast(page, '#diagnostico');
+    assert(contrast.length > 0 && contrast.every(c => c.ratio >= c.required), JSON.stringify(contrast));
+    report.checks.push({width, diagnosisContrast:contrast});
+    for (const link of await linksInCards.all()) {
+        await link.hover();
+        await expect(link).toHaveCSS('background-color', 'rgb(237, 239, 242)');
+        await expect(link).toHaveCSS('color', blue);
+        await expect(link).toHaveCSS('border-top-color', blue);
+    }
+    await linksInCards.nth(1).focus();
+    for (const [control, key] of [[linksInCards.first(),'Shift+Tab'],[linksInCards.nth(1),'Tab'],[play,'Tab']]) {
+        await page.keyboard.press(key);
+        await expect(control).toBeFocused();
+        await expect(control).toHaveCSS('outline-width', '3px');
+        await expect(control).toHaveCSS('outline-offset', '3px');
+        await expect(control).toHaveCSS('outline-style', 'solid');
+        await expect(control).toHaveCSS('outline-color', blue);
+    }
+    await play.hover();
+    await expect(play).toHaveCSS('background-color', 'rgb(237, 239, 242)');
+    await expect(play).toHaveCSS('color', blue);
+    const links = page.locator('#docs a');
+    const files = ['PIT_UACJ.pdf','PITD_2026_2030_Marco_General_UACJ.pdf','Decalogo_Cultura_de_Datos_UACJ.pdf','Glosario_Transformacion_Digital_UACJ.pdf'];
+    const titles = ['Política de Innovación Tecnológica Digital','Plan Institucional de Transformación Digital','Decálogo','Glosario'];
+    await expect(links).toHaveCount(files.length);
+    for (let i=0;i<files.length;i++) {
+        await expect(links.nth(i)).toHaveAccessibleName(titles[i]+' (PDF, abre en una pestaña nueva)');
         await expect(links.nth(i)).toHaveAttribute('href','/documentos/'+files[i]);
         await expect(links.nth(i)).toHaveAttribute('target','_blank'); await expect(links.nth(i)).toHaveAttribute('rel','noopener');
         assert.equal(await links.nth(i).getAttribute('download'),null);
@@ -157,18 +300,44 @@ async function verifyPublic(page, width) {
     assert((await page.locator('.hero').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('/images/portal/img_9885-1920.jpg'));
     await page.locator('.public-footer').screenshot({path:path.join(output,`footer-${width}.png`)});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    const anchors = [
+        [page.locator('.topbar').getByRole('link', {name:/^Participa/}), '#diagnostico'],
+        [page.locator('.qa').getByRole('link', {name:/^Registro de procedimientos/}), '#participa'],
+        [page.locator('.qa').getByRole('link', {name:/^Diagnóstico de madurez/}), '#diagnostico'],
+    ];
+    const navDiagnosis = page.locator('.nav').getByRole('link', {name:'Diagnóstico',exact:true});
+    if (await navDiagnosis.isVisible()) anchors.push([navDiagnosis, '#diagnostico']);
+    for (const [link, hash] of anchors) {
+        await expect(link).toHaveAttribute('href', hash);
+        await link.click();
+        await expect.poll(() => page.evaluate(hash => {
+            const target = document.querySelector(hash);
+            const top = target.getBoundingClientRect().top;
+            const title = target.querySelector('h2,h3').getBoundingClientRect();
+            const height = document.querySelector('.topbar').getBoundingClientRect().bottom;
+            return location.hash === hash && top >= height - 1 && top < height + 40
+                && title.top >= height && title.bottom <= innerHeight;
+        }, hash)).toBe(true);
+    }
     await page.locator('.qa a[href="#diagnostico"]').click();
-    await expect.poll(()=>page.evaluate(()=>document.querySelector('#diagnostico h2').getBoundingClientRect().top-document.querySelector('.topbar').getBoundingClientRect().bottom)).toBeGreaterThanOrEqual(-1);
     await page.screenshot({path:path.join(output,`diagnostico-ancla-${width}.png`)});
-    for (const selector of ['.nav a','.hero h1','#que-es p','.card h3','#diagnostico .btn-primary','.contact-email'])
+    if (width === 768 || width === 1024) {
+        const play = block.getByRole('button', {name:'Jugar ahora',exact:true});
+        await play.click();
+        await expect(page.frameLocator('#microsoft-quiz-frame').getByRole('button', {name:'🚀 Comenzar reto',exact:true})).toBeVisible();
+        await page.getByRole('button', {name:'Cerrar reto Microsoft 365'}).click();
+        await expect(page.locator('#microsoft-quiz-dialog')).toBeHidden();
+        await expect(play).toBeFocused();
+    }
+    for (const selector of ['.nav a','.hero h1','#que-es p','.card h3','#participa .btn-dark','.contact-email'])
         assert((await page.locator(selector).first().evaluate(e=>getComputedStyle(e).fontFamily)).includes('Noto Sans'));
     report.checks.push({width,publicFlow:await verifyFooterFlow(page,'.public-content','.public-footer'),content:true,documents:true});
 }
 
 async function verifyQuiz(page, width, height) {
-    const digitalLink = page.getByRole('link', { name: 'Responder encuesta de competencias digitales', exact: true });
-    await expect(digitalLink).toHaveAttribute('href', '/competencias-digitales');
-    const open = page.getByRole('button', { name: 'Jugar Ahora', exact: true });
+    const digitalLink = page.getByRole('link', { name: 'Evaluar mis competencias', exact: true });
+    await expect(digitalLink).toHaveAttribute('href', '/connect?returnUrl=/competencias-digitales');
+    const open = page.getByRole('button', { name: 'Jugar ahora', exact: true });
     let portalScroll;
     const dialog = page.getByRole('dialog', { name: 'Reto Microsoft 365', exact: true });
     const quiz = page.frameLocator('#microsoft-quiz-frame');

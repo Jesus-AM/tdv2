@@ -300,9 +300,9 @@ internal static class EntryPoint
             var r = await client.GetAsync("/"); Check(r.IsSuccessStatusCode);
             var html = await r.Content.ReadAsStringAsync();
             Check(html.Contains("/css/institutional.css") && html.Contains("/fonts/noto-sans/NotoSans-Regular.ttf") && !html.Contains("fonts.googleapis.com")
-                && !html.Contains("/fonts/roboto/") && html.Contains("Registrar un procedimiento institucional")
-                && html.Contains("Jugar Ahora") && html.Contains("¿Qué tanto sabes de Microsoft 365?")
-                && !html.Contains("Pon a prueba tus conocimientos de Microsoft 365."));
+                && !html.Contains("/fonts/roboto/") && html.Contains("Diagnosticar procedimientos")
+                && html.Contains("Jugar ahora") && html.Contains("¿Qué tanto sabes de Microsoft 365?")
+                && html.Contains("Antes de la encuesta, pon a prueba tus conocimientos en un quiz de 5 minutos."));
         });
         Http("ASP.NET sirve enlace profundo y bundle React generado", async (_, client) =>
         {

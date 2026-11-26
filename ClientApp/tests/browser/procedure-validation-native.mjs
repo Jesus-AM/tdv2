@@ -36,8 +36,8 @@ async function live() { return page.evaluate(async () => (await fetch('/formatos
 try {
     await check('portal: texto completo y alineado a 1440, 390 y 320 px; acceso conserva autenticación', async () => {
         await page.goto(origin);
-        const link = page.getByRole('link', { name: 'Registrar un procedimiento institucional', exact: true });
-        await expect(link).toHaveAttribute('href', '/inicio');
+        const link = page.getByRole('link', { name: 'Diagnosticar procedimientos', exact: true });
+        await expect(link).toHaveAttribute('href', '/connect?returnUrl=/inicio');
         for (const width of [1440, 390, 320]) {
             await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 }); await link.scrollIntoViewIfNeeded();
             const layout = await link.evaluate(e => {
@@ -50,7 +50,7 @@ try {
             await page.screenshot({ path: path.join(artifacts, `validation-portal-${width}.png`) });
         }
         await link.click(); await page.waitForURL(origin + '/inicio');
-        await page.goto(origin); await expect(link).toHaveAttribute('href', '/inicio'); await link.click(); await page.waitForURL(origin + '/inicio');
+        await page.goto(origin); await expect(link).toHaveAttribute('href', '/connect?returnUrl=/inicio'); await link.click(); await page.waitForURL(origin + '/inicio');
         await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin + '/formatos/A'); await header();
     });
     await check('selector vacío sin opción indicativa, sólo V/A; reserva, guardado y recarga', async () => {

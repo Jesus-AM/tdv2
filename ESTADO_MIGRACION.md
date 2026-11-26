@@ -1,5 +1,45 @@
 # Estado de migración TDV2
 
+## 2026-11-26 · Transición de Preguntas frecuentes
+
+El acordeón nativo de la portada abre en 220 ms y cierra en 180 ms. Una fila CSS ajusta el espacio a la altura del párrafo y mantiene el texto visible durante el cierre. El indicador comparte la curva de la respuesta. Con movimiento reducido, o en navegadores que carezcan de soporte para esta transición, la apertura y el cierre son inmediatos.
+
+La vista compiló en Release. En Edge se probaron las respuestas más larga y más corta a 1366, 390 y 320 px, incluidas tres inversiones a mitad del recorrido, clics y toques rápidos, foco, teclado y movimiento reducido. La prueba mide por fotograma la altura visible y la posición de la siguiente pregunta. Prueba de regresión en `ClientApp/tests/browser/faq-motion.mjs`, integrada en el recorrido de la portada.
+
+## 2026-11-26 · Títulos de la portada pública
+
+Preguntas frecuentes comienza con «Resolvemos tus dudas». En Edge se comprobó que el menú de escritorio y el acceso rápido en móvil llevan a `#preguntas`, que el título queda visible y que las seis preguntas se pueden abrir y cerrar con el teclado. Comprobación sobre la vista compilada en Release a 1366 y 390 px en `.artifacts/portada-faq-20261126/`.
+
+Proyecto, Modelo, Ejes, Ruta y Beneficios empiezan directamente con su título principal. La compilación Release pasó sin advertencias ni errores. En Edge se comprobaron la alineación y las cinco anclas a 1366, 390 y 320 px. Se usaron los enlaces visibles del menú y las anclas directas para los demás destinos. Los títulos quedaron debajo de la cabecera fija. Capturas y mediciones en `.artifacts/portada-titulos-20261126/`.
+
+## 2026-11-25 · Diagnóstico y participación en la portada pública
+
+**Implementado.** La vista `tdv2/Views/Home/Index.cshtml` reúne el diagnóstico, las ocho dimensiones numeradas, las cuatro tarjetas, la información sobre los resultados y el juego. Procedimientos cubre 01, 02, 03 y 08. Competencias digitales cubre 05. Infraestructura y seguridad cubre 04, 06, 07 y 08. Sustentabilidad tecnológica cubre 08. El bloque usa los estilos y la fuente local de la portada. Las columnas se adaptan al ancho que deja «Accesos rápidos».
+
+**Verificado.** El texto renderizado coincide con la referencia del usuario tras retirar las cuatro duraciones y «Calentamiento». La compilación Release y las 37 comprobaciones HTTP de recursos públicos pasaron. En Edge se comprobó la portada a 1366, 1024, 768, 390 y 320 px, la llegada de las anclas bajo la cabecera, los textos completos, las tarjetas apiladas en móvil y la apertura y cierre del juego con retorno del foco. Capturas y resultados locales en `.artifacts/portada-diagnostico-20261125/`.
+
+El recorrido de acceso completó 36 comprobaciones con ASP.NET y PostgreSQL aislado, identidad Microsoft y permisos Nexo sintéticos. Entre ellas hubo 30 entradas por las tarjetas de los dos sitios, desde una sesión nueva, vigente o vencida. Resultado en `.artifacts/native-postgres-20261125-185144-6ae80f1c/public-entry-ui.json`.
+
+**Archivos de verificación.** En `ClientApp/tests/browser/`, `quiz-inter-ui.mjs` comprueba el contenido, la disposición y las interacciones del bloque. `public-colors-ui.mjs` reconoce también el título de la tarjeta de Procedimientos al comprobar anclas. Se actualizaron los selectores de los enlaces en `public-entry-native.mjs`, `competencias-native.mjs`, `procedure-coverage-native.mjs`, `procedure-validation-native.mjs`, `access-flow.mjs`, `native-flow.mjs`, `sync-flow.mjs`, `local-startup.mjs`, `visual-studio-startup.mjs` y `publish-flow.mjs`, además de los textos esperados en `tests/TDV2.Verification/EntryPoint.cs`.
+
+**Pendiente.** El proyecto tiene destinos de acceso para Procedimientos institucionales y Competencias digitales. Faltan las URL de los instrumentos de Infraestructura y seguridad y de Sustentabilidad tecnológica. Sus tarjetas conservan los botones deshabilitados hasta disponer de esos destinos.
+
+**Ajuste visual del diagnóstico.** El recuadro azul institucional reúne el encabezado y las ocho dimensiones. Dos segmentos blancos rellenos y dos de contorno indican la etapa. Las cuatro tarjetas comparten el fondo blanco, el borde y las esquinas de «Accesos rápidos». Los dos accesos activos se alinean al pie. «Jugar ahora» usa el botón blanco con borde azul en la fila final.
+
+**Comprobación del ajuste.** La solución compiló en Release con cero advertencias y errores. En Edge se verificaron los colores calculados, las anclas, el foco de teclado, los botones completos y el diálogo del juego a 1366, 1024, 768, 390 y 320 px de ancho. El texto renderizado coincide con la versión anterior del bloque. Las capturas locales de escritorio y móvil están en `.artifacts/portada-diagnostico-blanco-20261125/diagnostico-escritorio.png` y `.artifacts/portada-diagnostico-blanco-20261125/diagnosis-after-390.png`.
+
+**Panel completo.** El borde exterior de 1 px cierra debajo del juego. El título, las tarjetas y el texto del juego comparten margen interior. La cabecera azul toca el cuerpo blanco y la columna lateral queda fuera del panel. Se comprobó la alineación en Edge a 320, 390, 768, 1024 y 1366 px, junto con las anclas y la apertura y el cierre del juego. La solución compiló en Release con cero advertencias y errores. Capturas completas en `.artifacts/portada-diagnostico-panel-20261125/diagnostico-escritorio.png` y `.artifacts/portada-diagnostico-panel-20261125/diagnostico-movil.png`.
+
+**Presentación vigente del panel.** El título, la introducción y las dimensiones 01–08 usan texto blanco sobre azul institucional sólido `#213455`. El cuerpo blanco empieza justo debajo y el marco gris cierra después de «Jugar ahora». La tipografía del encabezado procede de «Ruta de Transformación Digital». Las cuatro tarjetas comparten margen interior con el título y la fila del juego.
+
+**Portada vigente al 26 de noviembre.** «Participa» enlaza al encabezado `#diagnostico` y el acceso rápido «Registro de procedimientos» a la tarjeta `#participa`. Las tarjetas de Procedimientos y Competencias digitales usan el mismo botón azul de la portada. Cada una conserva su destino de entrada.
+
+**Documentos relacionados.** La política abre la lista, seguida del Plan, el Decálogo y el Glosario. Su enlace abre `/documentos/PIT_UACJ.pdf` en otra pestaña. El original, la copia del paquete Release y la respuesta HTTP tienen el mismo SHA-256, `c2b846508cb760fbf1eb8378c6722880d542f9235a4fd0e7428f54db911935a9`.
+
+**Verificado en local el 26 de noviembre.** Compilación Release con cero advertencias y errores. El paquete ejecutado en Kestrel respondió a una petición anónima a `/documentos/PIT_UACJ.pdf` con HTTP 200, tipo `application/pdf` y 5 107 180 bytes. Pasaron las 38 comprobaciones de recursos públicos de ASP.NET. En Edge se verificaron la altura y los estados de los dos botones activos, las dos tarjetas deshabilitadas, el título visible bajo la cabecera al pulsar «Participa», el acceso rápido a Procedimientos, el orden de los documentos y el diálogo del juego a 320, 390, 768, 1024 y 1366 px. Capturas y resultados en `.artifacts/portada-participa-20261126/` (`diagnostico-escritorio.png`, `diagnostico-movil.png`, `publicacion.json` y `quiz-inter-after-report.json`).
+
+Las dos tarjetas completaron 30 entradas a su destino después de autenticar o reutilizar la sesión en escritorio, tableta y móvil. El recorrido utilizó los recursos Release, ASP.NET y PostgreSQL aislado con Microsoft y Nexo simulados. Las 36 comprobaciones del recorrido pasaron y el navegador registró cero errores. Evidencia en `.artifacts/native-postgres-20261126-170853-6d809306/public-entry-ui.json`.
+
 ## 2026-11-23 · Última pregunta de un apartado
 
 En Edge se reprodujo una discrepancia entre la tarjeta y el resumen del apartado. Al corregir la última respuesta pendiente de Excel o de Contraseñas y autenticación, el resumen y la disponibilidad del paso siguiente todavía dependían de la última respuesta HTTP. Ahora ambos leen el borrador visible durante la edición. La apertura del apartado siguiente y el envío definitivo siguen requiriendo confirmación de ASP.NET.
