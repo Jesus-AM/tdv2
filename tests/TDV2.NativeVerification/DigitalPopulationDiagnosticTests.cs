@@ -20,7 +20,7 @@ internal static class DigitalPopulationDiagnosticTests
         await fixture.ValidateCluster();
         await fixture.Sql(await File.ReadAllTextAsync(Path.Combine(fixture.Workspace, "tests/TDV2.NativeVerification/nexo-fixture.sql")));
         await fixture.Sql("""
-            CREATE TABLE unidades_responsables_poa(id_ur text,cve_ur text,nivel_ur integer,id_ur_pertenece text,tipo_ur text,estatus_ur text,presente boolean);
+            CREATE TABLE unidades_responsables_poa(id_ur text,cve_ur text,nivel_ur integer,id_ur_pertenece text,tipo_ur text,estatus_ur text,presente boolean,ejercicio integer DEFAULT 2026);
             INSERT INTO unidades_responsables_poa VALUES('ROOT','ROOT',1,null,'N','Activo',true),('A','A',2,'ROOT','D','Activo',true),
                 ('A3','A3',3,'A','N','Activo',true),('A4','A4',4,'A3','D','Activo',true),('B','B',2,'ROOT','D','Activo',true);
             CREATE TABLE cd_control("Id" int,"Generation" uuid,"Revision" bigint);

@@ -23,7 +23,12 @@ public static class AccessBoundary
             var slug = path.Value!.TrimEnd('/').Split('/').Last();
             var module = Array.IndexOf(Tdv2.Competencias.DigitalRoutes.Slugs, slug);
             if (Tdv2.Competencias.DigitalRoutes.Page(path) && module >= 0) await digital.Require(http, module);
-            else await digital.Resolve(http);
+            else
+            {
+                var scope = await digital.Resolve(http);
+                if (path == Tdv2.Competencias.DigitalRoutes.Base && !scope.MenuPages.Any())
+                    throw new DomainProblem(403, ApplicationEntry.Denied(path));
+            }
             return;
         }
         if (path == "/vista-prueba" && HttpMethods.IsDelete(http.Request.Method)

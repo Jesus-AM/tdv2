@@ -16,7 +16,7 @@ export interface SharedProps {
     session: import('../lib/session-deadline').SessionTiming;
     routes: { inicio: string; logout: string; home: string; connect: string };
     access?: { message: string; status: number; options?: ApplicationOption[] };
-    available?: { options: ApplicationOption[]; unavailable: boolean };
+    available?: { options: ApplicationOption[]; unavailable: boolean; unavailableSites?: string[] };
     [key: string]: unknown;
 }
 export interface Page { component: string; props: SharedProps; url: string }

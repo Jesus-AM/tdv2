@@ -28,13 +28,21 @@ public static class DomainProblemResponse
             return;
         }
         var payload = problem.Details is null ? new JsonObject() : JsonSerializer.SerializeToNode(problem.Details)!.AsObject();
+        var site = sites.ForPath(context.Request.Path);
+        var siteName = context.Request.Path == "/user/photo" && context.Request.Headers["X-TDV2-Application"] == "competencias-digitales"
+            ? "Competencias digitales" : site?.Name;
         payload["message"] = problem.Message;
-        if (problem.Status == 403 && problem.Message == ApplicationEntry.NoApplications)
-            payload["message"] = ApplicationEntry.Denied(context.Request.Path);
+        if (siteName is not null && problem.Message == ApplicationEntry.NoApplications)
+            payload["message"] = $"Tu cuenta no tiene acceso a {siteName}.";
+        if (siteName is not null && problem.Message == ApplicationEntry.Unavailable)
+        {
+            payload["message"] = ApplicationEntry.UnavailableFor(siteName);
+            payload["accessUnavailable"] = true;
+        }
         if ((ApplicationEntry.IsDestination(context.Request.Path) || sites.IsLanding(context.Request.Path)) && problem.Status is 403 or 503)
         {
-            var message = problem.Status == 503 ? ApplicationEntry.Unavailable : sites.ForPath(context.Request.Path) is { } site
-                ? $"Tu cuenta no tiene acceso a {site.Name}." : ApplicationEntry.Denied(context.Request.Path);
+            var message = problem.Status == 503 ? (siteName is null ? ApplicationEntry.Unavailable : ApplicationEntry.UnavailableFor(siteName))
+                : siteName is null ? ApplicationEntry.NoApplications : $"Tu cuenta no tiene acceso a {siteName}.";
             IReadOnlyList<ApplicationEntry.Option> options = [];
             try { options = (await ApplicationEntry.Find(context, context.Request.Path)).Options; }
             catch (DomainProblem) { /* La sesión tampoco pudo validarse: no ofrecer accesos. */ }

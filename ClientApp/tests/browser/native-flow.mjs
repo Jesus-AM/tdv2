@@ -69,7 +69,7 @@ async function control(action) {
 async function stored() { return (await control('stored')).json(); }
 async function header(target = page) {
     await target.getByRole('tab', { name: 'Identificación general', exact: true }).click();
-    return target.getByLabel('Trámite / servicio 1', { exact: true });
+    return target.getByLabel('Procedimiento 1', { exact: true });
 }
 async function activate(input) {
     await input.focus(); await expect(input).toHaveJSProperty('readOnly', false);
@@ -168,8 +168,8 @@ try {
     await check('dos pestañas: SignalR muestra titular, bloquea la misma reserva y permite otro bloque', async () => {
         const other = await context.newPage();
         await other.goto(`${origin}/formatos/A`); const otherInput = await header(other);
-        await activate(page.getByLabel('Trámite / servicio 1', { exact: true }));
-        await savedAfter(() => page.getByLabel('Trámite / servicio 1', { exact: true }).fill('Ganadora React'));
+        await activate(page.getByLabel('Procedimiento 1', { exact: true }));
+        await savedAfter(() => page.getByLabel('Procedimiento 1', { exact: true }).fill('Ganadora React'));
         await expect(otherInput).toHaveJSProperty('readOnly', true);
         await expect(other.getByText('Estás editando este registro en otra pestaña', { exact: true })).toBeVisible();
         await expect(otherInput).toHaveValue('Ganadora React');
@@ -245,7 +245,7 @@ try {
         await expect(priorities).toHaveText('Selecciona una prioridad');
         // El desplegable es el primer campo visitado: adquiere y abre sin botón adicional.
         await priorities.click();
-        await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveJSProperty('readOnly', false);
+        await expect(page.getByLabel('Procedimiento 1', { exact: true })).toHaveJSProperty('readOnly', false);
         const releases = editingRequests.filter(r => r.path.endsWith('/liberar')).length;
         await page.waitForTimeout(150);
         assert.equal(editingRequests.filter(r => r.path.endsWith('/liberar')).length, releases);
@@ -295,8 +295,8 @@ try {
     await check('error PostgreSQL conserva borrador; reintento recupera guardado', async () => {
         await control('fail-save');
         const before = await stored();
-        await activate(page.getByLabel('Trámite / servicio 1', { exact: true }));
-        await savedAfter(() => page.getByLabel('Trámite / servicio 1', { exact: true }).fill('Recuperación React'), 503);
+        await activate(page.getByLabel('Procedimiento 1', { exact: true }));
+        await savedAfter(() => page.getByLabel('Procedimiento 1', { exact: true }).fill('Recuperación React'), 503);
         assert.equal((await stored()).version, before.version);
         assert.equal((await stored()).contenido.identificacion[0].tramite, 'Ganadora React');
         await control('recover-save');
@@ -338,16 +338,16 @@ try {
     await check('usuario sin aplicación publicada no conserva acceso de su sesión', async () => {
         await control('user-off');
         assert.equal((await page.goto(`${origin}/inicio`)).status(), 403);
-        await page.getByText('Tu cuenta no tiene un acceso y un rol vigentes para Transformación Digital en Nexo.', { exact: true }).waitFor();
+        await page.getByText('Tu cuenta no tiene acceso a Procedimientos institucionales.', { exact: true }).waitFor();
         await control('user-on');
         await control('app-off');
-        assert.equal((await page.goto(`${origin}/inicio`)).status(), 403);
+        assert.equal((await page.goto(`${origin}/inicio`)).status(), 503);
         await control('app-on');
     });
     await check('Nexo no disponible no concede permisos y permite recuperar sesión', async () => {
         await control('outage');
         assert.equal((await page.goto(`${origin}/inicio`)).status(), 503);
-        await page.getByText('No fue posible comprobar el acceso con Nexo. Inténtalo más tarde.', { exact: true }).waitFor();
+        await page.getByText('No fue posible comprobar tu acceso a Procedimientos institucionales. Inténtalo de nuevo más tarde.', { exact: true }).waitFor();
         await control('restore');
         assert.equal((await page.goto(`${origin}/formatos/A`)).status(), 200);
         assert.equal(await (await header()).inputValue(), 'Guardado con respuesta perdida');
@@ -421,7 +421,7 @@ try {
         const other = await context.newPage(); await other.goto(origin + '/formatos/A'); await header(other);
         await other.getByRole('button', { name: 'Eliminar registro', exact: true }).nth(0).click();
         await savedAfter(() => other.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click(), 200, other);
-        await expect(page.getByLabel('Trámite / servicio 1', { exact: true })).toHaveValue('Proceso elegido');
+        await expect(page.getByLabel('Procedimiento 1', { exact: true })).toHaveValue('Proceso elegido');
         await savedAfter(() => page.getByRole('dialog').getByRole('button', { name: 'Eliminar', exact: true }).click());
         const content = (await stored()).contenido;
         assert.deepEqual(content.identificacion.map(row => row.tramite), ['Proceso que permanece']);

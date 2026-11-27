@@ -2,7 +2,12 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
+using Tdv2.Security;
 using Tdv2.Web;
+using Tdv2.Competencias;
 
 namespace Tdv2.NativeVerification;
 
@@ -10,11 +15,101 @@ internal sealed partial class DigitalTests
 {
     private void AddApplicationEntryTests(List<(string Name, Func<NativeApplication, HttpClient, Task> Work)> cases)
     {
+        cases.Add(("Entrada: restablecimiento de membresías conserva la sesión y los borradores confirmados", async (app, client) =>
+        {
+            await Login(app, client);
+            var original = await Json(await client.GetAsync("/session/status"));
+            var survey = await CompleteAndSave(client, 1);
+            var input = Complete(survey, 2);
+            var before = await Data("SELECT to_jsonb(s)::text FROM cd_surveys s");
+            await Nexo("INSERT INTO fixture_suspensions VALUES(10)");
+            Check(Convert.ToInt32(await Nexo("SELECT count(*) FROM nexo_usuarios WHERE usuario_id=20")) == 0);
+            await Status(client.GetAsync(Base), 403);
+            await Status(client.GetAsync(Base + "/api/encuesta"), 403);
+            var refused = await Json(await client.PutAsJsonAsync(Base + "/api/encuesta", input), 403);
+            Check(refused["message"]!.ToString() == ApplicationEntry.Denied(Base));
+            await Status(client.PostAsJsonAsync(Base + "/api/encuesta/guardar", new DigitalManualSave(survey.Version, survey.Generation, Guid.NewGuid())), 403);
+            await Status(client.PostAsJsonAsync(Base + "/api/encuesta/finalizar", new DigitalFinalize(survey.Version, survey.Generation)), 403);
+            Check(Equals(before, await Data("SELECT to_jsonb(s)::text FROM cd_surveys s")));
+            Check((await Json(await client.GetAsync("/accesos")))["redirect"]!.ToString() == "/inicio");
+            var tab = Guid.NewGuid();
+            var read = "/formatos/A/estado?tab=" + tab;
+            var row = (await Json(await client.GetAsync(read)))["contenido"]!["identificacion"]![0]!.DeepClone();
+            var key = "identificacion:" + row["id"];
+            var leases = await Json(await client.PostAsJsonAsync("/formatos/A/reservas", new { tabId = tab, operationId = Guid.NewGuid(), blocks = new[] { new { key, version = 0 } } }));
+            var lease = leases["bloques"]![0]!["reserva"]!["id"]!.ToString();
+            Task<HttpResponseMessage> SaveForm(int version, string name)
+            {
+                row["tramite"] = name;
+                return client.PatchAsJsonAsync("/formatos/A/bloques", new { tabId = tab, operationId = Guid.NewGuid(), blocks = new[] { new { key, version, leaseId = lease, value = row } } });
+            }
+            await Status(SaveForm(0, "Confirmado"), 200);
+            var formBefore = await shared.Scalar("SELECT to_jsonb(f)::text FROM formatos_ur f WHERE id_ur='A'");
+            await shared.Sql("INSERT INTO fixture_suspensions VALUES(10)");
+            Check((await Json(await client.GetAsync("/accesos")))["props"]!["available"]!["options"]!.AsArray().Count == 0);
+            await Nexo("DELETE FROM fixture_suspensions WHERE usuario_aplicacion_id=10");
+            Check((await Json(await client.GetAsync("/accesos")))["redirect"]!.ToString() == Base);
+            Check((await Survey(client)).Version == survey.Version);
+            await Status(client.GetAsync("/inicio"), 403);
+            await Status(client.GetAsync(read), 403);
+            Check((await Json(await SaveForm(1, "Sin confirmar"), 403))["message"]!.ToString() == ApplicationEntry.Denied("/inicio"));
+            await Status(client.PostAsJsonAsync("/formatos/A/enviar", new { tabId = tab, operationId = Guid.NewGuid(), version = 1 }), 403);
+            Check(Equals(formBefore, await shared.Scalar("SELECT to_jsonb(f)::text FROM formatos_ur f WHERE id_ur='A'")));
+            await shared.Sql("DELETE FROM fixture_suspensions WHERE usuario_aplicacion_id=10");
+            Check((await Json(await client.GetAsync(read)))["contenido"]!["identificacion"]![0]!["tramite"]!.ToString() == "Confirmado");
+            await Status(client.GetAsync("/formatos/B"), 403);
+            await Status(client.GetAsync(Base + "/configuracion"), 403);
+            var restored = await Json(await client.GetAsync("/session/status"));
+            Check(original["id"]!.ToString() == restored["id"]!.ToString() && original["expires_at"]!.ToString() == restored["expires_at"]!.ToString() && app.Microsoft.Exchanges == 1);
+        }));
+        foreach (var previous in new[] { false, true })
+        cases.Add(($"Entrada: primer vínculo tras restablecer un sitio, alias acreditado y ticket anterior={previous}", async (app, client) =>
+        {
+            await shared.Sql("DELETE FROM tdv2_identity_links; INSERT INTO fixture_suspensions VALUES(10)");
+            await Nexo("INSERT INTO fixture_suspensions VALUES(10)");
+            app.Microsoft.Mail = "alias@uacj.mx"; app.Microsoft.Email = "inicio@uacj.mx"; app.Microsoft.ProxyAddresses = ["smtp:persona@uacj.mx"];
+            await Login(app, client);
+            var original = await Json(await client.GetAsync("/session/status"));
+            if (previous)
+            {
+                var crypto = app.Services.GetRequiredService<ProtectedValues>();
+                var encrypted = (string)(await shared.Scalar("SELECT ticket FROM tdv2_sessions"))!;
+                var ticket = TicketSerializer.Default.Deserialize(Convert.FromBase64String(crypto.Unprotect("session", encrypted)))!;
+                var claims = (ClaimsIdentity)ticket.Principal.Identity!;
+                claims.RemoveClaim(claims.FindFirst("tdv2.pending-microsoft-person"));
+                await shared.Sql("UPDATE tdv2_sessions SET ticket=$1", crypto.Protect("session", Convert.ToBase64String(TicketSerializer.Default.Serialize(ticket))));
+            }
+            Check((await Json(await client.GetAsync("/accesos")))["props"]!["available"]!["options"]!.AsArray().Count == 0);
+            await Nexo("DELETE FROM fixture_suspensions");
+            Check((await Json(await client.GetAsync("/accesos")))["redirect"]!.ToString() == Base);
+            var restored = await Json(await client.GetAsync("/session/status"));
+            Check(original["id"]!.ToString() == restored["id"]!.ToString() && original["expires_at"]!.ToString() == restored["expires_at"]!.ToString());
+            Check(Convert.ToInt64(await shared.Scalar("SELECT nexo_user_id FROM tdv2_identity_links")) == 20 && app.Microsoft.Exchanges == 1);
+            await Accept(client);
+            await Status(client.GetAsync("/inicio"), 403);
+        }));
+        cases.Add(("Entrada: sesión sin vínculo rechaza alias ambiguos y reintenta una publicación caída", async (app, client) =>
+        {
+            await shared.Sql("DELETE FROM tdv2_identity_links; INSERT INTO fixture_suspensions VALUES(10)");
+            await Nexo("INSERT INTO fixture_suspensions VALUES(10),(11)");
+            app.Microsoft.ProxyAddresses = ["smtp:otra@uacj.mx"];
+            await Login(app, client);
+            await shared.Sql("DELETE FROM fixture_suspensions");
+            await Nexo("REVOKE SELECT ON nexo_usuarios FROM cd_native_nexo");
+            try { await Status(client.GetAsync("/inicio"), 503); }
+            finally { await Nexo("GRANT SELECT ON nexo_usuarios TO cd_native_nexo"); }
+            await Nexo("DELETE FROM fixture_suspensions WHERE usuario_aplicacion_id=11");
+            await Status(client.GetAsync("/inicio"), 403);
+            Check(Convert.ToInt32(await shared.Scalar("SELECT count(*) FROM tdv2_identity_links")) == 0);
+            await Nexo("INSERT INTO fixture_suspensions VALUES(11)");
+            await Status(client.GetAsync("/inicio"), 200);
+            Check(app.Microsoft.Exchanges == 1);
+        }));
         foreach (var (td, cd) in new[] { (true, false), (false, true), (true, true), (false, false) })
             cases.Add(($"Entrada independiente: Procedimientos={td}, Competencias={cd}; sesión y portal conservados", async (app, client) =>
             {
-                if (!td) await shared.Sql("DELETE FROM fixture_roles");
-                if (!cd) await Nexo("DELETE FROM fixture_roles");
+                if (!td) await shared.Sql("INSERT INTO fixture_suspensions VALUES(10)");
+                if (!cd) await Nexo("INSERT INTO fixture_suspensions VALUES(10)");
                 await Status(client.GetAsync("/"), 200);
                 await Login(app, client, ApplicationEntry.Choices);
                 var result = await Json(await client.GetAsync(ApplicationEntry.Choices));
@@ -50,9 +145,9 @@ internal sealed partial class DigitalTests
             try
             {
                 var denied = await Json(await client.GetAsync(Base + "/encuesta"), 503);
-                Check(denied["message"]!.ToString() == ApplicationEntry.Unavailable);
+                Check(denied["message"]!.ToString() == ApplicationEntry.UnavailableFor("Competencias digitales"));
                 Check(denied["access"]!["options"]![0]!["path"]!.ToString() == "/inicio");
-                Check((await Json(await client.GetAsync(Base + "/api/encuesta"), 503))["message"]!.ToString() == ApplicationEntry.Unavailable);
+                Check((await Json(await client.GetAsync(Base + "/api/encuesta"), 503))["message"]!.ToString() == ApplicationEntry.UnavailableFor("Competencias digitales"));
                 var entry = (await Json(await client.GetAsync(ApplicationEntry.Choices)))["props"]!["available"]!;
                 Check(entry["unavailable"]!.GetValue<bool>() && entry["options"]!.AsArray().Count == 1);
                 await Status(client.GetAsync("/inicio"), 200); await Status(client.GetAsync("/"), 200);

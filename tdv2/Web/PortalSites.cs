@@ -31,7 +31,7 @@ public sealed class PortalSites
     public async Task<ApplicationEntry.Available> Find(HttpContext http, PathString? exclude = null)
     {
         await ApplicationEntry.RequireIdentity(http);
-        var options = new List<ApplicationEntry.Option>(); var unavailable = false;
+        var options = new List<ApplicationEntry.Option>(); var unavailable = new List<string>();
         // Secuencial: los verificadores comparten servicios/DbContexts de esta solicitud.
         foreach (var site in sites)
         {
@@ -41,15 +41,15 @@ public sealed class PortalSites
                 if (await site.CanOpen(http)) options.Add(new(site.Name, site.Destination));
             }
             catch (DomainProblem e) when (e.Status is 403 or 409) { /* Denegado o contexto incompatible. */ }
-            catch (DomainProblem e) when (e.Status != 401) { unavailable = true; }
+            catch (DomainProblem e) when (e.Status != 401) { unavailable.Add(site.Name); }
             catch (Exception e) when (e is not OperationCanceledException && e is not DomainProblem)
             {
                 http.RequestServices.GetRequiredService<ILogger<PortalSites>>()
                     .LogWarning("No se pudo comprobar un sitio. Tipo: {Type}", e.GetType().Name);
-                unavailable = true;
+                unavailable.Add(site.Name);
             }
         }
-        return new(options, unavailable);
+        return new(options, unavailable.Count > 0, unavailable.ToArray());
     }
 
     public static void Register(IServiceCollection services)

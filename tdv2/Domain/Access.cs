@@ -15,7 +15,7 @@ public sealed record Unit(string Id, string Code, string? Description, int Level
     };
 }
 public sealed record Person(string Email, string Name, string? Employee, string? UnitId,
-    string Origin = "adscripcion", string AccountType = "individual");
+    string Origin = "adscripcion", string AccountType = "individual", string? UnitCode = null, string? PublishedParent = null);
 public sealed record Role(long Id, string Key, string Name);
 public sealed record NexoIdentity(long Id, string Email, string Name, string AccountType);
 public sealed record Module(long Id, string Key, string Name, string Path, long? Parent = null, string Icon = "mdi-view-grid-outline");
@@ -70,7 +70,11 @@ public sealed class UnitDirectory(IEnumerable<Unit> units, Participation? partic
     public static string? Employee(Person user) => user.AccountType == "individual"
         && !string.IsNullOrWhiteSpace(user.Employee) && user.Employee.Length <= 32 ? user.Employee : null;
     public Unit? Affiliation(Person user) => Employee(user) is not null
-        && user.Origin is "asignacion_manual" or "responsable_ur" or "adscripcion" ? Get(user.UnitId) : null;
+        && user.Origin is "asignacion_manual" or "responsable_ur" or "adscripcion"
+        && Get(user.UnitId) is { } unit && (user.UnitCode is null || unit.Code == user.UnitCode)
+        && (user.PublishedParent is null || user.PublishedParent == unit.Parent)
+        && string.IsNullOrWhiteSpace(Ancestors(unit.Id).Last().Parent)
+        ? unit : null;
     public Unit? AdministratorRoot(Person user) => LevelTwo(Affiliation(user)?.Id);
     public IEnumerable<Unit> Responsibilities(Person user) => Employee(user) is { } employee
         ? Units.Values.Where(u => (IsForm(u) || Participates(u)) && u.Employee == employee) : [];
@@ -161,12 +165,12 @@ public sealed class FormAccess(UnitDirectory directory)
     {
         if (!profile.Collaborator) return "No tienes formatos asignados. Consulta tu acceso con el responsable del área.";
         if (UnitDirectory.Employee(profile.User) is null)
-            return "No se pudo validar tu cuenta individual y número de empleado. Solicita su revisión en Nexo.";
+            return "No se pudo validar tu cuenta individual y número de empleado en Procedimientos institucionales. Solicita la revisión de tus datos institucionales.";
         if (directory.Affiliation(profile.User) is not { } affiliation)
-            return "No se pudo determinar tu adscripción vigente. Solicita la revisión de tu UR en Nexo y del catálogo institucional.";
+            return "No se pudo determinar tu adscripción vigente en Procedimientos institucionales. Solicita la revisión de tu unidad y del catálogo institucional.";
         if (directory.FormUnit(affiliation.Id) is null || !profile.Has("colaborador_local") && directory.LevelTwo(affiliation.Id) is null)
             return "Tu adscripción no permite resolver un área elegible con formato. Solicita la revisión de la jerarquía institucional.";
-        return "No se confirmó una asignación central o una colaboración delegada vigente para tus formatos. Consulta al administrador de Nexo o al responsable del área.";
+        return "No se confirmó una asignación vigente para tus formatos de Procedimientos institucionales. Consulta al responsable del área.";
     }
     public IReadOnlyDictionary<string, Scope> Scenario(Profile profile, Unit origin)
     {

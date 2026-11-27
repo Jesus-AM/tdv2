@@ -73,7 +73,7 @@ public sealed class DigitalScope(Profile profile, UnitDirectory directory)
     public DigitalInstitution Institution()
     {
         var user = Profile.User;
-        var chain = user.Origin is "adscripcion" or "asignacion_manual" or "responsable_ur" ? Chain(user.UnitId) : null;
+        var chain = Chain(Directory.Affiliation(user)?.Id);
         var safe = chain?.Select(DigitalUnitOption.From).ToArray();
         return new(chain is null ? "incomplete" : "available", user.Name, UnitDirectory.Employee(user)!, safe?.FirstOrDefault(),
             safe?.SingleOrDefault(u => u.Level == 2), safe?.SingleOrDefault(u => u.Level == 3), user.Origin, safe ?? []);

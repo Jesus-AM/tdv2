@@ -114,6 +114,7 @@ internal static class DigitalEditionTests
         var legacyAnswers=new Dictionary<string,DigitalAnswer>(answers){[retired[0]]=new("level",3)};
         var draft=new DigitalSurvey{InstrumentVersion=old.Version,InstrumentJson=old.Resource.ToJsonString(),ProfileJson=legacyProfile.ToJsonString(),AnswersJson=JsonSerializer.Serialize(legacyAnswers,DigitalInstrument.Json),Version=5};
         var before=draft.AnswersJson;var institution=new DigitalScope(Fixtures.Profile("participante"),new(Fixtures.Units)).Institution();
+        var clipchamp = VerifyClipchamp(current, old, institution, profile, answers, Check);
         var initial=DigitalSurveyService.Project(current,draft,institution,true,Guid.NewGuid());
         Check(initial.EditionUpdate?.ReviewFields.Length==2 && draft.AnswersJson==before && draft.Version==5,"Lectura advierte sin modificar borrador");
         DigitalEditions.Upgrade(current,draft,DateTimeOffset.UtcNow);
@@ -126,7 +127,66 @@ internal static class DigitalEditionTests
         var payload=DigitalActivity.Payload(Guid.NewGuid(),DateTimeOffset.UtcNow,"actor@uacj.mx","Actor","informe","consultar_representado","informe","5","otra@uacj.mx");
         Check(payload["actor_email"]!.ToString()!=payload["usuario_afectado_email"]!.ToString() && !payload.Any(p=>p.Key.Contains("token")||p.Key is "antes" or "despues"),"Actividad distingue actor y afectado sin respuestas ni tokens");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(destination))!);
-        File.WriteAllText(destination,JsonSerializer.Serialize(new{checks,oldDraft=initial,currentDraft=view,academic=DigitalSurveyService.Project(current,new DigitalSurvey{InstrumentVersion=current.Version,InstrumentJson=current.Resource.ToJsonString(),ProfileJson=profile.ToJsonString(),AnswersJson=JsonSerializer.Serialize(answers,DigitalInstrument.Json)},institution,true,view.Generation)},DigitalInstrument.Json));
+        File.WriteAllText(destination,JsonSerializer.Serialize(new{checks,clipchamp,oldDraft=initial,currentDraft=view,academic=DigitalSurveyService.Project(current,new DigitalSurvey{InstrumentVersion=current.Version,InstrumentJson=current.Resource.ToJsonString(),ProfileJson=profile.ToJsonString(),AnswersJson=JsonSerializer.Serialize(answers,DigitalInstrument.Json)},institution,true,view.Generation)},DigitalInstrument.Json));
         Console.WriteLine($"PASS {checks.Count} verificaciones de edición y contrato de actividad sin base.");
+    }
+
+    private static object VerifyClipchamp(DigitalInstrument current, DigitalInstrument old, DigitalInstitution institution,
+        JsonObject profile, Dictionary<string, DigitalAnswer> answers, Action<bool, string> check)
+    {
+        const string id = "m-clipchamp-y-stream";
+        static JsonNode Card(JsonObject resource) => resource["modules"]!.AsArray().Single(b => (string?)b!["id"] == "m365")!["tools"]!
+            .AsArray().Single(t => (string?)t!["id"] == id)!;
+        var generation = Guid.NewGuid();
+        DigitalSurveyView View(DigitalSurvey? survey) => DigitalSurveyService.Project(current, survey, institution, true, generation, "m365");
+
+        var original = Card(old.Resource);
+        var expected = original.DeepClone();
+        expected["n"] = "Clipchamp";
+        expected["s"] = "Clipchamp";
+        const string statistics = "Consultar las estadísticas de visualización de un video de capacitación en Clipchamp";
+        expected["lv"]![2] = new JsonArray(
+            "Usar voz generada a partir de texto para narrar un video",
+            "Exportar videos en MP4 con la resolución y la relación de aspecto adecuadas para el canal de publicación",
+            "Agregar formularios o cuestionarios interactivos a un video en Stream",
+            statistics);
+        expected["lic"] = "La disponibilidad de algunas funciones depende de la licencia y de la configuración institucional.";
+        var fresh = View(null);
+        check(JsonNode.DeepEquals(Card(fresh.Instrument), expected) && (string?)fresh.Instrument["version"] == "uacj-digital-2026-10-28.1",
+            "Encuesta nueva: tarjeta de Clipchamp en la edición vigente");
+
+        var snapshot = current.Resource.DeepClone().AsObject();
+        Card(snapshot).ReplaceWith(original.DeepClone());
+        Card(snapshot)["lv"]![0]![0] = "Actividad básica propia del borrador sintético";
+        var captured = new Dictionary<string, DigitalAnswer>(answers) { [id] = new("level", 2) };
+        var survey = new DigitalSurvey { InstrumentVersion = current.Version, InstrumentJson = snapshot.ToJsonString(),
+            ProfileJson = profile.ToJsonString(), AnswersJson = JsonSerializer.Serialize(captured, DigitalInstrument.Json), Version = 7 };
+        var stored = JsonSerializer.Serialize(survey);
+        var draft = View(survey);
+        expected["lv"]![0]![0] = Card(snapshot)["lv"]![0]![0]!.DeepClone();
+        check(JsonNode.DeepEquals(Card(draft.Instrument), expected) && draft.Answers[id] == captured[id] && draft.EditionUpdate is null
+            && draft.Version == 7 && JsonSerializer.Serialize(survey) == stored,
+            "Borrador: muestra Clipchamp y conserva su actividad básica, nivel Intermedio y copia guardada");
+
+        var misplaced = snapshot.DeepClone().AsObject();
+        Card(misplaced)["lv"]![2]![2] = statistics;
+        var corrected = Card(View(new DigitalSurvey { InstrumentVersion = current.Version, InstrumentJson = misplaced.ToJsonString(),
+            ProfileJson = survey.ProfileJson, AnswersJson = survey.AnswersJson }).Instrument);
+        check(JsonNode.DeepEquals(corrected, expected)
+            && corrected["lv"]!.AsArray().SelectMany(level => level!.AsArray()).Count(activity => (string?)activity == statistics) == 1,
+            "Borrador con estadísticas en la tercera viñeta: recupera los formularios y muestra estadísticas una sola vez, en la cuarta");
+
+        var previous = new DigitalInstrument(survey.InstrumentJson);
+        var report = previous.Evaluate(profile, captured).Report;
+        survey.ReportJson = JsonSerializer.Serialize(report, DigitalInstrument.Json);
+        survey.CompletedAt = new DateTimeOffset(2026, 11, 26, 12, 0, 0, TimeSpan.Zero);
+        stored = JsonSerializer.Serialize(survey);
+        var delivered = View(survey);
+        check(delivered.CompletedAt == survey.CompletedAt && JsonNode.DeepEquals(delivered.Instrument, snapshot)
+            && JsonSerializer.Serialize(delivered.Answers, DigitalInstrument.Json) == survey.AnswersJson
+            && JsonSerializer.Serialize(delivered.Evaluation.Report, DigitalInstrument.Json) == survey.ReportJson
+            && JsonSerializer.Serialize(survey) == stored, "Entregada: conserva instrumento, respuestas, fecha, puntajes e informe definitivo");
+        var newSurvey = new DigitalSurvey { InstrumentVersion = current.Version, InstrumentJson = current.Resource.ToJsonString(), ProfileJson = profile.ToJsonString() };
+        return new { fresh = View(newSurvey), draft, delivered };
     }
 }

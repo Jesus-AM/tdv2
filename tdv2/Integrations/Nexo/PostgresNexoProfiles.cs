@@ -37,7 +37,7 @@ public sealed partial class PostgresNexoProfiles : INexoProfiles
         await using var connection = await connections.Open(ConnectionName, cancellation);
         await using var command = new NpgsqlCommand("SELECT to_jsonb(a)::text FROM public.nexo_aplicacion a LIMIT 2", connection);
         await using var reader = await command.ExecuteReaderAsync(cancellation);
-        if (!await reader.ReadAsync(cancellation)) throw Denied();
+        if (!await reader.ReadAsync(cancellation)) throw Unavailable();
         var row = JsonNode.Parse(reader.GetString(0))!.AsObject();
         if (await reader.ReadAsync(cancellation)) throw Unavailable();
         if (ConnectionName == "Nexo"
@@ -68,7 +68,7 @@ public sealed partial class PostgresNexoProfiles : INexoProfiles
             var canonicalEmail = Email(Text(row, "email") ?? "");
             if (userId is not null && canonicalId != userId || email is not null && canonicalEmail != email || Text(row, "tipo_cuenta") != "individual") throw Denied();
             email = canonicalEmail;
-            foreach (var field in new[] { "num_empleado", "ID_UR", "origen_ur" }) if (!row.ContainsKey(field)) throw Unavailable();
+            foreach (var field in new[] { "num_empleado", "ID_UR", "CVE_UR", "origen_ur" }) if (!row.ContainsKey(field)) throw Unavailable();
             var membership = Positive(row["usuario_aplicacion_id"]);
             var roles = new List<Role>();
             await using (var command = new NpgsqlCommand("SELECT rol_id::bigint,rol_clave,rol_nombre FROM public.nexo_usuario_rol WHERE usuario_aplicacion_id = $1 AND email = $2", connection))
@@ -89,10 +89,13 @@ public sealed partial class PostgresNexoProfiles : INexoProfiles
                 await using var reader = await command.ExecuteReaderAsync(cancellation);
                 while (await reader.ReadAsync(cancellation)) modules.Add(new(reader.GetInt64(0), reader.GetString(1), reader.GetString(2), reader.IsDBNull(3) ? "" : reader.GetString(3), reader.IsDBNull(4) ? null : reader.GetInt64(4), reader.IsDBNull(5) ? "mdi-view-grid-outline" : reader.GetString(5)));
             }
-            var profile = new Profile(new(email, Text(row, "nombre") ?? email, Text(row, "num_empleado"), Text(row, "ID_UR"), Text(row, "origen_ur") ?? "sin_ur"), roles, modules, canonicalId);
+            var person = new Person(email, Text(row, "nombre") ?? email, Text(row, "num_empleado"), Text(row, "ID_UR"),
+                Text(row, "origen_ur") ?? "sin_ur", UnitCode: Text(row, "CVE_UR"), PublishedParent: Text(row, "ID_UR_SUPERIOR"));
+            var profile = new Profile(person, roles, modules, canonicalId);
             profiles["email:" + email] = profile; profiles["id:" + canonicalId] = profile;
             return profile;
         }
+        catch (DomainProblem error) when (error.Status == 503) { throw Unavailable(); }
         catch (DomainProblem) { throw; }
         catch (Exception error) when (error is not OperationCanceledException)
         { logger.LogWarning("No se pudo consultar Nexo. Tipo: {Type}", error.GetType().Name); throw Unavailable(); }

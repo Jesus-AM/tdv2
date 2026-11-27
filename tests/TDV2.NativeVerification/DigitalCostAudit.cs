@@ -98,7 +98,7 @@ internal sealed partial class DigitalTests
                 Check(response.IsSuccessStatusCode,"Preparación de perfil");actor.View=(await response.Content.ReadFromJsonAsync<DigitalSurveyView>(DigitalInstrument.Json))!;response.Dispose();
             }
             phases.Add(new{name="consentimiento, perfil y calentamiento (fuera del guardado)",ms=setupClock.Elapsed.TotalMilliseconds,sql=await CostSqlSnapshot()});
-            Check(actors.Select(a=>a.View.Institution["employee"]!.ToString()).Distinct().Count()==actors.Count,"Identidades de empleados distintas");
+            Check(actors.Select(a=>a.View.Institution["name"]!.ToString()).Distinct().Count()==actors.Count,"Identidades de empleados distintas");
 
             foreach(var pass in probe?new[]{"probe"}:pooled?new[]{"pooling_aislado"}:new[]{"antes","despues"})
             foreach(var users in probe?new[]{1}:new[]{1,10,25})
@@ -156,7 +156,7 @@ internal sealed partial class DigitalTests
                 foreach(var actor in subset)
                 {
                     var fresh=await Survey(actor.Client);
-                    Check(fresh.Institution["employee"]!.ToString()==$"910{actor.Id:000}","Identidad validada de cada actor");
+                    Check(fresh.Institution["name"]!.ToString()==$"Persona de costo {actor.Id}","Identidad validada de cada actor");
                     Check(fresh.Version==actor.View.Version&&fresh.Answers.GetValueOrDefault("m-word")==actor.View.Answers.GetValueOrDefault("m-word"),"Última respuesta y versión persistidas por actor");
                 }
                 phases.Add(new{name=$"verificar {pass}/{users}/{mode} (fuera del guardado)",ms=verifyClock.Elapsed.TotalMilliseconds,sql=await CostSqlSnapshot()});

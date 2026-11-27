@@ -71,6 +71,11 @@ internal static partial class NativeTests
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Contains("--site-profile-readonly"))
+        {
+            Console.Write("Correo institucional canónico o ID de usuario canónico: ");
+            return await SiteProfileReadOnly.Run(Console.ReadLine() ?? "");
+        }
         if (args.Contains("--digital-generation-readonly")) return await DigitalPopulationReadOnly.Generation();
         if (args.Contains("--digital-population-readonly")) return await DigitalPopulationReadOnly.Run(privateEmployeeConflicts: args.Contains("--private-employee-conflicts"));
         if (args.Contains("--database-check")) return await DatabaseInspection.Run(args);
@@ -162,7 +167,7 @@ internal static partial class NativeTests
         });
         Test("Nexo: aplicación no publicada y conexión ambigua deniegan", async (app, client) =>
         {
-            await database.Sql("DELETE FROM fixture_app"); await Login(app, client); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.Forbidden);
+            await database.Sql("DELETE FROM fixture_app"); await Login(app, client); Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.ServiceUnavailable);
             await database.Sql("INSERT INTO fixture_app VALUES(47,'tdv2','x',2),(48,'tdv2','y',2)");
             Check((await client.GetAsync("/inicio")).StatusCode == HttpStatusCode.ServiceUnavailable); Check(Convert.ToInt64(await database.Scalar("SELECT count(*) FROM users")) == 1);
         });

@@ -381,8 +381,8 @@
                                       },
                                       {
                                           "id":  "m-clipchamp-y-stream",
-                                          "n":  "Clipchamp y Stream",
-                                          "s":  "Clipchamp y Stream",
+                                          "n":  "Clipchamp",
+                                          "s":  "Clipchamp",
                                           "cat":  "Correo, comunicación y colaboración",
                                           "lv":  [
                                                      [
@@ -399,9 +399,9 @@
                                                      ],
                                                      [
                                                          "Usar voz generada a partir de texto para narrar un video",
-                                                         "Exportar videos con la resolución y el formato adecuados para cada canal",
+                                                         "Exportar videos en MP4 con la resolución y la relación de aspecto adecuadas para el canal de publicación",
                                                          "Agregar formularios o cuestionarios interactivos a un video en Stream",
-                                                         "Organizar una biblioteca de videos de capacitación con permisos y retención"
+                                                         "Consultar las estadísticas de visualización de un video de capacitación en Clipchamp"
                                                      ]
                                                  ],
                                           "c":  [
@@ -409,7 +409,7 @@
                                                     "Video intermedio: edición, subtítulos y capítulos",
                                                     "Video avanzado: producción institucional, interacción y analítica"
                                                 ],
-                                          "lic":  "Incluidas. Algunos recursos premium de Clipchamp pueden no estar disponibles.",
+                                          "lic":  "La disponibilidad de algunas funciones depende de la licencia y de la configuración institucional.",
                                           "doc":  false,
                                           "opt":  true
                                       },

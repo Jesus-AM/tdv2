@@ -10,6 +10,7 @@ public static class ApplicationEntry
 {
     public const string Choices = "/accesos";
     public const string Unavailable = "No fue posible comprobar tu acceso. Inténtalo de nuevo más tarde.";
+    public static string UnavailableFor(string site) => $"No fue posible comprobar tu acceso a {site}. Inténtalo de nuevo más tarde.";
     public const string NoApplications = "Tu cuenta no tiene acceso a las secciones privadas.";
     public static string Denied(PathString path) => path.StartsWithSegments(DigitalRoutes.Base)
         ? "Tu cuenta no tiene acceso a Competencias digitales."
@@ -40,7 +41,7 @@ public static class ApplicationEntry
             throw new DomainProblem(401, "Inicia sesión con tu cuenta institucional.");
     }
     public sealed record Option(string Name, string Path);
-    public sealed record Available(IReadOnlyList<Option> Options, bool Unavailable)
+    public sealed record Available(IReadOnlyList<Option> Options, bool Unavailable, string[]? UnavailableSites = null)
     {
         // Una consulta fallida no demuestra que exista un único sitio autorizado.
         [System.Text.Json.Serialization.JsonIgnore]

@@ -43,7 +43,7 @@ internal static class DigitalPopulationReadOnly
         _ => "tipo=" + error.GetType().Name + "; detalle=error sin datos sensibles"
     };
 
-    private static IConfiguration LocalConfiguration()
+    internal static IConfiguration LocalConfiguration()
     {
         var root = Path.GetFullPath("tdv2");
         var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
@@ -156,7 +156,7 @@ internal static class DigitalPopulationReadOnly
         var catalogValid = await Step("catalog.hierarchy", async () => {
             var units = new List<Unit>();
             await using var connection = await dbs.Open("Tdv2");
-            await using var q = new NpgsqlCommand("SELECT id_ur,cve_ur,nivel_ur,id_ur_pertenece,tipo_ur,estatus_ur FROM public.unidades_responsables_poa WHERE presente", connection);
+            await using var q = new NpgsqlCommand("SELECT id_ur,cve_ur,nivel_ur,id_ur_pertenece,tipo_ur,estatus_ur FROM public.unidades_responsables_poa WHERE presente AND ejercicio=(SELECT max(ejercicio) FROM public.unidades_responsables_poa WHERE presente)", connection);
             await using var r = await q.ExecuteReaderAsync();
             while (await r.ReadAsync()) units.Add(new(r.GetString(0), r.GetString(1), null, r.IsDBNull(2) ? 0 : r.GetInt32(2), r.IsDBNull(3) ? null : r.GetString(3),
                 0, null, true, r.IsDBNull(5) ? "" : r.GetString(5), r.IsDBNull(4) ? null : r.GetString(4), !r.IsDBNull(2)));

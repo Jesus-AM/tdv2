@@ -66,7 +66,7 @@ internal sealed partial class DigitalTests
             Check((string)(await Data("SELECT data_type FROM information_schema.columns WHERE table_name='cd_surveys' AND column_name='Id'"))! == "uuid");
             Check((string)(await Data("SELECT \"Actor\"||':'||\"Employee\" FROM cd_reset_operations WHERE \"CompletedAt\" IS NOT NULL"))! == "persona@uacj.mx:0001");
             var empty = await Survey(client); Check(empty.Generation != view.Generation && empty.Version == 0 && !empty.Accepted && empty.Profile.Count == 0 && empty.Answers.Count == 0 && empty.Navigation.Current == "perfil");
-            Check(empty.Institution["employee"]!.ToString() == "0001" && empty.Institution["unit"]!["id"]!.ToString() == "A4");
+            Check(!empty.Institution.ContainsKey("employee") && empty.Institution["unit"]!["id"]!.ToString() == "A4");
         });
         Test("doble envío y reintento no borran la nueva captura; metas opcionales", async (app, client) =>
         {

@@ -22,7 +22,7 @@ export default function Accesos() {
                         });
                     }}>Volver a mi usuario</Button>}>{props.representacion ? `Actuando como ${props.representacion.nombre}` : 'Vista de consulta activa'}</Alert>}
                     {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
-                    {available.unavailable && <Alert severity="warning" sx={{ my: 3 }}>No fue posible comprobar tu acceso. Inténtalo de nuevo más tarde.</Alert>}
+                    {available.unavailable && <Alert severity="warning" sx={{ my: 3 }}>No fue posible comprobar tu acceso{available.unavailableSites?.length ? ' a ' + available.unavailableSites.join(' y ') : ''}. Inténtalo de nuevo más tarde.</Alert>}
                     {!available.unavailable && !available.options.length && <Alert severity="info" sx={{ my: 3 }}>No hay sitios disponibles para tu cuenta.</Alert>}
                     {!!available.options.length && <>
                         <Typography sx={{ my: 3 }}>Selecciona el sitio que deseas abrir.</Typography>

@@ -34,7 +34,12 @@ async function setup(width){
  return context;
 }
 try{
+ let lastStart = 0;
  for(const width of [1366,390]){
+  // Cada ventana prueba varias entradas por /connect. Respetar los 20 accesos por minuto del host.
+  const delay = lastStart + 61000 - Date.now();
+  if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
+  lastStart = Date.now();
   const context=await setup(width),page=await context.newPage();page.setDefaultTimeout(15000);
   page.on('pageerror',e=>report.errors.push(e.message));
   let rendered=0;
@@ -75,7 +80,7 @@ try{
   report.checks.push({width,case:'ocho sitios desde registro del servidor, orden, teclado, filas naturales y pie sin superposición'});
   for(const scenario of ['unavailable','failed']){
    await control(scenario);await miEspacio();await page.waitForURL(origin+'/accesos');
-   await expect(page.getByRole('alert')).toHaveText('No fue posible comprobar tu acceso. Inténtalo de nuevo más tarde.');
+   await expect(page.getByRole('alert')).toHaveText('No fue posible comprobar tu acceso a Competencias digitales. Inténtalo de nuevo más tarde.');
    await expect(page.getByText('No hay sitios disponibles para tu cuenta.',{exact:true})).toHaveCount(0);
    for(const name of names)await expect(page.getByRole('link',{name,exact:true})).toHaveCount(scenario==='unavailable'&&name===names[0]?1:0);
    assert(!/Nexo|roles|ApplicationId/.test(await page.locator('main').innerText()));await shot('sitios-'+scenario);
@@ -86,6 +91,63 @@ try{
   await page.goto(origin+'/inicio');await expect(page.getByRole('alert')).toHaveText('Tu cuenta no tiene acceso a Procedimientos institucionales.');
   await page.goto(origin+'/connect');await page.waitForURL(origin+base);
   report.checks.push({width,case:'revocación reevalúa y deja un sitio; URL específica denegada no cambia destino; /connect genérico directo'});
+  if (width === 1366) {
+   await control('both');
+   const session = async () => (await context.request.get(origin + '/session/status')).json();
+   const initial = await session();
+   const save = async (url, method, edit, status) => {
+    const reply = page.waitForResponse(r => r.url() === origin + url && r.request().method() === method);
+    await edit();
+    assert.equal((await reply).status(), status);
+   };
+   await page.goto(origin + base + '/encuesta');
+   const dialog = page.getByRole('dialog');
+   await dialog.getByRole('checkbox').check();
+   await dialog.getByRole('button', {name:'Continuar'}).click();
+   const job = page.locator('[id="perfil:puesto"]');
+   await save(base + '/api/encuesta', 'PUT', () => job.selectOption({index:1}), 200);
+   const confirmedJob = await job.inputValue();
+   await control('td');
+   await save(base + '/api/encuesta', 'PUT', () => job.selectOption({index:2}), 403);
+   await expect(page.getByRole('alert')).toContainText('Tu cuenta no tiene acceso a Competencias digitales.');
+   await expect(page.locator('.cd-save-status')).toContainText('Sin confirmar');
+   await expect(page.getByText('Avance guardado',{exact:true})).toHaveCount(0);
+   await control('both');
+   page.once('dialog', d => d.accept());
+   await page.reload(); await expect(job).toHaveValue(confirmedJob);
+   report.checks.push({width,case:'encuesta abierta: rechazo visible del guardado y recuperación del valor confirmado'});
+   await control('unavailable');
+   await save(base + '/api/encuesta', 'PUT', () => job.selectOption({index:2}), 503);
+   await expect(page.getByRole('alert')).toContainText('No fue posible comprobar tu acceso a Competencias digitales.');
+   await expect(page.getByText('Avance guardado',{exact:true})).toHaveCount(0);
+   await control('both'); page.once('dialog', d => d.accept());
+   await page.reload(); await expect(job).toHaveValue(confirmedJob);
+   report.checks.push({width,case:'encuesta abierta: una publicación inaccesible muestra el aviso temporal y conserva el borrador confirmado'});
+
+   await page.goto(origin + '/formatos/A');
+   const identification = page.getByRole('tab',{name:'Identificación general',exact:true});
+   await identification.click();
+   const procedure = page.getByLabel('Procedimiento 1',{exact:true});
+   await procedure.click(); await expect(procedure).toHaveJSProperty('readOnly',false);
+   await save('/formatos/A/bloques','PATCH',() => procedure.fill('Procedimiento confirmado'),200);
+   await expect(page.locator('.form-actions [role="status"]').first()).toHaveText('Guardado');
+   // Suspender después de que la pestaña adquirió la reserva y antes de entregar el PATCH.
+   await page.route('**/formatos/A/bloques', async route => {
+    await control('cd'); await route.continue();
+   }, {times:1});
+   await save('/formatos/A/bloques','PATCH',() => procedure.fill('Cambio rechazado'),403);
+   await expect(page.getByRole('status').filter({hasText:'Tu cuenta no tiene acceso a Procedimientos institucionales.'}).first()).toBeVisible();
+   await expect(procedure).toHaveJSProperty('readOnly',true);
+   await expect(page.locator('.form-actions [role="status"]').first()).toHaveText('No se pudo guardar');
+   await expect(page.locator('.form-actions')).not.toContainText('Guardado a las');
+   await control('both');
+   page.once('dialog', d => d.accept());
+   await page.reload(); await identification.click(); await expect(procedure).toHaveValue('Procedimiento confirmado');
+   const restored = await session();
+   assert.equal(restored.id, initial.id); assert.equal(restored.expires_at, initial.expires_at);
+   report.checks.push({width,case:'procedimiento abierto: rechazo visible con reserva vigente, mismo ticket y último valor confirmado'});
+   await control('cd');
+  }
   const fresh=await setup(width),specific=await fresh.newPage();
   await specific.goto(origin+base+'/mi-informe-ruta');await specific.waitForURL(origin+base+'/mi-informe-ruta');await expect(specific.locator('.cd-site h1')).toBeVisible();
   report.checks.push({width,case:'enlace específico conserva destino tras OAuth aunque haya un único sitio'});

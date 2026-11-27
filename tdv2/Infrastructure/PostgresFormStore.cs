@@ -24,7 +24,8 @@ public sealed class PostgresFormStore(Tdv2DbContext db, AccessState state) : IFo
     public async Task<IReadOnlyList<Unit>> Units(CancellationToken cancellation)
     {
         // Una sola sentencia toma la misma instantánea para áreas y fecha del catálogo.
-        var rows = await db.ResponsibleUnits.AsNoTracking().Where(u => u.Present)
+        var present = db.ResponsibleUnits.AsNoTracking().Where(u => u.Present);
+        var rows = await present.Where(u => u.Year == present.Max(current => current.Year))
             .Select(u => new { Unit = u, CatalogDate = db.CatalogSynchronizations
                 .Where(c => c.Id == "sii").Select(c => (DateTime?)c.CompletedAt).FirstOrDefault() })
             .ToListAsync(cancellation);

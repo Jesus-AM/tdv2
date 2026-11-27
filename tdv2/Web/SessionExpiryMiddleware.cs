@@ -54,6 +54,11 @@ public sealed class SessionExpiryMiddleware(RequestDelegate next)
                 http.Response.StatusCode=409;
                 await http.Response.WriteAsJsonAsync(new{message="La sesión cambió.",sessionChanged=true,redirect="/"});return;
             }
+            if (HttpMethods.IsGet(http.Request.Method) && NexoActorIdentity.Id(http.User) is null
+                && http.User.FindFirstValue("tdv2.session_version") == PostgresIdentity.SessionVersion
+                && (path == ApplicationEntry.Choices || ApplicationEntry.IsDestination(path) && path != "/"))
+                await http.RequestServices.GetRequiredService<MicrosoftLoginService>()
+                    .ResumePending(http, ticket);
         }
         await next(http);
     }

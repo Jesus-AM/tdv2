@@ -46,7 +46,7 @@ export async function verifyCentralCollaboration({ page, context, origin, contro
         await control('central-no-employee');
         // La propuesta anterior ya fue comprobada; este cambio de documento sólo ocurre en el fixture.
         page.once('dialog', dialog => dialog.accept()); await page.goto(origin + '/inicio');
-        await expect(page.getByText('No se pudo validar tu cuenta individual y número de empleado. Solicita su revisión en Nexo.', { exact: true })).toBeVisible();
+        await expect(page.getByText('No se pudo validar tu cuenta individual y número de empleado en Procedimientos institucionales. Solicita la revisión de tus datos institucionales.', { exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Continuar llenado', exact: true })).toHaveCount(0);
     });
     await control('central-restore-responsible'); await page.goto(origin + '/formatos/A');

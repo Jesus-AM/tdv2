@@ -1,3 +1,48 @@
+# 2026-11-26 — Acceso por sitio y adscripción institucional
+
+| Sitio | Conexión de publicación | Comprobación de destino | Datos de trabajo |
+|---|---|---|---|
+| Procedimientos institucionales | `ConnectionStrings:Nexo` | `public.nexo_aplicacion` debe devolver una fila con clave `tdv2`, nivel 2 e ID positivo | `ConnectionStrings:Tdv2` |
+| Competencias digitales | `ConnectionStrings:CompetenciasDigitalesNexo` | Una fila con el ID de `CompetenciasDigitales:Nexo:ApplicationId` y clave distinta de `tdv2` | Encuestas en `ConnectionStrings:CompetenciasDigitales`. Catálogo de UR en `ConnectionStrings:Tdv2` |
+
+En el código local de Nexo, `app/Services/PostgresPublication.php` selecciona la aplicación por la cuenta PostgreSQL autenticada (`session_user`). Usuarios y roles efectivos exigen aplicación, persona y membresía activas, `ua.suspendido = FALSE` y concesiones vigentes según el contrato. Al suspender desaparece la fila del sitio. Al restablecer reaparece si todavía cumple los demás requisitos. Ausencia de la persona en una publicación válida indica que actualmente carece de acceso efectivo. La causa administrativa concreta sólo puede distinguirse en el productor.
+
+En TDV2, `PostgresNexoProfiles`, `RequestAccess` y `DigitalAccess` viven una solicitud. Verifican el ID canónico, correo, roles y módulos de la aplicación. `PortalSites` consulta cada sitio para «Mi espacio». Una publicación sin identidad de aplicación verificable, inaccesible o equivocada produce indisponibilidad. La lectura del perfil personal usa exclusivamente `public.nexo_usuarios`. `public.nexo_concesiones.id_ur_acceso` describe el otorgamiento.
+
+`app/Services/PostgresUserUnits.php` publica el empleado como texto. Para cuentas vinculadas procede de la cuenta institucional y para altas manuales de `num_empleado_manual`. La UR personal procede de la asignación manual, de una única responsabilidad o, en su defecto, de una única adscripción nominal. El productor usa el mayor ejercicio con presencia institucional. Los orígenes válidos son `asignacion_manual`, `responsable_ur` y `adscripcion`. `multiple` indica candidatos ambiguos y `sin_ur` indica que la publicación no resolvió la unidad. El nombre procede de la fila del usuario y puede estar completo en ambos casos.
+
+El consumidor busca `ID_UR` en las UR presentes del ejercicio local más reciente, valida estado activo y contrasta los valores publicados de `CVE_UR` y `ID_UR_SUPERIOR` cuando están informados. Recorre los padres por ID. Competencias proyecta los niveles 2 y 3 desde esa cadena. En adscripción directa a nivel 2, el nivel 3 dice «No aplica». Un caso ambiguo o inconsistente conserva el borrador. Procedimientos usa la misma adscripción para la rama administrativa y para la colaboración. Las responsabilidades por empleado y la consulta institucional conservan sus reglas propias.
+
+### Comprobación de solo lectura en la instalación
+
+Desde la raíz de TDV2, con la configuración de la instalación que se quiere comprobar, ejecutar el siguiente comando. Solicita en la terminal el **ID canónico de usuario** o el correo canónico publicado. El ID permite seguir a la misma persona aunque falte en uno de los sitios.
+
+```powershell
+dotnet tests/TDV2.NativeVerification/bin/Release/net10.0/TDV2.NativeVerification.dll --site-profile-readonly
+```
+
+El ejecutable corresponde al proyecto `tests/TDV2.NativeVerification` compilado en Release. El diagnóstico impone `default_transaction_read_only=on` en ambas publicaciones y en TDV2. Comprueba el vínculo local entre el objeto Microsoft y el usuario canónico. Si existe, consulta las dos publicaciones por ese ID. Informa el ID de aplicación comprobado, presencia de nombre y empleado válido, número de roles efectivos, origen, ID, clave y superior de la UR. Muestra los ejercicios, estados y niveles de la cadena local. Cuando ambas publicaciones devuelven fila, compara canónico, nombre, correo, empleado y adscripción sin imprimir el nombre, el correo ni el número de empleado en los resultados. Las filas se leen en el momento de cada consulta.
+
+Para identificar una publicación cuyo ID se rechazó, la consulta exacta con la **cuenta de aplicación del sitio** es `SELECT id, clave, nombre, nivel_control FROM public.nexo_aplicacion;`. Debe devolver la aplicación indicada en la tabla anterior. La cuenta de administración puede ver un resultado distinto porque la vista se filtra por sesión.
+
+- `sin_fila_efectiva` significa que la publicación del sitio se comprobó y la búsqueda no devolvió a la persona. `error` en fase `publicacion` o `usuario_efectivo` requiere revisar esa conexión, destino, contrato o permiso de lectura.
+- `multiple` o `sin_ur` con `ID_UR` nulo explica el aviso desde el productor. Si el origen es válido, comparar el ID, la clave y el superior con la primera fila de `cadena`. Una cadena vacía indica que el ID publicado falta en la réplica local. Un superior referido y ausente, una vuelta a un ID previo, un nivel desconocido, un nodo inactivo o de otro ejercicio identifican el punto del catálogo que requiere revisión.
+- La vista de usuario publica la UR sin columna de ejercicio. Si se sospecha un desfase entre réplicas, el operador que ya cuente con lectura del catálogo central puede ejecutar la consulta siguiente en **Nexo**, mediante `psql`, y cotejar su resultado con `ejercicioVigente` y `cadena` del diagnóstico.
+
+```sql
+\prompt 'ID_UR publicado: ' unidad
+BEGIN READ ONLY;
+SELECT max(u.ejercicio) AS ejercicio_publicado
+FROM public.unidades_responsables_poa u
+JOIN public.presencia_institucional p ON p.catalogo = 'unidades_responsables_poa'
+  AND p.clave = u.id_ur AND p.presente;
+SELECT id_ur, ejercicio, cve_ur, id_ur_pertenece, nivel_ur
+FROM public.unidades_responsables_poa WHERE id_ur = :'unidad';
+ROLLBACK;
+```
+
+Las comprobaciones sintéticas y la verificación institucional pendiente se documentan en [el estado de migración](../../ESTADO_MIGRACION.md).
+
 # Actualización 2026-10-30 — Cabecera compacta de Competencias
 
 Barra única adaptable, cuenta compartida y navegación publicada intactas. Cambios limitados al componente/estilos de Competencias y pruebas visuales, sin cambios de sesión, acceso público o persistencia. [Archivos y evidencia](CABECERA_COMPACTA_COMPETENCIAS_20261030.md).

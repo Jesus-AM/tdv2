@@ -59,6 +59,7 @@ export class BlockEditor {
     private serverTimestamp = 0;
     private connectionIssue = false;
     private connectionEpoch = 0;
+    private accessDenied = false;
     private submissionIssue = false;
     private sectionChosen = false;
     private lastActivity = new Map<string, number>();
@@ -131,7 +132,13 @@ export class BlockEditor {
     async refresh() {
         const epoch = this.connectionEpoch;
         try {
-            this.receive(await this.transport.read());
+            const live = await this.transport.read();
+            if (this.accessDenied) {
+                if (epoch !== this.connectionEpoch) return false;
+                this.accessDenied = false;
+                this.state.error = '';
+            }
+            this.receive(live);
             // Un mensaje en vuelo anterior a la desconexión no rehabilita la captura.
             // Sólo una consulta iniciada después de ella vuelve a confirmar el estado vigente.
             if (epoch === this.connectionEpoch && this.connectionIssue) {
@@ -150,7 +157,7 @@ export class BlockEditor {
         catch (error) { this.failure(error); return false; }
     }
     receive(data: LiveForm) {
-        if (this.disposed || data.version < this.state.version || Date.parse(data.servidorEn) < this.serverTimestamp) return;
+        if (this.disposed || this.accessDenied || data.version < this.state.version || Date.parse(data.servidorEn) < this.serverTimestamp) return;
         const first = !this.state.initialized;
         if (this.state.saving) { this.latest = data; return; }
         // Una lectura ya aplicada no debe reaplicarse tras un 422 y borrar reservas adquiridas
@@ -195,7 +202,7 @@ export class BlockEditor {
         if (first) for (const key of this.focused) void this.focus(key);
     }
     connectionLost() {
-        if (!this.disposed) {
+        if (!this.disposed && !this.accessDenied) {
             this.connectionEpoch++;
             this.connectionIssue = true;
             for (const key of this.dirtyKeys()) {
@@ -221,6 +228,13 @@ export class BlockEditor {
         const message = response?.data?.message || Object.values(response?.data?.errors || {}).flat()[0]
             || 'Sin confirmar el guardado. Lo escrito se conserva aquí.';
         const validation = response?.data?.validation || [];
+        if (status === 403) {
+            this.accessDenied = true;
+            this.connectionEpoch++;
+            this.latest = undefined;
+            this.state.canSubmit = false;
+            this.state.error = message;
+        }
         if (status === 422) {
             // Sólo el campo inválido se señala; su reserva sigue habilitando correcciones.
             for (const key of keys) if (!validation.length || validation.some(v => v.block === key)) {
@@ -233,7 +247,7 @@ export class BlockEditor {
         } else if (keys.length) for (const key of keys) {
             if (status === 409) this.lost(key);
             else this.kinds.set(key, this.state.locked ? 'permission' : 'connection');
-            this.state.issues[key] = this.state.locked ? 'El acceso cambió. Lo escrito no se ha guardado.' : message;
+            this.state.issues[key] = this.state.locked ? message + ' Lo escrito no se ha guardado.' : message;
         } else this.state.error = message;
         this.emit();
     }

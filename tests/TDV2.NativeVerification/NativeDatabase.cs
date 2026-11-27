@@ -79,7 +79,7 @@ internal sealed class NativeDatabase
             TRUNCATE sincronizacion_configuracion,sincronizacion_ejecuciones,sincronizacion_catalogos,sincronizaciones_institucionales,ilda_informacion_area,sii_modulos,sii_aplicaciones_moviles,sii_aplicaciones_web,aplicaciones_catalogo,aplicaciones_importaciones RESTART IDENTITY;
             INSERT INTO sincronizacion_configuracion(id) VALUES(1);
             TRUNCATE users,ms_graph_tokens,activity_logs,tdv2_sessions,tdv2_oauth_attempts,formatos_ur,colaboraciones_ur,unidades_responsables_poa,
-              fixture_app,fixture_users,fixture_roles,fixture_modules,fixture_module_roles,fixture_grants RESTART IDENTITY CASCADE;
+              fixture_app,fixture_users,fixture_roles,fixture_suspensions,fixture_modules,fixture_module_roles,fixture_grants RESTART IDENTITY CASCADE;
             TRUNCATE fixture_units,fixture_delegation,fixture_delegation_roles,fixture_people,fixture_capability,fixture_representation,fixture_calls,fixture_faults RESTART IDENTITY;
             ALTER SEQUENCE fixture_grant_ids RESTART WITH 900;
             GRANT SELECT ON nexo_aplicacion,nexo_usuarios,nexo_usuario_rol,nexo_modulos,nexo_modulo_rol,nexo_concesiones TO tdv2_native_nexo;

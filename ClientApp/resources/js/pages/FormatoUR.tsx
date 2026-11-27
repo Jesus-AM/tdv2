@@ -212,8 +212,8 @@ function Editor(props: Props) {
     const settled = state.initialized && !state.dirty && !state.saving && !finishing && addingSystemFor === null && !state.error && !state.conflict
         && !state.preparing.length && !Object.keys(state.issues).length && !Object.keys(state.unaccepted).length;
     const otherEditing = Object.keys(state.blocks).some(key => engine.busy(key));
-    const autosave = locked ? 'Solo consulta' : state.saving || finishing ? 'Guardando…'
-        : state.error || Object.keys(state.issues).length ? 'No se pudo guardar'
+    const saveFailed = !!state.error || Object.keys(state.issues).length > 0;
+    const autosave = saveFailed ? 'No se pudo guardar' : locked ? 'Solo consulta' : state.saving || finishing ? 'Guardando…'
         : state.dirty ? 'Cambios pendientes' : state.updatedAt ? 'Guardado' : 'Sin cambios pendientes';
     const initializedSection = useRef(false);
     useEffect(() => {
@@ -1123,18 +1123,10 @@ function Editor(props: Props) {
                         )}
                         <Box>
                             <Typography variant="body2" role="status" aria-live="polite" sx={{ fontWeight: 500 }}>
-                                {locked
-                                    ? 'Solo consulta'
-                                    : state.saving || finishing
-                                      ? 'Guardando…'
-                                      : state.error || Object.keys(state.issues).length
-                                        ? 'No se pudo guardar'
-                                        : state.dirty
-                                          ? 'Cambios pendientes'
-                                          : state.updatedAt ? 'Guardado' : 'Sin cambios pendientes'}
+                                {autosave}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                {state.updatedAt
+                                {state.updatedAt && !saveFailed && !state.dirty
                                     ? `Guardado a las ${new Date(state.updatedAt).toLocaleTimeString('es-MX')}`
                                     : ''}
                             </Typography>

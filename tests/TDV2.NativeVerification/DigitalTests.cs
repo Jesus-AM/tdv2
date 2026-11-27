@@ -74,7 +74,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         await Data("TRUNCATE cd_surveys,cd_consents,cd_targets,cd_reset_operations,cd_activity_events,cd_submissions,cd_reopen_operations");
         await Nexo("TRUNCATE registro_actividad; UPDATE cuentas_postgresql SET habilitada=true");
         await Nexo("""
-            TRUNCATE fixture_app,fixture_users,fixture_roles,fixture_modules,fixture_module_roles,fixture_grants,fixture_units,
+            TRUNCATE fixture_app,fixture_users,fixture_roles,fixture_suspensions,fixture_modules,fixture_module_roles,fixture_grants,fixture_units,
               fixture_capability,fixture_representation,fixture_calls,fixture_faults RESTART IDENTITY;
             INSERT INTO fixture_app VALUES(87,'cd_synthetic','Competencias sintéticas',1);
             INSERT INTO fixture_users VALUES(10,20,'persona@uacj.mx','Persona sintética','individual','0001','A4','adscripcion'),
@@ -259,6 +259,34 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             await Nexo("UPDATE fixture_users SET origen_ur='adscripcion',\"ID_UR\"='A4' WHERE email='persona@uacj.mx'");
             await shared.Sql("UPDATE unidades_responsables_poa SET id_ur_pertenece='A4' WHERE id_ur='A'"); Check((await Survey(client)).Institution["status"]!.ToString() == "incomplete");
         });
+        Test("Perfil: origen publicado, clave, superior y ejercicio en ambos sitios", async (app, client) =>
+        {
+            await shared.Sql("UPDATE fixture_roles SET rol_clave='administrador'; UPDATE fixture_users SET \"CVE_UR\"='111',\"ID_UR_SUPERIOR\"='A3'; INSERT INTO fixture_grants VALUES(99,'persona@uacj.mx',30,'B','central')");
+            await Nexo("UPDATE fixture_users SET \"CVE_UR\"='111',\"ID_UR_SUPERIOR\"='A3' WHERE usuario_id=20; INSERT INTO fixture_grants VALUES(99,'persona@uacj.mx',30,'B','central')");
+            await Login(app, client);
+            foreach (var origin in new[] { "adscripcion", "responsable_ur", "asignacion_manual" })
+            {
+                await Nexo("UPDATE fixture_users SET origen_ur=$1 WHERE usuario_id=20", origin);
+                var view = await Survey(client);
+                Check(view.Institution["name"]!.ToString() == "Persona sintética" && view.Institution["level3"]!["id"]!.ToString() == "A3" && !view.Institution.ContainsKey("employee"));
+                Check((await Json(await client.GetAsync("/inicio")))["props"]!["urAdministracion"]!["id_ur"]!.ToString() == "A");
+            }
+            // El superior de otro ejercicio todavía está marcado presente en este catálogo desactualizado.
+            await shared.Sql("UPDATE unidades_responsables_poa SET ejercicio=2025 WHERE id_ur='A3'");
+            Check((await Survey(client)).Institution["status"]!.ToString() == "incomplete");
+            Check((await Json(await client.GetAsync("/inicio")))["props"]!["urAdministracion"] is null);
+            var configuration = Configuration;
+            configuration["ConnectionStrings:Nexo"] = shared.NexoConnection;
+            configuration["ConnectionStrings:Tdv2"] = shared.AppConnection;
+            using var output = new StringWriter();
+            Check(await SiteProfileReadOnly.Run("20", new ConfigurationBuilder().AddInMemoryCollection(configuration).Build(), output) == 0, output.ToString());
+            var trace = output.ToString();
+            Check(trace.Contains("\"publication\":47") && trace.Contains("\"publication\":87") && trace.Contains("\"mismoEmpleado\":true")
+                && trace.Contains("2025") && trace.Contains("2026") && !trace.Contains("0001") && !trace.Contains("persona@"));
+            await shared.Sql("UPDATE unidades_responsables_poa SET ejercicio=2026 WHERE id_ur='A3'; UPDATE unidades_responsables_poa SET cve_ur='otra' WHERE id_ur='A4'");
+            Check((await Survey(client)).Institution["status"]!.ToString() == "incomplete");
+            Check((await Json(await client.GetAsync("/inicio")))["props"]!["urAdministracion"] is null);
+        });
         Test("Privacidad: API sin consentimiento, CSRF, versión, idempotencia y aislamiento por empleado", async (app, client) =>
         {
             await Login(app, client); var view = await Survey(client); var input = Complete(view);
@@ -326,7 +354,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             await Login(app, client); var view = await CompleteAndSave(client, 2); await Status(client.PostAsJsonAsync(Base + "/api/encuesta/finalizar", new { generation = (await Survey(client)).Generation, version = view.Version }), 200);
             var before = await Survey(client); await Nexo("UPDATE fixture_users SET \"ID_UR\"='B4',nombre='Nombre cambiado' WHERE email='persona@uacj.mx'");
             var after = await Survey(client); Check(after.Institution.ToJsonString() == before.Institution.ToJsonString()); Check(after.Evaluation.Report.Global == before.Evaluation.Report.Global);
-            await Role("administrador"); var own = await Json(await client.GetAsync(Base + "/api/informe?employee=0002")); Check(own["institution"]!["employee"]!.ToString() == "0001");
+            await Role("administrador"); var own = await Json(await client.GetAsync(Base + "/api/informe?employee=0002")); Check(own["institution"]!["name"]!.ToString() == "Persona sintética" && own["institution"]!["employee"] is null);
             Check(!(await client.GetAsync(Base + "/api/informe/0002")).IsSuccessStatusCode);
         });
         Test("Nueva versión técnica o aviso no permiten segundo intento ni reabren el definitivo", async (app, client) =>
@@ -395,7 +423,7 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
             client.DefaultRequestHeaders.Add("X-TDV2-Context", props["contextoEdicion"]!.ToString());
             Check((await Json(await client.GetAsync(Tdv2.Web.ApplicationEntry.Choices)))["redirect"]!.ToString() == Base, "Mi espacio conserva el único contexto representado compatible");
             await Status(client.GetAsync(Base + "/configuracion"), 403); await Status(client.GetAsync("/inicio"), 409);
-            var represented = await Survey(client); Check(represented.Institution["employee"]!.ToString() == "0002");
+            var represented = await Survey(client); Check(represented.Institution["name"]!.ToString() == "Otra persona sintética" && !represented.Institution.ContainsKey("employee"));
             await Status(client.PostAsJsonAsync(Base + "/api/aviso", new { generation = (await Survey(client)).Generation, version = represented.Instrument["notice"]!["version"]!.ToString() }), 403);
             await Status(client.PutAsJsonAsync(Base + "/api/encuesta", Complete(represented)), 403);
             await Status(client.PostAsJsonAsync(Base + "/api/encuesta/finalizar", new { generation = (await Survey(client)).Generation, version = 0 }), 403);
@@ -607,12 +635,12 @@ internal sealed partial class DigitalTests(NativeDatabase shared)
         Check(new[] { "td", "cd", "both", "none", "many", "unavailable", "failed" }.Contains(scenario));
         syntheticSiteCount = scenario == "many" ? 6 : 0;
         await Nexo("GRANT SELECT ON nexo_usuarios TO cd_native_nexo");
-        await shared.Sql("DELETE FROM fixture_roles WHERE email='persona@uacj.mx'");
-        await Nexo("DELETE FROM fixture_roles WHERE email='persona@uacj.mx'");
-        if (scenario is "td" or "both" or "many" or "unavailable")
-            await shared.Sql("INSERT INTO fixture_roles VALUES(10,'persona@uacj.mx',30,'responsable_ur','Responsable')");
-        if (scenario is "cd" or "both" or "many" or "unavailable" or "failed")
-            await Nexo("INSERT INTO fixture_roles VALUES(10,'persona@uacj.mx',30,'participante','Participante')");
+        await shared.Sql("TRUNCATE fixture_suspensions");
+        await Nexo("TRUNCATE fixture_suspensions");
+        if (scenario is not ("td" or "both" or "many" or "unavailable"))
+            await shared.Sql("INSERT INTO fixture_suspensions VALUES(10)");
+        if (scenario is not ("cd" or "both" or "many" or "unavailable" or "failed"))
+            await Nexo("INSERT INTO fixture_suspensions VALUES(10)");
         if (scenario is "unavailable" or "failed") await Nexo("REVOKE SELECT ON nexo_usuarios FROM cd_native_nexo");
     }
     private sealed class DigitalBrowserControls(DigitalTests suite, string token) : IStartupFilter

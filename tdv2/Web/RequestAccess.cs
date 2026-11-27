@@ -25,10 +25,10 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
         if (Real is not null) return Real;
         if (http.User.Identity?.IsAuthenticated != true || string.IsNullOrWhiteSpace(Actor(http))
             || !await identity.Matches(http.User, http.RequestAborted)) throw new DomainProblem(401, "Inicia sesión con tu cuenta institucional de Microsoft 365.");
-        Real = await nexo.ForActor(http.User, http.RequestAborted);
-        if (Real.User.Email != Actor(http) || Real.User.AccountType != "individual" || Real.Roles.Count == 0)
+        var real = await nexo.ForActor(http.User, http.RequestAborted);
+        if (real.User.Email != Actor(http) || real.User.AccountType != "individual" || real.Roles.Count == 0)
             throw new DomainProblem(403, ApplicationEntry.Denied("/inicio"));
-        return Real;
+        return Real = real;
     }
     public async Task<Profile> Profile(HttpContext http, string? module = null)
     {
@@ -83,7 +83,7 @@ public sealed class RequestAccess(INexoProfiles nexo, IFormStore store, ISession
             Effective = profile; audit.Effective = profile; audit.Resolved = Selection;
         }
         if (module is not null && !ModuleAccess.Allows(Selection?.Kind == "preview" ? Real! : Effective, module))
-            throw new DomainProblem(403, "No tienes acceso a este módulo de Transformación Digital.");
+            throw new DomainProblem(403, "No tienes acceso a este módulo de Procedimientos institucionales.");
         return Effective;
     }
     public async Task<UnitDirectory> Units(HttpContext http) => Directory ??= new(await store.Units(http.RequestAborted), await store.Participation(http.RequestAborted));

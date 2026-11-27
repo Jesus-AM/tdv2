@@ -80,11 +80,27 @@ public sealed class DigitalSurveyService(DigitalDbContext db, DigitalInstrument 
         var hasResponses = DigitalInstrument.HasResponses(evaluation.Report, answers);
         // En captura se muestra el contexto vigente; al finalizar se conserva la instantánea.
         var institution = survey?.CompletedAt is not null ? Object(survey.InstitutionJson) : JsonSerializer.SerializeToNode(currentInstitution, DigitalInstrument.Json)!.AsObject();
+        institution.Remove("employee");
         var resource = selected.Resource.DeepClone().AsObject(); resource["notice"] = instrument.Resource["notice"]!.DeepClone();
         resource.Remove("previousDraft");
+        if (survey is { CompletedAt: null }) ApplyClipchampCardText(resource, instrument);
         return new(survey?.Version ?? 0, survey?.CompletedAt, institution, profile, answers, resource, accepted, evaluation,
             selected.Navigation(evaluation, institution["status"]?.ToString() == "available", step), generation, hasResponses, DigitalEditions.Notice(instrument, survey), survey?.Revision ?? 1, survey?.ReopenedAt, MinimumVersion: survey?.MinimumVersion ?? 1);
     }
+
+    private static void ApplyClipchampCardText(JsonObject resource, DigitalInstrument instrument)
+    {
+        const string id = "m-clipchamp-y-stream";
+        var card = resource["modules"]!.AsArray().FirstOrDefault(block => (string?)block?["id"] == "m365")?["tools"]?.AsArray()
+            .FirstOrDefault(tool => (string?)tool?["id"] == id);
+        var current = instrument.Blocks.FirstOrDefault(block => block.Id == "m365")?.Tools.FirstOrDefault(tool => tool.Id == id);
+        if (card is null || current is null) return;
+        card["n"] = current.N;
+        card["s"] = current.S;
+        card["lv"]![2] = JsonSerializer.SerializeToNode(current.Lv[2]);
+        card["lic"] = current.Lic;
+    }
+
     private async Task<T> Write<T>(DigitalScope scope, Guid generation, Func<DigitalSurvey?, Task<T>> work, CancellationToken ct,
         Func<DigitalSurvey?, NpgsqlConnection, NpgsqlTransaction, Task>? localAudit = null)
     {

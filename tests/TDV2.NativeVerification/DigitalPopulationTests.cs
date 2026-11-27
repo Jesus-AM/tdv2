@@ -116,14 +116,14 @@ internal sealed partial class DigitalTests
             progress = await Json(await client.GetAsync(Base + "/api/avance")); Check(progress["summary"]!["target"]!.GetValue<int>()==2);
             await Nexo("UPDATE fixture_users SET num_empleado='0002' WHERE usuario_id=21");
             // El doble simula fallo exclusivamente en lectura colectiva; las consultas personales siguen disponibles.
-            await Nexo("CREATE FUNCTION fixture_population_unit(text) RETURNS text LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic population unavailable'; END $$; CREATE OR REPLACE VIEW nexo_usuarios AS SELECT usuario_aplicacion_id,usuario_id,email,nombre,tipo_cuenta,num_empleado,CASE WHEN usuario_id=21 THEN fixture_population_unit(\"ID_UR\") ELSE \"ID_UR\" END AS \"ID_UR\",origen_ur FROM fixture_users");
+            await Nexo("CREATE FUNCTION fixture_population_unit(text) RETURNS text LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic population unavailable'; END $$; CREATE OR REPLACE VIEW nexo_usuarios AS SELECT usuario_aplicacion_id,usuario_id,email,nombre,tipo_cuenta,num_empleado,CASE WHEN usuario_id=21 THEN fixture_population_unit(\"ID_UR\") ELSE \"ID_UR\" END AS \"ID_UR\",origen_ur,\"CVE_UR\",\"ID_UR_SUPERIOR\" FROM fixture_effective_users");
             try
             {
                 progress = await Json(await client.GetAsync(Base + "/api/avance")); Check(progress["summary"]!["target"] is null && !progress["summary"]!["populationAvailable"]!.GetValue<bool>());
                 var view = await Accept(client); await Status(client.PutAsJsonAsync(Base + "/api/encuesta", new DigitalSave(view.Version, Complete(view).Profile, view.Answers, view.Generation)), 200);
                 Check(Convert.ToInt64(await Data("SELECT count(*) FROM cd_activity_events WHERE \"Payload\"->>'accion'='guardar'")) == 0);
             }
-            finally { await Nexo("CREATE OR REPLACE VIEW nexo_usuarios AS SELECT * FROM fixture_users; DROP FUNCTION fixture_population_unit(text)"); }
+            finally { await Nexo("CREATE OR REPLACE VIEW nexo_usuarios AS SELECT * FROM fixture_effective_users; DROP FUNCTION fixture_population_unit(text)"); }
         });
     }
 }
